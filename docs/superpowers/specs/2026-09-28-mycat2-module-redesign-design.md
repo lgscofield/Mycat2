@@ -290,50 +290,128 @@ public interface AuthPlugin {
 
 ## calcite-core 模块 Fork 隔离策略
 
-- 包名保持 `org.apache.calcite.*` 不变（避免修改 import）
-- 独立 pom.xml，版本号与 Calcite 上游对齐（基础 1.26.0）
-- hbt 通过 `io.mycat:calcite-core` 依赖引入
-- 升级 Calcite 上游时，只需在 calcite-core 内部 merge 冲突
+### 版本号
 
-### eddsa fork 策略
+| 模块 | 版本号 | 含义 |
+|------|--------|------|
+| `io.mycat:calcite-core` | **1.42.0-mycat** | 基于 Calcite 1.42.0 的 Mycat 定制版 |
+| eddsa fork（内嵌于 protocol） | **0.3.0-mycat** | 基于 eddsa 0.3.0 的 fork |
 
-- `net.i2p.crypto:eddsa` 源码 fork 到 protocol 模块内
-- 包名保持 `net.i2p.crypto.eddsa.*` 不变
-- MariaDB `client_ed25519` 认证依赖此 fork
-- 独立维护，不受上游停更影响
+### 依赖策略（二选一，禁止同时依赖 fork 和原版）
+
+| 模块 | 依赖策略 | 说明 |
+|------|---------|------|
+| hbt | `io.mycat:calcite-core:1.42.0-mycat`（**排除** `org.apache.calcite:calcite-core`） | fork 完全替代原版 |
+| executor | 通过 hbt 传递依赖 | 不直接引入 calcite |
+| calcite-linq4j | 继续依赖原版 `org.apache.calcite:calcite-linq4j:1.42.0` | linq4j 无 fork |
+| avatica-core | 继续依赖原版 `org.apache.calcite.avatica:avatica-core:1.26.0` | avatica 无 fork |
+| protocol | eddsa fork 源码内嵌，**不引入** Maven 依赖 | fork 源码直接编译 |
+
+### pom.xml 示例
+
+```xml
+<!-- calcite-core 模块的 pom.xml -->
+<groupId>io.mycat</groupId>
+<artifactId>calcite-core</artifactId>
+<version>1.42.0-mycat</version>
+<dependencies>
+    <dependency>
+        <groupId>org.apache.calcite</groupId>
+        <artifactId>calcite-core</artifactId>
+        <version>1.42.0</version>
+        <scope>provided</scope>  <!-- 编译参考，不传递 -->
+    </dependency>
+</dependencies>
+
+<!-- hbt 模块的 pom.xml -->
+<dependency>
+    <groupId>io.mycat</groupId>
+    <artifactId>calcite-core</artifactId>
+    <version>1.42.0-mycat</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.calcite</groupId>
+    <artifactId>calcite-linq4j</artifactId>
+    <version>1.42.0</version>  <!-- 原版，无 fork -->
+</dependency>
+```
+
+### Calcite 1.26.0 → 1.42.0 升级策略
+
+Calcite 1.26→1.42 跨度较大（~5 年发布周期），61 个 fork 文件需重新 merge：
+
+| 步骤 | 说明 |
+|------|------|
+| 1. 创建 calcite-core 模块，引入 Calcite 1.42.0 作为 provided 依赖 | 新模块可编译 |
+| 2. 逐个将 61 个 fork 文件从 hbt 复制到 calcite-core，对照 Calcite 1.42.0 源码 merge 差异 | 每个文件 merge 后编译验证 |
+| 3. hbt 切换依赖为 `io.mycat:calcite-core:1.42.0-mycat`，删除旧 fork 文件 | 全量编译通过 |
+
+重点关注 API 变更：
+- `RelNode` 接口可能新增方法
+- `RexBuilder` 签名变更
+- 优化器框架 (`HepPlanner`, `VolcanoPlanner`) API 调整
+- `SqlFunctions` 运行时函数新增/删除
+
+### 废弃模块清理
+
+| 目录 | 当前状态 | 处理 |
+|------|---------|------|
+| `calcite/` | 废弃空壳（仅 pom.xml，版本 1.15-dev，未参与构建） | **删除** |
+| `linq4j/` | 废弃空壳（仅 pom.xml，版本 1.13-realase，未参与构建） | **删除** |
 
 ## JDK 21 依赖升级矩阵
 
-### 编译阻断项（不升级则 JDK 21 无法编译）
+### 完整版本号清单（全部升级到最新稳定版）
 
-| 依赖 | 当前 → 目标 | 原因 |
-|------|------------|------|
-| maven-compiler-plugin | 2.3.2 → 3.14.1 | 不支持 release 21 |
-| lombok | 1.18.8 → 1.18.42 | <1.18.30 JDK 21 编译失败 |
-| janino | 3.0.11/3.1.0 → 3.1.12 | 旧版无法处理 JDK 21 字节码 |
-| jakarta.annotation-api | 无 → 2.1.1（新增） | javax.annotation 已从 JDK 11 移除 |
-| arrow-* | 5.0.0 → 18.1.0 | 内部使用 sun.misc.Unsafe |
+#### 编译阻断项（不升级则 JDK 21 无法编译）
 
-### 安全关键项
+| 依赖 | 当前 | 目标 | 原因 |
+|------|------|------|------|
+| maven-compiler-plugin | 2.3.2 | **3.14.1** | 不支持 release 21 |
+| lombok | 1.18.8 | **1.18.42** | <1.18.30 JDK 21 编译失败 |
+| janino | 3.0.11/3.1.0 | **3.1.12** | 旧版无法处理 JDK 21 字节码 |
+| jakarta.annotation-api | 无 | **2.1.1**（新增） | javax.annotation 已从 JDK 11 移除 |
+| arrow-* | 5.0.0 | **18.1.0** | 内部使用 sun.misc.Unsafe |
 
-| 依赖 | 当前 → 目标 |
-|------|------------|
-| jackson-* | 2.10.0 → 2.18.4 |
-| logback-* | 1.2.3 → 1.5.18 |
-| netty-* | 4.1.74 → 4.1.119 |
-| guava | 31.0.1 → 33.4.8-jre |
+#### 安全关键项
 
-### 功能升级项
+| 依赖 | 当前 | 目标 |
+|------|------|------|
+| jackson-* | 2.10.0 | **2.18.4** |
+| logback-* | 1.2.3 | **1.5.18** |
+| netty-* | 4.1.74 | **4.1.119** |
+| guava | 31.0.1 | **33.4.8-jre** |
 
-| 依赖 | 当前 → 目标 | 说明 |
-|------|------------|------|
-| vertx-* | 4.2.5 → 4.5.14 | JDK 21 Virtual Thread 支持 |
-| rxjava | 3.0.6 → 3.1.10 | 性能改进 |
-| mysql-connector-java | 8.0.25 → 9.3.0 | MySQL 9.x 支持 |
-| mariadb-java-client | 无 → 3.5.3（新增） | MariaDB 后端支持 |
-| druid | 1.2.6 → 1.2.25 | 连接池 VT 兼容修复 |
-| kafka-clients | 2.7.2 → 4.0.0 | 安全修复 |
-| clickhouse-jdbc | 0.3.2 → 0.7.3 | 新协议支持 |
+#### 核心框架升级项
+
+| 依赖 | 当前 | 目标 | 说明 |
+|------|------|------|------|
+| **calcite-core** | **1.26.0** | **1.42.0** | **最新版（2026.03），JDK 21 原生支持，61 个 fork 文件需重新 merge** |
+| **calcite-linq4j** | **1.26.0** | **1.42.0** | 随 calcite-core 同步升级 |
+| **avatica-core** | **1.17.0** | **1.26.0** | 与 Calcite 1.42.0 配套 |
+| **druid** | **1.2.6** | **1.2.28** | 连接池 VT 兼容 + 大量 Bug 修复 |
+| vertx-* | 4.2.5 | **4.5.14** | JDK 21 Virtual Thread 支持 |
+| rxjava | 3.0.6 | **3.1.10** | 性能改进 |
+
+#### 功能升级项
+
+| 依赖 | 当前 | 目标 | 说明 |
+|------|------|------|------|
+| mysql-connector-java → mysql-connector-j | 8.0.25 | **9.3.0** | MySQL 9.x 支持 + artifactId 变更 |
+| mariadb-java-client | 无 | **3.5.3**（新增） | MariaDB 后端支持 |
+| kafka-clients | 2.7.2 | **4.0.0** | 安全修复 |
+| clickhouse-jdbc | 0.3.2 | **0.7.3** | 新协议支持 |
+| oshi-core | 5.8.5 | **6.8.2** | JDK 21 兼容 |
+| ehcache | 2.10.6 | **3.10.8** | JDK 21 兼容 |
+
+#### 测试框架升级项
+
+| 依赖 | 当前 | 目标 | 说明 |
+|------|------|------|------|
+| JUnit | 4.13.1 | **5.12.2** | JUnit 5 支持 |
+| Mockito | 注释掉 | **5.16.1**（引入） | 单元测试必需 |
+| AssertJ | 无 | **3.27.3**（引入） | 流式断言 |
+| TestContainers | 无 | **1.21.0**（引入） | 容器化集成测试 |
 
 ### JDK 21 P0 代码修复项
 
@@ -367,13 +445,15 @@ Phase（阶段）
 
 | 依赖升级 | 影响文件数 | 风险等级 | 关键风险点 |
 |----------|-----------|---------|----------|
-| Vert.x 4.2.5→4.5.14 | **~80+** | 极高 | 大量使用 `impl.*` 内部 API（PromiseInternal、impl.logging、ConcurrentHashSet） |
-| Arrow 5.0→18.1 | **~38+** | 高 | VectorSchemaRoot 包路径变更 + allocator API 签名变更 |
+| **Calcite 1.26→1.42（新增）** | **61 fork + ~20 引用** | **极高** | 61 个 fork 文件需重新 merge，RelNode/RexBuilder/SqlFunctions API 变更 |
+| Vert.x 4.2.5→4.5.14 | ~80+ | 极高 | 大量使用 `impl.*` 内部 API |
+| Arrow 5.0→18.1 | ~38+ | 高 | VectorSchemaRoot 包路径变更 + allocator API 签名变更 |
+| Druid 1.2.6→1.2.28 | ~15 | 中 | 连接池 API 微调，StatFilter 变更 |
 | RxJava 3 使用面 | ~58+ | 中 | 若迁移 Observable→Flowable 则工作量巨大 |
-| Guava 31→33.4 | ~62+ | 中低 | `UnsignedLong` 废弃（1 文件），集合工具类 API 稳定 |
+| Guava 31→33.4 | ~62+ | 中低 | `UnsignedLong` 废弃（1 文件） |
 | javax→jakarta | ~12 生产 + 40 测试 | 中高 | validation + annotation 全量替换 |
-| mysql-connector 重命名 | 5 pom + 17 java | 低 | 仅 pom.xml 变更，`com.mysql.cj` 包名不变 |
-| Jackson 2.10→2.18 | 1 | 极低 | 仅 1 个文件，API 兼容 |
+| mysql-connector 重命名 | 5 pom + 17 java | 低 | 仅 pom.xml 变更 |
+| Jackson 2.10→2.18 | 1 | 极低 | 仅 1 个文件 |
 
 ---
 
@@ -457,15 +537,17 @@ Gate: `mvn compile` 全项目通过
 | 1.1.6 | 创建新协议抽象接口（ProtocolCodec, AuthPlugin, CapabilityFlags, ServerStatus） | 接口定义 + 单元测试骨架 |
 | 1.1.7 | 删除 common 中的旧文件 | `mvn compile` 全项目通过 |
 
-#### Milestone 1.2: 创建 calcite-core 模块（~70 文件迁入）
+#### Milestone 1.2: 创建 calcite-core 模块 + Calcite 1.42.0 升级
 Gate: `mvn compile` 全项目通过
 
 | # | 原子任务 | 验收标准 |
 |---|---------|----------|
-| 1.2.1 | 创建 `calcite-core/` 目录 + `pom.xml` | `mvn validate -pl calcite-core` |
-| 1.2.2 | 移动 `org/apache/calcite/` 全部 68 文件 + Druid 非 parser 文件 (~2) | `mvn compile -pl calcite-core` |
-| 1.2.3 | 更新 hbt `pom.xml` 添加 calcite-core 依赖 | `mvn compile -pl hbt` |
-| 1.2.4 | 删除 hbt 中的旧 fork 文件 | `mvn compile` 全项目通过 |
+| 1.2.1 | 创建 `calcite-core/` 目录 + `pom.xml`（版本 1.42.0-mycat） | `mvn validate -pl calcite-core` |
+| 1.2.2 | 逐个将 61 个 fork 文件从 hbt 复制到 calcite-core，对照 Calcite 1.42.0 源码 merge 差异 | `mvn compile -pl calcite-core` |
+| 1.2.3 | 更新 hbt `pom.xml`：移除 `org.apache.calcite:calcite-core:1.26.0`，添加 `io.mycat:calcite-core:1.42.0-mycat` | `mvn compile -pl hbt` |
+| 1.2.4 | 升级 calcite-linq4j 到 1.42.0 + avatica-core 到 1.26.0 | `mvn compile -pl hbt` |
+| 1.2.5 | 删除 hbt 中的旧 fork 文件 | `mvn compile` 全项目通过 |
+| 1.2.6 | 删除废弃的 `calcite/` 和 `linq4j/` 目录 | 编译不受影响 |
 
 #### Milestone 1.3: mycat2 → server 重命名（调整 ~73 文件）
 Gate: `mvn compile` 全项目通过
@@ -675,12 +757,13 @@ src/test/resources/
 
 | 风险 | 概率 | 影响 | 缓解 |
 |------|------|------|------|
-| **Vert.x 内部 API 不兼容（最大风险）** | **极高** | **极高** | 80+ 文件使用 impl.* 内部 API，升级前逐一确认公开替代方案 |
+| **Calcite 1.26→1.42 fork 重新 merge** | **极高** | **极高** | 61 个文件逐个 merge，RelNode/RexBuilder/SqlFunctions API 变更，每个文件编译验证 |
+| **Vert.x 内部 API 不兼容** | **极高** | **极高** | 80+ 文件使用 impl.* 内部 API，升级前逐一确认公开替代方案 |
 | Arrow API 包路径变更 | 高 | 高 | 38+ 文件受影响，逐文件修复 + 编译验证 |
+| Druid 1.2.6→1.2.28 API 变更 | 中 | 中 | 连接池 API 微调，StatFilter 变更 |
 | 模块迁移导致循环依赖 | 中 | 高 | 严格 DAG 约束 + Maven Enforcer 插件 |
 | MariaDB 协议差异遗漏 | 中 | 高 | 协议兼容性测试套件（TCK） |
 | synchronized → ReentrantLock 引入 Bug | 中 | 中 | 逐文件替换 + 单元测试覆盖 |
-| Calcite fork 升级冲突 | 低 | 中 | calcite-core 隔离后影响面可控 |
 | eddsa fork 安全漏洞 | 低 | 高 | 定期安全审计 + 关注上游替代方案 |
 
 ## 验证标准
