@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
 
-import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Parser;
 import com.mysql.cj.exceptions.CJCommunicationsException;
@@ -126,7 +126,7 @@ public class SyncMessageReader implements MessageReader<XMessageHeader, XMessage
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends GeneratedMessageV3> T readMessageLocal(Class<T> messageClass) {
+    private <T extends Message> T readMessageLocal(Class<T> messageClass) {
         Parser<T> parser = (Parser<T>) MessageConstants.MESSAGE_CLASS_TO_PARSER.get(messageClass);
         byte[] packet = new byte[this.header.getMessageSize()];
 
@@ -157,7 +157,7 @@ public class SyncMessageReader implements MessageReader<XMessageHeader, XMessage
         // waiting for ListenersDispatcher completion to perform sync call
         synchronized (this.waitingSyncOperationMonitor) {
             try {
-                Class<? extends GeneratedMessageV3> expectedClass = MessageConstants.getMessageClassForType(expectedType);
+                Class<? extends Message> expectedClass = MessageConstants.getMessageClassForType(expectedType);
 
                 List<Notice> notices = null;
                 XMessageHeader hdr;
@@ -168,7 +168,7 @@ public class SyncMessageReader implements MessageReader<XMessageHeader, XMessage
                     notices.add(Notice.getInstance(new XMessage(readMessageLocal(MessageConstants.getMessageClassForType(ServerMessages.Type.NOTICE_VALUE)))));
                 }
 
-                Class<? extends GeneratedMessageV3> messageClass = MessageConstants.getMessageClassForType(hdr.getMessageType());
+                Class<? extends Message> messageClass = MessageConstants.getMessageClassForType(hdr.getMessageType());
                 // ensure that parsed message class matches incoming tag
                 if (expectedClass != messageClass) {
                     throw new WrongArgumentException("Unexpected message class. Expected '" + expectedClass.getSimpleName() + "' but actually received '"

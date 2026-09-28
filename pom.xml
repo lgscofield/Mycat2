@@ -179,6 +179,46 @@
         <artifactId>vertx</artifactId>
         <version>${mycat.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>mycat2</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>example</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>statistic</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>seata</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>migrate</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>assistant</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>internalexample</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>console</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
 
       <!-- Lombok -->
       <dependency>
@@ -438,7 +478,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.1</version>
         <configuration>
-          <release>21</release>
+          <source>21</source>
+          <target>21</target>
           <encoding>UTF-8</encoding>
           <compilerArgs>
             <arg>--add-exports</arg>

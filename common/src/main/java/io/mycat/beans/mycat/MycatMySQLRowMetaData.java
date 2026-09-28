@@ -76,7 +76,9 @@ public class MycatMySQLRowMetaData implements MycatRowMetaData {
     @Override
     public int getColumnType(int column) {
         ColumnDefPacket columnDefPacket = columnDefPackets.get(column);
-        return DataType.valueOf(columnDefPacket.getColumnType()).jdbcType.getVendorTypeNumber();
+        return DataType.parseDataType((short) columnDefPacket.getColumnType(),
+                columnDefPacket.getColumnFlags(), columnDefPacket.getColumnCharsetSet())
+                .getJdbcType().getVendorTypeNumber();
     }
 
     @Override
@@ -117,32 +119,32 @@ public class MycatMySQLRowMetaData implements MycatRowMetaData {
         List<MycatField> mycatFields = columnDefPackets.stream().map(new Function<ColumnDefPacket, MycatField>() {
             @Override
             public MycatField apply(ColumnDefPacket columnDefPacket) {
-                DataType dataType = DataType.valueOf(columnDefPacket.getColumnType());
+                DataType dataType = DataType.parseDataType((short) columnDefPacket.getColumnType(),
+                        columnDefPacket.getColumnFlags(), columnDefPacket.getColumnCharsetSet());
                 String columnName = new String(columnDefPacket.getColumnName());
-                JDBCType jdbcType = dataType.jdbcType;
+                JDBCType jdbcType = dataType.getJdbcType();
                 boolean nullable = columnDefPacket.isNullable();
                 boolean signed = columnDefPacket.isSigned();
                 int columnDecimals = columnDefPacket.getColumnDecimals();
                 MycatDataType mycatDataType = MycatDataType.VARCHAR;
-                boolean text = columnDefPacket.getColumnCharsetSet()!= CharsetMapping.MYSQL_COLLATION_INDEX_binary;
                 boolean binary = (columnDefPacket.getColumnFlags() & MySQLFieldsType.BINARY_FLAG) != 0;
                 boolean blob = (columnDefPacket.getColumnFlags() & MySQLFieldsType.BLOB_FLAG) != 0;
                 switch (dataType) {
-                    case INT1:
+                    case INT8:
                         if (columnName.toLowerCase().contains("bool")) {
                             mycatDataType = MycatDataType.BOOLEAN;
                         } else {
                             mycatDataType = signed ? MycatDataType.TINYINT : MycatDataType.UNSIGNED_TINYINT;
                         }
                         break;
-                    case INT2:
+                    case INT16:
                         mycatDataType = signed ? MycatDataType.SHORT : MycatDataType.UNSIGNED_SHORT;
                         break;
-                    case INT3:
-                    case INT4:
+                    case INT24:
+                    case INT32:
                         mycatDataType = signed ? MycatDataType.INT : MycatDataType.UNSIGNED_INT;
                         break;
-                    case INT8:
+                    case INT64:
                         mycatDataType = signed ? MycatDataType.LONG : MycatDataType.UNSIGNED_LONG;
                         break;
                     case DOUBLE:
@@ -168,15 +170,16 @@ public class MycatMySQLRowMetaData implements MycatRowMetaData {
                             mycatDataType = MycatDataType.VARCHAR;
                         }
                         break;
-                    case TINYBLOB:
+                    case TINY_TEXT:
+                    case MEDIUM_TEXT:
+                    case LONG_TEXT:
+                        mycatDataType = MycatDataType.VARCHAR;
+                        break;
+                    case TINY_BLOB:
                     case BLOB:
-                    case MEDIUMBLOB:
-                    case LONGBLOB:
-                        if (text){
-                            mycatDataType = MycatDataType.VARCHAR;
-                        }else {
-                            mycatDataType = MycatDataType.BINARY;
-                        }
+                    case MEDIUM_BLOB:
+                    case LONG_BLOB:
+                        mycatDataType = MycatDataType.BINARY;
                         break;
                     case DATE:
                         mycatDataType = MycatDataType.DATE;
