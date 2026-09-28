@@ -94,91 +94,85 @@
             <version>1.7.25</version>
         </dependency>
 
+        <!-- javax.annotation (removed in JDK 11+, needed by Calcite source) -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
         <!-- Runtime dependencies from upstream Calcite 1.42.0 -->
+        <!-- Note: Many upstream Calcite deps are declared as runtime scope but are
+             actually needed at compile time since we compile the full Calcite source. -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.google.uzaygezen</groupId>
             <artifactId>uzaygezen-core</artifactId>
             <version>0.2</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>2.10.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.datasketches</groupId>
             <artifactId>sketches-core</artifactId>
             <version>0.9.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.16.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>aggdesigner-algorithm</artifactId>
             <version>6.1</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
             <version>2.11.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.11.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>joou-java-6</artifactId>
             <version>0.9.5</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.15.0</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>commons-compiler</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Immutables: annotation processor for @Value.Immutable Config pattern -->
