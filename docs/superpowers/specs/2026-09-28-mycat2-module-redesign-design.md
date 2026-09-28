@@ -20,23 +20,25 @@
 
 ## 版本支持矩阵
 
-### 后端存储节点
+### 后端存储节点（Mycat2 连接到这些数据库）
 
-| 数据库 | 目标版本 | 默认认证插件 | 协议版本 |
-|--------|---------|------------|---------|
-| MySQL 5.7.x | 兼容支持 | `mysql_native_password` | HandshakeV10 |
-| MySQL 8.0.x | 主力支持 | `caching_sha2_password` | HandshakeV10 |
-| MySQL 8.4.x (LTS) | 主力支持 | `caching_sha2_password` | HandshakeV10 |
-| MySQL 9.x (Innovation) | 跟踪支持 | `caching_sha2_password` | HandshakeV10 |
-| MariaDB 10.6+ (LTS) | 主力支持 | `mysql_native_password` | HandshakeV10 + MariaDB 扩展 |
-| MariaDB 11.x | 主力支持 | `mysql_native_password` + ed25519 | HandshakeV10 + MariaDB 扩展 |
+| 数据库 | 支持级别 | 默认认证插件 | 协议版本 | 关键差异点 |
+|--------|---------|------------|---------|----------|
+| MySQL 5.7.x | **主力支持** | `mysql_native_password` | HandshakeV10 | EOF 包模式，无 caching_sha2 |
+| MySQL 8.0.x | **主力支持** | `caching_sha2_password` | HandshakeV10 | 新认证、utf8mb4 默认 |
+| MySQL 8.4.x (LTS) | **主力支持** | `caching_sha2_password` | HandshakeV10 | 长期支持版，废弃旧 API |
+| MySQL 9.x (Innovation) | **主力支持** | `caching_sha2_password` | HandshakeV10 | `MYSQL_TYPE_VECTOR` 等新类型 |
+| MariaDB 10.11.x (LTS) | **主力支持** | `mysql_native_password` | HandshakeV10 + MariaDB 扩展 | 长期支持版，ed25519 可选 |
+| MariaDB 11.x | **主力支持** | `mysql_native_password` + ed25519 | HandshakeV10 + MariaDB 扩展 | 新特性、新存储引擎 |
+
+> **约束**：所有主力支持版本必须在 CI 中覆盖（单元测试 + 集成测试），不允许降级为“兼容支持”或“跟踪支持”。
 
 ### 前端协议（客户端连接到 Mycat2）
 
 | 客户端 | 支持方式 |
-|--------|---------|
-| MySQL 客户端/驱动 | 原生支持 |
-| MariaDB 客户端/驱动 | 协议兼容层支持（MariaDB 客户端可连 MySQL 协议服务器） |
+|--------|--------|
+| MySQL 客户端/驱动（5.7/8.x/9.x） | 原生支持 |
+| MariaDB 客户端/驱动（10.11/11.x） | 协议兼容层支持（MariaDB 客户端可连 MySQL 协议服务器） |
 
 ## 新模块架构（18 模块，5 层）
 
@@ -84,7 +86,7 @@ va              → [common]
 plug            → [router, common]
 replica         → [common, plug]
 datasource      → [config, common, protocol, plug, replica]
-calcite-core    → [] (仅 Calcite 1.26 + eddsa fork，无 io.mycat 依赖)
+calcite-core    → [] (仅 Calcite 1.42.0 + eddsa fork，无 io.mycat 依赖)
 hbt             → [common, protocol, calcite-core, plug, datasource, config, va]
 executor        → [common, protocol, hbt]
 proxy           → [common, protocol, plug, router, replica, datasource, va]
