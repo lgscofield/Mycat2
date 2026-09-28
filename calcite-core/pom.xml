@@ -181,6 +181,19 @@
             <artifactId>value</artifactId>
         </dependency>
 
+        <!-- RxJava: required by RxBuiltInMethod (Mycat addition) -->
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+
+        <!-- Date parser: required by MycatBuiltInMethodImpl (Mycat addition) -->
+        <dependency>
+            <groupId>com.github.sisyphsu</groupId>
+            <artifactId>dateparser</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
