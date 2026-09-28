@@ -258,14 +258,19 @@
             <version>1.9.0</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
+        <!-- Mycat Calcite fork (replaces org.apache.calcite:calcite-core) -->
         <dependency>
-            <groupId>org.apache.calcite</groupId>
+            <groupId>io.mycat</groupId>
             <artifactId>calcite-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-linq4j</artifactId>
+        </dependency>
+        <!-- Immutables: required by Calcite 1.42 @Value.Immutable Config pattern -->
+        <dependency>
+            <groupId>org.immutables</groupId>
+            <artifactId>value</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.hydromatic/foodmart-data-hsqldb -->
         <dependency>
@@ -440,6 +445,24 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.immutables</groupId>
+                            <artifactId>value</artifactId>
+                            <version>${immutables.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <repositories>

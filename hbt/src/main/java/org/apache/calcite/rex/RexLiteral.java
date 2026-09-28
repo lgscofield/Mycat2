@@ -28,8 +28,6 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.runtime.FlatLists;
-import org.apache.calcite.runtime.GeoFunctions;
-import org.apache.calcite.runtime.Geometries;
 import org.apache.calcite.sql.SqlCollation;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlOperator;
@@ -411,7 +409,7 @@ public class RexLiteral extends RexNode {
       case DYNAMIC_STAR:
         break;
       case GEOMETRY:
-        return value instanceof Geometries.Geom;
+        return false;
       case ANY:
         // Literal of type ANY is not legal. "CAST(2 AS ANY)" remains
         // an integer literal surrounded by a cast function.
@@ -753,8 +751,7 @@ public class RexLiteral extends RexNode {
                         sb3.append(list.get(i).computeDigest(includeType))));
         break;
       case GEOMETRY:
-        final String wkt = GeoFunctions.ST_AsWKT((Geometries.Geom) value);
-        sb.append(wkt);
+        sb.append(value);
         break;
       case FLOAT:
         break;

@@ -2907,6 +2907,10 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     return visitInputRef(fieldRef);
   }
 
+  @Override public Result visitNodeAndFieldIndex(RexNodeAndFieldIndex nodeAndFieldIndex) {
+    throw new RuntimeException("cannot translate expression " + nodeAndFieldIndex);
+  }
+
   Expression checkNull(Expression expr) {
     if (Primitive.flavor(expr.getType())
         == Primitive.Flavor.PRIMITIVE) {
