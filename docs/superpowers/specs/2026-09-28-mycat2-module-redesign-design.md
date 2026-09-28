@@ -345,46 +345,230 @@ public interface AuthPlugin {
 | ~30+ 文件 | synchronized 导致 VT pinning | 逐文件替换为 ReentrantLock |
 | `IOExecutor.java` | CachedThreadPool | 替换为 `Executors.newVirtualThreadPerTaskExecutor()` |
 
-## 实施路线图（4 阶段）
+## 实施路线图（4 阶段，精细化原子任务）
 
-### Phase 0: JDK 21 编译通过（2 周）
+### 防遗漏方法论
 
-1. 升级父 POM 所有依赖版本到目标矩阵
-2. 修复 6 个 P0 编译阻断项
-3. 验证 `mvn compile` 在 JDK 21 下通过
-4. 替换 Dockerfile 基础镜像为 JDK 21
+```
+Phase（阶段）
+ └── Milestone（里程碑，每个有 Gate 验收条件）
+      └── Atomic Task（原子任务，每个做完后项目仍可编译）
+           └── Checklist（检查清单，确保无遗漏）
+```
 
-### Phase 1: 模块重构（4 周）
+| 规则 | 含义 |
+|------|------|
+| **每步可编译** | 每个原子任务完成后，`mvn compile` 必须通过 |
+| **级联显式化** | 每次文件移动/重命名，用 `grep` 扫描所有引用方，列出级联清单 |
+| **Gate 可机器验证** | 每个里程碑的验收条件是可执行命令，不是人工判断 |
+| **每任务一 commit** | 每个原子任务一个 git commit，方便回滚 |
 
-1. 创建 `protocol` 模块，迁移 ~95 个协议文件
-2. 创建 `calcite-core` 模块，迁移 ~70 个 fork 文件
-3. 重命名 `mycat2` → `server`，调整内容
-4. 迁移 148 个函数文件到 `executor`
-5. 更新所有模块 pom.xml 依赖
-6. 验证全量编译和基础功能测试
+### 依赖升级级联影响总表
 
-### Phase 2: Virtual Thread 迁移（3 周）
+| 依赖升级 | 影响文件数 | 风险等级 | 关键风险点 |
+|----------|-----------|---------|----------|
+| Vert.x 4.2.5→4.5.14 | **~80+** | 极高 | 大量使用 `impl.*` 内部 API（PromiseInternal、impl.logging、ConcurrentHashSet） |
+| Arrow 5.0→18.1 | **~38+** | 高 | VectorSchemaRoot 包路径变更 + allocator API 签名变更 |
+| RxJava 3 使用面 | ~58+ | 中 | 若迁移 Observable→Flowable 则工作量巨大 |
+| Guava 31→33.4 | ~62+ | 中低 | `UnsignedLong` 废弃（1 文件），集合工具类 API 稳定 |
+| javax→jakarta | ~12 生产 + 40 测试 | 中高 | validation + annotation 全量替换 |
+| mysql-connector 重命名 | 5 pom + 17 java | 低 | 仅 pom.xml 变更，`com.mysql.cj` 包名不变 |
+| Jackson 2.10→2.18 | 1 | 极低 | 仅 1 个文件，API 兼容 |
 
-1. ~30+ 文件 synchronized → ReentrantLock
-2. IOExecutor → VirtualThread executor
-3. 连接池 Druid → HikariCP 5.x（或 Druid 最新版）
-4. 验证 VT 下无 carrier thread pinning
+---
 
-### Phase 3: MariaDB 接入（3 周）
+### Phase 0: JDK 21 编译通过（预估 2-3 周）
 
-1. protocol 模块实现 `client_ed25519` 认证
-2. 新增 MariaDBProtocolCodec（能力标志位探测）
-3. datasource 模块新增 MariaDB 后端类型
-4. 集成测试：MariaDB 10.6/11.x 全量回归
+#### Milestone 0.1: 构建工具升级
+Gate: `mvn help:effective-pom` 输出 JDK 21 target
+
+| # | 原子任务 | 涉及文件 | 验收标准 |
+|---|---------|---------|----------|
+| 0.1.1 | 更新 maven-compiler-plugin → 3.14.1，设 `<release>21</release>` | `pom.xml` | effective-pom 显示 release=21 |
+| 0.1.2 | 添加 `<dependencyManagement>` 集中管理所有版本号 | `pom.xml` | 子模块不再硬编码版本号 |
+| 0.1.3 | 更新 lombok → 1.18.42 | `pom.xml` | `mvn compile -pl config` 通过 |
+
+#### Milestone 0.2: P0 编译阻断修复
+Gate: `mvn compile -pl common,assistant` 通过
+
+| # | 原子任务 | 涉及文件 | 改法 | 验收标准 |
+|---|---------|---------|------|----------|
+| 0.2.1 | 替换 `sun.nio.ch.DirectBuffer` | `MycatDirectByteBufferPool.java` (2 处) | `VarHandle` 或 `--add-exports` | compile 通过 |
+| 0.2.2 | 替换 `com.sun.glass.events` | `assistant/UIMain.java` (1 处) | 改用 `javafx.stage.WindowEvent` | compile 通过 |
+
+#### Milestone 0.3: P1 运行时阻断修复
+Gate: 代码审查通过 + 启动 smoke test 不抛异常
+
+| # | 原子任务 | 涉及文件 | 改法 |
+|---|---------|---------|------|
+| 0.3.1 | 替换 `Thread.stop()` | `IOExecutor.java` (L52,55) | `thread.interrupt()` + 协作取消 |
+| 0.3.2 | 移除 `SecurityManager` | `NameableThreadFactory.java` (L15-16) | `Thread.currentThread().getThreadGroup()` |
+
+#### Milestone 0.4: 核心依赖版本升级（按风险从低到高）
+Gate: 每次升级后 `mvn compile` 全项目通过
+
+| # | 原子任务 | 影响文件 | 关键改法 |
+|---|---------|---------|----------|
+| 0.4.1 | 升级 jackson 2.10→2.18 | 1 | 无 API 变更 |
+| 0.4.2 | 升级 guava 31→33.4 | ~62 | `UnsignedLong`→`Long`（1 文件） |
+| 0.4.3 | mysql-connector-java → mysql-connector-j | 5 pom | 仅改 artifactId/groupId |
+| 0.4.4 | 升级 logback 1.2→1.5 | pom | SLF4J 2.x 配套升级 |
+| 0.4.5 | 升级 netty 4.1.74→4.1.119 | pom | 验证 NIO reactor 无变更 |
+| 0.4.6 | **升级 Arrow 5.0→18.1** | **~38** | **VectorSchemaRoot 包路径变更 + allocator API 签名变更，逐文件修复** |
+| 0.4.7 | 升级 Janino 3.0→3.1.12 | pom + hbt | 验证代码生成兼容性 |
+| 0.4.8 | javax→jakarta 迁移 | ~12 生产 + 40 测试 | 全量替换 import |
+| 0.4.9 | **升级 Vert.x 4.2.5→4.5.14（最高风险）** | **~80+** | 见下方子任务分解 |
+
+#### Milestone 0.4.9 子任务：Vert.x 内部 API 迁移
+
+| # | 子任务 | 受影响文件 | 改法 |
+|---|-------|-----------|------|
+| 0.4.9a | `PromiseInternal` → `Promise` | IOExecutor, MySQLDatasourcePool, MySQLPacketExchanger, MycatSessionWriteHandler, MySQLClientSession, MySQLProxyServerSession, MySQLServerSession, MycatSession, MySQLTaskUtil, AsyncMycatDataContextImpl **(10 文件)** | 替换为公开 API `Promise` |
+| 0.4.9b | `PromiseImpl` → `Promise` | MySQLProxyServerSession **(1 文件)** | 同上 |
+| 0.4.9c | `impl.logging.Logger` → SLF4J | EmbeddedZKServer, AbstractMySQLManagerImpl, ImmutableCoordinatorLog, ImmutableParticipantLog, AbstractXaSqlConnection, OnePhaseXaSqlConnection, XaLogImpl **(7 文件)** | `LoggerFactory.getLogger()` |
+| 0.4.9d | `impl.ConcurrentHashSet` → JDK | XaLogImpl **(1 文件)** | `ConcurrentHashMap.newKeySet()` |
+| 0.4.9e | `spi.metrics.*` 适配 | IOExecutor **(1 文件)** | 评估移除或适配新 SPI |
+| 0.4.9f | `mysqlclient.impl.*` codec | vertx 模块 4 文件 + BaseRowObservable, EmitterObjectsCollector, MycatDataType, MycatMySQLRowMetaData **(8 文件)** | 评估 Vert.x 4.5 公开替代 API |
+| 0.4.9g | `VertxImpl` 内部类型 | IOExecutor **(1 文件)** | 改用公开 API |
+
+#### Milestone 0.5: 基础设施升级
+Gate: Docker build 成功 + smoke test 通过
+
+| # | 原子任务 | 涉及文件 | 验收标准 |
+|---|---------|---------|----------|
+| 0.5.1 | 替换 Dockerfile 基础镜像 | `mycat2/Dockerfile` | `docker build` 成功 |
+| 0.5.2 | 全量编译验证 | 全项目 | `mvn compile -DskipTests` 零错误 |
+| 0.5.3 | 启动 smoke test | - | Mycat2 能启动并接受 MySQL 连接 |
+
+---
+
+### Phase 1: 模块重构（预估 3-4 周）
+
+#### Milestone 1.1: 创建 protocol 模块（~95 文件迁入）
+Gate: `mvn compile` 全项目通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 1.1.1 | 创建 `protocol/` 目录 + `pom.xml` | `mvn validate -pl protocol` |
+| 1.1.2 | 移动 `beans/mysql/` (28) + `beans/mysql/charset/` (4) + `beans/mysql/packet/` (17) | `mvn compile -pl protocol` |
+| 1.1.3 | 移动 `swapbuffer/` (10) + `util/packet/` (8) | 同上 |
+| 1.1.4 | 移动 Vert.x codec 补丁 (4) + MySQL 工具类 (~10) | 同上 |
+| 1.1.5 | **级联 import 更新**：`grep -rn` 扫描所有旧包路径，逐文件更新引用 | `mvn compile` **全项目**通过 |
+| 1.1.6 | 创建新协议抽象接口（ProtocolCodec, AuthPlugin, CapabilityFlags, ServerStatus） | 接口定义 + 单元测试骨架 |
+| 1.1.7 | 删除 common 中的旧文件 | `mvn compile` 全项目通过 |
+
+#### Milestone 1.2: 创建 calcite-core 模块（~70 文件迁入）
+Gate: `mvn compile` 全项目通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 1.2.1 | 创建 `calcite-core/` 目录 + `pom.xml` | `mvn validate -pl calcite-core` |
+| 1.2.2 | 移动 `org/apache/calcite/` 全部 68 文件 + Druid 非 parser 文件 (~2) | `mvn compile -pl calcite-core` |
+| 1.2.3 | 更新 hbt `pom.xml` 添加 calcite-core 依赖 | `mvn compile -pl hbt` |
+| 1.2.4 | 删除 hbt 中的旧 fork 文件 | `mvn compile` 全项目通过 |
+
+#### Milestone 1.3: mycat2 → server 重命名（调整 ~73 文件）
+Gate: `mvn compile` 全项目通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 1.3.1 | 重命名 `mycat2/` → `server/`，更新 pom.xml artifactId + shade 插件配置 | `mvn validate -pl server` |
+| 1.3.2 | 从 common 移入 `hint/` (48) + `ratelimiter/` (4) + `sequencemodifier/` (2) + `sql/` (1) | `mvn compile -pl server` |
+| 1.3.3 | 从 hbt 移入 `prototypeserver/` (11) | 同上 |
+| 1.3.4 | 移出 Vert.x 补丁 (9) → vertx 模块，Druid 补丁 (7) + sequence (2) → plug | 同上 |
+| 1.3.5 | 级联 import 更新 + 全项目编译 | `mvn compile` 全项目通过 |
+
+#### Milestone 1.4: 函数迁移到 executor（148 文件迁入）
+Gate: `mvn compile` 全项目通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 1.4.1 | 移动 `sqlfunction/datefunction/` (64) → executor | `mvn compile -pl executor` |
+| 1.4.2 | 移动 `sqlfunction/stringfunction/` (63) → executor | 同上 |
+| 1.4.3 | 移动 `sqlfunction/infofunction/` (11) + `mathfunction/` (5) + 其他 (5) → executor | 同上 |
+| 1.4.4 | 更新 hbt 对 sqlfunction 的引用 | `mvn compile -pl hbt` |
+| 1.4.5 | 全项目编译验证 | `mvn compile` 全项目通过 |
+
+---
+
+### Phase 2: Virtual Thread 迁移（预估 2-3 周）
+
+#### Milestone 2.1: synchronized → ReentrantLock（55 文件，146 处）
+Gate: 无 carrier thread pinning 警告
+
+按风险等级分批处理：
+
+| # | 批次 | 文件数 | 优先处理文件 |
+|---|------|--------|------------|
+| 2.1.1 | 高风险：阻塞 JDBC + synchronized | 4 | NewMycatConnectionImpl (6处), SyncMessageReader (6处), XaLogImpl (6处), FutureNewMycatConnectionImpl (5处) |
+| 2.1.2 | 高风险：连接池 + synchronized | 4 | VertxMycatConnectionPool (7处), VertxPoolConnectionImpl (5处), ReplicaDataSourceSelector (8处), DbPlanManagerPersistorImpl (13处) |
+| 2.1.3 | 中风险：Future 实现 | 2 | FutureImpl (9处), VertxConnection (4处) |
+| 2.1.4 | 低风险：工具类/缓存 | 45 | 逐个替换，每个替换后编译验证 |
+
+#### Milestone 2.2: 执行器迁移
+Gate: 功能测试通过 + 无 VT pinning
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 2.2.1 | IOExecutor → `newVirtualThreadPerTaskExecutor()` | 编译 + 功能测试通过 |
+| 2.2.2 | Druid 连接池 VT 兼容性验证 | 连接池压测无 pinning |
+| 2.2.3 | MySQL JDBC 驱动 VT pinning 评估 + 缓解方案 | 评估报告 |
+
+---
+
+### Phase 3: MariaDB 接入（预估 2-3 周）
+
+#### Milestone 3.1: 认证插件
+Gate: MariaDB 客户端能连接到 Mycat2
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 3.1.1 | fork eddsa 源码到 protocol 模块 | `mvn compile -pl protocol` |
+| 3.1.2 | 实现 `Ed25519AuthPlugin` | MariaDB ed25519 认证通过 |
+| 3.1.3 | 实现 `CachingSha2AuthPlugin` 服务端验证 | MySQL 8.x 认证通过 |
+
+#### Milestone 3.2: 协议兼容
+Gate: MariaDB 10.6/11.x 全量 CRUD 通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 3.2.1 | 实现 `MariaDBProtocolCodec`（能力标志位探测） | MariaDB 握手成功 |
+| 3.2.2 | 扩展 `MySQLCollationIndex` 联合映射表 | 字符集协商正确 |
+| 3.2.3 | datasource 模块新增 MariaDB 后端类型 | MariaDB 后端连接成功 |
+
+#### Milestone 3.3: 集成测试
+Gate: 全量回归通过
+
+| # | 原子任务 | 验收标准 |
+|---|---------|----------|
+| 3.3.1 | MariaDB 10.6 CRUD + 事务 + 分片查询 | 功能测试通过 |
+| 3.3.2 | MariaDB 11.x 同上 | 功能测试通过 |
+| 3.3.3 | 协议兼容性测试套件（TCK） | MySQL + MariaDB 混合场景通过 |
+
+---
+
+### 每个原子任务的执行检查清单
+
+```
+□ 1. 确认目标文件存在且路径正确
+□ 2. grep 扫描所有引用方（旧 import / 旧包路径）
+□ 3. 列出完整的级联修改清单
+□ 4. 执行修改
+□ 5. mvn compile（当前模块 + 依赖此模块的模块）
+□ 6. 如发现编译错误，记录为新的子任务
+□ 7. git commit（每个原子任务一个 commit，方便回滚）
+```
 
 ## 风险与缓解
 
 | 风险 | 概率 | 影响 | 缓解 |
 |------|------|------|------|
+| **Vert.x 内部 API 不兼容（最大风险）** | **极高** | **极高** | 80+ 文件使用 impl.* 内部 API，升级前逐一确认公开替代方案 |
+| Arrow API 包路径变更 | 高 | 高 | 38+ 文件受影响，逐文件修复 + 编译验证 |
 | 模块迁移导致循环依赖 | 中 | 高 | 严格 DAG 约束 + Maven Enforcer 插件 |
-| Calcite fork 升级冲突 | 低 | 中 | calcite-core 隔离后影响面可控 |
-| synchronized → ReentrantLock 引入 Bug | 中 | 中 | 逐文件替换 + 单元测试覆盖 |
 | MariaDB 协议差异遗漏 | 中 | 高 | 协议兼容性测试套件（TCK） |
+| synchronized → ReentrantLock 引入 Bug | 中 | 中 | 逐文件替换 + 单元测试覆盖 |
+| Calcite fork 升级冲突 | 低 | 中 | calcite-core 隔离后影响面可控 |
 | eddsa fork 安全漏洞 | 低 | 高 | 定期安全审计 + 关注上游替代方案 |
 
 ## 验证标准
