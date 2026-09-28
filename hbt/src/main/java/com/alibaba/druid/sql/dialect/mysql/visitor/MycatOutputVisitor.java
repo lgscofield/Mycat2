@@ -44,14 +44,13 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
     {
         this.dbType = DbType.mysql;
         this.shardingSupport = true;
-        this.quote = '`';
     }
 
-    public MycatOutputVisitor(Appendable appender) {
+    public MycatOutputVisitor(StringBuilder appender) {
         super(appender);
     }
 
-    public MycatOutputVisitor(Appendable appender, boolean parameterized) {
+    public MycatOutputVisitor(StringBuilder appender, boolean parameterized) {
         super(appender, parameterized);
 
         try {
@@ -282,7 +281,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
             dataType.accept(this);
         }
 
-        SQLExpr generatedAlawsAs = x.getGeneratedAlawsAs();
+        SQLExpr generatedAlawsAs = x.getGeneratedAlwaysAs();
         if (generatedAlawsAs != null) {
             print0(ucase ? " GENERATED ALWAYS AS (" : " generated always as (");
             printExpr(generatedAlawsAs);
@@ -1980,7 +1979,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
     }
 
     @Override
-    public boolean visit(MySqlResetStatement x) {
+    public boolean visit(SQLResetStatement x) {
         print0(ucase ? "RESET " : "reset ");
         for (int i = 0; i < x.getOptions().size(); ++i) {
             if (i != 0) {
