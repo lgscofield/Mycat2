@@ -1028,6 +1028,6 @@ Phase 0 完成后，以下所有条件必须满足：
 
 ## 后续阶段预览
 
-- **Phase 1**（模块重构）：创建 protocol、calcite-core 模块，重命名 mycat2→server，迁移 ~408 文件 → 见 `2026-09-28-phase1-module-restructure.md`（待创建）
-- **Phase 2**（VT 迁移）：55 文件 synchronized→ReentrantLock → 见 `2026-09-28-phase2-virtual-threads.md`（待创建）
-- **Phase 3**（MariaDB 接入）：eddsa fork + MariaDB 协议兼容 → 见 `2026-09-28-phase3-mariadb.md`（待创建）
+- **Phase 1**（模块重构）：创建 protocol、calcite-core 模块，重命名 mycat2→server，迁移 ~408 文件 → `2026-09-28-phase1-module-restructure.md`
+- **Phase 2**（VT 迁移）：55 文件 synchronized→ReentrantLock → `2026-09-28-phase2-virtual-threads.md`
+- **Phase 3**（MariaDB 接入）：eddsa fork + MariaDB 协议兼容 → `2026-09-28-phase3-mariadb.md`
