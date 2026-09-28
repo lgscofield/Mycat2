@@ -559,6 +559,118 @@ Gate: 全量回归通过
 □ 7. git commit（每个原子任务一个 commit，方便回滚）
 ```
 
+## 测试策略
+
+### 当前测试现状
+
+| 指标 | 现状 |
+|------|------|
+| 整体测试覆盖率 | ~6.2%（130 个测试文件 / 2105 个源文件） |
+| 零测试核心模块 | proxy(92文件)、config(59)、datasource(32)、replica(21)、plug(19) |
+| executor 测试 | 实质为空（3 个文件中 1 个全注释、1 个 @Test 注释） |
+| Mockito | 依赖被注释掉，仅 1 个文件使用 |
+| 测试类型 | 绝大多数是需要运行中 MySQL 的集成测试，CI/CD 无法执行 |
+| 测试框架 | JUnit 4.13.1，无 failsafe 插件 |
+
+### 测试金字塔（三层）
+
+```
+        ┌─────────┐
+        │ E2E 测试 │  ← 需要完整 Mycat2 + MySQL/MariaDB 实例
+        │ (example) │     保留现有集成测试，用 @Category 标记
+        ├───────────┤
+        │ 集成测试   │  ← 需要部分基础设施（Mock 数据源/内存数据库）
+        │ (failsafe) │    maven-failsafe-plugin 管理
+        ├─────────────┤
+        │  单元测试    │  ← 纯逻辑测试，无外部依赖
+        │  (surefire)  │   maven-surefire-plugin，CI 必须全绿
+        └─────────────┘
+```
+
+### 红绿规则（TDD 纪律）
+
+| 规则 | 含义 |
+|------|------|
+| **先红后绿** | 任何功能修改/新增，先写失败的测试（红），再写实现使其通过（绿） |
+| **重构不改变行为** | 重构时测试必须保持绿色，如果变红说明行为改变了 |
+| **迁移保护** | 模块迁移前后，同一功能的测试结果必须一致（书面用例对照） |
+| **CI 门控** | `mvn test`（单元测试）必须全绿才能 merge，集成测试可标记 `@Disabled` 但需记录原因 |
+| **禁止注释 @Test** | 禁止通过注释 `@Test` 注解来跳过失败测试，必须用 `@Disabled("原因")` |
+
+### 各模块测试要求
+
+| 模块 | 测试类型 | 优先级 | 预估新增测试 | 说明 |
+|------|---------|--------|-------------|------|
+| **protocol** | 单元测试 | P0 | ~15 | 包编解码、认证插件、字符集映射（纯逻辑） |
+| **calcite-core** | 单元测试 | P0 | ~10 | Calcite fork 类的行为回归测试 |
+| **executor** | 单元测试 | P0 | ~20 | 物理计划、SQL 函数（148 函数至少各 1 个测试） |
+| **router** | 保持现有 | - | 0 | 已有 9 个质量较好的单元测试 |
+| **plug** | 单元测试 | P1 | ~5 | 负载均衡算法、序列生成器 |
+| **replica** | 单元测试 | P1 | ~8 | 心跳逻辑、副本切换、读写分离决策（Mock 数据源） |
+| **datasource** | 单元测试 | P1 | ~5 | 连接池配置、多后端适配逻辑 |
+| **proxy** | 单元 + 集成 | P1 | ~10 | NIO 协议解码（Mock Socket）、命令分发 |
+| **server** | 集成测试 | P2 | ~10 | SQL Handler 路由、Hint 命令、监控指标 |
+| **hbt** | 补充 | P2 | ~2 | 补充编译链测试，保留现有 ColumnMappingTest |
+| **config** | **豁免** | - | 0 | 纯 POJO |
+| **common** | **豁免** | - | 0 | 纯接口和工具类 |
+| **总计** | | | **~85 新增** | 目标覆盖率 >15% |
+
+### 书面测试用例文档（TEST-CASES.md）
+
+每个有测试的模块维护 `src/test/resources/TEST-CASES.md`，作为永久参考文档：
+
+```markdown
+# protocol 模块测试用例
+
+## TC-PROTOCOL-001: MySQL HandshakeV10 包编码
+- **前置条件**: 构造标准 HandshakeV10 包
+- **操作**: ProtocolCodec.encode()
+- **预期结果**: 输出字节流与 MySQL 8.0 抓包一致
+- **覆盖场景**: MySQL 8.0、MySQL 8.4、MariaDB 10.6
+- **关联测试类**: HandshakeCodecTest
+
+## TC-PROTOCOL-002: caching_sha2_password 认证
+- **前置条件**: 服务端 seed = [已知值]
+- **操作**: CachingSha2AuthPlugin.generateAuthentication()
+- **预期结果**: 输出与 MySQL 8.0 服务端验证一致
+- **回归保护**: 模块迁移前后结果必须一致
+```
+
+### 测试框架配置升级
+
+| 配置项 | 当前 | 目标 | 原因 |
+|--------|------|------|------|
+| JUnit | 4.13.1 | **5.12.2** | JUnit 5 支持 `@ParameterizedTest`、`@Nested`、扩展模型 |
+| Mockito | 注释掉 | **5.16.1**（引入） | 单元测试必需，隔离外部依赖 |
+| AssertJ | 无 | **3.27.3**（引入） | 流式断言，测试可读性 |
+| maven-surefire-plugin | 3.0.0-M5 | **3.5.3** | 支持 JUnit 5 |
+| maven-failsafe-plugin | 无 | **3.5.3**（引入） | 分离集成测试 |
+| TestContainers | 无 | **1.21.0**（引入） | MariaDB/MySQL 容器化集成测试 |
+
+### 测试命名和组织约定
+
+```
+src/test/java/
+  io/mycat/protocol/
+    HandshakeCodecTest.java              ← 单元测试（Surefire 执行）
+    ProtocolCodecIT.java                 ← 集成测试（Failsafe 执行，*IT.java 后缀）
+
+src/test/resources/
+  TEST-CASES.md                          ← 书面测试用例文档
+  fixtures/                              ← 测试数据（抓包数据、SQL 样本）
+```
+
+### 测试与路线图的结合
+
+| 阶段 | 测试任务 |
+|------|----------|
+| Phase 0 每个 Milestone | 升级后运行 `mvn test`，确保现有测试全绿 |
+| Phase 1 每次模块迁移 | 迁移前记录测试结果 → 迁移后对比结果 → 记录到 TEST-CASES.md |
+| Phase 2 synchronized→ReentrantLock | 每个文件替换后运行对应模块的单元测试 |
+| Phase 3 MariaDB 接入 | 新增 ~15 个协议测试 + TestContainers MariaDB 集成测试 |
+
+---
+
 ## 风险与缓解
 
 | 风险 | 概率 | 影响 | 缓解 |
