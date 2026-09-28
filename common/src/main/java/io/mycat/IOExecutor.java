@@ -49,13 +49,10 @@ public interface IOExecutor {
         return findAllThreads().stream().filter(i -> i.getId() == pid).findFirst().map(thread -> {
             try {
                 LOGGER.info("prepare kill id:{}", thread.getId());
-                thread.stop();
+                thread.interrupt();
                 LOGGER.info("kill id:{}", thread.getId());
                 return true;
-            } catch (java.lang.ThreadDeath threadDeath){
-                LOGGER.error("kill id:{} fail", thread.getId(), threadDeath);
-                return false;
-            }catch (Exception e) {
+            } catch (Exception e) {
                 LOGGER.error("kill id:{} fail", thread.getId(), e);
             }
             return false;
