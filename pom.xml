@@ -420,6 +420,10 @@
         <configuration>
           <release>21</release>
           <encoding>UTF-8</encoding>
+          <compilerArgs>
+            <arg>--add-exports</arg>
+            <arg>java.base/sun.nio.ch=ALL-UNNAMED</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
 
