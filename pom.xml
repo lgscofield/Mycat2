@@ -32,9 +32,49 @@
 
   <properties>
     <app.encoding>UTF-8</app.encoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
     <version.template.file>version.txt.template</version.template.file>
     <version.file>version.txt</version.file>
+
+    <!-- JDK -->
+    <java.version>21</java.version>
+
+    <!-- 编译阻断项 -->
+    <lombok.version>1.18.42</lombok.version>
+    <janino.version>3.1.12</janino.version>
+    <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+    <arrow.version>18.1.0</arrow.version>
+
+    <!-- 安全关键项 -->
+    <jackson.version>2.18.4</jackson.version>
+    <logback.version>1.5.18</logback.version>
+    <netty.version>4.1.119.Final</netty.version>
+    <guava.version>33.4.8-jre</guava.version>
+
+    <!-- 核心框架 -->
+    <calcite.version>1.42.0</calcite.version>
+    <avatica.version>1.26.0</avatica.version>
+    <druid.version>1.2.28</druid.version>
+    <vertx.version>4.5.14</vertx.version>
+    <rxjava.version>3.1.10</rxjava.version>
+
+    <!-- 功能升级项 -->
+    <mysql.connector.version>9.3.0</mysql.connector.version>
+    <mariadb.connector.version>3.5.3</mariadb.connector.version>
+    <kafka.version>4.0.0</kafka.version>
+    <clickhouse.version>0.7.3</clickhouse.version>
+    <oshi.version>6.8.2</oshi.version>
+    <ehcache.version>3.10.8</ehcache.version>
+
+    <!-- 测试框架 -->
+    <junit.version>5.12.2</junit.version>
+    <mockito.version>5.16.1</mockito.version>
+    <assertj.version>3.27.3</assertj.version>
+    <testcontainers.version>1.21.0</testcontainers.version>
+
+    <!-- 内部模块版本 -->
+    <mycat.version>1.22-release</mycat.version>
   </properties>
 
   <scm>
@@ -45,27 +85,297 @@
   </scm>
 
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.realityforge.org.jetbrains.annotations/org.jetbrains.annotations -->
     <dependency>
       <groupId>org.realityforge.org.jetbrains.annotations</groupId>
       <artifactId>org.jetbrains.annotations</artifactId>
       <version>1.2.0</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.8</version>
+      <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+    <!-- JUnit 4 兼容层（过渡期保留） -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- 内部模块 -->
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>config</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>common</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>protocol</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>router</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>plug</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>replica</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>datasource</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>va</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>hbt</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>executor</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>proxy</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>server</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>vertx</artifactId>
+        <version>${mycat.version}</version>
+      </dependency>
+
+      <!-- Lombok -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Jackson -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <!-- Guava -->
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+
+      <!-- Netty BOM -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Vert.x -->
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-core</artifactId>
+        <version>${vertx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-sql-client</artifactId>
+        <version>${vertx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-mysql-client</artifactId>
+        <version>${vertx.version}</version>
+      </dependency>
+
+      <!-- Arrow -->
+      <dependency>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-vector</artifactId>
+        <version>${arrow.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-memory-netty</artifactId>
+        <version>${arrow.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-jdbc</artifactId>
+        <version>${arrow.version}</version>
+      </dependency>
+
+      <!-- Calcite -->
+      <dependency>
+        <groupId>org.apache.calcite</groupId>
+        <artifactId>calcite-core</artifactId>
+        <version>${calcite.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.calcite</groupId>
+        <artifactId>calcite-linq4j</artifactId>
+        <version>${calcite.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.calcite.avatica</groupId>
+        <artifactId>avatica-core</artifactId>
+        <version>${avatica.version}</version>
+      </dependency>
+
+      <!-- Druid -->
+      <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid</artifactId>
+        <version>${druid.version}</version>
+      </dependency>
+
+      <!-- RxJava -->
+      <dependency>
+        <groupId>io.reactivex.rxjava3</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>${rxjava.version}</version>
+      </dependency>
+
+      <!-- MySQL Connector -->
+      <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>${mysql.connector.version}</version>
+      </dependency>
+
+      <!-- MariaDB Connector -->
+      <dependency>
+        <groupId>org.mariadb.jdbc</groupId>
+        <artifactId>mariadb-java-client</artifactId>
+        <version>${mariadb.connector.version}</version>
+      </dependency>
+
+      <!-- Jakarta Annotation -->
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta.annotation.version}</version>
+      </dependency>
+
+      <!-- Logback -->
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+
+      <!-- Janino -->
+      <dependency>
+        <groupId>org.codehaus.janino</groupId>
+        <artifactId>janino</artifactId>
+        <version>${janino.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.janino</groupId>
+        <artifactId>commons-compiler</artifactId>
+        <version>${janino.version}</version>
+      </dependency>
+
+      <!-- Test frameworks -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>mysql</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>mariadb</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <repositories>
     <repository>
@@ -166,17 +476,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M5</version>
+        <version>3.5.3</version>
         <configuration>
            <forkMode>once</forkMode>
         </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-junit47</artifactId>
-            <version>3.0.0-M5</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>
