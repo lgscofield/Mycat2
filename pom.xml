@@ -16,6 +16,7 @@
     <module>mycat2</module>
     <!--<module>grid</module>-->
     <module>replica</module>
+      <module>calcite-core</module>
       <module>hbt</module>
       <module>example</module>
       <module>statistic</module>
@@ -54,6 +55,7 @@
 
     <!-- 核心框架 -->
     <calcite.version>1.42.0</calcite.version>
+    <immutables.version>2.10.1</immutables.version>
     <avatica.version>1.26.0</avatica.version>
     <druid.version>1.2.28</druid.version>
     <vertx.version>4.5.14</vertx.version>
@@ -321,6 +323,12 @@
         <artifactId>calcite-core</artifactId>
         <version>${calcite.version}</version>
       </dependency>
+      <!-- Mycat Calcite fork (replaces org.apache.calcite:calcite-core for hbt) -->
+      <dependency>
+        <groupId>io.mycat</groupId>
+        <artifactId>calcite-core</artifactId>
+        <version>1.42.0-mycat</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.calcite</groupId>
         <artifactId>calcite-linq4j</artifactId>
@@ -330,6 +338,13 @@
         <groupId>org.apache.calcite.avatica</groupId>
         <artifactId>avatica-core</artifactId>
         <version>${avatica.version}</version>
+      </dependency>
+
+      <!-- Immutables (required by Calcite 1.42 Config pattern) -->
+      <dependency>
+        <groupId>org.immutables</groupId>
+        <artifactId>value</artifactId>
+        <version>${immutables.version}</version>
       </dependency>
 
       <!-- Druid -->
