@@ -26,17 +26,14 @@
         <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-vector</artifactId>
-            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.mycat</groupId>
             <artifactId>example</artifactId>
-            <version>1.22-release</version>
         </dependency>
         <dependency>
             <groupId>io.mycat</groupId>
             <artifactId>example</artifactId>
-            <version>1.22-release</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

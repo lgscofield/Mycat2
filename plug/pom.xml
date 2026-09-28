@@ -13,12 +13,10 @@
         <dependency>
             <groupId>io.mycat</groupId>
             <artifactId>router</artifactId>
-          <version>1.22-release</version>
         </dependency>
       <dependency>
         <groupId>io.mycat</groupId>
         <artifactId>common</artifactId>
-        <version>1.22-release</version>
       </dependency>
         <!-- https://mvnrepository.com/artifact/com.imadcn.framework/idworker -->
         <dependency>

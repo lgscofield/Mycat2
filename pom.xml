@@ -204,6 +204,11 @@
         <artifactId>jackson-annotations</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
       <!-- Guava -->
       <dependency>
@@ -237,6 +242,11 @@
         <artifactId>vertx-mysql-client</artifactId>
         <version>${vertx.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-jdbc-client</artifactId>
+        <version>${vertx.version}</version>
+      </dependency>
 
       <!-- Arrow -->
       <dependency>
@@ -252,6 +262,16 @@
       <dependency>
         <groupId>org.apache.arrow</groupId>
         <artifactId>arrow-jdbc</artifactId>
+        <version>${arrow.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-algorithm</artifactId>
+        <version>${arrow.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-dataset</artifactId>
         <version>${arrow.version}</version>
       </dependency>
 

@@ -22,12 +22,10 @@
     <dependency>
         <groupId>io.mycat</groupId>
         <artifactId>config</artifactId>
-      <version>1.22-release</version>
     </dependency>
     <dependency>
         <groupId>io.mycat</groupId>
         <artifactId>common</artifactId>
-      <version>1.22-release</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.yevdo/jwildcard -->
     <dependency>

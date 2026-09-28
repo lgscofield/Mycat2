@@ -15,12 +15,10 @@
     <dependency>
       <groupId>io.mycat</groupId>
       <artifactId>common</artifactId>
-      <version>1.22-release</version>
     </dependency>
     <dependency>
       <groupId>io.mycat</groupId>
       <artifactId>plug</artifactId>
-      <version>1.22-release</version>
     </dependency>
   </dependencies>
 </project>
