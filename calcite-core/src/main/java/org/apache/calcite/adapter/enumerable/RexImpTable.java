@@ -1,4 +1,13 @@
 /*
+ * MYCAT FORK NOTICE
+ * Base: Calcite 1.42.0 (org.apache.calcite:calcite-core:1.42.0)
+ * Purpose: Register Mycat custom function implementations (MycatSqlDefinedFunction)
+ * Changes:
+ *   - Added MycatSqlDefinedFunction import
+ *   - Added MycatSqlDefinedFunction dispatch in get(SqlOperator) before SqlUserDefinedFunction
+ * Last reviewed against Calcite version: 1.42.0
+ */
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -75,6 +84,7 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.type.SqlTypeUtil;
 import org.apache.calcite.sql.validate.SqlConformanceEnum;
 import org.apache.calcite.sql.validate.SqlUserDefinedAggFunction;
+import org.apache.calcite.mycat.MycatSqlDefinedFunction; // MYCAT CHANGE: Mycat custom function dispatch
 import org.apache.calcite.sql.validate.SqlUserDefinedFunction;
 import org.apache.calcite.sql.validate.SqlUserDefinedTableFunction;
 import org.apache.calcite.sql.validate.SqlUserDefinedTableMacro;
@@ -1462,6 +1472,11 @@ public class RexImpTable {
   }
 
   public @Nullable RexCallImplementor get(final SqlOperator operator) {
+    // MYCAT CHANGE: Dispatch MycatSqlDefinedFunction before generic SqlUserDefinedFunction
+    if (operator instanceof MycatSqlDefinedFunction) {
+      CallImplementor implementor = ((MycatSqlDefinedFunction) operator);
+      return wrapAsRexCallImplementor(implementor);
+    }
     if (operator instanceof SqlUserDefinedFunction) {
       org.apache.calcite.schema.Function udf =
           ((SqlUserDefinedFunction) operator).getFunction();

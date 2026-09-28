@@ -14,8 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * MYCAT FORK NOTICE
+ * Base: Calcite 1.42.0 (org.apache.calcite:calcite-core:1.42.0)
+ * Purpose: MySQL-compatible TIME/TIMESTAMP literal parsing via MycatBuiltInMethodImpl
+ * Changes:
+ *   - Added LocalTime handling in TIME case using MycatBuiltInMethodImpl.timeStringToTimeDuration
+ *   - Added LocalDateTime handling in TIMESTAMP case using MycatBuiltInMethodImpl.timestampStringToTimestamp
+ * Last reviewed against Calcite version: 1.42.0
+ */
 package org.apache.calcite.sql;
 
+import org.apache.calcite.mycat.MycatBuiltInMethodImpl; // MYCAT CHANGE: MySQL-compatible time parsing
 import org.apache.calcite.avatica.util.TimeUnit;
 import org.apache.calcite.avatica.util.TimeUnitRange;
 import org.apache.calcite.rel.metadata.NullSentinel;
@@ -47,6 +57,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.time.Duration; // MYCAT CHANGE
+import java.time.LocalDateTime; // MYCAT CHANGE
+import java.time.LocalTime; // MYCAT CHANGE
+import java.time.temporal.Temporal; // MYCAT CHANGE
 import java.util.Calendar;
 import java.util.Objects;
 import java.util.UUID;
@@ -353,10 +367,22 @@ public class SqlLiteral extends SqlNode {
       if (clazz == Calendar.class) {
         return clazz.cast(((TimeString) value).toCalendar());
       }
+      // MYCAT CHANGE: Support LocalTime conversion via MycatBuiltInMethodImpl
+      if (clazz == LocalTime.class) {
+        TimeString tsValue = (TimeString) this.value;
+        Duration dur = MycatBuiltInMethodImpl.timeStringToTimeDuration(tsValue.toString());
+        return clazz.cast(LocalTime.ofNanoOfDay(dur.toNanos()));
+      }
       break;
     case TIMESTAMP:
       if (clazz == Calendar.class) {
         return clazz.cast(((TimestampString) value).toCalendar());
+      }
+      // MYCAT CHANGE: Support LocalDateTime conversion via MycatBuiltInMethodImpl
+      if (clazz == LocalDateTime.class) {
+        TimestampString tsValue = (TimestampString) this.value;
+        Temporal temporal = MycatBuiltInMethodImpl.timestampStringToTimestamp(tsValue.toString());
+        return clazz.cast(temporal);
       }
       break;
     case INTERVAL_YEAR:
