@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>Mycat2 第二轮架构升级评审报告</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({startOnLoad:true,theme:"neutral",securityLevel:"loose"});
+</script>
+<style>
+.seam{stroke-dasharray:4 4}
+.deep{background:linear-gradient(135deg,#0f172a,#1e293b)}
+.glow{box-shadow:0 0 20px rgba(16,185,129,.15)}
+.arch-layer{border-left:4px solid;padding:.5rem .75rem;margin-bottom:.25rem;font-size:.8rem}
+.mermaid{font-size:.85rem}
+.badge-strong{background:#059669;color:#fff;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600}
+.badge-explore{background:#2563eb;color:#fff;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600}
+.badge-speculative{background:#d97706;color:#fff;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600}
+.badge-phase{background:#7c3aed;color:#fff;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600}
+table.decision{width:100%;border-collapse:collapse;font-size:.82rem}
+table.decision th{background:#1e293b;color:#f8fafc;padding:8px 10px;text-align:left}
+table.decision td{padding:7px 10px;border-bottom:1px solid #e2e8f0}
+table.decision tr:nth-child(even){background:#f8fafc}
+.pro{color:#059669;font-weight:600}
+.con{color:#dc2626;font-weight:600}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.dim-header{border-left:5px solid;padding-left:1rem;margin-top:3rem;margin-bottom:1.5rem}
+.before-box{background:#fef2f2;border:2px solid #fca5a5;border-radius:8px;padding:1rem}
+.after-box{background:#f0fdf4;border:2px solid #86efac;border-radius:8px;padding:1rem}
+.phase-card{border-left:4px solid;padding:1rem;margin-bottom:.75rem;border-radius:0 8px 8px 0}
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{content:'';position:absolute;left:.75rem;top:0;bottom:0;width:2px;background:#cbd5e1}
+.timeline-item{position:relative;margin-bottom:1.5rem}
+.timeline-item::before{content:'';position:absolute;left:-1.65rem;top:.4rem;width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+.warn-box{background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:1rem;margin:1rem 0}
+.critical-box{background:#fef2f2;border:1px solid #f87171;border-radius:8px;padding:1rem;margin:1rem 0}
+.info-box{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:1rem;margin:1rem 0}
+</style>
+</head>
+<body class="bg-stone-50 text-slate-900 font-sans leading-relaxed">
+
+<!-- HERO -->
+<header class="deep text-white py-16 px-6">
+<div class="max-w-5xl mx-auto">
+<p class="text-emerald-400 text-sm tracking-widest uppercase mb-2">第二轮 · 架构升级评审</p>
+<h1 class="text-4xl font-bold mb-3">Mycat2 深度架构升级路线图</h1>
+<p class="text-slate-400 text-lg">基于第一轮评审与组件依赖深度分析的四维改进方案</p>
+<div class="flex gap-4 mt-6 text-sm">
+<span class="bg-slate-700 px-3 py-1 rounded-full">模块重新设计 × 4</span>
+<span class="bg-slate-700 px-3 py-1 rounded-full">依赖升级规划 × 5</span>
+<span class="bg-slate-700 px-3 py-1 rounded-full">Fork 模块化 × 3</span>
+<span class="bg-slate-700 px-3 py-1 rounded-full">决策矩阵 × 3</span>
+</div>
+</div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-10">
+
+<!-- EXECUTIVE SUMMARY -->
+<section class="mb-12">
+<h2 class="text-2xl font-bold mb-4">执行摘要</h2>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="card text-center">
+<div class="text-3xl font-bold text-red-600">50+</div>
+<div class="text-sm text-slate-500">Calcite Fork 文件数</div>
+</div>
+<div class="card text-center">
+<div class="text-3xl font-bold text-amber-600">5</div>
+<div class="text-sm text-slate-500">Guava 共存版本数</div>
+</div>
+<div class="card text-center">
+<div class="text-3xl font-bold text-blue-600">14</div>
+<div class="text-sm text-slate-500">Calcite 落后大版本</div>
+</div>
+<div class="card text-center">
+<div class="text-3xl font-bold text-emerald-600">1200+</div>
+<div class="text-sm text-slate-500">行废弃 RxJava 迁移代码</div>
+</div>
+</div>
+<div class="card mt-4">
+<p class="text-sm leading-relaxed">本报告在第一轮架构评审基础上，深入代码层面分析了 <strong>模块接缝（seam）有效性</strong>、<strong>Fork 代码与上游的偏离程度</strong>、<strong>异步模型混用的实际痛点</strong> 和 <strong>依赖管理的系统性缺失</strong>。报告提出了 15 个具体改进方案，分为 4 个维度，并给出了分 3 阶段的实施路线图。</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DIMENSION 1: MODULE REDESIGN -->
+<!-- ============================================================ -->
+<div class="dim-header" style="border-color:#059669">
+<h2 class="text-2xl font-bold">维度一：模块重新设计</h2>
+<p class="text-slate-500">识别并加深浅层模块，建立清晰的接缝（seam）和适配器（adapter）策略</p>
+</div>
+
+<!-- Candidate 1.1 -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<h3 class="text-xl font-bold">1.1 废弃 Native NIO 栈，统一 Vert.x 网络入口</h3>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="text-sm">
+<p><strong>涉及文件：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li>proxy/src/main/java/io/mycat/NativeMycatServer.java</li>
+<li>proxy/src/main/java/io/mycat/proxy/ (50+ 文件)</li>
+<li>proxy/src/main/java/io/mycat/proxy/reactor/ (4 文件)</li>
+<li>proxy/src/main/java/io/mycat/proxy/session/ (5 文件)</li>
+<li>proxy/src/main/java/io/mycat/proxy/handler/ (12 文件)</li>
+</ul>
+</div>
+<div class="text-sm">
+<p><strong>问题：</strong></p>
+<p class="text-slate-600">MycatCore 硬编码使用 VertxMycatServer，NativeMycatServer 仅在测试中通过系统属性切换。两套完全独立的 MySQL 协议编解码、Session 管理、连接池实现，共享代码仅有 MycatServer 和 MycatDataContext 接口。proxy 模块 50+ 文件的 NIO 代码在生产中从不执行。</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="before-box">
+<p class="font-semibold text-red-700 mb-2">❌ Before：双栈撕裂</p>
+<div class="mermaid">
+graph LR
+    A[MycatServer 接口] --> B[NativeMycatServer<br/>NIO Reactor<br/>50+ 文件]
+    A --> C[VertxMycatServer<br/>Vert.x EventLoop<br/>生产使用]
+    B --> D[MySQLDatasourcePool<br/>NIO 连接池]
+    C --> E[JdbcConnectionManager<br/>JDBC+Druid]
+    style B fill:#fef2f2,stroke:#f87171
+    style D fill:#fef2f2,stroke:#f87171
+</div>
+</div>
+<div class="after-box">
+<p class="font-semibold text-green-700 mb-2">✓ After：单栈统一</p>
+<div class="mermaid">
+graph LR
+    A[MycatServer 接口] --> B[VertxMycatServer<br/>唯一实现]
+    B --> C[JdbcConnectionManager<br/>HikariCP]
+    B --> D[Vert.x MySQL Codec<br/>流式处理]
+    E[Native 模块] -.->|移入 legacy 分支|F[归档]
+    style B fill:#f0fdf4,stroke:#86efac
+    style C fill:#f0fdf4,stroke:#86efac
+</div>
+</div>
+</div>
+
+<div class="text-sm">
+<p><strong>方案：</strong></p>
+<ol class="list-decimal ml-4 text-slate-600 space-y-1">
+<li>将 proxy 模块标记为 <code>@Deprecated</code>，保留一个版本周期后移除</li>
+<li>将 NativeMycatServer 中有价值的功能（如 CommandDispatcher 接口的完整实现）移植到 Vert.x 栈</li>
+<li>VertxMycatServer 中 4 个返回 "unsupported" 的监控方法需要补充实现</li>
+<li>Native 连接池 MySQLDatasourcePool 的 NIO 心跳机制可作为参考用于优化 JDBC 心跳</li>
+</ol>
+<p class="mt-2"><strong>收益（Leverage & Locality）：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li><strong>Locality</strong>：消除 50+ 文件的双栈维护成本，所有网络层修改集中在一处</li>
+<li><strong>Leverage</strong>：单栈实现使测试覆盖更聚焦，运维监控接口完整可用</li>
+<li><strong>删除测试</strong>：删除 Native 栈后，复杂度不会分散到调用者——因为调用者本就不使用它</li>
+</ul>
+</div>
+</div>
+
+<!-- Candidate 1.2 -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<h3 class="text-xl font-bold">1.2 统一执行引擎接缝：修复断裂的 Calcite→Arrow 编译管线</h3>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="text-sm">
+<p><strong>涉及文件：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li>executor/.../MycatCalciteCompiler.java（353行全注释）</li>
+<li>executor/.../CalciteCompiler.java（builder 包下，实际使用）</li>
+<li>mycat2/.../ExecutorProviderImpl.java</li>
+<li>hbt/.../ExecutorProvider.java（接口定义）</li>
+</ul>
+</div>
+<div class="text-sm">
+<p><strong>问题：</strong></p>
+<p class="text-slate-600">存在两条执行路径：① Arrow 向量引擎（36 个 PhysicalPlan 算子）；② Calcite Enumerable 代码生成（Janino 运行时编译）。关键问题是 MycatCalciteCompiler（RelNode→PhysicalPlan 的桥接器）整个被注释掉，Arrow 引擎的 Calcite 编译路径完全断裂。当前实际走的是 Calcite Enumerable 代码生成路径。</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="before-box">
+<p class="font-semibold text-red-700 mb-2">❌ Before：断裂的执行管线</p>
+<div class="mermaid">
+graph TD
+    A[SQL 文本] --> B[Druid Parser]
+    B --> C[Calcite 优化器<br/>RelNode]
+    C --> D{选择执行路径}
+    D -->|路径 A ❌ 断裂| E[MycatCalciteCompiler<br/>353行全注释]
+    E --> F[Arrow PhysicalPlan<br/>36 算子]
+    D -->|路径 B ✓ 在用| G[Calcite Enumerable<br/>Janino 代码生成]
+    G --> H[ArrayBindable<br/>同步执行]
+    style E fill:#fef2f2,stroke:#f87171
+    style F fill:#fef2f2,stroke:#f87171
+</div>
+</div>
+<div class="after-box">
+<p class="font-semibold text-green-700 mb-2">✓ After：统一执行调度接缝</p>
+<div class="mermaid">
+graph TD
+    A[SQL 文本] --> B[Druid Parser]
+    B --> C[Calcite 优化器<br/>RelNode]
+    C --> D[ExecutionDispatcher<br/>统一调度接缝]
+    D -->|向量化查询| E[CalciteCompiler ✓<br/>RelNode→PhysicalPlan]
+    E --> F[Arrow 向量引擎]
+    D -->|简单透传| G[JDBC Passthrough<br/>直连后端]
+    D -->|代码生成| H[Calcite Enumerable<br/>遗留兼容]
+    style D fill:#f0fdf4,stroke:#86efac
+    style E fill:#f0fdf4,stroke:#86efac
+</div>
+</div>
+</div>
+
+<div class="text-sm">
+<p><strong>方案：</strong></p>
+<ol class="list-decimal ml-4 text-slate-600 space-y-1">
+<li>在 hbt 模块定义 <code>ExecutionDispatcher</code> 接口作为执行策略的统一接缝</li>
+<li>修复 CalciteCompiler（builder 包下），使其成为 RelNode → Arrow PhysicalPlan 的可靠编译器</li>
+<li>明确三种执行策略的适用场景：向量化（复杂聚合/Join）、透传（简单 CRUD）、代码生成（兼容遗留）</li>
+<li>删除被注释的 MycatCalciteCompiler 或恢复其功能</li>
+</ol>
+<p class="mt-2"><strong>收益：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li><strong>深度（Depth）</strong>：ExecutionDispatcher 接缝背后隐藏着复杂的执行策略选择逻辑，调用者只需传入 RelNode</li>
+<li><strong>可测试性</strong>：每种执行策略可独立 mock 和测试</li>
+</ul>
+</div>
+</div>
+
+<!-- Candidate 1.3 -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<h3 class="text-xl font-bold">1.3 深化 Datasource SPI：修复抽象泄漏</h3>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="before-box">
+<p class="font-semibold text-red-700 mb-2">❌ Before：抽象泄漏</p>
+<div class="text-xs space-y-1">
+<div class="arch-layer" style="border-color:#f87171">
+<strong>JdbcDataSource.isValid()</strong> → 始终返回 false → 空闲连接心跳永远失败
+</div>
+<div class="arch-layer" style="border-color:#f87171">
+<strong>JdbcDataSource.close()</strong> → 反射查找 close() 方法 → 类型不安全
+</div>
+<div class="arch-layer" style="border-color:#f87171">
+<strong>JdbcConnectionManager</strong> → switch(dbType) "mongodb" 特殊分支 → 破坏统一抽象
+</div>
+<div class="arch-layer" style="border-color:#f87171">
+<strong>DruidDatasourceProvider</strong> → 直接暴露 DruidDataSource API → SPI 泄漏
+</div>
+</div>
+</div>
+<div class="after-box">
+<p class="font-semibold text-green-700 mb-2">✓ After：深层 SPI 模块</p>
+<div class="text-xs space-y-1">
+<div class="arch-layer" style="border-color:#86efac">
+<strong>DatasourceProvider</strong>（深层接口）→ create / close / validate / healthCheck
+</div>
+<div class="arch-layer" style="border-color:#86efac">
+<strong>HikariCPDatasourceProvider</strong>（适配器）→ 隐藏 HikariCP 细节
+</div>
+<div class="arch-layer" style="border-color:#86efac">
+<strong>ConnectionHealthMonitor</strong>（内部接缝）→ 统一心跳/健康检查策略
+</div>
+<div class="arch-layer" style="border-color:#86efac">
+<strong>DbTypeStrategy</strong>（策略接缝）→ 各数据库方言差异处理外置
+</div>
+</div>
+</div>
+</div>
+
+<div class="text-sm">
+<p><strong>方案：</strong></p>
+<ol class="list-decimal ml-4 text-slate-600 space-y-1">
+<li>修复 <code>JdbcDataSource.isValid()</code>：实际检查连接有效性（<code>Connection.isValid(3)</code>）</li>
+<li>扩展 <code>DatasourceProvider</code> 接口：增加 <code>validate()</code>、<code>healthCheck()</code> 方法</li>
+<li>消除 <code>JdbcConnectionManager</code> 中的 MongoDB switch 分支：通过 <code>DbTypeStrategy</code> 策略模式外置</li>
+<li>用 HikariCP 替换 Druid 连接池（详见维度四决策矩阵 4.3）</li>
+<li>消除 <code>JdbcDataSource.close()</code> 的反射调用：DatasourceProvider 契约中明确 close 语义</li>
+</ol>
+</div>
+</div>
+
+<!-- Candidate 1.4 -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-explore">Worth exploring</span>
+<h3 class="text-xl font-bold">1.4 清理 Proxy 模块：提取 CommandDispatcher 为独立接缝</h3>
+</div>
+
+<div class="text-sm">
+<p><strong>问题：</strong>proxy 模块混合了三个不同职责：① NIO Reactor 线程管理；② MySQL 协议编解码；③ 命令分发与处理。其中 CommandDispatcher 接口（命令分发契约）是唯一可跨网络栈复用的深层接缝，但被 NIO 基础设施紧密包裹。</p>
+<p class="mt-2"><strong>方案：</strong>将 CommandDispatcher 及相关命令处理逻辑提取到独立的 <code>command</code> 模块中，使其成为前端协议层与后端执行层之间的清晰接缝。Vert.x 栈的 MycatVertxMySQLHandler 和 NIO 栈的 CommandResolver 都成为该接缝的适配器。</p>
+<p class="mt-2"><strong>删除测试：</strong>如果删除 CommandDispatcher 模块，命令处理的复杂度会分散到每个网络栈各自的 handler 中——说明它是一个有价值的深层模块。</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DIMENSION 2: DEPENDENCY UPGRADE -->
+<!-- ============================================================ -->
+<div class="dim-header" style="border-color:#2563eb">
+<h2 class="text-2xl font-bold">维度二：依赖升级规划</h2>
+<p class="text-slate-500">分阶段升级路线图与 Breaking Change 风险评估</p>
+</div>
+
+<!-- 2.1 Parent POM -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<span class="badge-phase">Phase 1 · 第 1 周</span>
+<h3 class="text-xl font-bold">2.1 父 POM 依赖集中化治理</h3>
+</div>
+
+<div class="critical-box">
+<p class="font-semibold text-red-700">🔴 关键发现：根 POM 完全没有 &lt;dependencyManagement&gt; 节</p>
+<p class="text-sm text-slate-600 mt-1">所有版本管理散落在各子模块中，导致 Guava 5 版本共存、hbt/pom.xml 12 组重复声明、跨模块冲突随处可见。</p>
+</div>
+
+<div class="text-sm mt-3">
+<p><strong>方案：在根 pom.xml 添加 &lt;dependencyManagement&gt;，统一以下版本：</strong></p>
+<table class="decision mt-2">
+<tr><th>依赖</th><th>统一版本</th><th>当前混乱状态</th><th>影响模块</th></tr>
+<tr><td>Guava</td><td class="pro">33.5.0-jre</td><td class="con">19.0 / 28.1 / 29.0 / 30.1 / 31.0.1</td><td>hbt, common, mycat2, va</td></tr>
+<tr><td>Jackson</td><td class="pro">2.17.3</td><td class="con">2.10.0 (2019，存在已知漏洞)</td><td>hbt, executor, mycat2</td></tr>
+<tr><td>commons-lang3</td><td class="pro">3.14.0</td><td class="con">3.8 / 3.11 / 3.12.0</td><td>hbt, executor</td></tr>
+<tr><td>Janino</td><td class="pro">3.1.12</td><td class="con">3.0.11 / 3.1.0</td><td>hbt</td></tr>
+<tr><td>Lombok</td><td class="pro">1.18.34</td><td class="con">1.18.8 / 1.18.10</td><td>parent, hbt</td></tr>
+<tr><td>JUnit</td><td class="pro">4.13.2 (scope: test)</td><td class="con">executor 中 scope=compile</td><td>parent, executor</td></tr>
+<tr><td>Druid</td><td class="pro">1.2.24</td><td class="con">1.2.8</td><td>config, datasource, va, executor</td></tr>
+<tr><td>HikariCP</td><td class="pro">5.1.0</td><td class="con">3.3.1 / 3.4.5</td><td>datasource, va</td></tr>
+<tr><td>MySQL Connector</td><td class="pro">8.4.0</td><td class="con">8.0.25</td><td>common, datasource, config, va</td></tr>
+</table>
+</div>
+
+<div class="text-sm mt-3">
+<p><strong>同步清理项：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li>修复 hbt/pom.xml 12 组重复依赖声明（Guava 双版本、commons-lang3 双版本等）</li>
+<li>修复 executor/pom.xml 中 JUnit scope 为 test</li>
+<li>移除 executor/pom.xml 中零引用的 net.openhft:compiler 死依赖</li>
+<li>修复/移除 seata 模块（parent version 1.13-alpha ≠ 1.22-release）</li>
+</ul>
+</div>
+</div>
+
+<!-- 2.2 Calcite Upgrade -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-speculative">Speculative · 高风险</span>
+<span class="badge-phase">Phase 3 · 第 3-6 月</span>
+<h3 class="text-xl font-bold">2.2 Apache Calcite 1.26 → 1.38+ 升级</h3>
+</div>
+
+<div class="warn-box">
+<p class="font-semibold text-amber-700">⚠️ 最高风险升级项</p>
+<p class="text-sm text-slate-600 mt-1">hbt 模块包含 <strong>50+ 个</strong>从 Calcite 1.26.0 fork 的源文件，覆盖 SQL 验证器（230KB）、RexImpTable（152KB）、EnumerableDefaults（160KB）等核心组件。跨越 14 个大版本意味着大量 API 变更。</p>
+</div>
+
+<div class="text-sm mt-3">
+<table class="decision">
+<tr><th>修改类别</th><th>Fork 文件数</th><th>升级难度</th><th>说明</th></tr>
+<tr><td>MySQL INTERVAL 类型扩展</td><td>5</td><td class="con">高</td><td>RexBuilder/RexLiteral/SqlIntervalQualifier 等深度修改</td></tr>
+<tr><td>RxJava Observable 引擎</td><td>3</td><td class="con">极高</td><td>Bindable 改造为 interface，上游可能不接受</td></tr>
+<tr><td>MySQL 兼容函数注册</td><td>8</td><td class="pro">中</td><td>主要通过扩展点注册，API 较稳定</td></tr>
+<tr><td>JSON 计划序列化</td><td>4</td><td class="pro">中</td><td>RelJson 扩展，需验证新版 API</td></tr>
+<tr><td>代价模型简化</td><td>2</td><td class="pro">低</td><td>VolcanoCost 硬编码修改，新版可配置化</td></tr>
+<tr><td>类型系统扩展</td><td>6</td><td class="con">高</td><td>SqlTypeName/SqlTypeUtil 等深度修改</td></tr>
+<tr><td>验证器定制</td><td>4</td><td class="con">极高</td><td>SqlValidatorImpl 230KB 大量修改</td></tr>
+<tr><td>代码生成扩展</td><td>6</td><td class="con">高</td><td>RexImpTable/RexToLixTranslator 核心修改</td></tr>
+</table>
+</div>
+
+<div class="info-box mt-3">
+<p class="font-semibold text-blue-700">📋 推荐策略：分阶段追赶</p>
+<ol class="list-decimal ml-4 text-slate-600 mt-1 text-sm space-y-1">
+<li><strong>第一步</strong>：将 Fork 文件独立为 calcite-fork 子模块（见维度三），明确上游差异清单</li>
+<li><strong>第二步</strong>：逐个 Fork 文件尝试 rebase 到 1.28 → 1.30 → 1.34 → 1.38，每次只跳 2-4 个版本</li>
+<li><strong>第三步</strong>：对于上游已采纳的修改（如 RexExecutable.execute()），逐步移除本地 Fork，回归上游实现</li>
+<li><strong>第四步</strong>：将纯扩展类（MycatBuiltInMethod, MycatSqlDefinedFunction）与上游覆盖类分离</li>
+</ol>
+</div>
+</div>
+
+<!-- 2.3 Arrow Upgrade -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-explore">Worth exploring</span>
+<span class="badge-phase">Phase 2 · 第 1-3 月</span>
+<h3 class="text-xl font-bold">2.3 Apache Arrow 5.0 → 15+ 升级</h3>
+</div>
+
+<div class="text-sm">
+<table class="decision">
+<tr><th>评估维度</th><th>详情</th></tr>
+<tr><td>当前版本</td><td>5.0.0 (2021)</td></tr>
+<tr><td>目标版本</td><td>17.x (2025)</td></tr>
+<tr><td>核心 Breaking Change</td><td>Arrow 7.0 引入 VectorSchemaRoot API 变更；Arrow 10.0 重构 BufferAllocator；Arrow 12.0 更新 JDK 基线到 11+</td></tr>
+<tr><td>影响范围</td><td>25+ 文件，涉及 MycatDataType、VectorSchemaRoot 使用、BufferAllocator 管理</td></tr>
+<tr><td>关键收益</td><td>修复已知内存泄漏、性能提升（零拷贝优化）、更好的 JDK 21 支持</td></tr>
+<tr><td>风险级别</td><td class="con">中高 — BufferAllocator API 变更需要逐文件适配</td></tr>
+</table>
+</div>
+</div>
+
+<!-- 2.4 Vert.x Upgrade -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-explore">Worth exploring</span>
+<span class="badge-phase">Phase 2 · 第 1-3 月</span>
+<h3 class="text-xl font-bold">2.4 Vert.x 4.2 → 4.5+ 升级（含 vertx 模块回归）</h3>
+</div>
+
+<div class="text-sm">
+<table class="decision">
+<tr><th>评估维度</th><th>详情</th></tr>
+<tr><td>当前版本</td><td>4.2.5 (2022-02)</td></tr>
+<tr><td>目标版本</td><td>4.5.15 (跳过 5.0，保持 4.x 兼容)</td></tr>
+<tr><td>核心变更</td><td>4.3: Future API 增强；4.4: MySQL client 改进；4.5: JDK 21 优化、Virtual Thread 初步支持</td></tr>
+<tr><td>Fork 影响</td><td>vertx 模块 4 个 Fork 文件需验证与新版 MySQL codec 的兼容性</td></tr>
+<tr><td>关键收益</td><td>Virtual Thread 支持、MySQL 8.0.30+ 协议兼容、安全修复</td></tr>
+<tr><td>风险级别</td><td class="pro">低 — 4.x 内小版本升级，API 兼容性好</td></tr>
+</table>
+<p class="mt-2"><strong>同步动作：</strong>将 vertx 模块 parent version 从 1.15-dev 对齐到 1.22-release，纳入主构建 modules 列表。</p>
+</div>
+</div>
+
+<!-- 2.5 Quick Wins -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<span class="badge-phase">Phase 1 · 第 1 周</span>
+<h3 class="text-xl font-bold">2.5 短期可执行项（Quick Wins）</h3>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+<div class="phase-card" style="border-color:#059669;background:#f0fdf4">
+<p class="font-semibold">✓ 修复 JUnit scope</p>
+<p class="text-slate-600 text-xs">executor/pom.xml 中 JUnit 4.13.2 scope 从 compile → test</p>
+</div>
+<div class="phase-card" style="border-color:#059669;background:#f0fdf4">
+<p class="font-semibold">✓ 移除死依赖</p>
+<p class="text-slate-600 text-xs">executor/pom.xml 中 net.openhft:compiler:2.4.1（零引用）</p>
+</div>
+<div class="phase-card" style="border-color:#059669;background:#f0fdf4">
+<p class="font-semibold">✓ 修复 JdbcDataSource.isValid()</p>
+<p class="text-slate-600 text-xs">始终返回 false → 实际检查连接有效性</p>
+</div>
+<div class="phase-card" style="border-color:#059669;background:#f0fdf4">
+<p class="font-semibold">✓ 升级 Druid SQL Parser</p>
+<p class="text-slate-600 text-xs">1.2.8 → 1.2.24（纯 SQL 解析升级，无 Breaking Change）</p>
+</div>
+<div class="phase-card" style="border-color:#2563eb;background:#eff6ff">
+<p class="font-semibold">✓ 统一 Guava 版本</p>
+<p class="text-slate-600 text-xs">根 POM dependencyManagement 声明 33.5.0-jre，移除子模块散落声明</p>
+</div>
+<div class="phase-card" style="border-color:#2563eb;background:#eff6ff">
+<p class="font-semibold">✓ 清理 hbt/pom.xml</p>
+<p class="text-slate-600 text-xs">移除 12 组重复依赖声明，保留一份在 dependencyManagement 中</p>
+</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DIMENSION 3: FORK MODULARIZATION -->
+<!-- ============================================================ -->
+<div class="dim-header" style="border-color:#d97706">
+<h2 class="text-2xl font-bold">维度三：Fork 代码独立模块化</h2>
+<p class="text-slate-500">将源码级修改与主业务代码解耦，建立上游追踪机制</p>
+</div>
+
+<!-- 3.1 Calcite Fork -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-strong">Strong</span>
+<h3 class="text-xl font-bold">3.1 Calcite Fork 模块化策略</h3>
+</div>
+
+<div class="text-sm">
+<p class="mb-2"><strong>现状：</strong>hbt 模块的 <code>org.apache.calcite</code> 包下包含 50+ 个 Fork 文件（总计约 1.5MB 源码），与 Mycat 自身的业务代码混杂在一起。</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+<div class="before-box">
+<p class="font-semibold text-red-700 mb-2">❌ Before：混杂在 hbt 模块</p>
+<div class="text-xs">
+<div class="arch-layer" style="border-color:#f87171">hbt/src/main/java/</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:1rem">io/mycat/calcite/ ← Mycat 业务代码</div>
+<div class="arch-layer" style="border-color:#f87171;margin-left:1rem">org/apache/calcite/ ← Fork 代码 50+ 文件</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:2rem">rel/externalize/ ← JSON 序列化</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:2rem">sql/validate/ ← 验证器</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:2rem">adapter/enumerable/ ← 代码生成</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:2rem">mycat/ ← Mycat 扩展（新增类）</div>
+</div>
+</div>
+<div class="after-box">
+<p class="font-semibold text-green-700 mb-2">✓ After：三层分离</p>
+<div class="text-xs">
+<div class="arch-layer" style="border-color:#86efac"><strong>calcite-fork/</strong>（新模块）</div>
+<div class="arch-layer" style="border-color:#86efac;margin-left:1rem">上游覆盖类（与 1.26 源码 diff 追踪）</div>
+<div class="arch-layer" style="border-color:#86efac;margin-left:2rem">SqlValidatorImpl, RexImpTable...</div>
+<div class="arch-layer" style="border-color:#60a5fa"><strong>calcite-mycat-ext/</strong>（新模块）</div>
+<div class="arch-layer" style="border-color:#60a5fa;margin-left:1rem">Mycat 新增类（不覆盖上游）</div>
+<div class="arch-layer" style="border-color:#60a5fa;margin-left:2rem">MycatBuiltInMethod, RxBuiltInMethod...</div>
+<div class="arch-layer" style="border-color:#fbbf24"><strong>hbt/</strong>（仅保留业务代码）</div>
+<div class="arch-layer" style="border-color:#fbbf24;margin-left:1rem">io/mycat/calcite/ ← 纯 Mycat 编译器逻辑</div>
+</div>
+</div>
+</div>
+
+<div class="text-sm mt-3">
+<p><strong>上游追踪策略：</strong></p>
+<table class="decision mt-1">
+<tr><th>类别</th><th>文件数</th><th>追踪策略</th></tr>
+<tr><td>上游覆盖类（修改原文件）</td><td>~35</td><td>维护 PATCH 文件集，每个 Fork 文件附带 diff 标记，使用 git diff 追踪与上游 1.26 baseline 的偏离</td></tr>
+<tr><td>Mycat 新增类</td><td>~15</td><td>无需追踪上游，独立版本管理，仅确保包名不与上游冲突</td></tr>
+<tr><td>上游已修复的修改</td><td>~5</td><td>逐项验证后可移除 Fork，回归上游实现（如 RexExecutable.execute()）</td></tr>
+</table>
+</div>
+</div>
+
+<!-- 3.2 Vert.x Fork -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-explore">Worth exploring</span>
+<h3 class="text-xl font-bold">3.2 Vert.x MySQL Codec Fork 回归策略</h3>
+</div>
+
+<div class="text-sm">
+<p><strong>现状：</strong>vertx 模块包含 4 个定制文件（MysqlCollector, StreamMysqlCollector, QueryCommandBaseCodec, RowSetCollector），parent version 为 1.15-dev 且不在主构建中。核心目的是实现 MySQL 结果集的流式逐行处理。</p>
+
+<p class="mt-2"><strong>评估：</strong></p>
+<table class="decision mt-1">
+<tr><th>方案</th><th>Pros</th><th>Cons</th><th>推荐</th></tr>
+<tr><td>A. 向 Vert.x 上游提交 PR</td><td class="pro">消除 Fork 维护成本；社区审核提升质量</td><td class="con">PR 可能被拒绝或长期等待</td><td>✗ 不现实</td></tr>
+<tr><td>B. 保持 Fork 但纳入主构建</td><td class="pro">流式处理是核心需求</td><td class="con">仍需维护与上游的 diff</td><td>⚠ 过渡方案</td></tr>
+<tr><td>C. 升级到 Vert.x 4.5+ 后验证是否仍需要 Fork</td><td class="pro">新版可能已内置流式支持</td><td class="con">需要先完成 Vert.x 升级</td><td class="pro">✓ 推荐</td></tr>
+</table>
+
+<p class="mt-2"><strong>推荐路径：</strong>Phase 2 升级 Vert.x → 4.5+ → 验证新版 MySQL codec 是否支持 MysqlCollector 语义 → 如果支持则回归上游 → 如果不支持则将 Fork 文件移入独立 <code>vertx-mycat-codec</code> 模块并纳入主构建。</p>
+</div>
+</div>
+
+<!-- 3.3 Druid Extensions -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<span class="badge-explore">Worth exploring</span>
+<h3 class="text-xl font-bold">3.3 Druid 使用模式优化（无 Fork 需模块化）</h3>
+</div>
+
+<div class="text-sm">
+<p><strong>发现：</strong>经代码验证，项目中<strong>不存在</strong> Druid 包级别的 Fork 代码（<code>com.alibaba.druid.*</code> 包下无自定义类）。之前报告中提到的 "MycatSQLUtils" 等实际位于 <code>io.mycat</code> 包下，仅使用了 Druid 的公开 API。</p>
+<p class="mt-2">因此 Druid 不需要 Fork 模块化。正确的做法是：</p>
+<ol class="list-decimal ml-4 text-slate-600 mt-1 space-y-1">
+<li>将 Druid 升级至 1.2.24（SQL Parser 兼容性改进）</li>
+<li>连接池角色由 HikariCP 替代（见 4.3 决策矩阵）</li>
+<li>SQL Parser 角色保持依赖 Druid，通过 <code>SqlParserAdapter</code> 接缝隔离（为未来可能的替换预留）</li>
+</ol>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DIMENSION 4: DECISION MATRICES -->
+<!-- ============================================================ -->
+<div class="dim-header" style="border-color:#7c3aed">
+<h2 class="text-2xl font-bold">维度四：模糊地带决策矩阵</h2>
+<p class="text-slate-500">对每个两难选择给出明确的 Pros/Cons 对比与最终推荐</p>
+</div>
+
+<!-- 4.1 NIO vs Vert.x -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<h3 class="text-xl font-bold">4.1 自研 NIO vs Vert.x 网络栈</h3>
+</div>
+
+<div class="text-sm">
+<table class="decision">
+<tr><th>评估维度</th><th>NativeMycatServer (NIO)</th><th>VertxMycatServer (Vert.x)</th></tr>
+<tr><td>生产使用</td><td class="con">否（仅测试）</td><td class="pro">是（MycatCore 硬编码）</td></tr>
+<tr><td>代码量</td><td>50+ 文件</td><td>~30 文件</td></tr>
+<tr><td>协议完整度</td><td class="pro">完整 MySQL 协议实现</td><td class="pro">完整 + 流式扩展</td></tr>
+<tr><td>监控能力</td><td class="pro">完整</td><td class="con">4 个接口返回 "unsupported"</td></tr>
+<tr><td>JDK 21 Virtual Threads</td><td class="con">不兼容（NIO Selector 线程绑定）</td><td class="pro">Vert.x 4.5+ 原生支持</td></tr>
+<tr><td>社区生态</td><td class="con">无（自研）</td><td class="pro">Vert.x 社区活跃</td></tr>
+<tr><td>可维护性</td><td class="con">需自行维护 Reactor 模式</td><td class="pro">框架托管事件循环</td></tr>
+<tr><td>后端连接池</td><td>NIO 原生连接池</td><td>JDBC + Druid</td></tr>
+<tr><td>性能特征</td><td>理论上更低延迟（无框架开销）</td><td>实际差距可忽略</td></tr>
+<tr><td>Buffer 管理</td><td class="con">手动管理 NIO ByteBuffer</td><td class="pro">Vert.x Buffer 托管</td></tr>
+</table>
+
+<div class="info-box mt-3">
+<p class="font-bold text-lg">🏆 最终决策：<span class="text-emerald-700">废弃 Native NIO 栈，保留并强化 Vert.x 栈</span></p>
+<p class="text-sm text-slate-600 mt-1"><strong>理由：</strong>Native 栈在生产中从未使用，其唯一价值是协议实现的参考代码。维护成本远大于收益。但需注意：① VertxMycatServer 的 4 个 "unsupported" 监控方法必须补齐（可参考 Native 栈的实现思路）；② Native 栈中 CommandDispatcher 的完整命令处理逻辑值得移植。</p>
+<p class="text-sm text-slate-600 mt-1"><strong>执行时间：</strong>Phase 1 标记 @Deprecated → Phase 2 移植有价值逻辑 → Phase 3 移除</p>
+</div>
+</div>
+</div>
+
+<!-- 4.2 RxJava vs Future -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<h3 class="text-xl font-bold">4.2 RxJava 3 vs Vert.x Future 异步模型</h3>
+</div>
+
+<div class="text-sm">
+<p class="mb-2"><strong>现状数据：</strong></p>
+<ul class="list-disc ml-4 text-slate-600">
+<li>RxJava 3：<strong>~15 个活跃文件</strong>（executor 物理计划、swapbuffer、hbt 查询执行）</li>
+<li>Vert.x Future/Promise：<strong>~40+ 活跃文件</strong>（事务管理、连接池、XA 协议、DML 操作）</li>
+<li>CompletableFuture：仅 2 处（临时桥梁）</li>
+<li><strong>3 个完整类被注释掉</strong>（FutureNewMycatConnectionImpl, NewVertxConnectionImpl, NewMariadbConnectionImpl），共 1200+ 行 — 证明曾尝试迁移到纯 Future 但放弃</li>
+</ul>
+</div>
+
+<div class="critical-box">
+<p class="font-semibold text-red-700">🔴 核心痛点：NewMycatConnection 接口同时暴露 Observable 和 Future</p>
+<div class="bg-white rounded p-2 mt-1 font-mono text-xs">
+<span class="text-slate-500">// 同一个接口中两种异步模型并存</span><br/>
+Observable&lt;VectorSchemaRoot&gt; query(String sql);<br/>
+Future&lt;RowBaseIterator&gt; prepareQuery(String sql, List params);
+</div>
+<p class="text-sm text-slate-600 mt-1">导致实现类内部出现 <code>Observable.create(Future.transform(...))</code> 的嵌套反模式。</p>
+</div>
+
+<div class="text-sm mt-3">
+<table class="decision">
+<tr><th>评估维度</th><th>RxJava 3</th><th>Vert.x Future</th><th>JDK 21 Virtual Threads</th></tr>
+<tr><td>当前使用广度</td><td>15 文件</td><td class="pro">40+ 文件</td><td>0（未引入）</td></tr>
+<tr><td>背压（Backpressure）</td><td class="pro">原生支持</td><td class="con">不支持</td><td class="con">不适用</td></tr>
+<tr><td>流式数据处理</td><td class="pro">Observable 链式操作</td><td>Future 无流式语义</td><td class="pro">Iterator + Virtual Thread</td></tr>
+<tr><td>简单异步编排</td><td>过重</td><td class="pro">轻量直观</td><td class="pro">同步写法</td></tr>
+<tr><td>JDK 21 兼容性</td><td class="con">线程池与 VT 冲突</td><td class="pro">Vert.x 4.5+ 支持</td><td class="pro">原生</td></tr>
+<tr><td>学习曲线</td><td class="con">陡峭</td><td class="pro">平缓</td><td class="pro">最简单</td></tr>
+<tr><td>执行引擎适配</td><td class="pro">PhysicalPlan.execute()</td><td class="con">需重新设计</td><td class="pro">可简化为同步</td></tr>
+</table>
+
+<div class="info-box mt-3">
+<p class="font-bold text-lg">🏆 最终决策：<span class="text-emerald-700">分层策略 — 执行引擎保留 RxJava，I/O 层统一 Vert.x Future，长期向 Virtual Threads 演进</span></p>
+<ol class="list-decimal ml-4 text-sm text-slate-600 mt-1 space-y-1">
+<li><strong>执行引擎层（PhysicalPlan）</strong>：保留 <code>Observable&lt;VectorSchemaRoot&gt;</code>，因为背压和流式数据处理是 RxJava 的核心优势，且 36 个物理算子的改动成本极高</li>
+<li><strong>I/O 与连接管理层</strong>：统一使用 Vert.x Future，消除 RxJava 在非执行引擎代码中的使用</li>
+<li><strong>接缝处转换</strong>：在 ExecutionDispatcher 接缝处提供 <code>Observable ↔ Future</code> 的标准转换器</li>
+<li><strong>JDK 21 长期演进</strong>：Virtual Threads + Structured Concurrency 最终可替代 RxJava 的流式处理，但需要先完成 JDK 升级（Phase 3+）</li>
+</ol>
+</div>
+</div>
+</div>
+
+<!-- 4.3 Druid Pool vs HikariCP -->
+<div class="card">
+<div class="flex items-center gap-3 mb-3">
+<h3 class="text-xl font-bold">4.3 Druid 连接池 vs HikariCP</h3>
+</div>
+
+<div class="text-sm">
+<table class="decision">
+<tr><th>评估维度</th><th>Druid Pool 1.2.8</th><th>HikariCP 5.x</th></tr>
+<tr><td>Virtual Threads 兼容</td><td class="con">❌ 内部使用 synchronized + ReentrantLock</td><td class="pro">✓ 5.x 原生支持</td></tr>
+<tr><td>性能（基准测试）</td><td>良好</td><td class="pro">业界最快（微秒级获取）</td></tr>
+<tr><td>代码体积</td><td class="con">~15MB（含监控/防火墙/统计）</td><td class="pro">~130KB</td></tr>
+<tr><td>连接泄漏检测</td><td class="pro">内置（removeAbandoned）</td><td class="pro">内置（leakDetectionThreshold）</td></tr>
+<tr><td>SQL 监控</td><td class="pro">内置 StatFilter</td><td class="con">需外部（Prometheus/Micrometer）</td></tr>
+<tr><td>SQL 防火墙</td><td class="pro">内置 WallFilter</td><td class="con">无</td></tr>
+<tr><td>MyCat2 实际使用</td><td>仅使用基础连接池功能</td><td>—</td></tr>
+<tr><td>SPI 切换成本</td><td>—</td><td class="pro">低（DatasourceProvider 接口已存在）</td></tr>
+<tr><td>社区活跃度</td><td>维护模式</td><td class="pro">Spring Boot 默认选择</td></tr>
+<tr><td>配置复杂度</td><td class="con">50+ 配置项</td><td class="pro">~15 核心配置项</td></tr>
+</table>
+
+<div class="info-box mt-3">
+<p class="font-bold text-lg">🏆 最终决策：<span class="text-emerald-700">替换为 HikariCP 5.x，保留 Druid SQL Parser</span></p>
+<p class="text-sm text-slate-600 mt-1"><strong>理由：</strong></p>
+<ul class="list-disc ml-4 text-sm text-slate-600">
+<li>Mycat2 仅使用 Druid 的基础连接池功能，StatFilter/WallFilter 均未启用</li>
+<li>Druid Pool 的 synchronized 锁机制是 JDK 21 Virtual Threads 的硬性阻碍</li>
+<li>项目已有 DatasourceProvider SPI 接口 + 反射加载机制，切换成本极低</li>
+<li>HikariCP 已在 pom.xml 中声明（3.3.1/3.4.5），只是未被启用</li>
+</ul>
+<p class="text-sm mt-2"><strong>迁移路径：</strong></p>
+<ol class="list-decimal ml-4 text-sm text-slate-600 space-y-1">
+<li>创建 <code>HikariCPDatasourceProvider implements DatasourceProvider</code></li>
+<li>配置文件中 provider 类名从 <code>DruidDatasourceProvider</code> 改为 <code>HikariCPDatasourceProvider</code></li>
+<li>映射 Druid 配置项到 HikariCP 等价项（maximumPoolSize, minimumIdle 等）</li>
+<li>保留 DruidDatasourceProvider 作为备选（用户可通过配置切换）</li>
+<li>验证心跳、连接有效性检查（修复 isValid() bug）在新 Provider 中的正确性</li>
+</ol>
+</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- IMPLEMENTATION ROADMAP -->
+<!-- ============================================================ -->
+<div class="dim-header" style="border-color:#dc2626">
+<h2 class="text-2xl font-bold">分阶段实施路线图</h2>
+<p class="text-slate-500">三阶段渐进式推进，每阶段独立可交付</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+<!-- Phase 1 -->
+<div class="card" style="border-top:4px solid #059669">
+<div class="flex items-center gap-2 mb-3">
+<span class="badge-phase" style="background:#059669">Phase 1</span>
+<span class="text-sm font-semibold">第 1-2 周</span>
+</div>
+<h4 class="font-bold mb-2">基础治理 · 低风险高收益</h4>
+<ul class="text-sm text-slate-600 space-y-1.5">
+<li>✅ 父 POM 添加 dependencyManagement</li>
+<li>✅ 统一 Guava → 33.5.0-jre</li>
+<li>✅ 清理 hbt/pom.xml 重复依赖</li>
+<li>✅ 修复 JUnit scope → test</li>
+<li>✅ 移除死依赖 OpenHFT</li>
+<li>✅ 修复 JdbcDataSource.isValid()</li>
+<li>✅ 升级 Druid SQL Parser → 1.2.24</li>
+<li>✅ 创建 HikariCPDatasourceProvider</li>
+<li>✅ 标记 NativeMycatServer @Deprecated</li>
+</ul>
+<p class="text-xs text-slate-400 mt-3">预计工时：1-2 人周</p>
+</div>
+
+<!-- Phase 2 -->
+<div class="card" style="border-top:4px solid #2563eb">
+<div class="flex items-center gap-2 mb-3">
+<span class="badge-phase" style="background:#2563eb">Phase 2</span>
+<span class="text-sm font-semibold">第 1-3 月</span>
+</div>
+<h4 class="font-bold mb-2">架构整理 · 中风险中收益</h4>
+<ul class="text-sm text-slate-600 space-y-1.5">
+<li>🔧 升级 Vert.x 4.2 → 4.5+</li>
+<li>🔧 vertx 模块回归主构建</li>
+<li>🔧 验证 Vert.x MySQL codec Fork 必要性</li>
+<li>🔧 升级 Arrow 5.0 → 15+</li>
+<li>🔧 提取 calcite-fork 独立子模块</li>
+<li>🔧 提取 calcite-mycat-ext 子模块</li>
+<li>🔧 补齐 VertxMycatServer 监控方法</li>
+<li>🔧 统一异步模型接缝定义</li>
+<li>🔧 移植 Native 栈有价值的命令处理逻辑</li>
+<li>🔧 定义 ExecutionDispatcher 接缝</li>
+</ul>
+<p class="text-xs text-slate-400 mt-3">预计工时：4-6 人周</p>
+</div>
+
+<!-- Phase 3 -->
+<div class="card" style="border-top:4px solid #7c3aed">
+<div class="flex items-center gap-2 mb-3">
+<span class="badge-phase" style="background:#7c3aed">Phase 3</span>
+<span class="text-sm font-semibold">第 3-6 月</span>
+</div>
+<h4 class="font-bold mb-2">深度升级 · 高风险高收益</h4>
+<ul class="text-sm text-slate-600 space-y-1.5">
+<li>⚡ Calcite 1.26 → 1.30 追赶</li>
+<li>⚡ Calcite 1.30 → 1.34 追赶</li>
+<li>⚡ Calcite 1.34 → 1.38 追赶</li>
+<li>⚡ 移除已被上游采纳的 Fork 文件</li>
+<li>⚡ 废弃并移除 Native NIO 栈</li>
+<li>⚡ 修复 CalciteCompiler 编译管线</li>
+<li>⚡ 评估 JDK 21 升级 + Virtual Threads</li>
+<li>⚡ 渐进式减少 RxJava 依赖</li>
+</ul>
+<p class="text-xs text-slate-400 mt-3">预计工时：8-12 人周</p>
+</div>
+</div>
+
+<!-- Risk Heatmap -->
+<div class="card mb-8">
+<h3 class="text-xl font-bold mb-4">风险热力图</h3>
+<div class="mermaid">
+quadrantChart
+    title 改进方案风险 vs 收益矩阵
+    x-axis "低收益" --> "高收益"
+    y-axis "高风险" --> "低风险"
+    quadrant-1 "优先执行"
+    quadrant-2 "审慎规划"
+    quadrant-3 "可跳过"
+    quadrant-4 "谨慎评估"
+    "POM集中化": [0.3, 0.9]
+    "Quick Wins": [0.35, 0.85]
+    "HikariCP替换": [0.5, 0.75]
+    "废弃NIO栈": [0.6, 0.7]
+    "Vert.x升级": [0.55, 0.6]
+    "Arrow升级": [0.65, 0.45]
+    "Fork模块化": [0.7, 0.5]
+    "Calcite升级": [0.9, 0.2]
+    "JDK 21 VT": [0.85, 0.25]
+</div>
+</div>
+
+<!-- TOP RECOMMENDATIONS -->
+<div class="card deep text-white p-6 mb-8">
+<h3 class="text-xl font-bold mb-4 text-emerald-400">🏆 最高优先级推荐</h3>
+<div class="space-y-3">
+<div class="flex items-start gap-3">
+<span class="bg-emerald-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold flex-shrink-0">1</span>
+<div>
+<p class="font-semibold">父 POM 依赖集中化 + Quick Wins</p>
+<p class="text-slate-400 text-sm">零风险、立竿见影。消除 5 版本 Guava 冲突、修复 JUnit scope、修复 isValid() bug。这是所有后续工作的基础。</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="bg-emerald-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold flex-shrink-0">2</span>
+<div>
+<p class="font-semibold">HikariCP 替换 Druid 连接池</p>
+<p class="text-slate-400 text-sm">低风险、高收益。现有 SPI 接口天然支持切换，为 JDK 21 Virtual Threads 扫清最大障碍。</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="bg-emerald-500 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold flex-shrink-0">3</span>
+<div>
+<p class="font-semibold">Calcite Fork 模块化 + Vert.x 升级</p>
+<p class="text-slate-400 text-sm">将 50+ 个 Fork 文件从 hbt 业务代码中分离，建立上游追踪机制。同步升级 Vert.x 4.5+ 获得 Virtual Thread 初步支持。</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="text-center text-sm text-slate-400 py-8 border-t">
+<p>Mycat2 第二轮架构升级评审报告 · 基于代码级深度分析</p>
+<p class="mt-1">使用 codebase-design 词汇体系：Module · Interface · Depth · Seam · Adapter · Leverage · Locality</p>
+</footer>
+
+</main>
+</body>
+</html>
