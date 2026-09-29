@@ -45,6 +45,12 @@ public abstract class AbstractMySqlConnection implements MySQLConnection {
     }
 
     @Override
+    public Transaction transaction() {
+        // MYCAT CHANGE: Vert.x 4.5.14 added abstract transaction() to SqlConnection
+        return null;
+    }
+
+    @Override
     public Future<Transaction> begin() {
        throw new UnsupportedOperationException();
     }

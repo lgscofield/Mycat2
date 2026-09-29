@@ -47,12 +47,6 @@
             <artifactId>commons-csv</artifactId>
             <version>1.8</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.8</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.github.oshi/oshi-dist -->
         <dependency>
             <groupId>com.github.oshi</groupId>
@@ -519,33 +513,6 @@
 
             </plugin>
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <format>{1}</format>
-                    <items>
-                        <item>timestamp</item>
-                        <item>scmVersion</item>
-                    </items>
-                    <doCheck>false</doCheck>
-                    <doUpdate>false</doUpdate>
-                    <timestampFormat>{0,date,yyyyMMddHHmmss}</timestampFormat>
-                    <providerImplementations>
-                        <git>git</git>
-                    </providerImplementations>
-
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 </project>

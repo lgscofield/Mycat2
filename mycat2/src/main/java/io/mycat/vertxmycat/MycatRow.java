@@ -5,12 +5,9 @@ import io.vertx.sqlclient.data.Numeric;
 import io.vertx.sqlclient.impl.RowDesc;
 
 public class MycatRow extends JDBCRow {
-    public MycatRow(RowDesc desc) {
+    // MYCAT CHANGE: Vert.x 4.5.14 JDBCRow no longer has copy constructor
+    public MycatRow(io.vertx.sqlclient.impl.RowDesc desc) {
         super(desc);
-    }
-
-    public MycatRow(JDBCRow row) {
-        super(row);
     }
 
     @Override

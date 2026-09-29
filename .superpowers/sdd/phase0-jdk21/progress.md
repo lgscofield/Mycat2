@@ -36,3 +36,47 @@ Tasks 15, 16, 18: PENDING (require JDK 21 for verification)
   - Task 16: Vert.x 4.2.5→4.5.14 internal API migration (~80 files)
   - Task 18: Final full compilation verification
 
+---
+Session 2026-09-29: mycat2 module compilation fix (commit pending on main)
+  BASE: dea3f6727 (previous session commit)
+
+  Druid 1.2.28 API changes (5 files, ~60 errors fixed):
+    - SQLASTOutputVisitor.java: name_lower→nameLCase, isSibings→isSiblings,
+      Type enum→Feature flags, getLiteral→getValue, List<SQLName>→List<SQLExpr>,
+      @Override removal for HiveCreateTableStatement, getMetaLifeCycle removal
+    - SQLExprParser.java: hash_lower→hashLCase (24 sites), setSourceColumn→setSource,
+      setSibings→setSiblings, setLiteral→setValue, isSupport removal,
+      getLiteral→getNumber, setLifecycle→setLifeCycle
+    - SQLHexExpr.java: SQLUtils.UTF8→StandardCharsets.UTF_8
+    - ExportParameterVisitorUtils.java: Appendable→StringBuilder
+    - MycatRouterConfigOps.java: setIfNotExiists→setIfNotExists
+
+  Calcite 1.42 API changes (1 file):
+    - ExecutorProviderImpl.java: bind() signature now takes DataContext
+
+  Vert.x 4.5.14 internal API changes (10 files, ~28 errors fixed):
+    - ObjectArrayDecoder.java: DataType.INT1→INT8, INT2→INT16, INT3→INT24,
+      INT4→INT32, TINYBLOB→TINY_BLOB, MEDIUMBLOB→MEDIUM_BLOB, LONGBLOB→LONG_BLOB;
+      DataType.valueOf(int)→parseDataType(short,int,int)
+    - PacketUtil.java: OkPacket constructor (int,long,int) 3 params
+    - AbstractMySqlConnection.java: added transaction() abstract method
+    - JdbcMySqlConnection.java: RowDesc→JDBCRowDesc (RowDesc now abstract)
+    - MycatRow.java: removed JDBCRow copy constructor
+    - MycatVertxRowResultDecoder.java: decodeRow(int,ByteBuf)→decodeRow(int,ByteBuf,Row)
+      returning boolean; added row() abstract method;
+      DataTypeCodec.decodeBinary/decodeText removed flags param
+    - RowSetJdbcPreparedJdbcQuery.java: RowDesc→JDBCRowDesc, MySQLRowDesc→factory,
+      ColumnDefinition 4-param constructor, DataType.parseDataType
+    - VertxMycatTextCollector.java: DataType.parseDataType, ColumnDefinition 4-param,
+      MySQLRowDesc.create() factory
+    - FutureImpl.java (io.vertx.core.impl.future): added removeListener()
+    - QueryCommandBaseCodec.java (Mycat custom): MySQLRowDesc.create(),
+      completionHandler→cmd.fail/complete
+
+  POM cleanup:
+    - Removed duplicate commons-csv dependency in mycat2/pom.xml
+    - Removed duplicate buildnumber-maven-plugin in mycat2/pom.xml
+
+  Result: BUILD SUCCESS — all 13 modules compile (parent, config, common,
+    router, plug, replica, datasource, va, proxy, calcite-core, hbt, executor, mycat2)
+

@@ -48,7 +48,8 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
     public void addColumn(int index, Buffer buffer) {
         ColumnDefPacketImpl columnDefPacket = decodeColumnDefinitionPacketPayload(buffer);
         this.columnDefPackets[index] = columnDefPacket;
-        this.dataTypes[index] = DataType.valueOf(columnDefPacket.getColumnType());
+        // MYCAT CHANGE: Vert.x 4.5.14 DataType.valueOf(int) removed, use parseDataType(short, int, int)
+        this.dataTypes[index] = DataType.parseDataType((short) columnDefPacket.getColumnType(), columnDefPacket.getColumnFlags(), columnDefPacket.getColumnCharsetSet());
         this.signeds[index] = columnDefPacket.isSigned();
     }
 
@@ -98,15 +99,16 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                     Object value = null;
                     DataType dataType = this.dataTypes[c];
                     switch (dataType) {
-                        case INT1:
-                        case INT2:
-                        case INT3:
-                        case INT4:
-                        case INT8: {
+                        // MYCAT CHANGE: Vert.x 4.5.14 renamed DataType enum constants: INT1→INT8, INT2→INT16, INT3→INT24, INT4→INT32, INT8→INT64
+                        case INT8:
+                        case INT16:
+                        case INT24:
+                        case INT32:
+                        case INT64: {
                             boolean signed = this.signeds[c];
                             long l;
                             switch (dataType) {
-                                case INT1: {
+                                case INT8: {
                                     l = PacketUtil.decodeDecStringToLong(pos, length, payload);
                                     if (signed) {
                                         value = (byte) l;
@@ -115,7 +117,7 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                                     }
                                     break;
                                 }
-                                case INT2: {
+                                case INT16: {
                                     l = PacketUtil.decodeDecStringToLong(pos, length, payload);
                                     if (signed) {
                                         value = (short) l;
@@ -124,12 +126,12 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                                     }
                                     break;
                                 }
-                                case INT3: {
+                                case INT24: {
                                     l = PacketUtil.decodeDecStringToLong(pos, length, payload);
                                     value = (int) l;
                                     break;
                                 }
-                                case INT4: {
+                                case INT32: {
                                     l = PacketUtil.decodeDecStringToLong(pos, length, payload);
                                     if (signed) {
                                         value = (int) l;
@@ -138,7 +140,7 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                                     }
                                     break;
                                 }
-                                case INT8: {
+                                case INT64: {
                                     if (signed) {
                                         value = PacketUtil.decodeDecStringToLong(pos, length, payload);
                                         break;
@@ -176,10 +178,11 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                                 value = payload.getString(pos, pos + length);
                             }
                             break;
-                        case TINYBLOB:
+                        // MYCAT CHANGE: Vert.x 4.5.14 renamed DataType enum constants: TINYBLOB→TINY_BLOB, MEDIUMBLOB→MEDIUM_BLOB, LONGBLOB→LONG_BLOB
+                        case TINY_BLOB:
                         case BLOB:
-                        case MEDIUMBLOB:
-                        case LONGBLOB:
+                        case MEDIUM_BLOB:
+                        case LONG_BLOB:
                             value = payload.getBytes(pos, pos + length);
                             break;
                         case DATE: {

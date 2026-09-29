@@ -309,7 +309,7 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
                 }
                 SQLIndexDefinition indexDefinition = element.getIndexDefinition();
                 MySqlCreateTableStatement indexCreateTableStatement = new MySqlCreateTableStatement();
-                indexCreateTableStatement.setIfNotExiists(true);
+                indexCreateTableStatement.setIfNotExists(true); // MYCAT CHANGE: Druid 1.2.28 fixed typo setIfNotExiists → setIfNotExists
 
                 String indexTableName = tableName + "_" + SQLUtils.normalize(indexDefinition.getName().getSimpleName());
                 indexCreateTableStatement.setTableName("`" + indexTableName + "`");

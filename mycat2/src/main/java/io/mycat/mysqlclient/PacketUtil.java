@@ -62,7 +62,8 @@ public class PacketUtil {
         int serverStatusFlags = readView.readLenencInt().intValue();
         String statusInfo = null;
         String sessionStateInfo = null;
-        return new Packets.OkPacket(affectedRows, lastInsertId, serverStatusFlags, 0, statusInfo, sessionStateInfo);
+        // MYCAT CHANGE: Vert.x 4.5.14 OkPacket constructor changed to (int, long, int)
+        return new Packets.OkPacket((int) affectedRows, lastInsertId, serverStatusFlags);
     }
 
     public static byte writeQueryText(NetSocket socket,String text){

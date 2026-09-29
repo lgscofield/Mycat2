@@ -64,22 +64,15 @@ public class VertxMycatTextCollector<C, R> implements ResultSetHandler {
         String name = new String(packet.getColumnName());
         String orgName = new String(packet.getColumnOrgName());
         int characterSet = packet.getColumnCharsetSet();
-        long columnLength = packet.getColumnLength();
-        DataType type = DataType.valueOf(packet.getColumnType());
         int flags = packet.getColumnFlags();
-        byte decimals = packet.getColumnDecimals();
+        // MYCAT CHANGE: Vert.x 4.5.14 DataType.valueOf(int) removed, use parseDataType
+        DataType type = DataType.parseDataType((short) packet.getColumnType(), flags, characterSet);
+        // MYCAT CHANGE: Vert.x 4.5.14 ColumnDefinition constructor changed to (String, int, DataType, int)
         ColumnDefinition columnDefinition = new ColumnDefinition(
-                catalog,
-                schema,
-                table,
-                orgTable,
-                name,
-                orgName,
+                new String(packet.getColumnName()),
                 characterSet,
-                columnLength,
                 type,
-                flags,
-                decimals
+                flags
         );
         this.currentColumnDefList[this.columnCount++] = columnDefinition;
 
@@ -87,11 +80,13 @@ public class VertxMycatTextCollector<C, R> implements ResultSetHandler {
 
     @Override
     public void onColumnDefEof(MySQLPacket mySQLPacket, int startPos, int endPos) {
-        rowResultDecoder = new MycatVertxRowResultDecoder(collector, new MySQLRowDesc(currentColumnDefList, DataFormat.TEXT));
+        // MYCAT CHANGE: Vert.x 4.5.14 MySQLRowDesc constructor is private, use factory method
+        rowResultDecoder = new MycatVertxRowResultDecoder(collector, MySQLRowDesc.create(currentColumnDefList, DataFormat.TEXT));
         this.c = collector.supplier().get();
         this.accumulator = collector.accumulator();
         if (collector instanceof StreamMysqlCollector){
-            MySQLRowDesc mySQLRowDesc = new MySQLRowDesc(this.currentColumnDefList, DataFormat.TEXT);
+            // MYCAT CHANGE: Vert.x 4.5.14 MySQLRowDesc constructor is private, use factory method
+            MySQLRowDesc mySQLRowDesc = MySQLRowDesc.create(this.currentColumnDefList, DataFormat.TEXT);
             ((StreamMysqlCollector) collector).onColumnDefinitions(mySQLRowDesc);
         }
     }

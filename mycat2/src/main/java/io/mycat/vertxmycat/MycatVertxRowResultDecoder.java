@@ -24,6 +24,8 @@ import io.vertx.mysqlclient.impl.protocol.ColumnDefinition;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.impl.RowDecoder;
 
+import io.vertx.sqlclient.impl.RowInternal;
+
 import java.util.stream.Collector;
 
 public class MycatVertxRowResultDecoder<C, R> extends RowDecoder<C, R> {
@@ -36,9 +38,22 @@ public class MycatVertxRowResultDecoder<C, R> extends RowDecoder<C, R> {
         this.rowDesc = rowDesc;
     }
 
+    // MYCAT CHANGE: Vert.x 4.5.14 added abstract row() to RowDecoder
     @Override
-    protected Row decodeRow(int len, ByteBuf in) {
+    protected RowInternal row() {
+        return new MySQLRowImpl(rowDesc);
+    }
+
+    // MYCAT CHANGE: Vert.x 4.5.14 public wrapper for decodeRow, which is now protected with different signature
+    public Row decodeRow(int len, ByteBuf in) {
         Row row = new MySQLRowImpl(rowDesc);
+        decodeRow(len, in, row);
+        return row;
+    }
+
+    // MYCAT CHANGE: Vert.x 4.5.14 decodeRow signature changed to (int, ByteBuf, Row)
+    @Override
+    protected boolean decodeRow(int len, ByteBuf in, Row row) {
         if (rowDesc.dataFormat() == DataFormat.BINARY) {
             // BINARY row decoding
             // 0x00 packet header
@@ -61,7 +76,8 @@ public class MycatVertxRowResultDecoder<C, R> extends RowDecoder<C, R> {
                     DataType dataType = columnDef.type();
                     int collationId = rowDesc.columnDefinitions()[c].characterSet();
                     int columnDefinitionFlags = columnDef.flags();
-                    decoded = DataTypeCodec.decodeBinary(dataType, collationId, columnDefinitionFlags, in);
+                    // MYCAT CHANGE: Vert.x 4.5.14 DataTypeCodec.decodeBinary signature changed to (DataType, int, ByteBuf)
+                    decoded = DataTypeCodec.decodeBinary(dataType, collationId, in);
                 }
                 row.addValue(decoded);
             }
@@ -75,12 +91,13 @@ public class MycatVertxRowResultDecoder<C, R> extends RowDecoder<C, R> {
                     DataType dataType = rowDesc.columnDefinitions()[c].type();
                     int columnDefinitionFlags = rowDesc.columnDefinitions()[c].flags();
                     int collationId = rowDesc.columnDefinitions()[c].characterSet();
-                    decoded = DataTypeCodec.decodeText(dataType, collationId, columnDefinitionFlags, in);
+                    // MYCAT CHANGE: Vert.x 4.5.14 DataTypeCodec.decodeText signature changed to (DataType, int, ByteBuf)
+                    decoded = DataTypeCodec.decodeText(dataType, collationId, in);
                 }
                 row.addValue(decoded);
             }
         }
-        return row;
+        return true; // MYCAT CHANGE: Vert.x 4.5.14 decodeRow returns boolean
     }
 }
 

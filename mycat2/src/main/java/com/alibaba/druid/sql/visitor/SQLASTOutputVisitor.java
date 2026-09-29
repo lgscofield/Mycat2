@@ -26,6 +26,7 @@ import com.alibaba.druid.sql.ast.statement.SQLJoinTableSource.JoinType;
 // MYCAT CHANGE: Druid 1.2.28 removed MergeInsertClause/MergeUpdateClause, now using When/WhenUpdate/WhenInsert/WhenDelete
 import com.alibaba.druid.sql.dialect.hive.ast.HiveInputOutputFormat;
 import com.alibaba.druid.sql.dialect.hive.stmt.HiveCreateTableStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.MysqlPartitionSingle;
 import com.alibaba.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
 import com.alibaba.druid.sql.dialect.mysql.ast.expr.MySqlOrderingExpr;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.*;
@@ -1001,7 +1002,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     }
 
     protected void printOperator(SQLBinaryOperator operator) {
-        print0(ucase ? operator.name : operator.name_lcase);
+        print0(ucase ? operator.name : operator.nameLCase);
     }
 
     private void visitorBinaryRight(SQLBinaryOpExpr x) {
@@ -2717,7 +2718,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         List<SQLSelectOrderByItem> items = x.getItems();
 
         if (items.size() > 0) {
-            if (x.isSibings()) {
+            if (x.isSiblings()) {
                 print0(ucase ? "ORDER SIBLINGS BY " : "order siblings by ");
             } else {
                 print0(ucase ? "ORDER BY " : "order by ");
@@ -2746,7 +2747,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         SQLOrderingSpecification type = x.getType();
         if (type != null) {
             print(' ');
-            print0(ucase ? type.name : type.name_lcase);
+            print0(ucase ? type.name : type.nameLCase);
         }
 
         String collate = x.getCollate();
@@ -3284,7 +3285,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             }
         }
 
-        SQLExpr generatedAlawsAs = x.getGeneratedAlawsAs();
+        SQLExpr generatedAlawsAs = x.getGeneratedAlwaysAs();
         if (generatedAlawsAs != null) {
             print0(ucase ? " GENERATED ALWAYS AS " : " generated always as ");
             printExpr(generatedAlawsAs, parameterized);
@@ -3614,12 +3615,12 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             print0(ucase ? "EXTERNAL " : "external ");
         }
 
-        final SQLCreateTableStatement.Type tableType = x.getType();
-        if (SQLCreateTableStatement.Type.GLOBAL_TEMPORARY.equals(tableType)) {
+        // MYCAT CHANGE: Druid 1.2.28 removed SQLCreateTableStatement.Type enum; use Feature flags
+        if (x.isTemporary() && x.isEnabled(SQLCreateTableStatement.Feature.Global)) {
             print0(ucase ? "GLOBAL TEMPORARY " : "global temporary ");
-        } else if (SQLCreateTableStatement.Type.LOCAL_TEMPORARY.equals(tableType)) {
+        } else if (x.isTemporary() && x.isEnabled(SQLCreateTableStatement.Feature.Local)) {
             print0(ucase ? "LOCAL TEMPORARY " : "local temporary ");
-        } else if (SQLCreateTableStatement.Type.SHADOW.equals(tableType)) {
+        } else if (x.isEnabled(SQLCreateTableStatement.Feature.Shadow)) {
             print0(ucase ? "SHADOW " : "shadow ");
         }
 
@@ -3719,7 +3720,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             for (int i = 0; i < relations.size(); i++) {
                 if (i != 0) {
                     println();
-                    print0(ucase ? operator.name : operator.name_lcase);
+                    print0(ucase ? operator.name : operator.nameLCase);
                     println();
                 }
 
@@ -3803,7 +3804,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
                 if (i > 0) {
                     println();
-                    print0(ucase ? operator.name : operator.name_lcase);
+                    print0(ucase ? operator.name : operator.nameLCase);
                     println();
                 }
             }
@@ -3835,7 +3836,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
                                 printQuery(leftLeft);
                             }
                             println();
-                            print0(ucase ? leftUnion.getOperator().name : leftUnion.getOperator().name_lcase);
+                            print0(ucase ? leftUnion.getOperator().name : leftUnion.getOperator().nameLCase);
                             println();
                             leftRigt.accept(this);
                         }
@@ -3855,7 +3856,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         }
 
         println();
-        print0(ucase ? operator.name : operator.name_lcase);
+        print0(ucase ? operator.name : operator.nameLCase);
         println();
 
         boolean needParen = false;
@@ -4151,7 +4152,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     }
 
     protected void printJoinType(JoinType joinType) {
-        print0(ucase ? joinType.name : joinType.name_lcase);
+        print0(ucase ? joinType.name : joinType.nameLCase);
     }
 
     static String[] variantValuesCache_1 = new String[64];
@@ -5183,7 +5184,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         if (windowingBetweenEnd != null || endBound != null) {
             if (windowingType != null) {
                 print(' ');
-                print0(ucase ? windowingType.name : windowingType.name_lower);
+                print0(ucase ? windowingType.name : windowingType.nameLCase);
             }
             print0(ucase ? " BETWEEN" : " between");
 
@@ -5191,7 +5192,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
             if (beginBound != null) {
                 print(' ');
-                print0(ucase ? beginBound.name : beginBound.name_lower);
+                print0(ucase ? beginBound.name : beginBound.nameLCase);
             }
 
             print0(ucase ? " AND" : " and");
@@ -5200,19 +5201,19 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
             if (endBound != null) {
                 print(' ');
-                print0(ucase ? endBound.name : endBound.name_lower);
+                print0(ucase ? endBound.name : endBound.nameLCase);
             }
         } else {
             if (windowingType != null) {
                 print(' ');
-                print0(ucase ? windowingType.name : windowingType.name_lower);
+                print0(ucase ? windowingType.name : windowingType.nameLCase);
             }
 
             printWindowingExpr(windowingBetweenBegin);
 
             if (beginBound != null) {
                 print(' ');
-                print0(ucase ? beginBound.name : beginBound.name_lower);
+                print0(ucase ? beginBound.name : beginBound.nameLCase);
             }
         }
 
@@ -5757,17 +5758,17 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         SQLForeignKeyImpl.Match match = x.getReferenceMatch();
         if (match != null) {
             print0(ucase ? " MATCH " : " match ");
-            print0(ucase ? match.name : match.name_lcase);
+            print0(ucase ? match.name : match.nameLCase);
         }
 
         if (x.getOnDelete() != null) {
             print0(ucase ? " ON DELETE " : " on delete ");
-            print0(ucase ? x.getOnDelete().name : x.getOnDelete().name_lcase);
+            print0(ucase ? x.getOnDelete().name : x.getOnDelete().nameLCase);
         }
 
         if (x.getOnUpdate() != null) {
             print0(ucase ? " ON UPDATE " : " on update ");
-            print0(ucase ? x.getOnUpdate().name : x.getOnUpdate().name_lcase);
+            print0(ucase ? x.getOnUpdate().name : x.getOnUpdate().nameLCase);
         }
 
         return false;
@@ -5987,7 +5988,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
             SQLObjectType resourceType = x.getResourceType();
             if (resourceType != null) {
-                print0(ucase ? resourceType.name : resourceType.name_lcase);
+                print0(ucase ? resourceType.name : resourceType.nameLCase);
                 print(' ');
             }
 
@@ -6455,7 +6456,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             }
 
             print('\'');
-            print0(x.getLiteral());
+            print0(x.getValue());
             print('\'');
 
             if (x.getTimeZone() != null) {
@@ -6830,7 +6831,8 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         print0(ucase ? "OPEN " : "open ");
         printExpr(x.getCursorName(), parameterized);
 
-        List<SQLName> columns = x.getColumns();
+        // MYCAT CHANGE: Druid 1.2.28 changed return type from List<SQLName> to List<SQLExpr>
+        List<SQLExpr> columns = x.getColumns();
         if (columns.size() > 0) {
             print('(');
             printAndAccept(columns, ", ");
@@ -7221,8 +7223,9 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         this.config(VisitorFeature.OutputUCase, true);
     }
 
+    // MYCAT CHANGE: Druid 1.2.28 made SQLPartition abstract; use SQLPartitionSingle (MysqlPartitionSingle for MySQL-specific attrs)
     @Override
-    public boolean visit(SQLPartition x) {
+    public boolean visit(SQLPartitionSingle x) {
         boolean isDbPartiton = false, isTbPartition = false;
         final SQLObject parent = x.getParent();
         if (parent != null) {
@@ -7247,46 +7250,46 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             x.getValues().accept(this);
         }
 
-        if (x.getDataDirectory() != null) {
+        if (x instanceof MysqlPartitionSingle) {
+            MysqlPartitionSingle mx = (MysqlPartitionSingle) x;
+            if (mx.getDataDirectory() != null) {
+                this.indentCount++;
+                println();
+                print0(ucase ? "DATA DIRECTORY " : "data directory ");
+                mx.getDataDirectory().accept(this);
+                this.indentCount--;
+            }
+
+            if (mx.getIndexDirectory() != null) {
+                this.indentCount++;
+                println();
+                print0(ucase ? "INDEX DIRECTORY " : "index directory ");
+                mx.getIndexDirectory().accept(this);
+                this.indentCount--;
+            }
+
             this.indentCount++;
-            println();
-            print0(ucase ? "DATA DIRECTORY " : "data directory ");
-            x.getDataDirectory().accept(this);
+            if (mx.getEngine() != null) {
+                println();
+                print0(ucase ? "STORAGE ENGINE " : "storage engine ");
+                mx.getEngine().accept(this);
+            }
             this.indentCount--;
-        }
 
-        if (x.getIndexDirectory() != null) {
-            this.indentCount++;
-            println();
-            print0(ucase ? "INDEX DIRECTORY " : "index directory ");
-            x.getIndexDirectory().accept(this);
-            this.indentCount--;
-        }
+            if (mx.getMaxRows() != null) {
+                print0(ucase ? " MAX_ROWS " : " max_rows ");
+                mx.getMaxRows().accept(this);
+            }
 
-        this.indentCount++;
-        printOracleSegmentAttributes(x);
+            if (mx.getMinRows() != null) {
+                print0(ucase ? " MIN_ROWS " : " min_rows ");
+                mx.getMinRows().accept(this);
+            }
 
-
-        if (x.getEngine() != null) {
-            println();
-            print0(ucase ? "STORAGE ENGINE " : "storage engine ");
-            x.getEngine().accept(this);
-        }
-        this.indentCount--;
-
-        if (x.getMaxRows() != null) {
-            print0(ucase ? " MAX_ROWS " : " max_rows ");
-            x.getMaxRows().accept(this);
-        }
-
-        if (x.getMinRows() != null) {
-            print0(ucase ? " MIN_ROWS " : " min_rows ");
-            x.getMinRows().accept(this);
-        }
-
-        if (x.getComment() != null) {
-            print0(ucase ? " COMMENT " : " comment ");
-            x.getComment().accept(this);
+            if (mx.getComment() != null) {
+                print0(ucase ? " COMMENT " : " comment ");
+                mx.getComment().accept(this);
+            }
         }
 
         if (x.getSubPartitionsCount() != null) {
@@ -7482,9 +7485,9 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             partitionsCount.accept(this);
         }
 
-        if (x.getLifecycle() != null) {
+        if (x.getLifeCycle() != null) {
             print0(ucase ? " LIFECYCLE " : " lifecycle ");
-            x.getLifecycle().accept(this);
+            x.getLifeCycle().accept(this);
         }
 
         if (x.getSubPartitionBy() != null) {
@@ -7754,7 +7757,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     public boolean visit(SQLSequenceExpr x) {
         x.getSequence().accept(this);
         print('.');
-        print0(ucase ? x.getFunction().name : x.getFunction().name_lcase);
+        print0(ucase ? x.getFunction().name : x.getFunction().nameLCase);
         return false;
     }
 
@@ -8093,7 +8096,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     }
 
     public boolean visit(SQLDateExpr x) {
-        String literal = x.getLiteral();
+        String literal = x.getValue();
         print0(ucase ? "DATE '" : "date '");
         print0(literal);
         print('\'');
@@ -8102,17 +8105,19 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     }
 
     public boolean visit(SQLTimeExpr x) {
-        SQLExpr literal = x.getLiteral();
-        print0(ucase ? "TIME " : "time ");
-        printExpr(literal, parameterized);
+        String literal = x.getValue();
+        print0(ucase ? "TIME '" : "time '");
+        print0(literal);
+        print('\'');
 
         return false;
     }
 
     public boolean visit(SQLDateTimeExpr x) {
-        SQLExpr literal = x.getLiteral();
-        print0(ucase ? "DATETIME " : "datetime ");
-        printExpr(literal, parameterized);
+        String literal = x.getValue();
+        print0(ucase ? "DATETIME '" : "datetime '");
+        print0(literal);
+        print('\'');
 
         return false;
     }
@@ -8749,7 +8754,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         SQLIntervalUnit unit = x.getUnit();
         if (unit != null) {
             print(' ');
-            print0(ucase ? unit.name : unit.name_lcase);
+            print0(ucase ? unit.name : unit.nameLCase);
         }
         return false;
     }
@@ -9529,7 +9534,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         x.getAgainst().accept(this);
         if (x.getSearchModifier() != null) {
             print(' ');
-            print0(ucase ? x.getSearchModifier().name : x.getSearchModifier().name_lcase);
+            print0(ucase ? x.getSearchModifier().name : x.getSearchModifier().nameLCase);
         }
         print(')');
 
@@ -9602,9 +9607,10 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             print0(ucase ? "DIMENSION " : "dimension ");
         }
 
-        if (SQLCreateTableStatement.Type.GLOBAL_TEMPORARY.equals(x.getType())) {
+        // MYCAT CHANGE: Druid 1.2.28 removed SQLCreateTableStatement.Type enum; use Feature flags
+        if (x.isTemporary() && x.isEnabled(SQLCreateTableStatement.Feature.Global)) {
             print0(ucase ? "TEMPORARY TABLE " : "temporary table ");
-        } else if (SQLCreateTableStatement.Type.SHADOW.equals(x.getType())) {
+        } else if (x.isEnabled(SQLCreateTableStatement.Feature.Shadow)) {
             print0(ucase ? "SHADOW TABLE " : "shadow table ");
         } else if(x.isExternal()) {
             print0(ucase ? "EXTERNAL TABLE " : "external table ");
@@ -9903,7 +9909,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     @Override
     public boolean visit(SQLJSONExpr x) {
         print0(ucase ? "JSON " : "json ");
-        printChars(x.getLiteral());
+        printChars(x.getValue());
         return false;
     }
 
@@ -10487,7 +10493,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     @Override
     public boolean visit(SQLCurrentTimeExpr x) {
         final SQLCurrentTimeExpr.Type type = x.getType();
-        print(ucase ? type.name : type.name_lower);
+        print(ucase ? type.name : type.nameLCase);
         return false;
     }
 
@@ -10505,7 +10511,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
     }
 
 
-    @Override
+    // MYCAT CHANGE: Druid 1.2.28 removed visit(HiveCreateTableStatement) from visitor interface; no longer an override
     public boolean visit(HiveCreateTableStatement x) {
         printCreateTable(x, true);
 
@@ -10529,8 +10535,8 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             print0(ucase ? "EXTERNAL " : "external ");
         }
 
-        final SQLCreateTableStatement.Type tableType = x.getType();
-        if (SQLCreateTableStatement.Type.TEMPORARY.equals(tableType)) {
+        // MYCAT CHANGE: Druid 1.2.28 removed SQLCreateTableStatement.Type enum; use isTemporary()
+        if (x.isTemporary()) {
             print0(ucase ? "TEMPORARY " : "temporary ");
         }
         print0(ucase ? "TABLE " : "table ");
@@ -10719,12 +10725,13 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
         printTblProperties(x);
 
-        SQLExpr metaLifeCycle = x.getMetaLifeCycle();
-        if (metaLifeCycle != null) {
-            println();
-            print0(ucase ? "META LIFECYCLE " : "meta lifecycle ");
-            printExpr(metaLifeCycle);
-        }
+        // MYCAT CHANGE: Druid 1.2.28 removed getMetaLifeCycle() from HiveCreateTableStatement
+        // SQLExpr metaLifeCycle = x.getMetaLifeCycle();
+        // if (metaLifeCycle != null) {
+        //     println();
+        //     print0(ucase ? "META LIFECYCLE " : "meta lifecycle ");
+        //     printExpr(metaLifeCycle);
+        // }
 
         SQLSelect select = x.getSelect();
         if (printSelect && select != null) {

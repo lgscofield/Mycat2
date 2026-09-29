@@ -19,6 +19,7 @@ import io.reactivex.rxjava3.core.Observable;
 import lombok.SneakyThrows;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
+import org.apache.calcite.DataContext; // MYCAT CHANGE: Calcite 1.42
 import org.apache.calcite.adapter.enumerable.EnumerableInterpretable;
 import org.apache.calcite.config.CalciteSystemProperty;
 import org.apache.calcite.linq4j.Enumerable;
@@ -142,7 +143,7 @@ public class ExecutorProviderImpl implements ExecutorProvider {
             }
 
             @Override
-            public Enumerable<Object[]> bind(NewMycatDataContext dataContext) {
+            public Enumerable<Object[]> bind(DataContext dataContext) { // MYCAT CHANGE: Calcite 1.42 bind() takes DataContext
                 Enumerable enumerable = bindable.bind(dataContext);
                 return enumerable.select(e -> {
                     return new Object[]{e};

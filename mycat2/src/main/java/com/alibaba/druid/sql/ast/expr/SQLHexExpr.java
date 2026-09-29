@@ -11,6 +11,7 @@ import com.alibaba.druid.sql.ast.SQLExprImpl;
 import com.alibaba.druid.sql.visitor.SQLASTVisitor;
 import com.alibaba.druid.util.HexBin;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets; // MYCAT CHANGE: Druid 1.2.28 removed SQLUtils.UTF8
 
 public class SQLHexExpr extends SQLExprImpl implements SQLLiteralExpr, SQLValuableExpr {
     private final String hex;
@@ -89,7 +90,7 @@ public class SQLHexExpr extends SQLExprImpl implements SQLLiteralExpr, SQLValuab
         if (bytes == null) {
             return null;
         } else {
-            String str = new String(bytes, SQLUtils.UTF8);
+            String str = new String(bytes, StandardCharsets.UTF_8); // MYCAT CHANGE: Druid 1.2.28 removed SQLUtils.UTF8
             return new SQLCharExpr(str);
         }
     }

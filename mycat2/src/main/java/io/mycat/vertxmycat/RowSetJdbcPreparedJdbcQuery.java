@@ -24,6 +24,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.jdbcclient.impl.JDBCRow;
+import io.vertx.jdbcclient.impl.actions.JDBCRowDesc; // MYCAT CHANGE: Vert.x 4.5.14 RowDesc is now abstract
 import io.vertx.mysqlclient.impl.MySQLRowDesc;
 import io.vertx.mysqlclient.impl.codec.StreamMysqlCollector;
 import io.vertx.mysqlclient.impl.codec.VertxRowSetImpl;
@@ -115,7 +116,8 @@ public class RowSetJdbcPreparedJdbcQuery implements AbstractMySqlPreparedQuery<R
                 });
             }
             VertxRowSetImpl vertxRowSet = new VertxRowSetImpl();
-            RowDesc rowDesc = new RowDesc(metaData.getColumnList(), columnDescriptors);
+            // MYCAT CHANGE: Vert.x 4.5.14 RowDesc is abstract, use JDBCRowDesc
+            RowDesc rowDesc = new JDBCRowDesc(columnDescriptors.toArray(new ColumnDescriptor[0]));
             while (resultSet.next()) {
                 JDBCRow jdbcRow = new MycatRow(rowDesc);
                 for (int i = 0; i < columnCount; i++) {
@@ -239,7 +241,8 @@ public class RowSetJdbcPreparedJdbcQuery implements AbstractMySqlPreparedQuery<R
                 });
             }
 
-            RowDesc rowDesc = new RowDesc(metaData.getColumnList(), columnDescriptors);
+            // MYCAT CHANGE: Vert.x 4.5.14 RowDesc is abstract, use JDBCRowDesc
+            RowDesc rowDesc = new JDBCRowDesc(columnDescriptors.toArray(new ColumnDescriptor[0]));
             ColumnDefPacket[] columnDefPackets = new ColumnDefPacket[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 columnDefPackets[i] = new ColumnDefPacketImpl(metaData, i);
@@ -247,31 +250,20 @@ public class RowSetJdbcPreparedJdbcQuery implements AbstractMySqlPreparedQuery<R
 
 
             if (collector instanceof StreamMysqlCollector) {
-                MySQLRowDesc mySQLRowDesc = new MySQLRowDesc(
+                // MYCAT CHANGE: Vert.x 4.5.14 MySQLRowDesc constructor is private, use factory method
+                MySQLRowDesc mySQLRowDesc = MySQLRowDesc.create(
                         Arrays.asList(columnDefPackets).stream().map(packet -> {
-                            String catalog = new String(packet.getColumnCatalog());
-                            String schema = new String(packet.getColumnSchema());
-                            String table = new String(packet.getColumnTable());
-                            String orgTable = new String(packet.getColumnOrgTable());
                             String name = new String(packet.getColumnName());
-                            String orgName = new String(packet.getColumnOrgName());
                             int characterSet = packet.getColumnCharsetSet();
-                            long columnLength = packet.getColumnLength();
-                            DataType type = DataType.valueOf(packet.getColumnType() == 15 ? 253 : packet.getColumnType());
                             int flags = packet.getColumnFlags();
-                            byte decimals = packet.getColumnDecimals();
+                            // MYCAT CHANGE: Vert.x 4.5.14 DataType.valueOf(int) removed, use parseDataType
+                            DataType type = DataType.parseDataType((short) (packet.getColumnType() == 15 ? 253 : packet.getColumnType()), flags, characterSet);
+                            // MYCAT CHANGE: Vert.x 4.5.14 ColumnDefinition constructor changed to (String, int, DataType, int)
                             ColumnDefinition columnDefinition = new ColumnDefinition(
-                                    catalog,
-                                    schema,
-                                    table,
-                                    orgTable,
                                     name,
-                                    orgName,
                                     characterSet,
-                                    columnLength,
                                     type,
-                                    flags,
-                                    decimals
+                                    flags
                             );
                             return columnDefinition;
                         }).toArray(n -> new ColumnDefinition[n]), DataFormat.TEXT);

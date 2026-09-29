@@ -35,7 +35,8 @@ public final class ExportParameterVisitorUtils {
         super();
     }
 
-    public static ExportParameterVisitor createExportParameterVisitor(Appendable out, DbType dbType) {
+    // MYCAT CHANGE: Druid 1.2.28 changed ExportParameterVisitor constructors from Appendable to StringBuilder
+    public static ExportParameterVisitor createExportParameterVisitor(StringBuilder out, DbType dbType) {
         if (dbType == null) {
             dbType = DbType.other;
         }

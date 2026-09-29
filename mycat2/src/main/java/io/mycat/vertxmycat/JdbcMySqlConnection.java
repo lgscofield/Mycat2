@@ -27,6 +27,7 @@ import io.vertx.mysqlclient.MySQLConnection;
 import io.vertx.mysqlclient.impl.codec.VertxRowSetImpl;
 import io.vertx.sqlclient.PreparedStatement;
 import io.vertx.sqlclient.*;
+import io.vertx.jdbcclient.impl.actions.JDBCRowDesc; // MYCAT CHANGE: Vert.x 4.5.14 RowDesc is now abstract
 import io.vertx.sqlclient.desc.ColumnDescriptor;
 import io.vertx.sqlclient.impl.RowDesc;
 import lombok.SneakyThrows;
@@ -222,7 +223,8 @@ public class JdbcMySqlConnection extends AbstractMySqlConnection {
                 });
             }
             VertxRowSetImpl vertxRowSet = new VertxRowSetImpl();
-            RowDesc rowDesc = new RowDesc(metaData.getColumnList(), columnDescriptors);
+            // MYCAT CHANGE: Vert.x 4.5.14 RowDesc is abstract, use JDBCRowDesc
+            RowDesc rowDesc = new JDBCRowDesc(columnDescriptors.toArray(new ColumnDescriptor[0]));
             while (resultSet.next()) {
                 JDBCRow jdbcRow = new MycatRow(rowDesc);
                 for (int i = 0; i < columnCount; i++) {

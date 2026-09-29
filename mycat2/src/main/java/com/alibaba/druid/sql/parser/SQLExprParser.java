@@ -373,7 +373,7 @@ public class SQLExprParser extends SQLParser {
                 break;
             case IDENTIFIER:
                 String ident = lexer.stringVal();
-                long hash_lower = lexer.hash_lower();
+                long hash_lower = lexer.hashLCase();
 
                 int sourceLine = -1, sourceColumn = -1;
                 if (lexer.keepSourceLocation) {
@@ -396,11 +396,11 @@ public class SQLExprParser extends SQLParser {
                     sqlExpr = cast;
                 } else if (hash_lower == FnvHash.Constants.DATE
                         && (lexer.token == Token.LITERAL_CHARS || lexer.token == Token.VARIANT)
-                        && (SQLDateExpr.isSupport(dbType))) {
+                        && (true/*MYCAT CHANGE: Druid 1.2.28 removed SQLDateExpr.isSupport()*/)) {
                     String literal = lexer.token == Token.LITERAL_CHARS ? lexer.stringVal() : "?";
                     lexer.nextToken();
                     SQLDateExpr dateExpr = new SQLDateExpr();
-                    dateExpr.setLiteral(literal);
+                    dateExpr.setValue(literal); // MYCAT CHANGE: Druid 1.2.28 renamed setLiteral to setValue
                     sqlExpr = dateExpr;
                 } else if (hash_lower == FnvHash.Constants.TIMESTAMP
                         && (lexer.token == Token.LITERAL_CHARS || lexer.token == Token.VARIANT)
@@ -515,7 +515,7 @@ public class SQLExprParser extends SQLParser {
                     SQLIdentifierExpr identifierExpr = new SQLIdentifierExpr(ident, hash_lower);
                     if (sourceLine != -1) {
                         identifierExpr.setSourceLine(sourceLine);
-                        identifierExpr.setSourceColumn(sourceColumn);
+                        identifierExpr.setSource(sourceLine, sourceColumn); // MYCAT CHANGE: Druid 1.2.28 removed setSourceColumn
                     }
                     sqlExpr = identifierExpr;
                 }
@@ -1962,7 +1962,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.token == Token.IDENTIFIER) {
                 name = lexer.stringVal();
-                hash_lower = lexer.hash_lower;
+                hash_lower = lexer.hashLCase;
                 lexer.nextToken();
 
                 if (hash_lower == FnvHash.Constants.NEXTVAL) {
@@ -2187,7 +2187,7 @@ public class SQLExprParser extends SQLParser {
 
             char c0 = identName.charAt(0);
             if (c0 != '[') {
-                hash = lexer.hash_lower();
+                hash = lexer.hashLCase();
             }
             lexer.nextToken();
         } else if (lexer.token == Token.LITERAL_CHARS) {
@@ -2347,7 +2347,7 @@ public class SQLExprParser extends SQLParser {
         if (lexer.keepSourceLocation) {
             lexer.computeRowAndColumn();
             identifierExpr.setSourceLine(lexer.posLine);
-            identifierExpr.setSourceColumn(lexer.posColumn);
+            identifierExpr.setSource(lexer.posLine, lexer.posColumn); // MYCAT CHANGE: Druid 1.2.28 removed setSourceColumn
         }
 
         SQLName name = identifierExpr;
@@ -2571,7 +2571,7 @@ public class SQLExprParser extends SQLParser {
                     SQLExpr betweenBegin = this.additive();
                     over.setWindowingBetweenBegin(betweenBegin);
                 } else if (lexer.token == Token.IDENTIFIER) {
-                    long hash = lexer.hash_lower();
+                    long hash = lexer.hashLCase();
 
                     if (hash != FnvHash.Constants.PRECEDING
                             && hash != FnvHash.Constants.FOLLOWING
@@ -2602,7 +2602,7 @@ public class SQLExprParser extends SQLParser {
                     SQLExpr betweenBegin = this.additive();
                     over.setWindowingBetweenEnd(betweenBegin);
                 } else if (lexer.token == Token.IDENTIFIER) {
-                    long hash = lexer.hash_lower();
+                    long hash = lexer.hashLCase();
 
                     if (hash != FnvHash.Constants.PRECEDING
                             && hash != FnvHash.Constants.FOLLOWING
@@ -2626,7 +2626,7 @@ public class SQLExprParser extends SQLParser {
                     SQLExpr betweenBegin = this.additive();
                     over.setWindowingBetweenBegin(betweenBegin);
                 } else if (lexer.token == Token.IDENTIFIER) {
-                    long hash = lexer.hash_lower();
+                    long hash = lexer.hashLCase();
 
                     if (hash != FnvHash.Constants.PRECEDING
                             && hash != FnvHash.Constants.FOLLOWING
@@ -2695,7 +2695,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.SIBLINGS)) {
                 lexer.nextToken();
-                orderBy.setSibings(true);
+                orderBy.setSiblings(true);
             }
 
             accept(Token.BY);
@@ -2720,7 +2720,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.SIBLINGS)) {
                 lexer.nextToken();
-                orderBy.setSibings(true);
+                orderBy.setSibings(true); // MYCAT CHANGE: Druid 1.2.28 SQLZOrderBy still uses old typo setSibings
             }
 
             accept(Token.BY);
@@ -2745,7 +2745,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.SIBLINGS)) {
                 lexer.nextToken();
-                orderBy.setSibings(true);
+                orderBy.setSiblings(true);
             }
 
             accept(Token.BY);
@@ -2770,7 +2770,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.SIBLINGS)) {
                 lexer.nextToken();
-                orderBy.setSibings(true);
+                orderBy.setSiblings(true);
             }
 
             accept(Token.BY);
@@ -2795,7 +2795,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.SIBLINGS)) {
                 lexer.nextToken();
-                orderBy.setSibings(true);
+                orderBy.setSiblings(true);
             }
 
             accept(Token.BY);
@@ -2944,7 +2944,7 @@ public class SQLExprParser extends SQLParser {
             Token token = lexer.token();
             if (token == Token.IDENTIFIER) {
                 identName = lexer.stringVal();
-                hash = lexer.hash_lower();
+                hash = lexer.hashLCase();
             } else if (token == Token.LITERAL_CHARS) {
                 identName = '\'' + lexer.stringVal() + '\'';
                 hash = 0;
@@ -3838,7 +3838,7 @@ public class SQLExprParser extends SQLParser {
                 break;
             }
             case IDENTIFIER:
-                long hash = lexer.hash_lower;
+                long hash = lexer.hashLCase;
                 if (hash == FnvHash.Constants.SOUNDS) {
                     lexer.nextToken();
                     accept(Token.LIKE);
@@ -4032,7 +4032,7 @@ public class SQLExprParser extends SQLParser {
                 expr = relationalRest(expr);
                 break;
             case IDENTIFIER:
-                long hash = lexer.hash_lower();
+                long hash = lexer.hashLCase();
                 if (hash == FnvHash.Constants.REGEXP) {
                     lexer.nextToken();
                     rightExp = bitOr();
@@ -4705,14 +4705,14 @@ public class SQLExprParser extends SQLParser {
                 column.addConstraint(check);
                 return parseColumnRest(column);
             case IDENTIFIER:
-                long hash = lexer.hash_lower();
+                long hash = lexer.hashLCase();
                 if (hash == FnvHash.Constants.AUTO_INCREMENT) {
                     lexer.nextToken();
                     column.setAutoIncrement(true);
                     //sequence parser
                     if (lexer.token == Token.BY) {
                         lexer.nextToken();
-                        if (lexer.hash_lower() == FnvHash.Constants.GROUP) {
+                        if (lexer.hashLCase() == FnvHash.Constants.GROUP) {
                             lexer.nextToken();
                             column.setSequenceType(AutoIncrementType.GROUP);
                             if (lexer.identifierEquals(FnvHash.Constants.UNIT)) {
@@ -4730,7 +4730,7 @@ public class SQLExprParser extends SQLParser {
                                     column.setUnitIndex(unitIndex);
                                 }
 
-                                if (lexer.hash_lower() == FnvHash.Constants.STEP) {
+                                if (lexer.hashLCase() == FnvHash.Constants.STEP) {
                                     lexer.nextToken();
                                     SQLExpr step = primary();
                                     column.setStep(step);
@@ -4738,15 +4738,15 @@ public class SQLExprParser extends SQLParser {
                             } else {
                                 return parseColumnRest(column);
                             }
-                        } else if (lexer.hash_lower() == FnvHash.Constants.TIME) {
+                        } else if (lexer.hashLCase() == FnvHash.Constants.TIME) {
                             lexer.nextToken();
                             column.setSequenceType(AutoIncrementType.TIME);
                             return parseColumnRest(column);
-                        } else if (lexer.hash_lower() == FnvHash.Constants.SIMPLE) {
+                        } else if (lexer.hashLCase() == FnvHash.Constants.SIMPLE) {
                             lexer.nextToken();
-                            if (lexer.hash_lower() == FnvHash.Constants.WITH) {
+                            if (lexer.hashLCase() == FnvHash.Constants.WITH) {
                                 lexer.nextToken();
-                                if (lexer.hash_lower() == FnvHash.Constants.CACHE) {
+                                if (lexer.hashLCase() == FnvHash.Constants.CACHE) {
                                     column.setSequenceType(AutoIncrementType.SIMPLE_CACHE);
                                 } else {
                                     throw new ParserException("TODO : " + lexer.info());
@@ -4774,7 +4774,7 @@ public class SQLExprParser extends SQLParser {
                             column.setUnitIndex(unitIndex);
                         }
 
-                        if (lexer.hash_lower() == FnvHash.Constants.STEP) {
+                        if (lexer.hashLCase() == FnvHash.Constants.STEP) {
                             lexer.nextToken();
                             SQLExpr unitIndex = primary();
                             column.setStep(unitIndex);
@@ -5241,7 +5241,7 @@ public class SQLExprParser extends SQLParser {
                 if (dbType == DbType.odps) {
                     while (lexer.token == Token.LITERAL_FLOAT && lexer.numberString().startsWith(".")) {
                         if (expr instanceof SQLNumberExpr) {
-                            String numStr = ((SQLNumberExpr) expr).getLiteral();
+                            String numStr = String.valueOf(((SQLNumberExpr) expr).getNumber()); // MYCAT CHANGE: Druid 1.2.28 removed getLiteral()
                             numStr += lexer.numberString();
                             expr = new SQLIdentifierExpr(numStr);
                             lexer.nextToken();
@@ -5697,10 +5697,10 @@ public class SQLExprParser extends SQLParser {
         int startPos = lexer.startPos;
 
         if (token == Token.IDENTIFIER
-                && !(lexer.hash_lower() == -5808529385363204345L && lexer.charAt(lexer.pos) == '\'' && dbType == DbType.mysql) // x'123' X'123'
+                && !(lexer.hashLCase() == -5808529385363204345L && lexer.charAt(lexer.pos) == '\'' && dbType == DbType.mysql) // x'123' X'123'
         ) {
             String ident = lexer.stringVal();
-            long hash_lower = lexer.hash_lower();
+            long hash_lower = lexer.hashLCase();
             lexer.nextTokenComma();
 
             if (hash_lower == FnvHash.Constants.CONNECT_BY_ROOT) {
@@ -5741,13 +5741,13 @@ public class SQLExprParser extends SQLParser {
             } else if (FnvHash.Constants.DATE == hash_lower
                     && lexer.stringVal().charAt(0) != '`'
                     && lexer.token == Token.LITERAL_CHARS
-                    && (SQLDateExpr.isSupport(dbType))
+                    && (true/*MYCAT CHANGE: Druid 1.2.28 removed SQLDateExpr.isSupport()*/)
                     ) {
                 String literal = lexer.stringVal();
                 lexer.nextToken();
 
                 SQLDateExpr dateExpr = new SQLDateExpr();
-                dateExpr.setLiteral(literal);
+                dateExpr.setValue(literal); // MYCAT CHANGE: Druid 1.2.28 renamed setLiteral to setValue
 
                 expr = dateExpr;
             } else if (FnvHash.Constants.TIMESTAMP == hash_lower
@@ -6093,7 +6093,7 @@ public class SQLExprParser extends SQLParser {
                 if (lexer.keepSourceLocation) {
                     lexer.computeRowAndColumn();
                     identifierExpr.setSourceLine(lexer.posLine);
-                    identifierExpr.setSourceColumn(lexer.posColumn);
+                    identifierExpr.setSource(lexer.posLine, lexer.posColumn); // MYCAT CHANGE: Druid 1.2.28 removed setSourceColumn
                 }
                 expr = identifierExpr;
             }
@@ -6110,7 +6110,7 @@ public class SQLExprParser extends SQLParser {
                     name_hash_lower = FnvHash.Constants.STAR;
                 } else {
                     name = lexer.stringVal();
-                    name_hash_lower = lexer.hash_lower();
+                    name_hash_lower = lexer.hashLCase();
                 }
 
                 lexer.nextTokenComma();
@@ -6176,7 +6176,7 @@ public class SQLExprParser extends SQLParser {
             if (token == Token.IDENTIFIER
                     && hash_lower != FnvHash.Constants.CURRENT) {
                 String as;
-                if (lexer.hash_lower == FnvHash.Constants.FORCE && DbType.mysql == dbType) {
+                if (lexer.hashLCase == FnvHash.Constants.FORCE && DbType.mysql == dbType) {
                     String force = lexer.stringVal();
 
                     Lexer.SavePoint savePoint = lexer.mark();
@@ -6192,7 +6192,7 @@ public class SQLExprParser extends SQLParser {
                         }
                         lexer.nextTokenComma();
                     }
-                } else if (lexer.hash_lower == FnvHash.Constants.SOUNDS && DbType.mysql == dbType) {
+                } else if (lexer.hashLCase == FnvHash.Constants.SOUNDS && DbType.mysql == dbType) {
                     String sounds = lexer.stringVal();
 
                     Lexer.SavePoint savePoint = lexer.mark();
@@ -6209,12 +6209,12 @@ public class SQLExprParser extends SQLParser {
                         }
                         lexer.nextTokenComma();
                     }
-                } else if (lexer.hash_lower == FnvHash.Constants.COLLATE
+                } else if (lexer.hashLCase == FnvHash.Constants.COLLATE
                         && lexer.stringVal().charAt(0) != '`'
                         && DbType.mysql == dbType) {
                     expr = primaryRest(expr);
                     as = as();
-                } else if (lexer.hash_lower == FnvHash.Constants.REGEXP
+                } else if (lexer.hashLCase == FnvHash.Constants.REGEXP
                         && lexer.stringVal().charAt(0) != '`'
                         && DbType.mysql == dbType) {
                     expr = exprRest(expr);
@@ -6416,7 +6416,7 @@ public class SQLExprParser extends SQLParser {
 
             if (lexer.identifierEquals(FnvHash.Constants.LIFECYCLE)) {
                 lexer.nextToken();
-                partitionClause.setLifecycle((SQLIntegerExpr)expr());
+                partitionClause.setLifeCycle((SQLIntegerExpr)expr()); // MYCAT CHANGE: Druid 1.2.28 renamed setLifecycle to setLifeCycle
             }
         }
         return partitionClause;

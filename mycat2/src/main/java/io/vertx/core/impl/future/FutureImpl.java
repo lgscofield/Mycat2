@@ -168,6 +168,18 @@ class FutureImpl<T> extends FutureBase<T> {
     }
   }
 
+  // MYCAT CHANGE: Vert.x 4.5.14 added abstract removeListener() to FutureInternal
+  @Override
+  public void removeListener(Listener<T> listener) {
+    synchronized (this) {
+      if (this.listener == listener) {
+        this.listener = null;
+      } else if (this.listener instanceof ListenerArray) {
+        ((ListenerArray<T>) this.listener).remove(listener);
+      }
+    }
+  }
+
   public boolean tryComplete(T result) {
     Listener<T> l;
     synchronized (this) {
