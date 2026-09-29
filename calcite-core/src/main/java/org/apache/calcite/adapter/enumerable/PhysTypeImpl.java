@@ -97,7 +97,8 @@ public class PhysTypeImpl implements PhysType {
     return new PhysTypeImpl(typeFactory, rowType, javaRowClass, format);
   }
 
-  static PhysType of(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static PhysType of(
       final JavaTypeFactory typeFactory,
       Type javaRowClass) {
     final RelDataTypeFactory.Builder builder = typeFactory.builder();

@@ -83,7 +83,8 @@ public class EnumerableRelImplementor extends JavaRelImplementor {
       new HashMap<>();
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
   // A combination of IdentityHashMap + LinkedHashMap to ensure deterministic order
-  private final Map<Equivalence.Wrapper<Object>, ParameterExpression> stashedParameters =
+  // MYCAT CHANGE: private → protected for Mycat bridge subclass access
+  protected final Map<Equivalence.Wrapper<Object>, ParameterExpression> stashedParameters =
       new LinkedHashMap<>();
 
   @SuppressWarnings("methodref.receiver.bound.invalid")
@@ -549,11 +550,13 @@ public class EnumerableRelImplementor extends JavaRelImplementor {
   }
 
   /** Adds a declaration of each synthetic type found in a code block. */
-  private static class TypeRegistrar {
+  // MYCAT CHANGE: private → protected for Mycat bridge subclass access
+  protected static class TypeRegistrar {
     private final List<MemberDeclaration> memberDeclarations;
     private final Set<Type> seen = new HashSet<>();
 
-    TypeRegistrar(List<MemberDeclaration> memberDeclarations) {
+    // MYCAT CHANGE: package-private → public for Mycat bridge access
+    public TypeRegistrar(List<MemberDeclaration> memberDeclarations) {
       this.memberDeclarations = memberDeclarations;
     }
 

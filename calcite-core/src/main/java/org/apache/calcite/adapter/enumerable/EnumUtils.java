@@ -124,13 +124,15 @@ public class EnumUtils {
         body);
   }
 
-  static Type javaClass(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static Type javaClass(
       JavaTypeFactory typeFactory, RelDataType type) {
     final Type clazz = typeFactory.getJavaClass(type);
     return clazz instanceof Class ? clazz : Object[].class;
   }
 
-  static List<Type> fieldTypes(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static List<Type> fieldTypes(
       final JavaTypeFactory typeFactory,
       final List<? extends RelDataType> inputTypes) {
     return new AbstractList<Type>() {
@@ -143,7 +145,8 @@ public class EnumUtils {
     };
   }
 
-  static List<RelDataType> fieldRowTypes(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static List<RelDataType> fieldRowTypes(
       final RelDataType inputRowType,
       final @Nullable List<? extends RexNode> extraInputs,
       final List<Integer> argList) {
@@ -162,7 +165,8 @@ public class EnumUtils {
     };
   }
 
-  static Expression joinSelector(JoinRelType joinType, PhysType physType,
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static Expression joinSelector(JoinRelType joinType, PhysType physType,
       List<PhysType> inputPhysTypes) {
     final int outputFieldCount = physType.getRowType().getFieldCount();
     // If there are many output fields, create the output dynamically so that the code size stays
@@ -870,7 +874,8 @@ public class EnumUtils {
   }
 
   /** Transforms a JoinRelType to Linq4j JoinType. */
-  static JoinType toLinq4jJoinType(JoinRelType joinRelType) {
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static JoinType toLinq4jJoinType(JoinRelType joinRelType) {
     switch (joinRelType) {
     case INNER:
       return JoinType.INNER;
@@ -938,7 +943,8 @@ public class EnumUtils {
         parameters);
   }
 
-  static Expression generatePredicate(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static Expression generatePredicate(
       EnumerableRelImplementor implementor,
       RexBuilder rexBuilder,
       RelNode left,
@@ -955,7 +961,8 @@ public class EnumUtils {
    * expression is NULL, when <code>nullable</code> is TRUE, the expression will return NULL value;
    * when <code>nullable</code> is FALSE, it will return FALSE.
    */
-  static Expression generatePredicate(
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static Expression generatePredicate(
       EnumerableRelImplementor implementor,
       RexBuilder rexBuilder,
       RelNode left,

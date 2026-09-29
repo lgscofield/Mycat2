@@ -593,7 +593,8 @@ public class RexImpTable {
   public static final MemberExpression BOXED_TRUE_EXPR =
       Expressions.field(null, Boolean.class, "TRUE");
 
-  private final ImmutableMap<SqlOperator, PairList<SqlOperator, RexCallImplementor>> map;
+  // MYCAT CHANGE: private → protected for Mycat bridge access
+  protected final ImmutableMap<SqlOperator, PairList<SqlOperator, RexCallImplementor>> map;
   private final ImmutableMap<SqlAggFunction, Supplier<? extends AggImplementor>> aggMap;
   private final ImmutableMap<SqlAggFunction, Supplier<? extends WinAggImplementor>> winAggMap;
   private final ImmutableMap<SqlMatchFunction, Supplier<? extends MatchImplementor>> matchMap;
