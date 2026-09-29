@@ -12,6 +12,7 @@
     <module>router</module>
     <!--<module>sqlparser</module>-->
     <module>common</module>
+    <module>protocol</module>
     <module>datasource</module>
     <module>mycat2</module>
     <!--<module>grid</module>-->
@@ -50,6 +51,7 @@
     <!-- 安全关键项 -->
     <jackson.version>2.18.4</jackson.version>
     <logback.version>1.5.18</logback.version>
+    <slf4j.version>2.0.16</slf4j.version>
     <netty.version>4.1.119.Final</netty.version>
     <guava.version>33.4.8-jre</guava.version>
 
@@ -220,6 +222,13 @@
         <groupId>io.mycat</groupId>
         <artifactId>console</artifactId>
         <version>${mycat.version}</version>
+      </dependency>
+
+      <!-- Logging -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
       </dependency>
 
       <!-- Lombok -->
