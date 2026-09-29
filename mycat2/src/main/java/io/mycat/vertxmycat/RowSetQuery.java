@@ -15,8 +15,8 @@
 package io.mycat.vertxmycat;
 
 import io.mycat.MycatException;
-import io.mycat.beans.mysql.MySQLCommandType;
-import io.mycat.beans.mysql.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 import io.mycat.beans.mysql.packet.ErrorPacketImpl;
 import io.mycat.proxy.callback.ResultSetCallBack;
 import io.mycat.proxy.reactor.NIOJob;

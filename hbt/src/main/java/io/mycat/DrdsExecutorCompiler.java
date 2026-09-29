@@ -1,8 +1,8 @@
 package io.mycat;
 
 import io.mycat.beans.mycat.CopyMycatRowMetaData;
-import io.mycat.beans.mysql.MySQLErrorCode;
-import io.mycat.beans.mysql.MySQLType;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLType;
 import io.mycat.calcite.*;
 import io.mycat.calcite.logical.MycatView;
 import io.mycat.calcite.logical.MycatViewDataNodeMapping;

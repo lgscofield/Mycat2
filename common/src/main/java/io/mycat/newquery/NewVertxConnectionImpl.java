@@ -11,7 +11,7 @@
 //import io.mycat.beans.mycat.MycatRelDataType;
 //import io.mycat.beans.mycat.MycatRowMetaData;
 //import io.mycat.beans.mycat.ResultSetBuilder;
-//import io.mycat.beans.mysql.MySQLFieldsType;
+//import io.mycat.protocol.mysql.type.MySQLFieldsType;
 //import io.mycat.beans.mysql.packet.ColumnDefPacket;
 //import io.mycat.beans.mysql.packet.ColumnDefPacketImpl;
 //import io.reactivex.rxjava3.annotations.NonNull;

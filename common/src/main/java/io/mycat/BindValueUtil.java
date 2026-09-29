@@ -23,7 +23,7 @@
  */
 package io.mycat;
 
-import io.mycat.beans.mysql.packet.MySQLPayloadReadView;
+import io.mycat.protocol.mysql.packet.MySQLPayloadReadView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

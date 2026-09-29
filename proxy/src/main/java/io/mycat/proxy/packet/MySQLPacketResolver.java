@@ -15,7 +15,7 @@
 package io.mycat.proxy.packet;
 
 import io.mycat.MycatException;
-import io.mycat.beans.mysql.MySQLServerStatusFlags;
+import io.mycat.protocol.mysql.type.MySQLServerStatusFlags;
 import io.mycat.beans.mysql.packet.*;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import org.slf4j.Logger;

@@ -7,7 +7,7 @@
 //import io.mycat.MetadataStorageManager;
 //import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 //import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
-//import io.mycat.util.NameMap;
+//import io.mycat.protocol.codec.NameMap;
 //import io.vertx.core.Handler;
 //import io.vertx.core.Promise;
 //import io.vertx.core.Vertx;

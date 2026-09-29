@@ -18,7 +18,7 @@ import io.mycat.BindValue;
 import io.mycat.BindValueUtil;
 import io.mycat.MetaClusterCurrent;
 import io.mycat.MycatDataContext;
-import io.mycat.beans.mysql.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.ServerConfig;

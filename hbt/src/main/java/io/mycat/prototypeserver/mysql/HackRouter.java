@@ -25,7 +25,7 @@ import io.mycat.*;
 import io.mycat.calcite.rewriter.Distribution;
 import io.mycat.calcite.rewriter.SQLRBORewriter;
 import io.mycat.util.MycatSQLExprTableSourceUtil;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.mycat.util.Pair;
 
 import java.util.*;

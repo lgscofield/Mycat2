@@ -1,6 +1,6 @@
 package io.mycat.util;
 
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;

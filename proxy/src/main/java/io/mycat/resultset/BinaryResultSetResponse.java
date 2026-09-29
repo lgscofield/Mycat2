@@ -3,7 +3,7 @@ package io.mycat.resultset;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.MySQLPacketUtil;
-import io.mycat.beans.mysql.MySQLPayloadWriter;
+import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.util.ByteUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

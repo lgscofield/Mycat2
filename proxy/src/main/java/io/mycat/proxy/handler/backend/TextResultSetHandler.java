@@ -22,7 +22,7 @@ import io.mycat.beans.mysql.packet.MySQLPacket;
 
 import java.util.function.IntPredicate;
 
-import static io.mycat.beans.mysql.MySQLFieldsType.*;
+import static io.mycat.protocol.mysql.type.MySQLFieldsType.*;
 
 /**
  * @author jamie12221

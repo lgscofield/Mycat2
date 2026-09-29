@@ -15,7 +15,7 @@
 package io.mycat;
 
 
-import io.mycat.beans.mysql.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 import org.slf4j.helpers.MessageFormatter;
 
 /**

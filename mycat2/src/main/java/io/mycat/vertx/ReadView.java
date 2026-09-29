@@ -14,7 +14,7 @@
  */
 package io.mycat.vertx;
 
-import io.mycat.beans.mysql.packet.MySQLPayloadReadView;
+import io.mycat.protocol.mysql.packet.MySQLPayloadReadView;
 import io.vertx.core.buffer.Buffer;
 
 import java.nio.ByteBuffer;

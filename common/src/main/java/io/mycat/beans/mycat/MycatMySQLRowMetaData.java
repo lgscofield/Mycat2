@@ -1,7 +1,7 @@
 package io.mycat.beans.mycat;
 
 import com.mysql.cj.CharsetMapping;
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 import io.mycat.beans.mysql.packet.ColumnDefPacket;
 import io.vertx.mysqlclient.impl.datatype.DataType;
 import lombok.Getter;

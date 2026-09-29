@@ -1,6 +1,6 @@
 package io.mycat.proxy.session;
 
-import io.mycat.beans.mysql.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 import io.mycat.beans.mysql.packet.MySQLPacketSplitter;
 import io.mycat.buffer.BufferPool;

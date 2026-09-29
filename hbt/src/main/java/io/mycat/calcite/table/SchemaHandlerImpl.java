@@ -19,7 +19,7 @@ package io.mycat.calcite.table;
 import io.mycat.ProcedureHandler;
 import io.mycat.TableHandler;
 import io.mycat.ViewHandler;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 
 public class SchemaHandlerImpl implements SchemaHandler {
     final NameMap<TableHandler> tableMap = new NameMap<>();

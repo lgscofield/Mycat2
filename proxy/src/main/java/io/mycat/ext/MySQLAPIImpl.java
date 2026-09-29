@@ -18,7 +18,7 @@ import io.mycat.api.MySQLAPI;
 import io.mycat.api.callback.MySQLAPIExceptionCallback;
 import io.mycat.api.collector.ResultSetCollector;
 import io.mycat.api.collector.TextResultSetTransforCollector;
-import io.mycat.beans.mysql.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.beans.mysql.packet.ErrorPacketImpl;
 import io.mycat.proxy.callback.ResultSetCallBack;
 import io.mycat.proxy.handler.backend.TextResultSetHandler;

@@ -13,7 +13,7 @@ import io.mycat.calcite.spm.Plan;
 import io.mycat.calcite.table.ShardingIndexTable;
 import io.mycat.calcite.table.ShardingTable;
 import io.mycat.util.MycatSQLExprTableSourceUtil;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 
 import java.util.*;
 

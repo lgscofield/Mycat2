@@ -16,7 +16,7 @@
  */
 package io.mycat.beans.mysql.packet;
 
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 
 /**
  * @author jamie12221

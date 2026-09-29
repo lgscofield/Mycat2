@@ -5,7 +5,7 @@ import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.statement.SQLReleaseSavePointStatement;
 import com.alibaba.druid.sql.ast.statement.SQLRollbackStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSavePointStatement;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;

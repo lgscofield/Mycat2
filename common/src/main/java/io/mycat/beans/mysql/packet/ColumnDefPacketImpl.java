@@ -13,14 +13,15 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 package io.mycat.beans.mysql.packet;
+import io.mycat.protocol.mysql.packet.MySQLPayloadWriteView;
 
 import com.mysql.cj.CharsetMapping;
 import com.mysql.cj.result.Field;
 import io.mycat.MycatException;
 import io.mycat.beans.mycat.CopyMycatRowMetaData;
 import io.mycat.beans.mycat.MycatRowMetaData;
-import io.mycat.beans.mysql.MySQLFieldInfo;
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldInfo;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 import io.mycat.util.StringUtil;
 
 import java.sql.JDBCType;

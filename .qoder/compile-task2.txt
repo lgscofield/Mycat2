@@ -1,0 +1,702 @@
+﻿[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:mycat2:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-csv:jar -> duplicate declaration of version 1.8 @ line 51, column 21
+[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.codehaus.mojo:buildnumber-maven-plugin @ line 509, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:hbt:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> duplicate declaration of version 3.11 @ line 91, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 159, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 183, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 189, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 195, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 200, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 227, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 235, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-annotations:jar -> duplicate declaration of version (?) @ line 322, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 326, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apiguardian:apiguardian-api:jar -> duplicate declaration of version 1.1.0 @ line 330, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.esri.geometry:esri-geometry-api:jar -> duplicate declaration of version 2.2.0 @ line 335, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-core:jar -> duplicate declaration of version (?) @ line 341, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-databind:jar -> duplicate declaration of version (?) @ line 346, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar -> duplicate declaration of version (?) @ line 351, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.code.findbugs:jsr305:jar -> duplicate declaration of version 3.0.1 @ line 356, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 362, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 366, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.yahoo.datasketches:sketches-core:jar -> duplicate declaration of version 0.9.0 @ line 372, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: net.hydromatic:aggdesigner-algorithm:jar -> duplicate declaration of version 6.0 @ line 378, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-dbcp2:jar -> duplicate declaration of version 2.6.0 @ line 384, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 390, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 396, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 402, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 407, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.github.sisyphsu:dateparser:jar -> duplicate declaration of version 1.0.5 @ line 418, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 424, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:internalexample:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:example:jar -> duplicate declaration of version (?) @ line 34, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:executor:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 99, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] calcite-core (Mycat fork)                                          [jar]
+[INFO] hbt                                                                [jar]
+[INFO] 
+[INFO] Using the MultiThreadedBuilder implementation with a thread count of 4
+[INFO] 
+[INFO] -----------------------< io.mycat:calcite-core >------------------------
+[INFO] Building calcite-core (Mycat fork) 1.42.0-mycat                    [1/2]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ calcite-core ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] ----------------------------< io.mycat:hbt >----------------------------
+[INFO] Building hbt 1.22-release                                          [2/2]
+[INFO]   from D:\Workspaces\IdeaProjects\Mycat2\hbt\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for io.mycat:common:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:common:1.22-release
+[ERROR] 'dependencies.dependency.version' for joda-time:joda-time:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.sf.ehcache:ehcache:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.oshi:oshi-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.questdb:questdb-jdk8:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.mycat:eddsa:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:plug:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 1 problem was encountered while building the effective model for io.mycat:plug:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:datasource:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:datasource:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.sequoiadb:sequoiadb-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.mongodb:mongo-java-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for javax.transaction:jta:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.jooq:jooq:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for ru.yandex.clickhouse:clickhouse-jdbc:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:config:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:config:1.22-release
+[ERROR] 'dependencies.dependency.version' for org.slf4j:slf4j-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for jakarta.validation:jakarta.validation-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.squareup.okhttp3:okhttp:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.yaml:snakeyaml:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.alibaba.fastjson2:fastjson2:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.objenesis:objenesis:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:va:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 3 problems were encountered while building the effective model for io.mycat:va:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.vertx:vertx-junit5:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.stephenc.jcip:jcip-annotations:jar is missing. @ 
+
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hbt ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\hbt\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ hbt ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 566 source files with javac [debug target 21] to target\classes
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Literal.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/AggregateCall.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/ModifyFromSql.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/FieldType.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MycatSchema.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Expr.java:[29,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Identifier.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MetadataManager.java:[55,5] Not generating getPrototype(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Param.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Fun.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Schema.java:[25,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/MergeModify.java:[10,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/Explains.java:[41,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/spm/DbPlanManagerPersistorImpl.java:[28,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/prototypeserver/mysql/PrototypeService.java:[51,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[INFO] 15 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/MycatSQLUtils.java:[3,33] 找不到符号
+  符号:   类 SQLStatement
+  位置: 程序包 com.alibaba.druid.sql.ast
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/MycatSQLUtils.java:[7,35] 找不到符号
+  符号:   类 SQLStatement
+  位置: 类 com.alibaba.druid.sql.MycatSQLUtils
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[3,38] 程序包com.alibaba.druid.sql.ast.expr不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[4,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[5,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[6,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[7,37] 找不到符号
+  符号:   类 SQLASTVisitor
+  位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[8,30] 程序包com.alibaba.druid.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[18,41] 找不到符号
+  符号: 类 SQLObjectImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[18,66] 找不到符号
+  符号: 类 SQLIndex
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[26,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[34,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[35,13] 找不到符号
+  符号:   类 SQLTableSource
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[36,18] 找不到符号
+  符号:   类 SQLSelectOrderByItem
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[37,13] 找不到符号
+  符号:   类 SQLIndexOptions
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[40,13] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[41,13] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[42,13] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[43,13] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[44,18] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[47,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[48,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[49,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[50,13] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[53,18] 找不到符号
+  符号:   类 SQLAssignItem
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[63,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[67,27] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[134,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[138,25] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[149,12] 找不到符号
+  符号:   类 SQLTableSource
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[153,26] 找不到符号
+  符号:   类 SQLTableSource
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[165,17] 找不到符号
+  符号:   类 SQLSelectOrderByItem
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[169,33] 找不到符号
+  符号:   类 SQLSelectOrderByItem
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[177,12] 找不到符号
+  符号:   类 SQLIndexOptions
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[185,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[189,34] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[200,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[204,34] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[214,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[218,33] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[229,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[233,33] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[245,17] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[249,34] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[253,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[257,33] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[268,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[272,38] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[283,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[287,38] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[298,12] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[302,32] 找不到符号
+  符号:   类 SQLName
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[313,17] 找不到符号
+  符号:   类 SQLAssignItem
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[318,28] 找不到符号
+  符号:   类 SQLASTVisitor
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[420,40] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[430,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[439,12] 找不到符号
+  符号:   类 SQLExpr
+  位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[18,25] 找不到符号
+  符号:   类 DbType
+  位置: 程序包 com.alibaba.druid
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[24,69] 程序包com.alibaba.druid.sql.dialect.mysql.ast.clause.ConditionValue不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[25,73] 程序包com.alibaba.druid.sql.dialect.mysql.ast.clause.MySqlCaseStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[28,57] 程序包com.alibaba.druid.sql.dialect.mysql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[29,82] 程序包com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateUserStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[30,37] 找不到符号
+  符号:   类 ExportParameterVisitorUtils
+  位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[31,37] 找不到符号
+  符号:   类 SQLASTOutputVisitor
+  位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[32,37] 找不到符号
+  符号:   类 VisitorFeature
+  位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[33,30] 程序包com.alibaba.druid.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[42,41] 找不到符号
+  符号: 类 SQLASTOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[42,72] 找不到符号
+  符号: 类 MySqlASTVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[88,26] 找不到符号
+  符号:   类 SQLSelectQueryBlock
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[96,26] 找不到符号
+  符号:   类 MySqlSelectQueryBlock
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[272,26] 找不到符号
+  符号:   类 SQLColumnDefinition
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[450,26] 找不到符号
+  符号:   类 SQLDataType
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[494,26] 找不到符号
+  符号:   类 SQLCharacterDataType
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[525,26] 找不到符号
+  符号:   类 MySqlTableIndex
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[672,26] 找不到符号
+  符号:   类 MySqlKey
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[726,26] 找不到符号
+  符号:   类 SQLCharExpr
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[803,26] 找不到符号
+  符号:   类 SQLVariantRefExpr
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[847,26] 找不到符号
+  符号:   类 MySqlPrepareStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[856,26] 找不到符号
+  符号:   类 MySqlExecuteStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[867,26] 找不到符号
+  符号:   类 MySqlExecuteForAdsStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[882,26] 找不到符号
+  符号:   类 MySqlManageInstanceGroupStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[896,26] 找不到符号
+  符号:   类 MySqlRaftMemberChangeStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[921,26] 找不到符号
+  符号:   类 MySqlRaftLeaderTransferStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[938,26] 找不到符号
+  符号:   类 MySqlMigrateStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[944,26] 找不到符号
+  符号:   类 MySqlMigrateStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[984,26] 找不到符号
+  符号:   类 MySqlShowClusterNameStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[990,26] 找不到符号
+  符号:   类 MySqlShowJobStatusStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1007,26] 找不到符号
+  符号:   类 MySqlShowMigrateTaskStatusStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1016,26] 找不到符号
+  符号:   类 MysqlDeallocatePrepareStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1023,26] 找不到符号
+  符号:   类 MySqlDeleteStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1112,26] 找不到符号
+  符号:   类 MySqlInsertStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1267,59] 程序包SQLInsertStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1369,26] 找不到符号
+  符号:   类 MySqlLoadDataInFileStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1453,26] 找不到符号
+  符号:   类 SQLReplaceStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1547,26] 找不到符号
+  符号:   类 SQLStartTransactionStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1579,26] 找不到符号
+  符号:   类 SQLRollbackStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1607,26] 找不到符号
+  符号:   类 SQLShowTablesStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1642,26] 找不到符号
+  符号:   类 MySqlShowHMSMetaStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1649,26] 找不到符号
+  符号:   类 MySqlShowDatabaseStatusStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1682,26] 找不到符号
+  符号:   类 MySqlShowWarningsStatement
+  位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[INFO] 100 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] calcite-core (Mycat fork) 1.42.0-mycat ............. SUCCESS [  6.462 s]
+[INFO] hbt 1.22-release ................................... FAILURE [ 51.989 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  59.367 s (Wall Clock)
+[INFO] Finished at: 2026-09-29T10:33:22+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project hbt: Compilation failure: Compilation failure: 
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/MycatSQLUtils.java:[3,33] 找不到符号
+[ERROR]   符号:   类 SQLStatement
+[ERROR]   位置: 程序包 com.alibaba.druid.sql.ast
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/MycatSQLUtils.java:[7,35] 找不到符号
+[ERROR]   符号:   类 SQLStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.MycatSQLUtils
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[3,38] 程序包com.alibaba.druid.sql.ast.expr不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[4,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[5,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[6,43] 程序包com.alibaba.druid.sql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[7,37] 找不到符号
+[ERROR]   符号:   类 SQLASTVisitor
+[ERROR]   位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[8,30] 程序包com.alibaba.druid.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[18,41] 找不到符号
+[ERROR]   符号: 类 SQLObjectImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[18,66] 找不到符号
+[ERROR]   符号: 类 SQLIndex
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[26,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[34,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[35,13] 找不到符号
+[ERROR]   符号:   类 SQLTableSource
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[36,18] 找不到符号
+[ERROR]   符号:   类 SQLSelectOrderByItem
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[37,13] 找不到符号
+[ERROR]   符号:   类 SQLIndexOptions
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[40,13] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[41,13] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[42,13] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[43,13] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[44,18] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[47,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[48,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[49,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[50,13] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[53,18] 找不到符号
+[ERROR]   符号:   类 SQLAssignItem
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[63,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[67,27] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[134,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[138,25] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[149,12] 找不到符号
+[ERROR]   符号:   类 SQLTableSource
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[153,26] 找不到符号
+[ERROR]   符号:   类 SQLTableSource
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[165,17] 找不到符号
+[ERROR]   符号:   类 SQLSelectOrderByItem
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[169,33] 找不到符号
+[ERROR]   符号:   类 SQLSelectOrderByItem
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[177,12] 找不到符号
+[ERROR]   符号:   类 SQLIndexOptions
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[185,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[189,34] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[200,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[204,34] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[214,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[218,33] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[229,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[233,33] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[245,17] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[249,34] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[253,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[257,33] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[268,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[272,38] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[283,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[287,38] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[298,12] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[302,32] 找不到符号
+[ERROR]   符号:   类 SQLName
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[313,17] 找不到符号
+[ERROR]   符号:   类 SQLAssignItem
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[318,28] 找不到符号
+[ERROR]   符号:   类 SQLASTVisitor
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[420,40] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[430,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/ast/SQLIndexDefinition.java:[439,12] 找不到符号
+[ERROR]   符号:   类 SQLExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.ast.SQLIndexDefinition
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[18,25] 找不到符号
+[ERROR]   符号:   类 DbType
+[ERROR]   位置: 程序包 com.alibaba.druid
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[24,69] 程序包com.alibaba.druid.sql.dialect.mysql.ast.clause.ConditionValue不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[25,73] 程序包com.alibaba.druid.sql.dialect.mysql.ast.clause.MySqlCaseStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[28,57] 程序包com.alibaba.druid.sql.dialect.mysql.ast.statement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[29,82] 程序包com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateUserStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[30,37] 找不到符号
+[ERROR]   符号:   类 ExportParameterVisitorUtils
+[ERROR]   位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[31,37] 找不到符号
+[ERROR]   符号:   类 SQLASTOutputVisitor
+[ERROR]   位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[32,37] 找不到符号
+[ERROR]   符号:   类 VisitorFeature
+[ERROR]   位置: 程序包 com.alibaba.druid.sql.visitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[33,30] 程序包com.alibaba.druid.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[42,41] 找不到符号
+[ERROR]   符号: 类 SQLASTOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[42,72] 找不到符号
+[ERROR]   符号: 类 MySqlASTVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[88,26] 找不到符号
+[ERROR]   符号:   类 SQLSelectQueryBlock
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[96,26] 找不到符号
+[ERROR]   符号:   类 MySqlSelectQueryBlock
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[272,26] 找不到符号
+[ERROR]   符号:   类 SQLColumnDefinition
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[450,26] 找不到符号
+[ERROR]   符号:   类 SQLDataType
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[494,26] 找不到符号
+[ERROR]   符号:   类 SQLCharacterDataType
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[525,26] 找不到符号
+[ERROR]   符号:   类 MySqlTableIndex
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[672,26] 找不到符号
+[ERROR]   符号:   类 MySqlKey
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[726,26] 找不到符号
+[ERROR]   符号:   类 SQLCharExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[803,26] 找不到符号
+[ERROR]   符号:   类 SQLVariantRefExpr
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[847,26] 找不到符号
+[ERROR]   符号:   类 MySqlPrepareStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[856,26] 找不到符号
+[ERROR]   符号:   类 MySqlExecuteStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[867,26] 找不到符号
+[ERROR]   符号:   类 MySqlExecuteForAdsStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[882,26] 找不到符号
+[ERROR]   符号:   类 MySqlManageInstanceGroupStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[896,26] 找不到符号
+[ERROR]   符号:   类 MySqlRaftMemberChangeStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[921,26] 找不到符号
+[ERROR]   符号:   类 MySqlRaftLeaderTransferStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[938,26] 找不到符号
+[ERROR]   符号:   类 MySqlMigrateStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[944,26] 找不到符号
+[ERROR]   符号:   类 MySqlMigrateStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[984,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowClusterNameStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[990,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowJobStatusStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1007,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowMigrateTaskStatusStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1016,26] 找不到符号
+[ERROR]   符号:   类 MysqlDeallocatePrepareStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1023,26] 找不到符号
+[ERROR]   符号:   类 MySqlDeleteStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1112,26] 找不到符号
+[ERROR]   符号:   类 MySqlInsertStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1267,59] 程序包SQLInsertStatement不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1369,26] 找不到符号
+[ERROR]   符号:   类 MySqlLoadDataInFileStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1453,26] 找不到符号
+[ERROR]   符号:   类 SQLReplaceStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1547,26] 找不到符号
+[ERROR]   符号:   类 SQLStartTransactionStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1579,26] 找不到符号
+[ERROR]   符号:   类 SQLRollbackStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1607,26] 找不到符号
+[ERROR]   符号:   类 SQLShowTablesStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1642,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowHMSMetaStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1649,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowDatabaseStatusStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[1682,26] 找不到符号
+[ERROR]   符号:   类 MySqlShowWarningsStatement
+[ERROR]   位置: 类 com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :hbt

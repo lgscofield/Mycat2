@@ -17,7 +17,7 @@ package io.mycat;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.MySQLDatasource;
 import io.mycat.beans.mycat.ResultSetBuilder;
-import io.mycat.beans.mysql.MySQLAutoCommit;
+import io.mycat.protocol.mysql.type.MySQLAutoCommit;
 import io.mycat.buffer.DefaultReactorBufferPool;
 import io.mycat.command.CommandDispatcher;
 import io.mycat.config.*;

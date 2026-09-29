@@ -4,7 +4,7 @@ import cn.mycat.vertx.xa.ImmutableCoordinatorLog;
 import cn.mycat.vertx.xa.XaSqlConnection;
 import io.mycat.*;
 import io.mycat.beans.mycat.TransactionType;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.config.ServerConfig;
 import io.mycat.newquery.NewMycatConnection;
 import io.mycat.replica.DataSourceNearnessImpl;

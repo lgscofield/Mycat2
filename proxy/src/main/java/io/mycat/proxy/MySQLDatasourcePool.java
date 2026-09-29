@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import static io.mycat.beans.mysql.MySQLCommandType.COM_QUERY;
+import static io.mycat.protocol.mysql.type.MySQLCommandType.COM_QUERY;
 
 public class MySQLDatasourcePool extends MySQLDatasource implements SessionManager<MySQLClientSession> {
     private final DatasourceConfigProvider provider;

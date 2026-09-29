@@ -4,7 +4,7 @@
 //import io.mycat.calcite.table.SchemaHandler;
 //import io.mycat.gsi.GSIService.IndexValue;
 //import io.mycat.gsi.GSIService.RowIndexValues;
-//import io.mycat.util.NameMap;
+//import io.mycat.protocol.codec.NameMap;
 //import lombok.extern.slf4j.Slf4j;
 //
 //import java.math.BigDecimal;

@@ -17,7 +17,7 @@ package cn.mycat.vertx.xa.impl;
 
 import cn.mycat.vertx.xa.XaLog;
 import cn.mycat.vertx.xa.XaSqlConnection;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

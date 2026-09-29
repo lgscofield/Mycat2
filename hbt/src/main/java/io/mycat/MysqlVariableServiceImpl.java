@@ -4,7 +4,7 @@ import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.replica.ReplicaSelectorManager;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;

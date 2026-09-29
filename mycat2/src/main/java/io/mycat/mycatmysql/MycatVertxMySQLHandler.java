@@ -16,7 +16,7 @@ import io.mycat.*;
 import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
-import io.mycat.beans.mysql.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.beans.mysql.packet.DefaultPreparedOKPacket;
 import io.mycat.commands.MycatdbCommand;
 import io.mycat.commands.ProxyReceiverImpl;

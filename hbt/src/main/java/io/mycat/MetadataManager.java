@@ -30,7 +30,7 @@ import io.mycat.prototypeserver.mysql.PrototypeService;
 import io.mycat.replica.ReplicaSelectorManager;
 import io.mycat.router.function.IndexDataNode;
 import io.mycat.router.mycat1xfunction.PartitionRuleFunctionManager;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.mycat.util.Pair;
 import io.mycat.util.SplitUtil;
 import lombok.EqualsAndHashCode;

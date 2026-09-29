@@ -1,0 +1,124 @@
+﻿[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:mycat2:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-csv:jar -> duplicate declaration of version 1.8 @ line 51, column 21
+[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.codehaus.mojo:buildnumber-maven-plugin @ line 509, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:hbt:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> duplicate declaration of version 3.11 @ line 97, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 165, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 189, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 195, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 201, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 206, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 233, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 241, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-annotations:jar -> duplicate declaration of version (?) @ line 328, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 332, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apiguardian:apiguardian-api:jar -> duplicate declaration of version 1.1.0 @ line 336, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.esri.geometry:esri-geometry-api:jar -> duplicate declaration of version 2.2.0 @ line 341, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-core:jar -> duplicate declaration of version (?) @ line 347, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-databind:jar -> duplicate declaration of version (?) @ line 352, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar -> duplicate declaration of version (?) @ line 357, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.code.findbugs:jsr305:jar -> duplicate declaration of version 3.0.1 @ line 362, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 368, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 372, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.yahoo.datasketches:sketches-core:jar -> duplicate declaration of version 0.9.0 @ line 378, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: net.hydromatic:aggdesigner-algorithm:jar -> duplicate declaration of version 6.0 @ line 384, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-dbcp2:jar -> duplicate declaration of version 2.6.0 @ line 390, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 396, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 402, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 408, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 413, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.github.sisyphsu:dateparser:jar -> duplicate declaration of version 1.0.5 @ line 424, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 430, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:internalexample:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:example:jar -> duplicate declaration of version (?) @ line 34, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:executor:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 99, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] --------------------------< io.mycat:mycat2 >---------------------------
+[INFO] Building mycat2 1.22-release
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for io.mycat:common:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:common:1.22-release
+[ERROR] 'dependencies.dependency.version' for joda-time:joda-time:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.sf.ehcache:ehcache:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.oshi:oshi-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.questdb:questdb-jdk8:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.mycat:eddsa:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:hbt:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 28 problems were encountered while building the effective model for io.mycat:hbt:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.google.code.findbugs:jsr305:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apiguardian:apiguardian-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.checkerframework:checker-qual:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:aggdesigner-algorithm:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.esri.geometry:esri-geometry-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.yahoo.datasketches:sketches-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apache.commons:commons-lang3:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for commons-codec:commons-codec:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for commons-io:commons-io:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apache.commons:commons-dbcp2:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.jinahya:database-metadata-bind:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.jpountz.lz4:lz4:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.sisyphsu:dateparser:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.jayway.jsonpath:json-path:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.dom4j:dom4j:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for jaxen:jaxen:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.akarnokd:rxjava3-extensions:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.aspectj:aspectjweaver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.junit.jupiter:junit-jupiter-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.junit.jupiter:junit-jupiter-params:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.hamcrest:hamcrest-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.hsqldb:hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:foodmart-data-hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:foodmart-queries:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:scott-data-hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:quidem:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for sqlline:sqlline:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.incava:java-diff:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:config:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:config:1.22-release
+[ERROR] 'dependencies.dependency.version' for org.slf4j:slf4j-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for jakarta.validation:jakarta.validation-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.squareup.okhttp3:okhttp:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.yaml:snakeyaml:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.alibaba.fastjson2:fastjson2:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.objenesis:objenesis:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:plug:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 1 problem was encountered while building the effective model for io.mycat:plug:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:router:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 2 problems were encountered while building the effective model for io.mycat:router:1.22-release
+[ERROR] 'dependencies.dependency.version' for org.codehaus.groovy:groovy-all:pom is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.yevdo:jwildcard:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:datasource:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:datasource:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.sequoiadb:sequoiadb-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.mongodb:mongo-java-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for javax.transaction:jta:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.jooq:jooq:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for ru.yandex.clickhouse:clickhouse-jdbc:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:va:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 3 problems were encountered while building the effective model for io.mycat:va:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.vertx:vertx-junit5:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.stephenc.jcip:jcip-annotations:jar is missing. @ 
+
+[INFO] 
+[INFO] --- dependency:3.7.0:tree (default-cli) @ mycat2 ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  18.262 s
+[INFO] Finished at: 2026-09-29T14:48:38+08:00
+[INFO] ------------------------------------------------------------------------

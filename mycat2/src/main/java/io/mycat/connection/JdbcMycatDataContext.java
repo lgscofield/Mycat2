@@ -2,7 +2,7 @@ package io.mycat.connection;
 
 import io.mycat.*;
 import io.mycat.beans.mycat.TransactionType;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 
 import java.nio.charset.Charset;
 import java.util.Map;

@@ -1,0 +1,213 @@
+﻿[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[798,11] 在相应的 try 语句主体中不能抛出异常错误java.io.IOException
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatEnumerableRelImplementor.java:[64,9] TypeRegistrar(java.util.List<org.apache.calcite.linq4j.tree.MemberDeclaration>)在org.apache.calcite.adapter.enumerable.EnumerableRelImplementor.TypeRegistrar中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/StreamMycatEnumerableRelImplementor.java:[42,9] TypeRegistrar(java.util.List<org.apache.calcite.linq4j.tree.MemberDeclaration>)在org.apache.calcite.adapter.enumerable.EnumerableRelImplementor.TypeRegistrar中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/adapter/enumerable/RexToLixTranslator.java:[55,8] org.apache.calcite.adapter.enumerable.RexToLixTranslator不是抽象的, 并且未覆盖org.apache.calcite.rex.RexVisitor中的抽象方法visitLambda(org.apache.calcite.rex.RexLambda)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/table/LogicTable.java:[83,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/table/LogicTable.java:[87,61] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/CreateTableUtils.java:[115,38] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatHint.java:[68,30] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatHint.java:[218,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/PrepareExecutor.java:[75,42] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/PrepareExecutor.java:[120,46] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MysqlMetadataManager.java:[188,83] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[148,8] org.apache.calcite.sql.validate.SqlValidatorImpl不是抽象的, 并且未覆盖org.apache.calcite.sql.validate.SqlValidator中的抽象方法validateTimeFrame(org.apache.calcite.sql.SqlIntervalQualifier)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[1717,18] 对于SqlBasicCall(org.apache.calcite.sql.SqlOperator,org.apache.calcite.sql.SqlNode[],org.apache.calcite.sql.parser.SqlParserPos,boolean,<nulltype>), 找不到合适的构造器
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[2849,35] 无法将类 org.apache.calcite.sql.validate.WithScope中的构造器 WithScope应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[5139,61] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[5185,73] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[382,39] 对于createCall(org.apache.calcite.sql.parser.SqlParserPos,java.lang.Object[]), 找不到合适的方法
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1233,82] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1233,100] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1449,27] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1464,27] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1471,42] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[149,93] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[227,114] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[229,118] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[233,80] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[235,84] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[248,95] map 在 org.apache.calcite.adapter.enumerable.RexImpTable 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRelDataTypeFactory.java:[35,8] io.mycat.calcite.MycatRelDataTypeFactory不是抽象的, 并且未覆盖org.apache.calcite.rel.type.RelDataTypeFactory中的抽象方法leastRestrictive(java.util.List<org.apache.calcite.rel.type.RelDataType>,org.apache.calcite.sql.type.SqlTypeMappingRule)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/SqlImplementor.java:[1633,56] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/RelToSqlConverter.java:[446,33] 无法将类 org.apache.calcite.sql.SqlDialect中的方法 rewriteSingleValueExpr应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatImplementor.java:[159,41] 无法将类 org.apache.calcite.sql.SqlDialect中的方法 rewriteSingleValueExpr应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatTableLookupValues.java:[35,13] 无法为 final 变量 traitSet 分配值
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[60,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[185,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[228,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[242,50] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortAgg.java:[146,29] 无法将类 org.apache.calcite.adapter.enumerable.PhysTypeImpl中的方法 of应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[230,25] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[241,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[248,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[252,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[263,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[259,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[272,33] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[278,49] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCorrelate.java:[136,26] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCorrelate.java:[142,55] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashAggregate.java:[63,25] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashAggregate.java:[196,29] 无法将类 org.apache.calcite.adapter.enumerable.PhysTypeImpl中的方法 of应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[53,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[151,26] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[160,42] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[164,63] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatQuery.java:[36,13] 无法为 final 变量 traitSet 分配值
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[62,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[154,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[187,50] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[191,71] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeSemiJoin.java:[53,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[61,8] io.mycat.calcite.physical.MycatWindow不是抽象的, 并且未覆盖org.apache.calcite.rel.core.Window中的抽象方法copy(java.util.List<org.apache.calcite.rex.RexLiteral>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[70,32] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[475,34] fieldRowTypes(org.apache.calcite.rel.type.RelDataType,java.util.List<? extends org.apache.calcite.rex.RexNode>,java.util.List<java.lang.Integer>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[801,41] <匿名io.mycat.calcite.physical.MycatWindow$2>不是抽象的, 并且未覆盖org.apache.calcite.adapter.enumerable.WinAggContext中的抽象方法getExclude()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[811,45] javaClass(org.apache.calcite.adapter.java.JavaTypeFactory,org.apache.calcite.rel.type.RelDataType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[815,45] fieldTypes(org.apache.calcite.adapter.java.JavaTypeFactory,java.util.List<? extends org.apache.calcite.rel.type.RelDataType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[820,45] fieldRowTypes(org.apache.calcite.rel.type.RelDataType,java.util.List<? extends org.apache.calcite.rex.RexNode>,java.util.List<java.lang.Integer>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRules.java:[56,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRules.java:[81,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalCorrelate.java:[41,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalJoin.java:[61,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalProject.java:[54,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[129,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[197,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[220,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[256,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[295,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[334,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[372,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[406,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalTableScan.java:[26,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalWindow.java:[19,8] io.mycat.calcite.localrel.LocalWindow不是抽象的, 并且未覆盖org.apache.calcite.rel.core.Window中的抽象方法copy(java.util.List<org.apache.calcite.rex.RexLiteral>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalWindow.java:[27,32] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/MycatAggregateUnionTransposeRule.java:[183,24] 不兼容的类型: 推论变量 E 具有不兼容的上限
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/MycatAggregateUnionTransposeRule.java:[194,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/rules/ToViewTableScanRule.java:[23,28] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/logical/MycatViewIndexViewRule.java:[31,101] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatRepeatUnion.java:[54,9] 无法将类 org.apache.calcite.rel.core.RepeatUnion中的构造器 RepeatUnion应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSQLTableLookup.java:[431,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSQLTableLookup.java:[445,66] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggDistinctRule.java:[90,47] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[321,35] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[349,17] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[365,19] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[372,19] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[461,36] 不兼容的类型: org.apache.calcite.util.ImmutableIntList无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[514,15] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[904,80] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[292,18] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[798,11] 在相应的 try 语句主体中不能抛出异常错误java.io.IOException
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatEnumerableRelImplementor.java:[64,9] TypeRegistrar(java.util.List<org.apache.calcite.linq4j.tree.MemberDeclaration>)在org.apache.calcite.adapter.enumerable.EnumerableRelImplementor.TypeRegistrar中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/StreamMycatEnumerableRelImplementor.java:[42,9] TypeRegistrar(java.util.List<org.apache.calcite.linq4j.tree.MemberDeclaration>)在org.apache.calcite.adapter.enumerable.EnumerableRelImplementor.TypeRegistrar中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/adapter/enumerable/RexToLixTranslator.java:[55,8] org.apache.calcite.adapter.enumerable.RexToLixTranslator不是抽象的, 并且未覆盖org.apache.calcite.rex.RexVisitor中的抽象方法visitLambda(org.apache.calcite.rex.RexLambda)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/table/LogicTable.java:[83,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/table/LogicTable.java:[87,61] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/CreateTableUtils.java:[115,38] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatHint.java:[68,30] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatHint.java:[218,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/PrepareExecutor.java:[75,42] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/PrepareExecutor.java:[120,46] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MysqlMetadataManager.java:[188,83] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[148,8] org.apache.calcite.sql.validate.SqlValidatorImpl不是抽象的, 并且未覆盖org.apache.calcite.sql.validate.SqlValidator中的抽象方法validateTimeFrame(org.apache.calcite.sql.SqlIntervalQualifier)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[1717,18] 对于SqlBasicCall(org.apache.calcite.sql.SqlOperator,org.apache.calcite.sql.SqlNode[],org.apache.calcite.sql.parser.SqlParserPos,boolean,<nulltype>), 找不到合适的构造器
+[ERROR]     构造器 org.apache.calcite.sql.SqlBasicCall.SqlBasicCall(org.apache.calcite.sql.SqlOperator,java.util.List<? extends org.apache.calcite.sql.SqlNode>,org.apache.calcite.sql.parser.SqlParserPos)不适用
+[ERROR]     构造器 org.apache.calcite.sql.SqlBasicCall.SqlBasicCall(org.apache.calcite.sql.SqlOperator,java.util.List<? extends org.apache.calcite.sql.SqlNode>,org.apache.calcite.sql.parser.SqlParserPos,org.apache.calcite.sql.SqlLiteral)不适用
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[2849,35] 无法将类 org.apache.calcite.sql.validate.WithScope中的构造器 WithScope应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[5139,61] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java:[5185,73] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[382,39] 对于createCall(org.apache.calcite.sql.parser.SqlParserPos,java.lang.Object[]), 找不到合适的方法
+[ERROR]       (varargs 不匹配; java.lang.Object[]无法转换为org.apache.calcite.sql.SqlNode)
+[ERROR]     方法 org.apache.calcite.sql.SqlOperator.createCall(org.apache.calcite.sql.parser.SqlParserPos,java.util.List<? extends org.apache.calcite.sql.SqlNode>)不适用
+[ERROR]       (参数不匹配; java.lang.Object[]无法转换为java.util.List<? extends org.apache.calcite.sql.SqlNode>)
+[ERROR]       (参数不匹配; java.lang.Object[]无法转换为org.apache.calcite.sql.SqlNodeList)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1233,82] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1233,100] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1449,27] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1464,27] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteMySqlNodeVisitor.java:[1471,42] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[149,93] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[227,114] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[229,118] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[233,80] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[235,84] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatCalciteSupport.java:[248,95] map 在 org.apache.calcite.adapter.enumerable.RexImpTable 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRelDataTypeFactory.java:[35,8] io.mycat.calcite.MycatRelDataTypeFactory不是抽象的, 并且未覆盖org.apache.calcite.rel.type.RelDataTypeFactory中的抽象方法leastRestrictive(java.util.List<org.apache.calcite.rel.type.RelDataType>,org.apache.calcite.sql.type.SqlTypeMappingRule)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/SqlImplementor.java:[1633,56] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/RelToSqlConverter.java:[446,33] 无法将类 org.apache.calcite.sql.SqlDialect中的方法 rewriteSingleValueExpr应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatImplementor.java:[159,41] 无法将类 org.apache.calcite.sql.SqlDialect中的方法 rewriteSingleValueExpr应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatTableLookupValues.java:[35,13] 无法为 final 变量 traitSet 分配值
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[60,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[185,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[228,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashJoin.java:[242,50] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortAgg.java:[146,29] 无法将类 org.apache.calcite.adapter.enumerable.PhysTypeImpl中的方法 of应用到给定类型;
+[ERROR]   需要: org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type
+[ERROR]   找到:    org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type
+[ERROR]   原因: of(org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type)在org.apache.calcite.adapter.enumerable.PhysTypeImpl中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[230,25] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[241,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[248,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[252,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[263,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[259,41] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[272,33] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCalc.java:[278,49] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCorrelate.java:[136,26] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatCorrelate.java:[142,55] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashAggregate.java:[63,25] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatHashAggregate.java:[196,29] 无法将类 org.apache.calcite.adapter.enumerable.PhysTypeImpl中的方法 of应用到给定类型;
+[ERROR]   需要: org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type
+[ERROR]   找到:    org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type
+[ERROR]   原因: of(org.apache.calcite.adapter.java.JavaTypeFactory,java.lang.reflect.Type)在org.apache.calcite.adapter.enumerable.PhysTypeImpl中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[53,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[151,26] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[160,42] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatNestedLoopJoin.java:[164,63] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatQuery.java:[36,13] 无法为 final 变量 traitSet 分配值
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[62,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[154,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[187,50] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeJoin.java:[191,71] toLinq4jJoinType(org.apache.calcite.rel.core.JoinRelType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSortMergeSemiJoin.java:[53,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[61,8] io.mycat.calcite.physical.MycatWindow不是抽象的, 并且未覆盖org.apache.calcite.rel.core.Window中的抽象方法copy(java.util.List<org.apache.calcite.rex.RexLiteral>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[70,32] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[475,34] fieldRowTypes(org.apache.calcite.rel.type.RelDataType,java.util.List<? extends org.apache.calcite.rex.RexNode>,java.util.List<java.lang.Integer>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[801,41] <匿名io.mycat.calcite.physical.MycatWindow$2>不是抽象的, 并且未覆盖org.apache.calcite.adapter.enumerable.WinAggContext中的抽象方法getExclude()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[811,45] javaClass(org.apache.calcite.adapter.java.JavaTypeFactory,org.apache.calcite.rel.type.RelDataType)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[815,45] fieldTypes(org.apache.calcite.adapter.java.JavaTypeFactory,java.util.List<? extends org.apache.calcite.rel.type.RelDataType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatWindow.java:[820,45] fieldRowTypes(org.apache.calcite.rel.type.RelDataType,java.util.List<? extends org.apache.calcite.rex.RexNode>,java.util.List<java.lang.Integer>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRules.java:[56,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/MycatRules.java:[81,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalCorrelate.java:[41,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalJoin.java:[61,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalProject.java:[54,13] 不兼容的类型: lambda 表达式中的参数类型不兼容
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[129,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[197,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[220,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[256,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[295,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[334,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[372,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:[406,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalTableScan.java:[26,59] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalWindow.java:[19,8] io.mycat.calcite.localrel.LocalWindow不是抽象的, 并且未覆盖org.apache.calcite.rel.core.Window中的抽象方法copy(java.util.List<org.apache.calcite.rex.RexLiteral>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/LocalWindow.java:[27,32] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/MycatAggregateUnionTransposeRule.java:[183,24] 不兼容的类型: 推论变量 E 具有不兼容的上限
+[ERROR]     下限：java.lang.Integer
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/MycatAggregateUnionTransposeRule.java:[194,22] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/localrel/rules/ToViewTableScanRule.java:[23,28] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/logical/MycatViewIndexViewRule.java:[31,101] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatRepeatUnion.java:[54,9] 无法将类 org.apache.calcite.rel.core.RepeatUnion中的构造器 RepeatUnion应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSQLTableLookup.java:[431,38] 无法将类 org.apache.calcite.adapter.enumerable.EnumUtils中的方法 generatePredicate应用到给定类型;
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/physical/MycatSQLTableLookup.java:[445,66] joinSelector(org.apache.calcite.rel.core.JoinRelType,org.apache.calcite.adapter.enumerable.PhysType,java.util.List<org.apache.calcite.adapter.enumerable.PhysType>)在org.apache.calcite.adapter.enumerable.EnumUtils中不是公共的; 无法从外部程序包中对其进行访问
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggDistinctRule.java:[90,47] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[321,35] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[349,17] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[365,19] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[372,19] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[461,36] 不兼容的类型: org.apache.calcite.util.ImmutableIntList无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[514,15] 不兼容的类型: java.util.List<java.lang.Integer>无法转换为java.util.List<org.apache.calcite.rex.RexNode>
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatAggregateExpandDistinctAggregatesRule.java:[904,80] 找不到符号
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[292,18] 找不到符号

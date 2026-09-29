@@ -28,7 +28,7 @@ import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.config.DatasourceConfig;
 import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;

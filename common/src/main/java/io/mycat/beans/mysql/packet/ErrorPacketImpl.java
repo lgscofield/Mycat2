@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.mycat.beans.mysql.packet;
+import io.mycat.protocol.mysql.packet.MySQLPayloadWriteView;
 
 
 import io.mycat.config.MySQLServerCapabilityFlags;

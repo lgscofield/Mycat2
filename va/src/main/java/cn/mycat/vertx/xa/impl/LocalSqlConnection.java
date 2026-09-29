@@ -18,7 +18,7 @@ package cn.mycat.vertx.xa.impl;
 import cn.mycat.vertx.xa.ImmutableCoordinatorLog;
 import cn.mycat.vertx.xa.MySQLManager;
 import cn.mycat.vertx.xa.XaLog;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;

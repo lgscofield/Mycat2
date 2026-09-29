@@ -20,7 +20,7 @@ import io.mycat.config.NormalTableConfig;
 import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.util.CalciteConvertors;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.mycat.util.Pair;
 import io.mycat.util.SQL2ResultSetUtil;
 import lombok.SneakyThrows;

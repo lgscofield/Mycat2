@@ -17,10 +17,10 @@ package io.mycat.proxy.handler.front;
 import io.mycat.Authenticator;
 import io.mycat.MetaClusterCurrent;
 import io.mycat.MycatUser;
-import io.mycat.beans.mysql.MySQLErrorCode;
-import io.mycat.beans.mysql.MySQLIsolation;
-import io.mycat.beans.mysql.MySQLPayloadWriter;
-import io.mycat.beans.mysql.MySQLVersion;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
+import io.mycat.protocol.mysql.type.MySQLVersion;
 import io.mycat.beans.mysql.packet.AuthPacket;
 import io.mycat.beans.mysql.packet.AuthSwitchRequestPacket;
 import io.mycat.beans.mysql.packet.HandshakePacket;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.net.SocketAddress;
 import java.util.Map;
 
-import static io.mycat.beans.mysql.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
+import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
 
 /**
  * @author jamie12221 date 2019-05-07 13:58

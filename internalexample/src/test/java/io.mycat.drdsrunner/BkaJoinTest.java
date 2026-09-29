@@ -10,7 +10,7 @@ import io.mycat.calcite.spm.Plan;
 import io.mycat.calcite.spm.PlanImpl;
 import io.mycat.calcite.spm.SpecificSql;
 import io.mycat.calcite.table.SchemaHandler;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.apache.calcite.schema.SchemaPlus;
 import org.junit.Assert;
 import org.junit.Before;

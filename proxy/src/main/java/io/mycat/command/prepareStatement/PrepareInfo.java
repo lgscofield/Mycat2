@@ -1,6 +1,6 @@
 //package io.mycat.command.prepareStatement;
 //
-//import io.mycat.beans.mysql.MySQLPayloadWriter;
+//import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 //import io.mycat.beans.mysql.packet.MySQLPacketSplitter;
 //import io.mycat.beans.mysql.packet.PacketSplitterImpl;
 //import io.mycat.plug.loadBalance.LoadBalanceStrategy;

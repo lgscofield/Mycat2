@@ -16,7 +16,7 @@ package io.mycat;
 
 import io.mycat.calcite.table.SchemaHandler;
 import io.mycat.config.ServerConfig;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import lombok.Data;
 
 @Data

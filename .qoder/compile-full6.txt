@@ -1,0 +1,588 @@
+﻿[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:mycat2:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-csv:jar -> duplicate declaration of version 1.8 @ line 51, column 21
+[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.codehaus.mojo:buildnumber-maven-plugin @ line 522, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:hbt:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> duplicate declaration of version 3.11 @ line 97, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 165, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 189, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 195, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 201, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 206, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 233, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 241, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-annotations:jar -> duplicate declaration of version (?) @ line 328, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 332, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apiguardian:apiguardian-api:jar -> duplicate declaration of version 1.1.0 @ line 336, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.esri.geometry:esri-geometry-api:jar -> duplicate declaration of version 2.2.0 @ line 341, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-core:jar -> duplicate declaration of version (?) @ line 347, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-databind:jar -> duplicate declaration of version (?) @ line 352, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar -> duplicate declaration of version (?) @ line 357, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.code.findbugs:jsr305:jar -> duplicate declaration of version 3.0.1 @ line 362, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 368, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 372, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.yahoo.datasketches:sketches-core:jar -> duplicate declaration of version 0.9.0 @ line 378, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: net.hydromatic:aggdesigner-algorithm:jar -> duplicate declaration of version 6.0 @ line 384, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-dbcp2:jar -> duplicate declaration of version 2.6.0 @ line 390, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 396, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 402, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 408, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 413, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.github.sisyphsu:dateparser:jar -> duplicate declaration of version 1.0.5 @ line 424, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 430, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:internalexample:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:example:jar -> duplicate declaration of version (?) @ line 34, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:executor:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 99, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] mycat2                                                             [jar]
+[INFO] example                                                            [jar]
+[INFO] statistic                                                          [jar]
+[INFO] assistant                                                          [jar]
+[INFO] internalexample                                                    [jar]
+[INFO] console                                                            [jar]
+[INFO] 
+[INFO] --------------------------< io.mycat:mycat2 >---------------------------
+[INFO] Building mycat2 1.22-release                                       [1/6]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for io.mycat:common:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:common:1.22-release
+[ERROR] 'dependencies.dependency.version' for joda-time:joda-time:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.sf.ehcache:ehcache:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.oshi:oshi-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.questdb:questdb-jdk8:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.mycat:eddsa:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:hbt:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 28 problems were encountered while building the effective model for io.mycat:hbt:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.google.code.findbugs:jsr305:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apiguardian:apiguardian-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.checkerframework:checker-qual:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:aggdesigner-algorithm:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.esri.geometry:esri-geometry-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.yahoo.datasketches:sketches-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apache.commons:commons-lang3:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for commons-codec:commons-codec:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for commons-io:commons-io:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.apache.commons:commons-dbcp2:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.jinahya:database-metadata-bind:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.jpountz.lz4:lz4:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.sisyphsu:dateparser:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.jayway.jsonpath:json-path:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.dom4j:dom4j:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for jaxen:jaxen:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.akarnokd:rxjava3-extensions:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.aspectj:aspectjweaver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.junit.jupiter:junit-jupiter-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.junit.jupiter:junit-jupiter-params:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.hamcrest:hamcrest-core:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.hsqldb:hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:foodmart-data-hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:foodmart-queries:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:scott-data-hsqldb:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for net.hydromatic:quidem:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for sqlline:sqlline:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.incava:java-diff:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:config:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:config:1.22-release
+[ERROR] 'dependencies.dependency.version' for org.slf4j:slf4j-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for jakarta.validation:jakarta.validation-api:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.squareup.okhttp3:okhttp:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.yaml:snakeyaml:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.alibaba.fastjson2:fastjson2:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.objenesis:objenesis:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:plug:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 1 problem was encountered while building the effective model for io.mycat:plug:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.imadcn.framework:idworker:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:router:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 2 problems were encountered while building the effective model for io.mycat:router:1.22-release
+[ERROR] 'dependencies.dependency.version' for org.codehaus.groovy:groovy-all:pom is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.yevdo:jwildcard:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:datasource:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 6 problems were encountered while building the effective model for io.mycat:datasource:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.sequoiadb:sequoiadb-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.mongodb:mongo-java-driver:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for javax.transaction:jta:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for org.jooq:jooq:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for ru.yandex.clickhouse:clickhouse-jdbc:jar is missing. @ 
+
+[WARNING] The POM for io.mycat:va:jar:1.22-release is invalid, transitive dependencies (if any) will not be available: 3 problems were encountered while building the effective model for io.mycat:va:1.22-release
+[ERROR] 'dependencies.dependency.version' for com.zaxxer:HikariCP:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for io.vertx:vertx-junit5:jar is missing. @ 
+[ERROR] 'dependencies.dependency.version' for com.github.stephenc.jcip:jcip-annotations:jar is missing. @ 
+
+[INFO] 
+[INFO] --- buildnumber:1.4:create (default) @ mycat2 ---
+[INFO] Change the default 'git' provider implementation to 'git'.
+[INFO] Executing: cmd.exe /X /C "git rev-parse --verify HEAD"
+[INFO] Working directory: D:\Workspaces\IdeaProjects\Mycat2\mycat2
+[INFO] Storing buildNumber: 21b6abcddf6ad479faf8592e791bb44711526e6b at timestamp: 20260929145008
+[INFO] Storing buildScmBranch: feature/jdk21-upgrade
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version) @ mycat2 ---
+[INFO] Replacement run on 1 file.
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version2) @ mycat2 ---
+[WARNING] No input file/s defined
+[INFO] Replacement run on 0 file.
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ mycat2 ---
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ mycat2 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 229 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[287,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/exporter/MySQLLogConsumer.java:[25,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[INFO] 2 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[5,35] 程序包org.apache.zookeeper.server不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[6,35] 程序包org.apache.zookeeper.server不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[7,42] 程序包org.apache.zookeeper.server.quorum不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/MycatCore.java:[39,30] 程序包org.apache.groovy.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/MycatCore.java:[40,35] 程序包org.apache.zookeeper.client不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/SQLInits.java:[8,54] 程序包org.apache.curator.shaded.com.google.common.io不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[20,22] 找不到符号
+  符号:   类 MySQLDatasourcePool
+  位置: 程序包 io.mycat.proxy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[21,16] 找不到符号
+  符号:   类 NativeMycatServer
+  位置: 程序包 io.mycat
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[27,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[28,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[29,30] 找不到符号
+  符号:   类 MySQLPacketExchanger
+  位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[30,30] 找不到符号
+  符号:   类 ResponseType
+  位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[31,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[32,30] 程序包io.mycat.proxy.monitor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[33,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[34,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[35,30] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[36,30] 找不到符号
+  符号:   类 MycatSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[37,45] 程序包io.mycat.proxy.session.SessionManager不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[47,37] 找不到符号
+  符号:   类 MySQLPacketExchanger
+  位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[47,1] 仅从类和接口静态导入
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,35] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,126] 找不到符号
+  符号:   类 SessionCallBack
+  位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,142] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[229,37] 找不到符号
+  符号:   类 MycatSession
+  位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MycatMySQLManagerImpl.java:[20,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MycatMySQLManagerImpl.java:[21,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/NativeDatasourcePoolImpl.java:[19,16] 找不到符号
+  符号:   类 NativeMycatServer
+  位置: 程序包 io.mycat
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/NativeDatasourcePoolImpl.java:[21,22] 找不到符号
+  符号:   类 MySQLDatasourcePool
+  位置: 程序包 io.mycat.proxy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/config/MycatRouterConfigOps.java:[21,29] 找不到符号
+  符号:   类 MycatSQLUtils
+  位置: 程序包 com.alibaba.druid.sql
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/connection/MycatResultSet.java:[3,29] 程序包com.mchange.v1.db.sql不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/monitor/MycatSQLLogMonitor.java:[4,47] 程序包com.imadcn.framework.idworker.algorithm不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/monitor/MycatSQLLogMonitor.java:[9,19] 找不到符号
+  符号:   类 Snowflake
+  位置: 类 io.mycat.monitor.MycatSQLLogMonitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[24,29] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[25,29] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[35,56] 程序包io.mycat.proxy.packet.MySQLPacketResolver不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[35,1] 仅从类和接口静态导入
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[36,36] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[74,5] 找不到符号
+  符号:   类 MySQLPayloadType
+  位置: 类 io.mycat.mysqlclient.command.ResponseBufferCommand
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[76,24] 程序包MySQLPacketResolver不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/AbstractSQLHandler.java:[22,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/AbstractSQLHandler.java:[23,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[20,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[21,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[22,24] 程序包groovy.transform不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[203,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.BinlogUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[235,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.BinlogUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[4,24] 程序包groovy.transform不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[25,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[222,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[195,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[202,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[214,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[368,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[457,6] 找不到符号
+  符号:   类 ToString
+  位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/DbStorageManagerImpl.java:[19,54] 程序包org.apache.curator.shaded.com.google.common.io不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[7,26] 程序包org.apache.curator不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[8,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[9,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[10,32] 程序包org.apache.curator.retry不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[11,35] 程序包org.apache.zookeeper.client不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[22,13] 找不到符号
+  符号:   类 RetryPolicy
+  位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[29,38] 找不到符号
+  符号:   类 RetryPolicy
+  位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[54,12] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[58,19] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[7,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[8,33] 程序包org.apache.zookeeper.data不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[20,19] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[23,33] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[31,20] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[179,12] 找不到符号
+  符号:   类 CuratorFramework
+  位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/ddl/CreateIndexSQLHandler.java:[17,29] 找不到符号
+  符号:   类 MycatSQLUtils
+  位置: 程序包 com.alibaba.druid.sql
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertx/VertxMySQLAuthHandler.java:[25,36] 找不到符号
+  符号:   类 MySQLClientAuthHandler
+  位置: 程序包 io.mycat.proxy.handler.front
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[24,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[25,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[26,30] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[56,14] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[58,40] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[252,13] 找不到符号
+  符号:   类 ResultSetCallBack
+  位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[252,31] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[19,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[20,30] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[23,41] 找不到符号
+  符号: 类 ResultSetCallBack
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[23,59] 找不到符号
+  符号: 类 MySQLClientSession
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[42,52] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.CommandResponse
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[49,35] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.CommandResponse
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[3,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[7,31] 找不到符号
+  符号: 类 JDBCRow
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[12,21] 找不到符号
+  符号:   类 JDBCRow
+  位置: 类 io.mycat.vertxmycat.MycatRow
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[26,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[21,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[22,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[23,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[24,30] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[102,65] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.RowSetQuery
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[109,65] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.RowSetQuery
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[20,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[21,30] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[35,55] 找不到符号
+  符号: 类 ResultSetHandler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[144,35] 找不到符号
+  符号:   类 MySQLClientSession
+  位置: 类 io.mycat.vertxmycat.VertxMycatTextCollector<C,R>
+[INFO] 100 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for mycat2 1.22-release:
+[INFO] 
+[INFO] mycat2 ............................................. FAILURE [ 44.322 s]
+[INFO] example ............................................ SKIPPED
+[INFO] statistic .......................................... SKIPPED
+[INFO] assistant .......................................... SKIPPED
+[INFO] internalexample .................................... SKIPPED
+[INFO] console ............................................ SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  45.122 s
+[INFO] Finished at: 2026-09-29T14:50:44+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project mycat2: Compilation failure: Compilation failure: 
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[5,35] 程序包org.apache.zookeeper.server不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[6,35] 程序包org.apache.zookeeper.server不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/EmbeddedZKServer.java:[7,42] 程序包org.apache.zookeeper.server.quorum不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/MycatCore.java:[39,30] 程序包org.apache.groovy.util不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/MycatCore.java:[40,35] 程序包org.apache.zookeeper.client不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/SQLInits.java:[8,54] 程序包org.apache.curator.shaded.com.google.common.io不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[20,22] 找不到符号
+[ERROR]   符号:   类 MySQLDatasourcePool
+[ERROR]   位置: 程序包 io.mycat.proxy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[21,16] 找不到符号
+[ERROR]   符号:   类 NativeMycatServer
+[ERROR]   位置: 程序包 io.mycat
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[27,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[28,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[29,30] 找不到符号
+[ERROR]   符号:   类 MySQLPacketExchanger
+[ERROR]   位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[30,30] 找不到符号
+[ERROR]   符号:   类 ResponseType
+[ERROR]   位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[31,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[32,30] 程序包io.mycat.proxy.monitor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[33,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[34,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[35,30] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[36,30] 找不到符号
+[ERROR]   符号:   类 MycatSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[37,45] 程序包io.mycat.proxy.session.SessionManager不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[47,37] 找不到符号
+[ERROR]   符号:   类 MySQLPacketExchanger
+[ERROR]   位置: 程序包 io.mycat.proxy.handler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[47,1] 仅从类和接口静态导入
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,35] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,126] 找不到符号
+[ERROR]   符号:   类 SessionCallBack
+[ERROR]   位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[192,142] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MySQLTaskUtil.java:[229,37] 找不到符号
+[ERROR]   符号:   类 MycatSession
+[ERROR]   位置: 类 io.mycat.commands.MySQLTaskUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MycatMySQLManagerImpl.java:[20,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/MycatMySQLManagerImpl.java:[21,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/NativeDatasourcePoolImpl.java:[19,16] 找不到符号
+[ERROR]   符号:   类 NativeMycatServer
+[ERROR]   位置: 程序包 io.mycat
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/commands/NativeDatasourcePoolImpl.java:[21,22] 找不到符号
+[ERROR]   符号:   类 MySQLDatasourcePool
+[ERROR]   位置: 程序包 io.mycat.proxy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/config/MycatRouterConfigOps.java:[21,29] 找不到符号
+[ERROR]   符号:   类 MycatSQLUtils
+[ERROR]   位置: 程序包 com.alibaba.druid.sql
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/connection/MycatResultSet.java:[3,29] 程序包com.mchange.v1.db.sql不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/monitor/MycatSQLLogMonitor.java:[4,47] 程序包com.imadcn.framework.idworker.algorithm不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/monitor/MycatSQLLogMonitor.java:[9,19] 找不到符号
+[ERROR]   符号:   类 Snowflake
+[ERROR]   位置: 类 io.mycat.monitor.MycatSQLLogMonitor
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[24,29] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[25,29] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[35,56] 程序包io.mycat.proxy.packet.MySQLPacketResolver不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[35,1] 仅从类和接口静态导入
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[36,36] 程序包io.mycat.proxy.packet不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[74,5] 找不到符号
+[ERROR]   符号:   类 MySQLPayloadType
+[ERROR]   位置: 类 io.mycat.mysqlclient.command.ResponseBufferCommand
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/command/ResponseBufferCommand.java:[76,24] 程序包MySQLPacketResolver不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/AbstractSQLHandler.java:[22,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/AbstractSQLHandler.java:[23,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[20,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[21,25] 程序包com.mysql.cj.conf不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[22,24] 程序包groovy.transform不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[203,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.BinlogUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[235,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.BinlogUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[4,24] 程序包groovy.transform不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[25,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[222,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[195,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[202,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[214,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[368,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[457,6] 找不到符号
+[ERROR]   符号:   类 ToString
+[ERROR]   位置: 类 io.mycat.sqlhandler.MigrateUtil
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/DbStorageManagerImpl.java:[19,54] 程序包org.apache.curator.shaded.com.google.common.io不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[7,26] 程序包org.apache.curator不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[8,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[9,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[10,32] 程序包org.apache.curator.retry不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[11,35] 程序包org.apache.zookeeper.client不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[22,13] 找不到符号
+[ERROR]   符号:   类 RetryPolicy
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[29,38] 找不到符号
+[ERROR]   符号:   类 RetryPolicy
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[54,12] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZKBuilder.java:[58,19] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZKBuilder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[7,36] 程序包org.apache.curator.framework不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[8,33] 程序包org.apache.zookeeper.data不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[20,19] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[23,33] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[31,20] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/config/ZooMap.java:[179,12] 找不到符号
+[ERROR]   符号:   类 CuratorFramework
+[ERROR]   位置: 类 io.mycat.sqlhandler.config.ZooMap
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/ddl/CreateIndexSQLHandler.java:[17,29] 找不到符号
+[ERROR]   符号:   类 MycatSQLUtils
+[ERROR]   位置: 程序包 com.alibaba.druid.sql
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertx/VertxMySQLAuthHandler.java:[25,36] 找不到符号
+[ERROR]   符号:   类 MySQLClientAuthHandler
+[ERROR]   位置: 程序包 io.mycat.proxy.handler.front
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[24,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[25,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[26,30] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[56,14] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[58,40] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[252,13] 找不到符号
+[ERROR]   符号:   类 ResultSetCallBack
+[ERROR]   位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[252,31] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.AbstractMySqlConnectionImpl
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[19,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[20,30] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[23,41] 找不到符号
+[ERROR]   符号: 类 ResultSetCallBack
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[23,59] 找不到符号
+[ERROR]   符号: 类 MySQLClientSession
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[42,52] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.CommandResponse
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/CommandResponse.java:[49,35] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.CommandResponse
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[3,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[7,31] 找不到符号
+[ERROR]   符号: 类 JDBCRow
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[12,21] 找不到符号
+[ERROR]   符号:   类 JDBCRow
+[ERROR]   位置: 类 io.mycat.vertxmycat.MycatRow
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[26,32] 程序包io.vertx.jdbcclient.impl不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[21,31] 程序包io.mycat.proxy.callback不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[22,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[23,30] 程序包io.mycat.proxy.reactor不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[24,30] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[102,65] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.RowSetQuery
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetQuery.java:[109,65] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.RowSetQuery
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[20,38] 程序包io.mycat.proxy.handler.backend不存在
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[21,30] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 程序包 io.mycat.proxy.session
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[35,55] 找不到符号
+[ERROR]   符号: 类 ResultSetHandler
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[144,35] 找不到符号
+[ERROR]   符号:   类 MySQLClientSession
+[ERROR]   位置: 类 io.mycat.vertxmycat.VertxMycatTextCollector<C,R>
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

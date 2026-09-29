@@ -16,9 +16,11 @@ package io.mycat;
 
 import io.mycat.beans.mycat.MycatMySQLRowMetaData;
 import io.mycat.beans.mycat.MycatRowMetaData;
-import io.mycat.beans.mysql.MySQLErrorCode;
-import io.mycat.beans.mysql.MySQLPayloadWriter;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.beans.mysql.packet.*;
+import io.mycat.protocol.mysql.packet.MySQLPayloadWriteView;
+import io.mycat.protocol.mysql.packet.MySQLPayloadReadView;
 import io.mycat.config.MySQLServerCapabilityFlags;
 
 import java.io.UnsupportedEncodingException;

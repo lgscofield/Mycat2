@@ -19,7 +19,7 @@
 //import io.mycat.api.collector.OneResultSetCollector;
 //import io.mycat.api.collector.TextResultSetTransforCollector;
 //import io.mycat.beans.MySQLDatasource;
-//import io.mycat.beans.mysql.MySQLPayloadWriter;
+//import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 //import io.mycat.beans.mysql.packet.ErrorPacketImpl;
 //import io.mycat.proxy.callback.CommandCallBack;
 //import io.mycat.proxy.callback.RequestCallback;

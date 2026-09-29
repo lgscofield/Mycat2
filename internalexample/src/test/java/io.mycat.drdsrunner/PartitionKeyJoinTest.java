@@ -12,7 +12,7 @@ import io.mycat.calcite.table.SchemaHandler;
 import io.mycat.config.*;
 import io.mycat.prototypeserver.mysql.PrototypeService;
 import io.mycat.util.JsonUtil;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

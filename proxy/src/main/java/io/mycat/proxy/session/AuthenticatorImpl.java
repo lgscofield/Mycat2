@@ -2,7 +2,7 @@ package io.mycat.proxy.session;
 
 import io.mycat.Authenticator;
 import io.mycat.MycatException;
-import io.mycat.beans.mysql.MySQLErrorCode;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 import io.mycat.config.UserConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;

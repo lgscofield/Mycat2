@@ -15,7 +15,7 @@
 
 package io.mycat.mysqlclient;
 
-import io.mycat.beans.mysql.MySQLServerStatusFlags;
+import io.mycat.protocol.mysql.type.MySQLServerStatusFlags;
 import io.mycat.mysqlclient.command.OkCommand;
 import io.mycat.mysqlclient.command.QueryCommand;
 import io.mycat.mysqlclient.command.ResponseBufferCommand;

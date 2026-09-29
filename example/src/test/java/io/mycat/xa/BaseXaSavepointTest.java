@@ -22,7 +22,7 @@ import cn.mycat.vertx.xa.XaLog;
 import cn.mycat.vertx.xa.XaSqlConnection;
 import cn.mycat.vertx.xa.impl.BaseXaSqlConnection;
 import com.google.gson.annotations.SerializedName;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.mycat.newquery.RowSet;
 import io.vertx.core.AsyncResult;

@@ -45,7 +45,7 @@ import io.mycat.hbt.SchemaConvertor;
 import io.mycat.hbt.ast.base.Schema;
 import io.mycat.hbt.parser.HBTParser;
 import io.mycat.hbt.parser.ParseNode;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.calcite.jdbc.CalciteSchema;

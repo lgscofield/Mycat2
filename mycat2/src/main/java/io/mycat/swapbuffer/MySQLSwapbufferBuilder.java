@@ -3,7 +3,7 @@ package io.mycat.swapbuffer;
 import io.mycat.MySQLPacketUtil;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
-import io.mycat.beans.mysql.MySQLServerStatusFlags;
+import io.mycat.protocol.mysql.type.MySQLServerStatusFlags;
 import io.mycat.vertx.ResultSetMapping;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;

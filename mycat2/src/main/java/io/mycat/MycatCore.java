@@ -14,7 +14,7 @@
  */
 package io.mycat;
 
-import io.mycat.beans.mysql.MySQLVersion;
+import io.mycat.protocol.mysql.type.MySQLVersion;
 import io.mycat.calcite.ExecutorProvider;
 import io.mycat.config.*;
 import io.mycat.executor.ExecutorProviderImpl;

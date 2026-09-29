@@ -16,7 +16,7 @@
 
 package cn.mycat.vertx.xa;
 
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

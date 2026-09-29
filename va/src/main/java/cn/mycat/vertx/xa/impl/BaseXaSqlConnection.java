@@ -17,7 +17,7 @@ package cn.mycat.vertx.xa.impl;
 
 import cn.mycat.vertx.xa.*;
 import com.alibaba.druid.util.JdbcUtils;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.mycat.newquery.SqlResult;
 import io.vertx.core.CompositeFuture;

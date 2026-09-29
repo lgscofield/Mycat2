@@ -18,7 +18,7 @@ import io.mycat.MycatDataContext;
 import io.mycat.MycatDataContextEnum;
 import io.mycat.MycatException;
 import io.mycat.MycatUser;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 import io.mycat.beans.mysql.packet.MySQLPacketSplitter;
 import io.mycat.beans.mysql.packet.PacketSplitterImpl;

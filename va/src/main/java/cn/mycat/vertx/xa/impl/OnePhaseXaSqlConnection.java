@@ -19,7 +19,7 @@ package cn.mycat.vertx.xa.impl;
 import cn.mycat.vertx.xa.MySQLManager;
 import cn.mycat.vertx.xa.State;
 import cn.mycat.vertx.xa.XaLog;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.newquery.NewMycatConnection;
 import io.vertx.core.Future;
 import io.vertx.core.impl.logging.Logger;

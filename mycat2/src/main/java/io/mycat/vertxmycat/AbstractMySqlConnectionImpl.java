@@ -20,7 +20,7 @@ import com.alibaba.druid.sql.ast.SQLReplaceable;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
-import io.mycat.beans.mysql.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.proxy.callback.ResultSetCallBack;
 import io.mycat.proxy.handler.backend.ResultSetHandler;
 import io.mycat.proxy.session.MySQLClientSession;

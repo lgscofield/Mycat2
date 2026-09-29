@@ -16,13 +16,13 @@ package io.mycat.proxy.handler.backend;
 
 import io.mycat.MycatException;
 import io.mycat.api.collector.ResultSetTransfor;
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 import io.mycat.beans.mysql.packet.ColumnDefPacket;
 import io.mycat.beans.mysql.packet.ColumnDefPacketImpl;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 
-import static io.mycat.beans.mysql.MySQLFieldsType.*;
-import static io.mycat.beans.mysql.MySQLType.FIELD_TYPE_INT24;
+import static io.mycat.protocol.mysql.type.MySQLFieldsType.*;
+import static io.mycat.protocol.mysql.type.MySQLType.FIELD_TYPE_INT24;
 
 /**
  * @author jamie12221

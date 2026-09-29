@@ -31,7 +31,7 @@ import io.mycat.config.ServerConfig;
 import io.mycat.querycondition.QueryType;
 import io.mycat.router.CustomRuleFunction;
 import io.mycat.router.ShardingTableHandler;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptListener;
 import org.apache.calcite.plan.RelOptSchema;

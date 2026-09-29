@@ -5,8 +5,8 @@
 //import io.mycat.api.callback.MySQLAPIExceptionCallback;
 //import io.mycat.api.collector.ResultSetCollector;
 //import io.mycat.beans.mycat.ResultSetBuilder;
-//import io.mycat.beans.mysql.MySQLCommandType;
-//import io.mycat.beans.mysql.MySQLErrorCode;
+//import io.mycat.protocol.mysql.type.MySQLCommandType;
+//import io.mycat.protocol.mysql.type.MySQLErrorCode;
 //import io.mycat.beans.mysql.packet.ColumnDefPacket;
 //import io.mycat.beans.mysql.packet.ErrorPacket;
 //import io.mycat.beans.mysql.packet.ErrorPacketImpl;

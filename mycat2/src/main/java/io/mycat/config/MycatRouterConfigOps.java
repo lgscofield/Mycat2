@@ -57,7 +57,7 @@ import io.mycat.sqlhandler.config.StorageManager;
 import io.mycat.sqlhandler.config.UpdateSet;
 import io.mycat.statistic.StatisticCenter;
 import io.mycat.util.JsonUtil;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.vertx.core.json.Json;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

@@ -4,7 +4,7 @@
 //import io.mycat.beans.mycat.MycatField;
 //import io.mycat.beans.mycat.MycatMySQLRowMetaData;
 //import io.mycat.beans.mycat.MycatRowMetaData;
-//import io.mycat.beans.mysql.MySQLFieldsType;
+//import io.mycat.protocol.mysql.type.MySQLFieldsType;
 //import io.mycat.beans.mysql.packet.ColumnDefPacket;
 //import io.mycat.beans.mysql.packet.ColumnDefPacketImpl;
 //import io.mycat.util.JavaClassToMySQLTypeUtil;

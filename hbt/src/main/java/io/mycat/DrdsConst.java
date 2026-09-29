@@ -15,7 +15,7 @@
 package io.mycat;
 
 import io.mycat.calcite.table.SchemaHandler;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 
 public interface DrdsConst {
 

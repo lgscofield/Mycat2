@@ -15,7 +15,7 @@
 package io.mycat;
 
 import io.mycat.beans.mycat.TransactionType;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.vertx.core.Future;
 import lombok.SneakyThrows;
 

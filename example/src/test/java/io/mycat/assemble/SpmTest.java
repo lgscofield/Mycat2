@@ -17,7 +17,7 @@ import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.plug.loadBalance.LoadBalanceManager;
 import io.mycat.replica.ReplicaSelectorManager;
 import io.mycat.replica.ReplicaSelectorRuntime;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.vertx.core.Vertx;
 import lombok.SneakyThrows;
 import org.apache.groovy.util.Maps;

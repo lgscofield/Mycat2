@@ -18,7 +18,7 @@ import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.datasource.jdbc.datasource.JdbcDataSource;
 import io.mycat.replica.ReplicaSelectorManager;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.apache.doris.common.PatternMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

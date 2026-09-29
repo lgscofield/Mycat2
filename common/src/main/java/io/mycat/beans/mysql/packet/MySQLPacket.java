@@ -13,6 +13,8 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 package io.mycat.beans.mysql.packet;
+import io.mycat.protocol.mysql.packet.MySQLPayloadWriteView;
+import io.mycat.protocol.mysql.packet.MySQLPayloadReadView;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

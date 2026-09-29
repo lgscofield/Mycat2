@@ -17,7 +17,7 @@ import io.mycat.calcite.table.SchemaHandler;
 import io.mycat.calcite.table.SchemaHandlerImpl;
 import io.mycat.config.LogicSchemaConfig;
 import io.mycat.prototypeserver.mysql.*;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.reactivex.rxjava3.core.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -26,7 +26,7 @@
 package io.mycat.mysqlclient.command;
 
 import io.mycat.MySQLPacketUtil;
-import io.mycat.beans.mysql.MySQLPayloadWriter;
+import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.beans.mysql.packet.AuthPacket;
 import io.mycat.mysqlclient.VertxConnection;
 import io.mycat.mysqlclient.VertxConnectionPool;

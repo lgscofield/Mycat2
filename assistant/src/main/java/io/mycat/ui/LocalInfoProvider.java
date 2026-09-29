@@ -9,7 +9,7 @@ import io.mycat.config.*;
 import io.mycat.connection.MycatLocalDriver;
 import io.mycat.sqlhandler.ConfigUpdater;
 import io.mycat.ui.InfoProvider;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import lombok.SneakyThrows;
 
 import java.sql.Connection;

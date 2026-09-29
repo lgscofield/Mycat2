@@ -14,10 +14,7 @@
     <description>MySQL/MariaDB protocol types, packet structures, encoding/decoding, authentication plugins</description>
 
     <dependencies>
-        <dependency>
-            <groupId>io.mycat</groupId>
-            <artifactId>common</artifactId>
-        </dependency>
+        <!-- Protocol is a leaf module: no dependency on common -->
         <dependency>
             <groupId>io.mycat</groupId>
             <artifactId>config</artifactId>
@@ -25,6 +22,14 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -15,8 +15,8 @@
 package io.mycat.vertx;
 
 import io.mycat.*;
-import io.mycat.beans.mysql.MySQLIsolation;
-import io.mycat.beans.mysql.MySQLPayloadWriter;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.beans.mysql.packet.AuthPacket;
 import io.mycat.beans.mysql.packet.AuthSwitchRequestPacket;
 import io.mycat.config.UserConfig;
@@ -36,7 +36,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static io.mycat.beans.mysql.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
+import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
 import static io.mycat.vertx.VertxMySQLPacketResolver.readInt;
 
 public class VertxMySQLAuthHandler implements Handler<Buffer> {

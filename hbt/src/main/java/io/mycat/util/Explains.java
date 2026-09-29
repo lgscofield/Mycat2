@@ -17,7 +17,7 @@
 package io.mycat.util;
 
 import io.mycat.ResultSetProvider;
-import io.mycat.beans.mysql.MySQLFieldsType;
+import io.mycat.protocol.mysql.type.MySQLFieldsType;
 import io.mycat.beans.resultset.MycatResultSet;
 import io.mycat.beans.resultset.MycatResultSetResponse;
 import lombok.AllArgsConstructor;

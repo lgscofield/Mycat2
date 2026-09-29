@@ -16,7 +16,7 @@
  */
 package io.mycat.calcite.sqlfunction.infofunction;
 
-import io.mycat.beans.mysql.MySQLVersion;
+import io.mycat.protocol.mysql.type.MySQLVersion;
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 import org.apache.calcite.sql.SqlFunctionCategory;

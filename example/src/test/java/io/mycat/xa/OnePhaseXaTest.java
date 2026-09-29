@@ -20,7 +20,7 @@ import cn.mycat.vertx.xa.MySQLManager;
 import cn.mycat.vertx.xa.XaLog;
 import cn.mycat.vertx.xa.XaSqlConnection;
 import cn.mycat.vertx.xa.impl.OnePhaseXaSqlConnection;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;

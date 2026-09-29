@@ -1,0 +1,655 @@
+﻿[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:mycat2:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-csv:jar -> duplicate declaration of version 1.8 @ line 51, column 21
+[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.codehaus.mojo:buildnumber-maven-plugin @ line 522, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:hbt:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> duplicate declaration of version 3.11 @ line 97, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 165, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 189, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 195, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 201, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 206, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 233, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 241, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-annotations:jar -> duplicate declaration of version (?) @ line 328, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.calcite.avatica:avatica-core:jar -> duplicate declaration of version (?) @ line 332, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apiguardian:apiguardian-api:jar -> duplicate declaration of version 1.1.0 @ line 336, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.esri.geometry:esri-geometry-api:jar -> duplicate declaration of version 2.2.0 @ line 341, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-core:jar -> duplicate declaration of version (?) @ line 347, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.core:jackson-databind:jar -> duplicate declaration of version (?) @ line 352, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar -> duplicate declaration of version (?) @ line 357, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.code.findbugs:jsr305:jar -> duplicate declaration of version 3.0.1 @ line 362, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.google.guava:guava:jar -> duplicate declaration of version (?) @ line 368, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.jayway.jsonpath:json-path:jar -> duplicate declaration of version 2.4.0 @ line 372, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.yahoo.datasketches:sketches-core:jar -> duplicate declaration of version 0.9.0 @ line 378, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: net.hydromatic:aggdesigner-algorithm:jar -> duplicate declaration of version 6.0 @ line 384, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-dbcp2:jar -> duplicate declaration of version 2.6.0 @ line 390, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.commons:commons-lang3:jar -> version 3.11 vs 3.8 @ line 396, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: commons-io:commons-io:jar -> duplicate declaration of version 2.4 @ line 402, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:commons-compiler:jar -> duplicate declaration of version (?) @ line 408, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.codehaus.janino:janino:jar -> duplicate declaration of version (?) @ line 413, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: com.github.sisyphsu:dateparser:jar -> duplicate declaration of version 1.0.5 @ line 424, column 21
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 430, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:internalexample:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:example:jar -> duplicate declaration of version (?) @ line 34, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for io.mycat:executor:jar:1.22-release
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: io.mycat:common:jar -> duplicate declaration of version (?) @ line 99, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] parent                                                             [pom]
+[INFO] config                                                             [jar]
+[INFO] common                                                             [jar]
+[INFO] router                                                             [jar]
+[INFO] plug                                                               [jar]
+[INFO] replica                                                            [jar]
+[INFO] datasource                                                         [jar]
+[INFO] va                                                                 [jar]
+[INFO] proxy                                                              [jar]
+[INFO] calcite-core (Mycat fork)                                          [jar]
+[INFO] hbt                                                                [jar]
+[INFO] executor                                                           [jar]
+[INFO] mycat2                                                             [jar]
+[INFO] 
+[INFO] --------------------------< io.mycat:parent >---------------------------
+[INFO] Building parent 1.22-release                                      [1/13]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --------------------------< io.mycat:config >---------------------------
+[INFO] Building config 1.22-release                                      [2/13]
+[INFO]   from config\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ config ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\config\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ config ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --------------------------< io.mycat:common >---------------------------
+[INFO] Building common 1.22-release                                      [3/13]
+[INFO]   from common\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ common ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\common\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ common ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 331 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BinlogSyncHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BaselineListHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/SchemaInfo.java:[27,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/MigrateStopHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/MigrateListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/BackendTableInfo.java:[29,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BinlogSnapshotHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BinlogClearHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/MigrateHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/InterruptThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BaselineUpdateHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BaselineAddHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/ReadyToCloseSQLHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BinlogStopHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/DropSchemaHint.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/PauseServerHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BaselineParameterizeHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/IndexBackendTableInfo.java:[28,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/CreateUserHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/BinlogListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/hint/KillThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[241,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[244,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[246,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[248,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[250,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[252,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[254,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[256,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[258,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[260,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[262,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[264,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[266,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[268,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[270,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[272,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[274,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[276,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[278,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[280,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[282,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[283,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[285,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[287,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[290,34] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[292,30] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[293,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[295,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[297,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[299,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[301,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[724,32] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[725,35] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRelDataType.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRelDataType.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --------------------------< io.mycat:router >---------------------------
+[INFO] Building router 1.22-release                                      [4/13]
+[INFO]   from router\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ router ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ router ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 52 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[10,1] Not generating toString(): A method with that name already exists
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] ---------------------------< io.mycat:plug >----------------------------
+[INFO] Building plug 1.22-release                                        [5/13]
+[INFO]   from plug\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ plug ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ plug ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 19 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\java\io\mycat\plug\sequence\SequenceGenerator.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --------------------------< io.mycat:replica >--------------------------
+[INFO] Building replica 1.22-release                                     [6/13]
+[INFO]   from replica\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ replica ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\replica\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ replica ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 21 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[111,17] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[112,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] ------------------------< io.mycat:datasource >-------------------------
+[INFO] Building datasource 1.22-release                                  [7/13]
+[INFO]   from datasource\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ datasource ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\datasource\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ datasource ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 32 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/mongodb/MongoConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/mongodb/MongoConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] ----------------------------< io.mycat:va >-----------------------------
+[INFO] Building va 1.22-release                                          [8/13]
+[INFO]   from va\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ va ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\va\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ va ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 21 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] ---------------------------< io.mycat:proxy >---------------------------
+[INFO] Building proxy 1.22-release                                       [9/13]
+[INFO]   from proxy\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ proxy ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\proxy\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ proxy ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 92 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/handler/backend/MySQLSynContextImpl.java:[26,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[353,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[354,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[136,18] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[137,10] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[467,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[468,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] -----------------------< io.mycat:calcite-core >------------------------
+[INFO] Building calcite-core (Mycat fork) 1.42.0-mycat                  [10/13]
+[INFO]   from calcite-core\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ calcite-core ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] ----------------------------< io.mycat:hbt >----------------------------
+[INFO] Building hbt 1.22-release                                        [11/13]
+[INFO]   from hbt\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hbt ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\hbt\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ hbt ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 567 source files with javac [debug target 21] to target\classes
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[50,17] (immutables:incompat) 'singleton' feature contains potentially unsafe cast with generics  <C extends io.mycat.calcite.rewriter.MycatFilterJoinRule.Config>. Can be safe if immutable covariant conversion is possible
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/AggregateCall.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Literal.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Expr.java:[29,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Param.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/FieldType.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MetadataManager.java:[55,5] Not generating getPrototype(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Fun.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/MergeModify.java:[10,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/ModifyFromSql.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/Explains.java:[41,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MycatSchema.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Identifier.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Schema.java:[25,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/spm/DbPlanManagerPersistorImpl.java:[28,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/prototypeserver/mysql/PrototypeService.java:[51,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java:[58,18] java.security 中的 java.security.AccessControlException 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/query/AnonyTableSchema.java:[44,40] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/visitor/MycatSQLEvalVisitorUtils.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/com/alibaba/druid/sql/visitor/MycatSQLEvalVisitorUtils.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] -------------------------< io.mycat:executor >--------------------------
+[INFO] Building executor 1.22-release                                   [12/13]
+[INFO]   from executor\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ executor ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ executor ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 482 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/record/RecordImpl.java:[26,1] Not generating equals and hashCode: A method with one of those names already exists. (Either both or none of these methods will be generated).
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --------------------------< io.mycat:mycat2 >---------------------------
+[INFO] Building mycat2 1.22-release                                     [13/13]
+[INFO]   from mycat2\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- buildnumber:1.4:create (default) @ mycat2 ---
+[INFO] Change the default 'git' provider implementation to 'git'.
+[INFO] Executing: cmd.exe /X /C "git rev-parse --verify HEAD"
+[INFO] Working directory: D:\Workspaces\IdeaProjects\Mycat2\mycat2
+[INFO] Storing buildNumber: dea3f6727d0e1029c4de259469623b3fec3b6949 at timestamp: 20260929170739
+[INFO] Storing buildScmBranch: main
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version) @ mycat2 ---
+[INFO] Replacement run on 1 file.
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version2) @ mycat2 ---
+[WARNING] No input file/s defined
+[INFO] Replacement run on 0 file.
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ mycat2 ---
+[INFO] Copying 20 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ mycat2 ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 229 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/parser/SQLExprParser.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/parser/SQLExprParser.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/visitor/SQLASTOutputVisitor.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/visitor/SQLASTOutputVisitor.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 某些消息已经过简化; 请使用 -Xdiags:verbose 重新编译以获得完整输出
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[287,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/exporter/MySQLLogConsumer.java:[25,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[62,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[63,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[549,79] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[585,96] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] 6 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/parser/SQLExprParser.java:[2723,24] 找不到符号
+  符号:   方法 setSiblings(boolean)
+  位置: 类型为com.alibaba.druid.sql.ast.SQLZOrderBy的变量 orderBy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/config/MycatRouterConfigOps.java:[312,42] 找不到符号
+  符号:   方法 setIfNotExiists(boolean)
+  位置: 类型为com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement的变量 indexCreateTableStatement
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/executor/ExecutorProviderImpl.java:[138,36] <匿名io.mycat.executor.ExecutorProviderImpl$1>不是抽象的, 并且未覆盖org.apache.calcite.runtime.Bindable中的抽象方法bind(org.apache.calcite.DataContext)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/executor/ExecutorProviderImpl.java:[144,13] 方法不会覆盖或实现超类型的方法
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[51,41] 对于valueOf(int), 找不到合适的方法
+    方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+      (无法推断类型变量 T
+        (实际参数列表和形式参数列表长度不同))
+    方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+      (参数不匹配; int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[101,30] 找不到符号
+  符号:   变量 INT1
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[102,30] 找不到符号
+  符号:   变量 INT2
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[103,30] 找不到符号
+  符号:   变量 INT3
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[104,30] 找不到符号
+  符号:   变量 INT4
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[109,38] 找不到符号
+  符号:   变量 INT1
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[118,38] 找不到符号
+  符号:   变量 INT2
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[127,38] 找不到符号
+  符号:   变量 INT3
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[132,38] 找不到符号
+  符号:   变量 INT4
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[179,30] 找不到符号
+  符号:   变量 TINYBLOB
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[181,30] 找不到符号
+  符号:   变量 MEDIUMBLOB
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[182,30] 找不到符号
+  符号:   变量 LONGBLOB
+  位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/PacketUtil.java:[65,16] 无法将类 io.vertx.mysqlclient.impl.protocol.Packets.OkPacket中的构造器 OkPacket应用到给定类型;
+  需要: int,long,int
+  找到:    long,long,int,int,java.lang.String,java.lang.String
+  原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[44,8] io.mycat.vertxmycat.JdbcMySqlConnection不是抽象的, 并且未覆盖io.vertx.sqlclient.SqlConnection中的抽象方法transaction()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[225,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[52,8] io.mycat.vertxmycat.AbstractMySqlConnectionImpl不是抽象的, 并且未覆盖io.vertx.sqlclient.SqlConnection中的抽象方法transaction()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[13,15] 不兼容的类型: io.vertx.jdbcclient.impl.JDBCRow无法转换为io.vertx.sqlclient.impl.RowDesc
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[29,8] io.mycat.vertxmycat.MycatVertxRowResultDecoder不是抽象的, 并且未覆盖io.vertx.sqlclient.impl.RowDecoder中的抽象方法decodeRow(int,io.netty.buffer.ByteBuf,io.vertx.sqlclient.Row)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[39,5] 方法不会覆盖或实现超类型的方法
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[64,44] 无法将类 io.vertx.mysqlclient.impl.datatype.DataTypeCodec中的方法 decodeBinary应用到给定类型;
+  需要: io.vertx.mysqlclient.impl.datatype.DataType,int,io.netty.buffer.ByteBuf
+  找到:    io.vertx.mysqlclient.impl.datatype.DataType,int,int,io.netty.buffer.ByteBuf
+  原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[78,44] 无法将类 io.vertx.mysqlclient.impl.datatype.DataTypeCodec中的方法 decodeText应用到给定类型;
+  需要: io.vertx.mysqlclient.impl.datatype.DataType,int,io.netty.buffer.ByteBuf
+  找到:    io.vertx.mysqlclient.impl.datatype.DataType,int,int,io.netty.buffer.ByteBuf
+  原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[118,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[242,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[250,45] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[260,53] 对于valueOf(int), 找不到合适的方法
+    方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+      (无法推断类型变量 T
+        (实际参数列表和形式参数列表长度不同))
+    方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+      (参数不匹配; 条件表达式中的类型错误
+          int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[263,65] 无法将类 io.vertx.mysqlclient.impl.protocol.ColumnDefinition中的构造器 ColumnDefinition应用到给定类型;
+  需要: java.lang.String,int,io.vertx.mysqlclient.impl.datatype.DataType,int
+  找到:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,long,io.vertx.mysqlclient.impl.datatype.DataType,int,byte
+  原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[68,33] 对于valueOf(int), 找不到合适的方法
+    方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+      (无法推断类型变量 T
+        (实际参数列表和形式参数列表长度不同))
+    方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+      (参数不匹配; int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[71,45] 无法将类 io.vertx.mysqlclient.impl.protocol.ColumnDefinition中的构造器 ColumnDefinition应用到给定类型;
+  需要: java.lang.String,int,io.vertx.mysqlclient.impl.datatype.DataType,int
+  找到:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,long,io.vertx.mysqlclient.impl.datatype.DataType,int,byte
+  原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[90,70] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[94,41] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/core/impl/future/FutureImpl.java:[30,1] io.vertx.core.impl.future.FutureImpl不是抽象的, 并且未覆盖io.vertx.core.impl.future.FutureInternal中的抽象方法removeListener(io.vertx.core.impl.future.Listener<T>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/mysqlclient/impl/codec/QueryCommandBaseCodec.java:[99,33] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/mysqlclient/impl/codec/QueryCommandBaseCodec.java:[179,5] 找不到符号
+  符号:   变量 completionHandler
+  位置: 类 io.vertx.mysqlclient.impl.codec.QueryCommandBaseCodec<T,C>
+[INFO] 37 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] parent 1.22-release ................................ SUCCESS [  0.010 s]
+[INFO] config 1.22-release ................................ SUCCESS [  2.749 s]
+[INFO] common 1.22-release ................................ SUCCESS [ 54.122 s]
+[INFO] router 1.22-release ................................ SUCCESS [ 29.733 s]
+[INFO] plug 1.22-release .................................. SUCCESS [ 18.263 s]
+[INFO] replica 1.22-release ............................... SUCCESS [ 15.907 s]
+[INFO] datasource 1.22-release ............................ SUCCESS [ 21.785 s]
+[INFO] va 1.22-release .................................... SUCCESS [ 12.715 s]
+[INFO] proxy 1.22-release ................................. SUCCESS [ 36.535 s]
+[INFO] calcite-core (Mycat fork) 1.42.0-mycat ............. SUCCESS [  8.338 s]
+[INFO] hbt 1.22-release ................................... SUCCESS [04:26 min]
+[INFO] executor 1.22-release .............................. SUCCESS [ 30.856 s]
+[INFO] mycat2 1.22-release ................................ FAILURE [01:36 min]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  09:55 min
+[INFO] Finished at: 2026-09-29T17:09:11+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project mycat2: Compilation failure: Compilation failure: 
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/com/alibaba/druid/sql/parser/SQLExprParser.java:[2723,24] 找不到符号
+[ERROR]   符号:   方法 setSiblings(boolean)
+[ERROR]   位置: 类型为com.alibaba.druid.sql.ast.SQLZOrderBy的变量 orderBy
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/config/MycatRouterConfigOps.java:[312,42] 找不到符号
+[ERROR]   符号:   方法 setIfNotExiists(boolean)
+[ERROR]   位置: 类型为com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement的变量 indexCreateTableStatement
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/executor/ExecutorProviderImpl.java:[138,36] <匿名io.mycat.executor.ExecutorProviderImpl$1>不是抽象的, 并且未覆盖org.apache.calcite.runtime.Bindable中的抽象方法bind(org.apache.calcite.DataContext)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/executor/ExecutorProviderImpl.java:[144,13] 方法不会覆盖或实现超类型的方法
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[51,41] 对于valueOf(int), 找不到合适的方法
+[ERROR]     方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+[ERROR]       (无法推断类型变量 T
+[ERROR]         (实际参数列表和形式参数列表长度不同))
+[ERROR]     方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+[ERROR]       (参数不匹配; int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[101,30] 找不到符号
+[ERROR]   符号:   变量 INT1
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[102,30] 找不到符号
+[ERROR]   符号:   变量 INT2
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[103,30] 找不到符号
+[ERROR]   符号:   变量 INT3
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[104,30] 找不到符号
+[ERROR]   符号:   变量 INT4
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[109,38] 找不到符号
+[ERROR]   符号:   变量 INT1
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[118,38] 找不到符号
+[ERROR]   符号:   变量 INT2
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[127,38] 找不到符号
+[ERROR]   符号:   变量 INT3
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[132,38] 找不到符号
+[ERROR]   符号:   变量 INT4
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[179,30] 找不到符号
+[ERROR]   符号:   变量 TINYBLOB
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[181,30] 找不到符号
+[ERROR]   符号:   变量 MEDIUMBLOB
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/decoder/ObjectArrayDecoder.java:[182,30] 找不到符号
+[ERROR]   符号:   变量 LONGBLOB
+[ERROR]   位置: 类 io.mycat.mysqlclient.decoder.ObjectArrayDecoder
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/mysqlclient/PacketUtil.java:[65,16] 无法将类 io.vertx.mysqlclient.impl.protocol.Packets.OkPacket中的构造器 OkPacket应用到给定类型;
+[ERROR]   需要: int,long,int
+[ERROR]   找到:    long,long,int,int,java.lang.String,java.lang.String
+[ERROR]   原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[44,8] io.mycat.vertxmycat.JdbcMySqlConnection不是抽象的, 并且未覆盖io.vertx.sqlclient.SqlConnection中的抽象方法transaction()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[225,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/AbstractMySqlConnectionImpl.java:[52,8] io.mycat.vertxmycat.AbstractMySqlConnectionImpl不是抽象的, 并且未覆盖io.vertx.sqlclient.SqlConnection中的抽象方法transaction()
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatRow.java:[13,15] 不兼容的类型: io.vertx.jdbcclient.impl.JDBCRow无法转换为io.vertx.sqlclient.impl.RowDesc
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[29,8] io.mycat.vertxmycat.MycatVertxRowResultDecoder不是抽象的, 并且未覆盖io.vertx.sqlclient.impl.RowDecoder中的抽象方法decodeRow(int,io.netty.buffer.ByteBuf,io.vertx.sqlclient.Row)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[39,5] 方法不会覆盖或实现超类型的方法
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[64,44] 无法将类 io.vertx.mysqlclient.impl.datatype.DataTypeCodec中的方法 decodeBinary应用到给定类型;
+[ERROR]   需要: io.vertx.mysqlclient.impl.datatype.DataType,int,io.netty.buffer.ByteBuf
+[ERROR]   找到:    io.vertx.mysqlclient.impl.datatype.DataType,int,int,io.netty.buffer.ByteBuf
+[ERROR]   原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/MycatVertxRowResultDecoder.java:[78,44] 无法将类 io.vertx.mysqlclient.impl.datatype.DataTypeCodec中的方法 decodeText应用到给定类型;
+[ERROR]   需要: io.vertx.mysqlclient.impl.datatype.DataType,int,io.netty.buffer.ByteBuf
+[ERROR]   找到:    io.vertx.mysqlclient.impl.datatype.DataType,int,int,io.netty.buffer.ByteBuf
+[ERROR]   原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[118,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[242,31] io.vertx.sqlclient.impl.RowDesc是抽象的; 无法实例化
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[250,45] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[260,53] 对于valueOf(int), 找不到合适的方法
+[ERROR]     方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+[ERROR]       (无法推断类型变量 T
+[ERROR]         (实际参数列表和形式参数列表长度不同))
+[ERROR]     方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+[ERROR]       (参数不匹配; 条件表达式中的类型错误
+[ERROR]           int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/RowSetJdbcPreparedJdbcQuery.java:[263,65] 无法将类 io.vertx.mysqlclient.impl.protocol.ColumnDefinition中的构造器 ColumnDefinition应用到给定类型;
+[ERROR]   需要: java.lang.String,int,io.vertx.mysqlclient.impl.datatype.DataType,int
+[ERROR]   找到:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,long,io.vertx.mysqlclient.impl.datatype.DataType,int,byte
+[ERROR]   原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[68,33] 对于valueOf(int), 找不到合适的方法
+[ERROR]     方法 java.lang.Enum.<T>valueOf(java.lang.Class<T>,java.lang.String)不适用
+[ERROR]       (无法推断类型变量 T
+[ERROR]         (实际参数列表和形式参数列表长度不同))
+[ERROR]     方法 io.vertx.mysqlclient.impl.datatype.DataType.valueOf(java.lang.String)不适用
+[ERROR]       (参数不匹配; int无法转换为java.lang.String)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[71,45] 无法将类 io.vertx.mysqlclient.impl.protocol.ColumnDefinition中的构造器 ColumnDefinition应用到给定类型;
+[ERROR]   需要: java.lang.String,int,io.vertx.mysqlclient.impl.datatype.DataType,int
+[ERROR]   找到:    java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,long,io.vertx.mysqlclient.impl.datatype.DataType,int,byte
+[ERROR]   原因: 实际参数列表和形式参数列表长度不同
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[90,70] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/mycat/vertxmycat/VertxMycatTextCollector.java:[94,41] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/core/impl/future/FutureImpl.java:[30,1] io.vertx.core.impl.future.FutureImpl不是抽象的, 并且未覆盖io.vertx.core.impl.future.FutureInternal中的抽象方法removeListener(io.vertx.core.impl.future.Listener<T>)
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/mysqlclient/impl/codec/QueryCommandBaseCodec.java:[99,33] MySQLRowDesc(io.vertx.mysqlclient.impl.protocol.ColumnDefinition[],io.vertx.mysqlclient.impl.datatype.DataFormat) 在 io.vertx.mysqlclient.impl.MySQLRowDesc 中是 private 访问控制
+[ERROR] /D:/Workspaces/IdeaProjects/Mycat2/mycat2/src/main/java/io/vertx/mysqlclient/impl/codec/QueryCommandBaseCodec.java:[179,5] 找不到符号
+[ERROR]   符号:   变量 completionHandler
+[ERROR]   位置: 类 io.vertx.mysqlclient.impl.codec.QueryCommandBaseCodec<T,C>
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :mycat2

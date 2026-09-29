@@ -43,7 +43,7 @@ import io.mycat.hbt.TextConvertor;
 import io.mycat.hbt.ast.base.Schema;
 import io.mycat.replica.ReplicaSelectorManager;
 import io.mycat.util.Explains;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import io.mycat.util.StringUtil;
 import lombok.SneakyThrows;
 import org.apache.calcite.adapter.enumerable.RexImpTable;

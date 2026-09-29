@@ -8,7 +8,7 @@ import io.mycat.hint.CreateDataSourceHint;
 import io.mycat.hint.CreateTableHint;
 import io.mycat.router.custom.HttpCustomRuleFunction;
 import io.mycat.router.mycat1xfunction.PartitionByRangeMod;
-import io.mycat.util.NameMap;
+import io.mycat.protocol.codec.NameMap;
 import org.apache.groovy.util.Maps;
 import org.junit.Assert;
 import org.junit.Test;

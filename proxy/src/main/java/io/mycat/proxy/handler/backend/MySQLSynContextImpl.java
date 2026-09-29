@@ -15,8 +15,8 @@
 package io.mycat.proxy.handler.backend;
 
 import io.mycat.MycatException;
-import io.mycat.beans.mysql.MySQLAutoCommit;
-import io.mycat.beans.mysql.MySQLIsolation;
+import io.mycat.protocol.mysql.type.MySQLAutoCommit;
+import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.proxy.monitor.MycatMonitor;
 import io.mycat.proxy.session.MySQLClientSession;
 import lombok.EqualsAndHashCode;
