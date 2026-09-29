@@ -379,7 +379,7 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
                 }
 
                 if (isRow) {
-                    rollupNodes.add(op.createCall(SqlParserPos.ZERO, groupBySqlNode.toArray()));
+                    rollupNodes.add(op.createCall(SqlParserPos.ZERO, SqlParserUtil.toNodeArray(groupBySqlNode)));
                     groupBySqlNode = new SqlNodeList(rollupNodes, SqlParserPos.ZERO);
                 } else {
                     rollupNodes.add(op.createCall(SqlParserPos.ZERO, groupBySqlNode));
@@ -1230,7 +1230,7 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
                 break;
             case Escape: {
                 SqlBasicCall like = (SqlBasicCall) left;
-                sqlNode = new SqlBasicCall(like.getOperator(), new SqlNode[]{like.operands[0], like.operands[1], right},
+                sqlNode = new SqlBasicCall(like.getOperator(), new SqlNode[]{like.getOperandList().get(0), like.getOperandList().get(1), right},
                         SqlParserPos.ZERO);
                 return false;
             }
@@ -1446,7 +1446,7 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
     }
 
     public boolean visit(SQLTimestampExpr x) {
-        String literal = x.getLiteral();
+        String literal = x.getValue();
         int precision = 0;
         if (literal.endsWith("00")) {
             char c3 = literal.charAt(literal.length() - 3);
@@ -1461,14 +1461,14 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
     }
 
     public boolean visit(SQLDateExpr x) {
-        String literal = x.getLiteral();
+        String literal = x.getValue();
         DateString ds = new DateString(literal);
         sqlNode = SqlLiteral.createDate(ds, SqlParserPos.ZERO);
         return false;
     }
 
     public boolean visit(SQLTimeExpr x) {
-        String literal = ((SQLCharExpr) x.getLiteral()).getText();
+        String literal = x.getValue();
         TimeString ds = new TimeString(literal);
         sqlNode = SqlLiteral.createTime(ds, 0, SqlParserPos.ZERO);
         return false;

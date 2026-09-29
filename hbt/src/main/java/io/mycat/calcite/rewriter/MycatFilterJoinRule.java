@@ -23,15 +23,13 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinRelType;
-import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilder;
-import org.apache.calcite.tools.RelBuilderFactory;
-import org.apache.calcite.util.ImmutableBeans;
+import org.immutables.value.Value;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -48,6 +46,7 @@ import static org.apache.calcite.plan.RelOptUtil.conjunctions;
  *
  * @param <C> Configuration type
  */
+@Value.Enclosing
 public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
     extends RelRule<C> {
   /** Predicate that always returns true. With this predicate, every filter
@@ -279,30 +278,10 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
 
   /** Rule that pushes parts of the join condition to its inputs. */
   public static class JoinConditionPushRule
-      extends MycatFilterJoinRule<JoinConditionPushRule.Config> {
+      extends MycatFilterJoinRule<JoinConditionPushRule.JoinConditionPushRuleConfig> {
     /** Creates a JoinConditionPushRule. */
-    protected JoinConditionPushRule(Config config) {
+    protected JoinConditionPushRule(JoinConditionPushRuleConfig config) {
       super(config);
-    }
-
-    @Deprecated // to be removed before 2.0
-    public JoinConditionPushRule(RelBuilderFactory relBuilderFactory,
-        Predicate predicate) {
-      this(Config.EMPTY
-          .withRelBuilderFactory(relBuilderFactory)
-          .withOperandSupplier(b ->
-              b.operand(Join.class).anyInputs())
-          .withDescription("MycatFilterJoinRule:no-filter")
-          .as(Config.class)
-          .withSmart(true)
-          .withPredicate(predicate)
-          .as(Config.class));
-    }
-
-    @Deprecated // to be removed before 2.0
-    public JoinConditionPushRule(RelFactories.FilterFactory filterFactory,
-        RelFactories.ProjectFactory projectFactory, Predicate predicate) {
-      this(RelBuilder.proto(filterFactory, projectFactory), predicate);
     }
 
     @Override public void onMatch(RelOptRuleCall call) {
@@ -311,14 +290,13 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
     }
 
     /** Rule configuration. */
-    public interface Config extends MycatFilterJoinRule.Config {
-      Config DEFAULT = EMPTY
+    @Value.Immutable(singleton = false)
+    public interface JoinConditionPushRuleConfig extends MycatFilterJoinRule.Config {
+      JoinConditionPushRuleConfig DEFAULT = ImmutableMycatFilterJoinRule.JoinConditionPushRuleConfig
+          .of((join, joinType, exp) -> true)
           .withOperandSupplier(b ->
               b.operand(Join.class).anyInputs())
-          .as(JoinConditionPushRule.Config.class)
-          .withSmart(true)
-          .withPredicate((join, joinType, exp) -> true)
-          .as(JoinConditionPushRule.Config.class);
+          .withSmart(true);
 
       @Override default JoinConditionPushRule toRule() {
         return new JoinConditionPushRule(this);
@@ -331,43 +309,10 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
    *
    * @see CoreRules#FILTER_INTO_JOIN */
   public static class FilterIntoJoinRule
-      extends MycatFilterJoinRule<FilterIntoJoinRule.Config> {
+      extends MycatFilterJoinRule<FilterIntoJoinRule.FilterIntoJoinRuleConfig> {
     /** Creates a FilterIntoJoinRule. */
-    protected FilterIntoJoinRule(Config config) {
+    protected FilterIntoJoinRule(FilterIntoJoinRuleConfig config) {
       super(config);
-    }
-
-    @Deprecated // to be removed before 2.0
-    public FilterIntoJoinRule(boolean smart,
-        RelBuilderFactory relBuilderFactory, Predicate predicate) {
-      this(Config.EMPTY
-          .withRelBuilderFactory(relBuilderFactory)
-          .withOperandSupplier(b0 ->
-              b0.operand(Filter.class).oneInput(b1 ->
-                  b1.operand(Join.class).anyInputs()))
-          .withDescription("MycatFilterJoinRule:filter")
-          .as(Config.class)
-          .withSmart(smart)
-          .withPredicate(predicate)
-          .as(Config.class));
-    }
-
-    @Deprecated // to be removed before 2.0
-    public FilterIntoJoinRule(boolean smart,
-        RelFactories.FilterFactory filterFactory,
-        RelFactories.ProjectFactory projectFactory,
-        Predicate predicate) {
-      this(Config.EMPTY
-          .withRelBuilderFactory(
-              RelBuilder.proto(filterFactory, projectFactory))
-          .withOperandSupplier(b0 ->
-              b0.operand(Filter.class).oneInput(b1 ->
-                  b1.operand(Join.class).anyInputs()))
-          .withDescription("MycatFilterJoinRule:filter")
-          .as(Config.class)
-          .withSmart(smart)
-          .withPredicate(predicate)
-          .as(Config.class));
     }
 
     @Override public void onMatch(RelOptRuleCall call) {
@@ -377,15 +322,15 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
     }
 
     /** Rule configuration. */
-    public interface Config extends MycatFilterJoinRule.Config {
-      Config DEFAULT = EMPTY
-          .withOperandSupplier(b0 ->
-              b0.operand(Filter.class).oneInput(b1 ->
-                  b1.operand(Join.class).anyInputs()))
-          .as(FilterIntoJoinRule.Config.class)
-          .withSmart(true)
-          .withPredicate((join, joinType, exp) -> true)
-          .as(FilterIntoJoinRule.Config.class);
+    @Value.Immutable(singleton = false)
+    public interface FilterIntoJoinRuleConfig extends MycatFilterJoinRule.Config {
+      FilterIntoJoinRuleConfig DEFAULT =
+          ImmutableMycatFilterJoinRule.FilterIntoJoinRuleConfig
+              .of((join, joinType, exp) -> true)
+              .withOperandSupplier(b0 ->
+                  b0.operand(Filter.class).oneInput(b1 ->
+                      b1.operand(Join.class).anyInputs()))
+              .withSmart(true);
 
       @Override default FilterIntoJoinRule toRule() {
         return new FilterIntoJoinRule(this);
@@ -404,9 +349,9 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
   /** Rule configuration. */
   public interface Config extends RelRule.Config {
     /** Whether to try to strengthen join-type, default false. */
-    @ImmutableBeans.Property
-    @ImmutableBeans.BooleanDefault(false)
-    boolean isSmart();
+    @Value.Default default boolean isSmart() {
+      return false;
+    }
 
     /** Sets {@link #isSmart()}. */
     Config withSmart(boolean smart);
@@ -414,7 +359,7 @@ public abstract class MycatFilterJoinRule<C extends MycatFilterJoinRule.Config>
     /** Predicate that returns whether a filter is valid in the ON clause of a
      * join for this particular kind of join. If not, Calcite will push it back to
      * above the join. */
-    @ImmutableBeans.Property
+    @Value.Parameter
     Predicate getPredicate();
 
     /** Sets {@link #getPredicate()} ()}. */

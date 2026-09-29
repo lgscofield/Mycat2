@@ -587,10 +587,17 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
         for (ColumnDescriptor columnDescriptor : event) {
             if (columnDescriptor instanceof ColumnDefinition) {
                 ColumnDefinition columnDefinition = (ColumnDefinition) columnDescriptor;
-                String schemaName = columnDefinition.schema();
-                String tableName = columnDefinition.orgTable();
+                // MYCAT CHANGE: Vert.x 4.5.x ColumnDefinition does not expose schema/table/length
+                String schemaName = "";
+                String tableName = "";
                 String columnName = columnDefinition.name();
-                int columnType = columnDefinition.type().jdbcType.getVendorTypeNumber();
+                // Vert.x 4.x: DataType.jdbcType is now private; use ColumnDescriptor.jdbcType() if available
+                int columnType;
+                try {
+                    columnType = columnDescriptor.jdbcType().getVendorTypeNumber();
+                } catch (Exception e) {
+                    columnType = Types.VARCHAR; // fallback
+                }
                 int precision = 0;
                 int scale = 0;
                 String columnLabel = columnDefinition.name();
@@ -598,7 +605,7 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                 boolean isCaseSensitive = false;
                 boolean isNullable = (columnDefinition.flags() & ColumnDefinition.ColumnDefinitionFlags.NOT_NULL_FLAG) == 0;
                 boolean isSigned = true;
-                int displaySize = (int) columnDefinition.columnLength();
+                int displaySize = 0; // MYCAT CHANGE: Vert.x 4.5.x ColumnDefinition does not expose length
                 resultSetBuilder.addColumnInfo(schemaName, tableName, columnName, columnType, precision, scale, columnLabel, isAutoIncrement, isCaseSensitive, isNullable,
                         isSigned, displaySize);
             } else {

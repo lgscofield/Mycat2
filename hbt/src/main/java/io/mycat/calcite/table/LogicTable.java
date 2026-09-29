@@ -80,11 +80,11 @@ public class LogicTable {
         try {
             SQLStatement createTableAst = SQLUtils.parseSingleMysqlStatement(createTableSQL);
             if (createTableAst instanceof SQLCreateTableStatement) {
-                ((SQLCreateTableStatement) createTableAst).setIfNotExiists(true);
+                ((SQLCreateTableStatement) createTableAst).setIfNotExists(true);
                 ((SQLCreateTableStatement) createTableAst).setSchema("`" + schemaName + "`");
             }
             if (createTableAst instanceof MySqlCreateTableStatement) {
-                ((MySqlCreateTableStatement) createTableAst).setIfNotExiists(true);
+                ((MySqlCreateTableStatement) createTableAst).setIfNotExists(true);
                 ((MySqlCreateTableStatement) createTableAst).setSchema("`" + schemaName + "`");
             }
             if (createTableAst instanceof SQLCreateViewStatement) {

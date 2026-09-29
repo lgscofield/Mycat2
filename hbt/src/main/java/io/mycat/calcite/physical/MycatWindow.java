@@ -41,6 +41,7 @@ import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexWindowBound;
+import org.apache.calcite.rex.RexWindowExclusion;
 import org.apache.calcite.runtime.SortedMultiMap;
 import org.apache.calcite.sql.SqlAggFunction;
 import org.apache.calcite.sql.validate.SqlConformance;
@@ -65,9 +66,15 @@ public class MycatWindow extends Window implements MycatRel {
         super(cluster, Objects.requireNonNull(traitSet).replace(MycatConvention.INSTANCE), child, constants, rowType, groups);
     }
 
-    public   MycatWindow(RelInput relInput) {
-        this(relInput.getCluster(), relInput.getTraitSet(), relInput.getInput(),(List)relInput.getExpressionList("constants"), relInput.getRowType("rowType"),
-                (List) relInput.getWindowGroupList());
+    public MycatWindow(RelInput relInput) {
+        this(relInput.getCluster(), relInput.getTraitSet(), relInput.getInput(), (List) relInput.getExpressionList("constants"), relInput.getRowType("rowType"),
+                (List) relInput.get("groups"));
+    }
+
+    @Override
+    public Window copy(List<RexLiteral> constants) {
+        return new MycatWindow(getCluster(), getTraitSet(), getInput(),
+                constants, getRowType(), groups);
     }
 
     @Override
@@ -835,6 +842,10 @@ public class MycatWindow extends Window implements MycatRel {
 
                         public List<? extends Type> keyTypes() {
                             throw new UnsupportedOperationException();
+                        }
+
+                        public RexWindowExclusion getExclude() {
+                            return RexWindowExclusion.EXCLUDE_NO_OTHER;
                         }
                     };
             String aggName = "a" + agg.aggIdx;

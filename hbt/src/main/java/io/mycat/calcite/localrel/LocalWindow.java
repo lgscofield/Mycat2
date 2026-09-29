@@ -24,7 +24,13 @@ public class LocalWindow extends Window implements LocalRel {
 
     public LocalWindow(RelInput relInput) {
         this(relInput.getCluster(), relInput.getTraitSet(), relInput.getInput(), (List) relInput.getExpressionList("constants"), relInput.getRowType("rowType"),
-                (List) relInput.getWindowGroupList());
+                (List) relInput.get("groups"));
+    }
+
+    @Override
+    public Window copy(List<RexLiteral> constants) {
+        return new LocalWindow(getCluster(), getTraitSet(), getInput(),
+                constants, getRowType(), groups);
     }
 
     public static LocalWindow create(LogicalWindow logicalWindow) {

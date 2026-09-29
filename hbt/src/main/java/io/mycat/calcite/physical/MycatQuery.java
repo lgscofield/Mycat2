@@ -33,7 +33,6 @@ public class MycatQuery extends AbstractRelNode implements MycatRel {
         super(view.getCluster(), view.getTraitSet());
         this.view = view;
         this.rowType = view.getRowType();
-        this.traitSet = view.getTraitSet();
     }
 
     @Override

@@ -15,6 +15,7 @@ import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.tools.RelBuilder;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static io.mycat.calcite.localrel.LocalRules.normalize;
 
+@Value.Enclosing
 public class MycatAggDistinctRule extends RelRule<MycatAggDistinctRule.Config> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MycatAggDistinctRule.class);
     /**
@@ -86,8 +88,9 @@ public class MycatAggDistinctRule extends RelRule<MycatAggDistinctRule.Config> {
         call.transformTo(RelOptUtil.createCastRel(builder.build(), topAggregate.getRowType(), true));
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        MycatAggDistinctRule.Config DEFAULT = EMPTY.as(MycatAggDistinctRule.Config.class)
+        MycatAggDistinctRule.Config DEFAULT = ImmutableMycatAggDistinctRule.Config.builder().build()
                 .withOperandFor();
 
         @Override

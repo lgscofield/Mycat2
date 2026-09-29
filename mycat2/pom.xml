@@ -236,6 +236,19 @@
 <!--            <artifactId>clickhouse4j</artifactId>-->
 <!--            <version>1.4.4</version>-->
 <!--        </dependency>-->
+<!-- MYCAT CHANGE: explicit Calcite dependencies (hbt transitive chain broken by invalid local repo POMs) -->
+        <dependency>
+            <groupId>io.mycat</groupId>
+            <artifactId>calcite-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-linq4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.calcite.avatica</groupId>
+            <artifactId>avatica-core</artifactId>
+        </dependency>
     </dependencies>
     <build>
 

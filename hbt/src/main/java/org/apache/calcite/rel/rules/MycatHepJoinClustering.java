@@ -32,6 +32,7 @@ import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.mapping.Mapping;
 import org.apache.calcite.util.mapping.Mappings;
+import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,6 +40,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
+@Value.Enclosing
 public class MycatHepJoinClustering
         extends RelRule<MycatHepJoinClustering.Config> implements TransformationRule {
 
@@ -222,8 +224,9 @@ public class MycatHepJoinClustering
     /**
      * Rule configuration.
      */
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        Config DEFAULT = EMPTY
+        Config DEFAULT = ImmutableMycatHepJoinClustering.Config.builder().build()
                 .withOperandSupplier(b -> b.operand(MultiJoin.class).predicate(new Predicate<MultiJoin>() {
                     @Override
                     public boolean test(MultiJoin multiJoin) {

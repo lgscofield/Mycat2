@@ -39,6 +39,7 @@ import org.apache.calcite.sql.fun.SqlSumEmptyIsZeroAggFunction;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.ImmutableBitSet;
+import org.immutables.value.Value;
 
 import com.google.common.collect.ImmutableList;
 
@@ -54,6 +55,7 @@ import java.util.Map;
  *
  * @see CoreRules#AGGREGATE_UNION_TRANSPOSE
  */
+@Value.Enclosing
 public class MycatAggregateUnionTransposeRule
     extends RelRule<MycatAggregateUnionTransposeRule.Config>
     implements TransformationRule {
@@ -182,7 +184,7 @@ public class MycatAggregateUnionTransposeRule
       AggregateCall newCall =
           AggregateCall.create(aggFun, origCall.isDistinct(),
               origCall.isApproximate(), origCall.ignoreNulls(),
-              ImmutableList.of(groupCount + ord.i), -1, origCall.collation,
+              ImmutableList.of(groupCount + ord.i), -1, null, origCall.collation,
               groupCount, input, aggType, origCall.getName());
       newCalls.add(newCall);
     }
@@ -190,8 +192,9 @@ public class MycatAggregateUnionTransposeRule
   }
 
   /** Rule configuration. */
+  @Value.Immutable
   public interface Config extends RelRule.Config {
-    Config DEFAULT = EMPTY.as(Config.class)
+    Config DEFAULT = ImmutableMycatAggregateUnionTransposeRule.Config.builder().build()
         .withOperandFor(Aggregate.class, Union.class);
 
     @Override default MycatAggregateUnionTransposeRule toRule() {

@@ -21,6 +21,7 @@ import io.ordinate.engine.function.Function;
 import io.ordinate.engine.function.constant.IntConstant;
 import io.ordinate.engine.function.constant.LongConstant;
 import io.ordinate.engine.record.*;
+import io.ordinate.engine.record.Record; // MYCAT CHANGE: JDK 21 java.lang.Record ambiguity
 import io.ordinate.engine.schema.InnerType;
 import io.ordinate.engine.schema.IntInnerType;
 import lombok.SneakyThrows;

@@ -803,6 +803,8 @@ git commit -m "deps: upgrade Janino to 3.1.12"
 - Modify: ~12 个生产 Java 文件 + ~40 个测试文件
 - Modify: 相关 pom.xml（添加 jakarta.annotation-api 依赖）
 
+> ⚠️ **calcite-core 模块豁免：** calcite-core 是 Apache Calcite 的完整源码 fork，其中的 `javax.annotation` 引用来自 Calcite 上游代码，应保持与上游一致，不迁移到 jakarta。仅迁移 `hbt`、`common`、`va` 等 Mycat 自有模块中的 `javax.annotation`。
+
 **Steps:**
 
 - [ ] **Step 1: 添加 jakarta.annotation-api 依赖到需要 javax.annotation 的模块**

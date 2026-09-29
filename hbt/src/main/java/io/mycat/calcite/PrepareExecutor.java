@@ -72,7 +72,7 @@ public class PrepareExecutor {
             try {
 
                 Object bindObservable;
-                bindObservable = bindable.bindObservable(newMycatDataContext);
+                bindObservable = bindable.bind(newMycatDataContext);
                 Observable<Object[]> observable;
                 if (bindObservable instanceof Observable) {
                     observable = (Observable) bindObservable;
@@ -117,7 +117,7 @@ public class PrepareExecutor {
         return observable;
     }
     public Iterable<Object[]> asObservableObjectArray( AsyncMycatDataContextImpl newMycatDataContext){
-        Object bindObservable = arrayBindable.bindObservable(newMycatDataContext);
+        Object bindObservable = arrayBindable.bind(newMycatDataContext);
         if (bindObservable instanceof Observable) {
             return MycatRxJavaUtl.blockingIterable( ((Observable) bindObservable));
         } else {

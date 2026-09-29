@@ -728,6 +728,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
             return false;
         }
 
+        // IOException catch removed - Appendable no longer throws checked IOException in JDK 21
         try {
             if (parameterized) {
                 this.appender.append('?');
@@ -795,7 +796,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
 
             appender.append('\'');
         return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("println error", e);
         }
     }
@@ -3595,7 +3596,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
         print0(ucase ? "IGNORE INDEX " : "ignore index ");
         if (x.getOption() != null) {
             print0(ucase ? "FOR " : "for ");
-            print0(ucase ? x.getOption().name : x.getOption().name_lcase);
+            print0(ucase ? x.getOption().name : x.getOption().name.toLowerCase());
             print(' ');
         }
         print('(');
@@ -3908,17 +3909,17 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
         SQLForeignKeyImpl.Match match = x.getReferenceMatch();
         if (match != null) {
             print0(ucase ? " MATCH " : " match ");
-            print0(ucase ? match.name : match.name_lcase);
+            print0(ucase ? match.name : match.name.toLowerCase());
         }
 
         if (x.getOnDelete() != null) {
             print0(ucase ? " ON DELETE " : " on delete ");
-            print0(ucase ? x.getOnDelete().name : x.getOnDelete().name_lcase);
+            print0(ucase ? x.getOnDelete().name : x.getOnDelete().name.toLowerCase());
         }
 
         if (x.getOnUpdate() != null) {
             print0(ucase ? " ON UPDATE " : " on update ");
-            print0(ucase ? x.getOnUpdate().name : x.getOnUpdate().name_lcase);
+            print0(ucase ? x.getOnUpdate().name : x.getOnUpdate().name.toLowerCase());
         }
         return false;
     }
@@ -4199,7 +4200,7 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
         x.getExpr().accept(this);
         if (x.getType() != null) {
             print(' ');
-            print0(ucase ? x.getType().name : x.getType().name_lcase);
+            print0(ucase ? x.getType().name : x.getType().name.toLowerCase());
         }
 
         return false;

@@ -185,7 +185,7 @@ public class MysqlMetadataManager extends MetadataManager {
                                 EXTRA = "";
                                 PRIVILEGES = "select,insert,update,references";
                                 COLUMN_COMMENT = Optional.ofNullable(column.getComment()).map(s -> ((SQLCharExpr) s).getText()).orElse(null);
-                                GENERATION_EXPRESSION = Optional.ofNullable(column.getGeneratedAlawsAs()).map(m -> m.toString()).orElse(null);
+                                GENERATION_EXPRESSION = Optional.ofNullable(column.getGeneratedAlwaysAs()).map(m -> m.toString()).orElse(null);
 
                                 objects.add(new Object[]{
                                         TABLE_CATALOG,

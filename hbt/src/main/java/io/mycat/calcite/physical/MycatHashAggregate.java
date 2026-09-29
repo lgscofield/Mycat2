@@ -60,7 +60,7 @@ public class MycatHashAggregate extends EnumerableAggregateBase implements Mycat
     public MycatHashAggregate(
             RelInput relInput) {
         this(relInput.getCluster(), relInput.getTraitSet(),
-                relInput.getHints(),
+                ImmutableList.of(),
                 relInput.getInput(), relInput.getBitSet("group"),
                 relInput.getBitSetList("groups"), relInput.getAggregateCalls("aggs"));
     }

@@ -49,6 +49,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
@@ -295,7 +296,7 @@ public class DrdsRunnerHelper {
             }
 
             @Override
-            public CalciteException handleUnresolvedFunction(SqlCall call, SqlFunction unresolvedFunction, List<RelDataType> argTypes, List<String> argNames) {
+            public CalciteException handleUnresolvedFunction(SqlCall call, SqlOperator unresolvedFunction, List<RelDataType> argTypes, @Nullable List<String> argNames) {
                 return super.handleUnresolvedFunction(call, unresolvedFunction, argTypes, argNames);
             }
 

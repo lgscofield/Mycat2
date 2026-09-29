@@ -53,7 +53,7 @@ public class MycatRules {
     protected static final Logger LOGGER = CalciteTrace.getPlannerTracer();
 
     public static final RelFactories.ProjectFactory PROJECT_FACTORY =
-            (input, hints, projects, fieldNames) -> {
+            (input, hints, projects, fieldNames, variablesSet) -> {
                 final RelOptCluster cluster = input.getCluster();
                 final RelDataType rowType =
                         RexUtil.createStructType(cluster.getTypeFactory(), projects,
@@ -78,7 +78,7 @@ public class MycatRules {
             };
 
     static final RelFactories.CorrelateFactory CORRELATE_FACTORY =
-            (left, right, correlationId, requiredColumns, joinType) -> {
+            (left, right, hints, correlationId, requiredColumns, joinType) -> {
                 throw new UnsupportedOperationException("MycatCorrelate");
             };
 

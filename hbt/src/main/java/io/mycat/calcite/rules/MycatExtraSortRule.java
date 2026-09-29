@@ -29,6 +29,7 @@ import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.logical.LogicalSort;
 import org.apache.calcite.tools.RelBuilder;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.util.List;
 /**
  *
  */
+@Value.Enclosing
 public class MycatExtraSortRule extends RelRule<MycatExtraSortRule.Config> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MycatExtraSortRule.class);
@@ -107,7 +109,7 @@ public class MycatExtraSortRule extends RelRule<MycatExtraSortRule.Config> {
                 Class ln = l;
                 for (Class<? extends RelNode> r: bs) {
                     Class rn = r;
-                    builder.add( Config.EMPTY
+                    builder.add( ImmutableMycatExtraSortRule.Config.builder().build()
                             .as(MycatExtraSortRule.Config.class)
                             .withOperandFor(b0 -> b0.operand(up).inputs(b1 -> {
                                 if (ln == MycatView.class){
@@ -146,6 +148,7 @@ public class MycatExtraSortRule extends RelRule<MycatExtraSortRule.Config> {
 //                    .toRule(),
 //            );
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
 //        MycatExtraSortRule.Config BOTTOM_VIEW = EMPTY
 //                .as(MycatExtraSortRule.Config.class)

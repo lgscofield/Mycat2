@@ -24,10 +24,12 @@ import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.SingleRel;
 import org.apache.calcite.rel.core.*;
+import org.immutables.value.Value;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Value.Enclosing
 public abstract class MycatSingleViewRule extends RelRule<MycatSingleViewRule.Config> {
 
     public MycatSingleViewRule(Config config) {
@@ -35,7 +37,7 @@ public abstract class MycatSingleViewRule extends RelRule<MycatSingleViewRule.Co
     }
 
     public MycatSingleViewRule(Class<? extends SingleRel> up) {
-        super(Config.EMPTY.as(MycatSingleViewRule.Config.class)
+        super(ImmutableMycatSingleViewRule.Config.builder().build()
                 .withOperandFor(up));
     }
 
@@ -54,7 +56,12 @@ public abstract class MycatSingleViewRule extends RelRule<MycatSingleViewRule.Co
         });
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
+        @Override default MycatSingleViewRule toRule() {
+            return new MycatSingleViewRule(this) {};
+        }
+
         default MycatSingleViewRule.Config withOperandFor(Class<? extends SingleRel> up) {
             return withOperandSupplier(b0 ->
                     b0.operand(up).oneInput(b1 -> b1.operand(MycatView.class).predicate(m->m.allowPushdown()).noInputs()))

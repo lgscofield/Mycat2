@@ -36,6 +36,9 @@ import java.util.*;
 import static io.mycat.DrdsSqlCompiler.BKA_JOIN_LEFT_ROW_COUNT_LIMIT;
 import static io.mycat.calcite.MycatImplementor.MYCAT_SQL_LOOKUP_IN;
 
+import org.immutables.value.Value;
+
+@Value.Enclosing
 public class MycatTableLookupSemiJoinRule extends RelRule<MycatTableLookupSemiJoinRule.Config> {
 
     public static final MycatTableLookupSemiJoinRule INSTANCE = Config.DEFAULT.toRule();
@@ -218,10 +221,10 @@ public class MycatTableLookupSemiJoinRule extends RelRule<MycatTableLookupSemiJo
         }
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
 
-        MycatTableLookupSemiJoinRule.Config DEFAULT = EMPTY
-                .as(MycatTableLookupSemiJoinRule.Config.class)
+        MycatTableLookupSemiJoinRule.Config DEFAULT = ImmutableMycatTableLookupSemiJoinRule.Config.builder().build()
                 .withOperandFor(b0 ->
                         b0.operand(Join.class).inputs(b1 -> b1.operand(RelNode.class).anyInputs(), b1 -> b1.operand(MycatView.class).predicate(m -> ((MycatView) m).allowPushdown()).noInputs()))
                 .withDescription("MycatTableLookupSemiJoinRule")

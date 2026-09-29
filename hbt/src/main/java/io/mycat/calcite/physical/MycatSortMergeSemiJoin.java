@@ -50,7 +50,7 @@ public class MycatSortMergeSemiJoin extends MycatSortMergeJoin implements MycatR
 
     public MycatSortMergeSemiJoin(RelInput input) {
         this(input.getCluster(), input.getTraitSet(),
-                input.getHints(),
+                ImmutableList.of(),
                 input.getInputs().get(0), input.getInputs().get(1),
                 input.getExpression("condition"), ImmutableSet.of(),
                 input.getEnum("joinType", JoinRelType.class));

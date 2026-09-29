@@ -30,6 +30,9 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rel.type.RelRecordType;
+import org.apache.calcite.rel.type.TimeFrame;
+import org.apache.calcite.rel.type.TimeFrameSet;
+import org.apache.calcite.rel.type.TimeFrames;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexPatternFieldRef;
 import org.apache.calcite.rex.RexVisitor;
@@ -61,6 +64,7 @@ import org.apache.calcite.sql.SqlIntervalQualifier;
 import org.apache.calcite.sql.SqlJoin;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlLiteral;
+import org.apache.calcite.sql.SqlLambda;
 import org.apache.calcite.sql.SqlMatchRecognize;
 import org.apache.calcite.sql.SqlMerge;
 import org.apache.calcite.sql.SqlNode;
@@ -74,6 +78,7 @@ import org.apache.calcite.sql.SqlSelectKeyword;
 import org.apache.calcite.sql.SqlSnapshot;
 import org.apache.calcite.sql.SqlSyntax;
 import org.apache.calcite.sql.SqlTableFunction;
+import org.apache.calcite.sql.SqlUnknownLiteral;
 import org.apache.calcite.sql.SqlUnresolvedFunction;
 import org.apache.calcite.sql.SqlUpdate;
 import org.apache.calcite.sql.SqlUtil;
@@ -224,6 +229,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
   /** The type of dynamic parameters until a type is imposed on them. */
   protected final RelDataType unknownType;
   private final RelDataType booleanType;
+  protected final TimeFrameSet timeFrameSet;
 
   /**
    * Map of derived RelDataType for each node. This is an IdentityHashMap
@@ -256,6 +262,10 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
   // TypeCoercion instance used for implicit type coercion.
   private TypeCoercion typeCoercion;
 
+  /** MYCAT CHANGE: Calcite 1.42 tracks operand types for each call. */
+  public final IdentityHashMap<SqlCall, List<RelDataType>> callToOperandTypesMap =
+      new IdentityHashMap<>();
+
   //~ Constructors -----------------------------------------------------------
 
   /**
@@ -275,6 +285,8 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     this.catalogReader = Objects.requireNonNull(catalogReader);
     this.typeFactory = Objects.requireNonNull(typeFactory);
     this.config = Objects.requireNonNull(config);
+    this.timeFrameSet = typeFactory.getTypeSystem()
+        .deriveTimeFrameSet(TimeFrames.CORE);
 
     unknownType = typeFactory.createUnknownType();
     booleanType = typeFactory.createSqlType(SqlTypeName.BOOLEAN);
@@ -314,6 +326,48 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
 
   public RelDataType getUnknownType() {
     return unknownType;
+  }
+
+  @Override public TimeFrameSet getTimeFrameSet() {
+    return timeFrameSet;
+  }
+
+  @Override public TimeFrame validateTimeFrame(SqlIntervalQualifier qualifier) {
+    if (qualifier.timeFrameName == null) {
+      final TimeFrame timeFrame = timeFrameSet.get(qualifier.getUnit());
+      return Objects.requireNonNull(timeFrame,
+          () -> "time frame for " + qualifier.getUnit());
+    }
+    final TimeFrame timeFrame = timeFrameSet.getOpt(qualifier.timeFrameName);
+    if (timeFrame != null) {
+      return timeFrame;
+    }
+    throw newValidationError(qualifier,
+        RESOURCE.invalidTimeFrame(qualifier.timeFrameName));
+  }
+
+  @Override public SqlLiteral resolveLiteral(SqlLiteral literal) {
+    switch (literal.getTypeName()) {
+    case UNKNOWN:
+      final SqlUnknownLiteral unknownLiteral = (SqlUnknownLiteral) literal;
+      final SqlIdentifier identifier =
+          new SqlIdentifier(unknownLiteral.tag, SqlParserPos.ZERO);
+      final @Nullable RelDataType type = catalogReader.getNamedType(identifier);
+      final SqlTypeName typeName;
+      if (type != null) {
+        typeName = type.getSqlTypeName();
+      } else {
+        typeName = SqlTypeName.lookup(unknownLiteral.tag);
+      }
+      return unknownLiteral.resolve(typeName);
+
+    default:
+      return literal;
+    }
+  }
+
+  @Override public @Nullable List<RelDataType> getValidatedOperandTypes(SqlCall call) {
+    return callToOperandTypesMap.get(call);
   }
 
   public SqlNodeList expandStar(
@@ -1116,6 +1170,15 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     return scopes.get(node);
   }
 
+  @Override public SqlValidatorScope getLambdaScope(SqlLambda node) {
+    return scopes.get(node);
+  }
+
+  @Override public SqlValidatorScope getMeasureScope(SqlSelect select) {
+    // MYCAT CHANGE: Calcite 1.42 added MEASURE clause; not yet used in hbt
+    return scopes.get(select);
+  }
+
   public SqlValidatorScope getJoinScope(SqlNode node) {
     return scopes.get(stripAs(node));
   }
@@ -1715,7 +1778,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
           // call to this function, so we can use the regular
           // operator validation.
           return new SqlBasicCall(operator, SqlNode.EMPTY_ARRAY,
-              id.getParserPosition(), true, null);
+              id.getParserPosition()).withExpanded(true);
         }
       }
     }
@@ -1809,9 +1872,9 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     return type;
   }
 
-  public CalciteException handleUnresolvedFunction(SqlCall call,
-      SqlFunction unresolvedFunction, List<RelDataType> argTypes,
-      List<String> argNames) {
+  @Override public CalciteException handleUnresolvedFunction(SqlCall call,
+      SqlOperator unresolvedFunction, List<RelDataType> argTypes,
+      @Nullable List<String> argNames) {
     // For builtins, we can give a better error message
     final List<SqlOperator> overloads = new ArrayList<>();
     opTab.lookupOperatorOverloads(unresolvedFunction.getNameAsId(), null,
@@ -1828,12 +1891,17 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
       }
     }
 
-    AssignableOperandTypeChecker typeChecking =
-        new AssignableOperandTypeChecker(argTypes, argNames);
-    String signature =
-        typeChecking.getAllowedSignatures(
-            unresolvedFunction,
-            unresolvedFunction.getName());
+    final String signature;
+    if (unresolvedFunction instanceof SqlFunction) {
+      AssignableOperandTypeChecker typeChecking =
+          new AssignableOperandTypeChecker(argTypes, argNames);
+      signature =
+          typeChecking.getAllowedSignatures(
+              unresolvedFunction,
+              unresolvedFunction.getName());
+    } else {
+      signature = unresolvedFunction.getName();
+    }
     throw newValidationError(call,
         RESOURCE.validatorUnknownFunction(signature));
   }
@@ -2846,7 +2914,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     SqlValidatorScope scope = parentScope;
     for (SqlNode withItem_ : with.withList) {
       final SqlWithItem withItem = (SqlWithItem) withItem_;
-      final WithScope withScope = new WithScope(scope, withItem);
+      final WithScope withScope = new WithScope(scope, withItem, null);
       scopes.put(withItem, withScope);
 
       registerQuery(scope, null, withItem.query, with,
@@ -5094,7 +5162,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     targetWindow.setWindowCall(null);
     call.validate(this, scope);
 
-    validateAggregateParams(call, null, null, scope);
+    validateAggregateParams(call, null, null, null, scope);
 
     // Disable nested aggregates post validation
     inWindow = false;
@@ -5136,7 +5204,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
         node.validate(this, scope);
         SqlIdentifier identifier;
         if (node instanceof SqlBasicCall) {
-          identifier = (SqlIdentifier) ((SqlBasicCall) node).getOperands()[0];
+          identifier = (SqlIdentifier) ((SqlBasicCall) node).getOperandList().get(0);
         } else {
           identifier = (SqlIdentifier) node;
         }
@@ -5182,7 +5250,7 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
       SqlNode firstOrderByColumn = orderBy.getList().get(0);
       SqlIdentifier identifier;
       if (firstOrderByColumn instanceof SqlBasicCall) {
-        identifier = (SqlIdentifier) ((SqlBasicCall) firstOrderByColumn).getOperands()[0];
+        identifier = (SqlIdentifier) ((SqlBasicCall) firstOrderByColumn).getOperandList().get(0);
       } else {
         identifier = (SqlIdentifier) firstOrderByColumn;
       }
@@ -5366,8 +5434,9 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     return node;
   }
 
-  public void validateAggregateParams(SqlCall aggCall, SqlNode filter,
-      SqlNodeList orderList, SqlValidatorScope scope) {
+  @Override public void validateAggregateParams(SqlCall aggCall,
+      @Nullable SqlNode filter, @Nullable SqlNodeList distinctList,
+      @Nullable SqlNodeList orderList, SqlValidatorScope scope) {
     // For "agg(expr)", expr cannot itself contain aggregate function
     // invocations.  For example, "SUM(2 * MAX(x))" is illegal; when
     // we see it, we'll report the error for the SUM (not the MAX).
@@ -5399,6 +5468,14 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     if (filter != null) {
       if (a.findAgg(filter) != null) {
         throw newValidationError(filter, RESOURCE.aggregateInFilterIllegal());
+      }
+    }
+    if (distinctList != null) {
+      for (SqlNode param : distinctList) {
+        if (a.findAgg(param) != null) {
+          throw newValidationError(aggCall,
+              RESOURCE.aggregateInWithinDistinctIllegal());
+        }
       }
     }
     if (orderList != null) {
@@ -5435,6 +5512,18 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
     default:
       throw new AssertionError(op);
     }
+  }
+
+  @Override public void validateLambda(SqlLambda lambdaExpr) {
+    final SqlLambdaScope scope = (SqlLambdaScope) scopes.get(lambdaExpr);
+    Objects.requireNonNull(scope, "scope");
+    final LambdaNamespace ns =
+        getNamespace(lambdaExpr).unwrap(LambdaNamespace.class);
+
+    deriveType(scope, lambdaExpr.getExpression());
+    RelDataType type = deriveTypeImpl(scope, lambdaExpr);
+    setValidatedNodeType(lambdaExpr, type);
+    ns.setType(type);
   }
 
   public void validateCall(

@@ -443,7 +443,7 @@ public class RelToSqlConverter extends SqlImplementor
     for (AggregateCall aggCall : e.getAggCallList()) {
       SqlNode aggCallSqlNode = builder.context.toSql(aggCall);
       if (aggCall.getAggregation() instanceof SqlSingleValueAggFunction) {
-        aggCallSqlNode = dialect.rewriteSingleValueExpr(aggCallSqlNode);
+        aggCallSqlNode = dialect.rewriteSingleValueExpr(aggCallSqlNode, aggCall.type);
       }
       addSelect(selectList, aggCallSqlNode, e.getRowType());
     }

@@ -18,6 +18,7 @@ import org.apache.calcite.rel.logical.LogicalUnion;
 import org.apache.calcite.rel.logical.ToLogicalConverter;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
+import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
 
 import static io.mycat.calcite.rewriter.SQLRBORewriter.view;
 
+@Value.Enclosing
 public class LocalRules {
     public static final RelBuilderFactory LOCAL_BUILDER =
             RelBuilder.proto(
@@ -108,9 +110,9 @@ public class LocalRules {
                 .withRuleFactory(ToViewTableScanRule::new);
     }
 
-    public static class UniversalFilterViewRule extends RelRule<UniversalFilterViewRule.Config> {
+    public static class UniversalFilterViewRule extends RelRule<UniversalFilterViewRule.UniversalFilterViewRuleConfig> {
 
-        public UniversalFilterViewRule(Config config) {
+        public UniversalFilterViewRule(UniversalFilterViewRuleConfig config) {
             super(config);
         }
 
@@ -126,29 +128,30 @@ public class LocalRules {
             });
         }
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(UniversalFilterViewRule.Config.class).withOperandFor();
+        public static final UniversalFilterViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.UniversalFilterViewRuleConfig.builder().build().withOperandFor();
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface UniversalFilterViewRuleConfig extends RelRule.Config {
             @Override
             default UniversalFilterViewRule toRule() {
                 return new UniversalFilterViewRule(this);
             }
 
 
-            default UniversalFilterViewRule.Config withOperandFor() {
+            default UniversalFilterViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Filter.class).oneInput(b1 -> b1.operand(MycatView.class)
                                 .predicate(m -> m.allowPushdown())
                                 .noInputs()))
                         .withDescription("UniversalFilterViewRule")
-                        .as(UniversalFilterViewRule.Config.class);
+                        .as(UniversalFilterViewRuleConfig.class);
             }
         }
     }
 
-    public static class PrimaryShardingTableFilterViewRule extends RelRule<PrimaryShardingTableFilterViewRule.Config> {
+    public static class PrimaryShardingTableFilterViewRule extends RelRule<PrimaryShardingTableFilterViewRule.PrimaryShardingFilterConfig> {
 
-        public PrimaryShardingTableFilterViewRule(Config config) {
+        public PrimaryShardingTableFilterViewRule(PrimaryShardingFilterConfig config) {
             super(config);
         }
 
@@ -194,32 +197,33 @@ public class LocalRules {
             });
         }
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(PrimaryShardingTableFilterViewRule.Config.class).withOperandFor();
+        public static final PrimaryShardingFilterConfig DEFAULT_CONFIG = ImmutableLocalRules.PrimaryShardingFilterConfig.builder().build().withOperandFor();
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface PrimaryShardingFilterConfig extends RelRule.Config {
             @Override
             default PrimaryShardingTableFilterViewRule toRule() {
                 return new PrimaryShardingTableFilterViewRule(this);
             }
 
 
-            default PrimaryShardingTableFilterViewRule.Config withOperandFor() {
+            default PrimaryShardingFilterConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Filter.class)
                                 .oneInput(b1 -> b1.operand(MycatView.class)
                                         .predicate(m -> m.allowPushdown())
                                         .noInputs()))
                         .withDescription("PrimaryShardingTableFilterViewRule")
-                        .as(PrimaryShardingTableFilterViewRule.Config.class);
+                        .as(PrimaryShardingFilterConfig.class);
             }
         }
     }
 
-    public static class ProjectViewRule extends RelRule<ProjectViewRule.Config> {
+    public static class ProjectViewRule extends RelRule<ProjectViewRule.ProjectViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(ProjectViewRule.Config.class).withOperandFor();
+        public static final ProjectViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.ProjectViewRuleConfig.builder().build().withOperandFor();
 
-        public ProjectViewRule(Config config) {
+        public ProjectViewRule(ProjectViewRuleConfig config) {
             super(config);
         }
 
@@ -232,30 +236,31 @@ public class LocalRules {
             });
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface ProjectViewRuleConfig extends RelRule.Config {
             @Override
             default ProjectViewRule toRule() {
                 return new ProjectViewRule(this);
             }
 
 
-            default ProjectViewRule.Config withOperandFor() {
+            default ProjectViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Project.class)
                                 .oneInput(b1 -> b1.operand(MycatView.class)
 //                                        .predicate(m -> !m.isMergeSort())
                                         .noInputs()))
                         .withDescription("ProjectViewRule")
-                        .as(ProjectViewRule.Config.class);
+                        .as(ProjectViewRuleConfig.class);
             }
         }
     }
 
-    public static class JoinViewRule extends RelRule<JoinViewRule.Config> {
+    public static class JoinViewRule extends RelRule<JoinViewRule.JoinViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(JoinViewRule.Config.class).withOperandFor();
+        public static final JoinViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.JoinViewRuleConfig.builder().build().withOperandFor();
 
-        public JoinViewRule(Config config) {
+        public JoinViewRule(JoinViewRuleConfig config) {
             super(config);
         }
 
@@ -273,28 +278,29 @@ public class LocalRules {
             });
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface JoinViewRuleConfig extends RelRule.Config {
             @Override
             default JoinViewRule toRule() {
                 return new JoinViewRule(this);
             }
 
-            default JoinViewRule.Config withOperandFor() {
+            default JoinViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Join.class)
                                 .inputs(b1 -> b1.operand(MycatView.class).predicate(m -> m.allowPushdown()).noInputs(),
                                         b2 -> b2.operand(MycatView.class).predicate(m -> m.allowPushdown()).noInputs()))
                         .withDescription("JoinViewRule")
-                        .as(JoinViewRule.Config.class);
+                        .as(JoinViewRuleConfig.class);
             }
         }
     }
 
-    public static class AggViewRule extends RelRule<AggViewRule.Config> {
+    public static class AggViewRule extends RelRule<AggViewRule.AggViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(AggViewRule.Config.class).withOperandFor();
+        public static final AggViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.AggViewRuleConfig.builder().build().withOperandFor();
 
-        public AggViewRule(Config config) {
+        public AggViewRule(AggViewRuleConfig config) {
             super(config);
         }
 
@@ -310,30 +316,31 @@ public class LocalRules {
             });
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface AggViewRuleConfig extends RelRule.Config {
             @Override
             default AggViewRule toRule() {
                 return new AggViewRule(this);
             }
 
-            default AggViewRule.Config withOperandFor() {
+            default AggViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Aggregate.class)
                                 .oneInput(b1 -> b1.operand(MycatView.class)
                                         .predicate(m -> m.allowPushdown())
                                         .noInputs()))
                         .withDescription("AggViewRule")
-                        .as(AggViewRule.Config.class);
+                        .as(AggViewRuleConfig.class);
             }
         }
     }
 
 
-    public static class SortViewRule extends RelRule<SortViewRule.Config> {
+    public static class SortViewRule extends RelRule<SortViewRule.SortViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(SortViewRule.Config.class).withOperandFor();
+        public static final SortViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.SortViewRuleConfig.builder().build().withOperandFor();
 
-        public SortViewRule(Config config) {
+        public SortViewRule(SortViewRuleConfig config) {
             super(config);
         }
 
@@ -349,29 +356,30 @@ public class LocalRules {
             });
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface SortViewRuleConfig extends RelRule.Config {
             @Override
             default SortViewRule toRule() {
                 return new SortViewRule(this);
             }
 
-            default SortViewRule.Config withOperandFor() {
+            default SortViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Sort.class)
                                 .oneInput(b1 -> b1.operand(MycatView.class)
                                         .predicate(m -> m.allowPushdown())
                                         .noInputs()))
                         .withDescription("SortViewRule")
-                        .as(SortViewRule.Config.class);
+                        .as(SortViewRuleConfig.class);
             }
         }
     }
 
-    public static class CalcViewRule extends RelRule<CalcViewRule.Config> {
+    public static class CalcViewRule extends RelRule<CalcViewRule.CalcViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(CalcViewRule.Config.class).withOperandFor();
+        public static final CalcViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.CalcViewRuleConfig.builder().build().withOperandFor();
 
-        public CalcViewRule(Config config) {
+        public CalcViewRule(CalcViewRuleConfig config) {
             super(config);
         }
 
@@ -384,28 +392,29 @@ public class LocalRules {
             });
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface CalcViewRuleConfig extends RelRule.Config {
             @Override
             default CalcViewRule toRule() {
                 return new CalcViewRule(this);
             }
 
-            default CalcViewRule.Config withOperandFor() {
+            default CalcViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Calc.class)
                                 .oneInput(b1 -> b1.operand(MycatView.class)
                                         .predicate(m -> m.allowPushdown()).noInputs()))
                         .withDescription("CalcViewRule")
-                        .as(CalcViewRule.Config.class);
+                        .as(CalcViewRuleConfig.class);
             }
         }
     }
 
-    public static class UnionAllViewRule extends RelRule<UnionAllViewRule.Config> {
+    public static class UnionAllViewRule extends RelRule<UnionAllViewRule.UnionAllViewRuleConfig> {
 
-        public static final Config DEFAULT_CONFIG = Config.EMPTY.as(UnionAllViewRule.Config.class).withOperandFor();
+        public static final UnionAllViewRuleConfig DEFAULT_CONFIG = ImmutableLocalRules.UnionAllViewRuleConfig.builder().build().withOperandFor();
 
-        public UnionAllViewRule(Config config) {
+        public UnionAllViewRule(UnionAllViewRuleConfig config) {
             super(config);
         }
 
@@ -419,13 +428,14 @@ public class LocalRules {
             viewOptional.ifPresent(relNode -> call.transformTo(relNode));
         }
 
-        public interface Config extends RelRule.Config {
+        @Value.Immutable
+        public interface UnionAllViewRuleConfig extends RelRule.Config {
             @Override
             default UnionAllViewRule toRule() {
                 return new UnionAllViewRule(this);
             }
 
-            default UnionAllViewRule.Config withOperandFor() {
+            default UnionAllViewRuleConfig withOperandFor() {
                 return withOperandSupplier(b0 ->
                         b0.operand(Union.class).predicate(union -> {
                                     return union.all;
@@ -433,7 +443,7 @@ public class LocalRules {
                                 .inputs(b1 -> b1.operand(MycatView.class).predicate(m -> m.allowPushdown()).noInputs(),
                                         b1 -> b1.operand(MycatView.class).predicate(m -> m.allowPushdown()).noInputs()))
                         .withDescription("UnionAllViewRule")
-                        .as(UnionAllViewRule.Config.class);
+                        .as(UnionAllViewRuleConfig.class);
             }
         }
     }

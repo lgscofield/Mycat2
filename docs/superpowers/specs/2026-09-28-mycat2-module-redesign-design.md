@@ -68,7 +68,7 @@ Layer 5 (工具扩展):   seata · migrate · assistant · console · vertx
 | 2 | replica | 副本管理 + 心跳检测 + 读写分离 | ~20 | 保持 |
 | 2 | va | Vert.x 异步数据访问层 | ~10 | 保持 |
 | 2 | datasource | JDBC 连接池 + 多后端适配 | ~15 | 保持 |
-| 2 | calcite-core | Calcite fork 源码隔离 | ~70 | 新建 |
+| 2 | calcite-core | Calcite fork 源码隔离（✅ 已完成） | ~1651 | 新建 |
 | 3 | hbt | SQL 编译→关系代数→优化→物理计划 | ~475 | 精简 |
 | 3 | executor | Arrow 向量执行 + 148 个 MySQL 函数实现 | ~156 | 增强 |
 | 4 | server | 服务器运行时（SQL 处理/命令/监控/认证/配置） | ~250 | 重命名 |
@@ -174,18 +174,20 @@ vertx           → []
 | `io/mycat/statistic/` | 1 | 统计信息中心 |
 | `com/alibaba/druid/`（parser 扩展） | 5 | Druid SQL 解析器扩展 |
 
-#### 移出 → calcite-core（~70 文件）
+#### calcite-core Fork 隔离（✅ 已完成）
 
-| 包 | 文件数 |
-|---|--------|
-| `org/apache/calcite/`（全部） | 68 |
+calcite-core 模块采用**完整源码 fork + bridge 层最小化**策略（详见 `2026-09-28-calcite-core-fork-design.md`）：
 
-关键大文件：SqlFunctions.java (96KB)、RexBuilder.java (61KB)、SqlLiteral.java (50KB)、MycatBuiltInMethodImpl.java (48KB)
+| 组成 | 文件数 | 说明 |
+|------|--------|------|
+| Calcite 1.42.0 完整源码 | 1646 | 从 sources JAR 提取 |
+| Mycat 新增文件 | 5 | MycatBuiltInMethod, MycatSqlDefinedFunction, SqlForUpdate, MysqlExactNumericLiteral, RxBuiltInMethod |
+| Mycat 定制覆盖 | ~10 | RexImpTable, SqlLiteral, CalciteCatalogReader 等 |
+| **calcite-core 总计** | **1651** | 版本 `io.mycat:calcite-core:1.42.0-mycat` |
 
-calcite-core 模块设计：
-- 包名保持 `org.apache.calcite.*` 不变
-- 独立 pom.xml，依赖 Calcite 1.26.0 作为 provided scope
-- hbt 通过 `io.mycat:calcite-core` 依赖引入
+hbt 中保留 **17 个 bridge 文件**（含 `io.mycat` 依赖的 Calcite 覆盖类），旧 fork 文件已全部删除（-36,672 行）。
+
+关键大文件（仍在 calcite-core 中）：SqlFunctions.java (96KB)、RexBuilder.java (61KB)、SqlLiteral.java (50KB)、MycatBuiltInMethodImpl.java (48KB)
 
 #### 移出 → executor（~148 文件）
 
@@ -243,13 +245,13 @@ calcite-core 模块设计：
 | common → protocol | ~95 | MySQL/MariaDB 协议类型+包+编解码 |
 | common → server | ~55 | Hint 命令+限流+序列 |
 | common → plug | ~1 | Doris fork |
-| hbt → calcite-core | ~70 | Calcite fork 源码隔离 |
+| ~~hbt → calcite-core~~ | ~~70~~ | ✅ 已完成（实际 1651 文件，完整源码 fork） |
 | hbt → executor | ~148 | MySQL 函数实现 |
 | hbt → server | ~11 | 原型服务器 |
 | mycat2 → vertx | ~9 | Vert.x 框架补丁 |
 | mycat2 → plug | ~9 | Druid 补丁 + 序列生成器 |
 | 新增 eddsa fork → protocol | ~10 | ed25519 认证库 fork |
-| **总迁移量** | **~408** | **占 God Module 总量 ~35%** |
+| **剩余迁移量** | **~338** | **（不含已完成的 calcite-core）** |
 
 ## protocol 模块双协议设计
 
@@ -312,47 +314,45 @@ public interface AuthPlugin {
 ### pom.xml 示例
 
 ```xml
-<!-- calcite-core 模块的 pom.xml -->
+<!-- calcite-core fork 模块：完整 Calcite 1.42.0 源码 + Mycat 定制 -->
 <groupId>io.mycat</groupId>
 <artifactId>calcite-core</artifactId>
 <version>1.42.0-mycat</version>
 <dependencies>
     <dependency>
         <groupId>org.apache.calcite</groupId>
-        <artifactId>calcite-core</artifactId>
+        <artifactId>calcite-linq4j</artifactId>
         <version>1.42.0</version>
-        <scope>provided</scope>  <!-- 编译参考，不传递 -->
     </dependency>
+    <dependency>
+        <groupId>org.apache.calcite.avatica</groupId>
+        <artifactId>avatica-core</artifactId>
+        <version>1.26.0</version>
+    </dependency>
+    <!-- guava, janino, jackson, jts-core, immutables 等 -->
 </dependencies>
 
-<!-- hbt 模块的 pom.xml -->
+<!-- hbt 模块：依赖 fork 替代原版 -->
 <dependency>
     <groupId>io.mycat</groupId>
     <artifactId>calcite-core</artifactId>
-    <version>1.42.0-mycat</version>
 </dependency>
-<dependency>
-    <groupId>org.apache.calcite</groupId>
-    <artifactId>calcite-linq4j</artifactId>
-    <version>1.42.0</version>  <!-- 原版，无 fork -->
-</dependency>
+<!-- calcite-linq4j 和 avatica-core 通过 calcite-core 传递依赖 -->
 ```
 
-### Calcite 1.26.0 → 1.42.0 升级策略
+### Calcite 1.26.0 → 1.42.0 升级策略（✅ 已完成）
 
-Calcite 1.26→1.42 跨度较大（~5 年发布周期），61 个 fork 文件需重新 merge：
+采用 **bridge-first minimization** 策略完成 Calcite 1.26→1.42 升级：
 
-| 步骤 | 说明 |
-|------|------|
-| 1. 创建 calcite-core 模块，引入 Calcite 1.42.0 作为 provided 依赖 | 新模块可编译 |
-| 2. 逐个将 61 个 fork 文件从 hbt 复制到 calcite-core，对照 Calcite 1.42.0 源码 merge 差异 | 每个文件 merge 后编译验证 |
-| 3. hbt 切换依赖为 `io.mycat:calcite-core:1.42.0-mycat`，删除旧 fork 文件 | 全量编译通过 |
+| 步骤 | 状态 | 结果 |
+|------|------|------|
+| 1. 提取 Calcite 1.42.0 完整源码（1646 文件）创建 calcite-core 模块 | ✅ 完成 | BUILD SUCCESS |
+| 2. 分析 68 个 fork 文件：仅 ~10 个有实质 Mycat 定制，~34 个为版本漂移 | ✅ 完成 | 仅 fork 必要文件 |
+| 3. 应用 Mycat 定制到 1.42.0 基线（3 个覆盖 + 5 个新增） | ✅ 完成 | MYCAT CHANGE 注释标记 |
+| 4. hbt 切换依赖为 `io.mycat:calcite-core`，删除 51 个旧 fork 文件 | ✅ 完成 | -36,672 行代码 |
+| 5. 保留 17 个 bridge 文件在 hbt 中（含 `io.mycat` 依赖） | ✅ 完成 | Bridge 编译通过 |
 
-重点关注 API 变更：
-- `RelNode` 接口可能新增方法
-- `RexBuilder` 签名变更
-- 优化器框架 (`HepPlanner`, `VolcanoPlanner`) API 调整
-- `SqlFunctions` 运行时函数新增/删除
+详细设计见 `2026-09-28-calcite-core-fork-design.md`，进度见 `.superpowers/sdd/2026-09-28-calcite-core-fork/progress.md`。
 
 ### 废弃模块清理
 
@@ -388,7 +388,7 @@ Calcite 1.26→1.42 跨度较大（~5 年发布周期），61 个 fork 文件需
 
 | 依赖 | 当前 | 目标 | 说明 |
 |------|------|------|------|
-| **calcite-core** | **1.26.0** | **1.42.0** | **最新版（2026.03），JDK 21 原生支持，61 个 fork 文件需重新 merge** |
+| ~~calcite-core~~ | ~~1.26.0~~ | ~~1.42.0~~ | ✅ 已完成：bridge-first fork，`io.mycat:calcite-core:1.42.0-mycat` |
 | **calcite-linq4j** | **1.26.0** | **1.42.0** | 随 calcite-core 同步升级 |
 | **avatica-core** | **1.17.0** | **1.26.0** | 与 Calcite 1.42.0 配套 |
 | **druid** | **1.2.6** | **1.2.28** | 连接池 VT 兼容 + 大量 Bug 修复 |
@@ -447,7 +447,7 @@ Phase（阶段）
 
 | 依赖升级 | 影响文件数 | 风险等级 | 关键风险点 |
 |----------|-----------|---------|----------|
-| **Calcite 1.26→1.42（新增）** | **61 fork + ~20 引用** | **极高** | 61 个 fork 文件需重新 merge，RelNode/RexBuilder/SqlFunctions API 变更 |
+| ~~Calcite 1.26→1.42 fork merge~~ | ~~61 fork~~ | ~~极高~~ | ✅ 已完成：bridge-first 策略，仅 fork ~18 文件，51 文件已删除 |
 | Vert.x 4.2.5→4.5.14 | ~80+ | 极高 | 大量使用 `impl.*` 内部 API |
 | Arrow 5.0→18.1 | ~38+ | 高 | VectorSchemaRoot 包路径变更 + allocator API 签名变更 |
 | Druid 1.2.6→1.2.28 | ~15 | 中 | 连接池 API 微调，StatFilter 变更 |

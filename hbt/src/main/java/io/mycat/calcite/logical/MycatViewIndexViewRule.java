@@ -19,6 +19,7 @@ import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Permutation;
 import org.apache.calcite.util.mapping.IntPair;
 import org.apache.calcite.util.mapping.Mappings;
+import org.immutables.value.Value;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -26,9 +27,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Value.Enclosing
 public class MycatViewIndexViewRule extends RelRule<MycatViewIndexViewRule.Config> {
 
-    public static final MycatViewIndexViewRule.Config DEFAULT_CONFIG = MycatViewIndexViewRule.Config.EMPTY.as(MycatViewIndexViewRule.Config.class).withOperandFor();
+    public static final MycatViewIndexViewRule.Config DEFAULT_CONFIG = ImmutableMycatViewIndexViewRule.Config.builder().build().withOperandFor();
 
     public MycatViewIndexViewRule(MycatViewIndexViewRule.Config config) {
         super(config);
@@ -122,6 +124,7 @@ public class MycatViewIndexViewRule extends RelRule<MycatViewIndexViewRule.Confi
         return intList;
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
         @Override
         default MycatViewIndexViewRule toRule() {

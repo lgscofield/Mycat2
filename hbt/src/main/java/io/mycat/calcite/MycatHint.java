@@ -65,7 +65,7 @@ public class MycatHint extends SQLCommentHint {
             }
 
             String name = lexer.stringVal();
-            long hash = lexer.hash_lower();
+            long hash = fnv1a_64_lower(name);
 
             if (lexer.identifierEquals(FnvHash.Constants.NODE)) {
                 lexer.nextToken();
@@ -215,7 +215,7 @@ public class MycatHint extends SQLCommentHint {
                     SQLExpr value = null;
 
                     String keyVal = lexer.stringVal();
-                    long keyHash = lexer.hash_lower();
+                    long keyHash = fnv1a_64_lower(keyVal);
 
                     lexer.nextToken();
 

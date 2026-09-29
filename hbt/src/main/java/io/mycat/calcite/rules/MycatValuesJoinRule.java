@@ -26,6 +26,9 @@ import org.apache.calcite.tools.RelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.immutables.value.Value;
+
+@Value.Enclosing
 public class MycatValuesJoinRule extends RelRule<MycatValuesJoinRule.Config> {
 
     public static final MycatValuesJoinRule INSTANCE = MycatValuesJoinRule.Config.DEFAULT.toRule();
@@ -100,9 +103,9 @@ public class MycatValuesJoinRule extends RelRule<MycatValuesJoinRule.Config> {
         }
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        MycatValuesJoinRule.Config DEFAULT = EMPTY
-                .as(MycatValuesJoinRule.Config.class)
+        MycatValuesJoinRule.Config DEFAULT = ImmutableMycatValuesJoinRule.Config.builder().build()
                 .withOperandFor(b0 ->
                         b0.operand(Join.class).inputs(b1 -> b1.operand(MycatRel.class).anyInputs(), b1 -> b1.operand(MycatView.class).predicate(m->((MycatView)m).allowPushdown()).noInputs()))
                 .withDescription("MycatValuesJoinRule")

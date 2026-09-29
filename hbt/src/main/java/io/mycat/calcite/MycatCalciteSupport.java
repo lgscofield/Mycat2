@@ -146,13 +146,12 @@ public enum MycatCalciteSupport implements Context {
         }
     };
 
-    public static final SqlToRelConverter.Config sqlToRelConverterConfig = SqlToRelConverter.configBuilder()
+    public static final SqlToRelConverter.Config sqlToRelConverterConfig = SqlToRelConverter.config()
             .withTrimUnusedFields(true)
             .withInSubQueryThreshold(Integer.MAX_VALUE)
             .withRelBuilderConfigTransform(config -> config.withSimplify(false))
             .withRelBuilderFactory(relBuilderFactory)
-            .withHintStrategyTable(HintTools.createHintStrategies())
-            .build();
+            .withHintStrategyTable(HintTools.createHintStrategies());
 
     public final SqlValidator.Config getValidatorConfig() {
         SqlTypeMappingRule instance = SqlTypeMappingRules.instance(true);
@@ -224,15 +223,15 @@ public enum MycatCalciteSupport implements Context {
                                 ) {
                                     return typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
                                 }
-                                if ((SqlTypeUtil.isDecimal(type1) && (SqlTypeUtil.isDecimal(type2) || SqlTypeUtil.isBigint(type2))
+                                if ((SqlTypeUtil.isDecimal(type1) && (SqlTypeUtil.isDecimal(type2) || SqlTypeUtil.isNumeric(type2))
                                         ||
-                                        (SqlTypeUtil.isDecimal(type2) && (SqlTypeUtil.isDecimal(type1) || SqlTypeUtil.isBigint(type1))
+                                        (SqlTypeUtil.isDecimal(type2) && (SqlTypeUtil.isDecimal(type1) || SqlTypeUtil.isNumeric(type1))
                                         ))) {
                                     return typeFactory.createSqlType(SqlTypeName.DECIMAL);
                                 }
-                                if (SqlTypeUtil.isDecimal(type1) && SqlTypeUtil.isDouble(type2)
+                                if (SqlTypeUtil.isDecimal(type1) && SqlTypeUtil.isApproximateNumeric(type2)
                                         ||
-                                        SqlTypeUtil.isDecimal(type2) && SqlTypeUtil.isDouble(type1)
+                                        SqlTypeUtil.isDecimal(type2) && SqlTypeUtil.isApproximateNumeric(type1)
                                 ) {
                                     return typeFactory.createSqlType(SqlTypeName.DOUBLE);
                                 }
@@ -245,11 +244,10 @@ public enum MycatCalciteSupport implements Context {
     }
 
     static {
-        Map<SqlOperator, RexImpTable.RexCallImplementor> rexImpTableMap = RexImpTable.INSTANCE.map;
-        rexImpTableMap.put(DateAddFunction.INSTANCE, DateAddFunction.INSTANCE.getRexCallImplementor());
-        rexImpTableMap.put(DateSubFunction.INSTANCE, DateSubFunction.INSTANCE.getRexCallImplementor());
-        rexImpTableMap.put(ExtractFunction.INSTANCE, ExtractFunction.INSTANCE.getRexCallImplementor());
-        rexImpTableMap.put(AddTimeFunction.INSTANCE, AddTimeFunction.INSTANCE.getRexCallImplementor());
+        RexImpTable.registerMycatFunction(DateAddFunction.INSTANCE, DateAddFunction.INSTANCE.getRexCallImplementor());
+        RexImpTable.registerMycatFunction(DateSubFunction.INSTANCE, DateSubFunction.INSTANCE.getRexCallImplementor());
+        RexImpTable.registerMycatFunction(ExtractFunction.INSTANCE, ExtractFunction.INSTANCE.getRexCallImplementor());
+        RexImpTable.registerMycatFunction(AddTimeFunction.INSTANCE, AddTimeFunction.INSTANCE.getRexCallImplementor());
 
         Frameworks.ConfigBuilder configBuilder = Frameworks.newConfigBuilder();
 //        configBuilder.parserConfig(SQL_PARSER_CONFIG);

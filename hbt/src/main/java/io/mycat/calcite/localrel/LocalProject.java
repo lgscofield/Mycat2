@@ -51,7 +51,7 @@ public class LocalProject extends Project implements LocalRel {
     }
 
     static final RelFactories.ProjectFactory PROJECT_FACTORY =
-            (input, hints, projects, fieldNames) -> {
+            (input, hints, projects, fieldNames, variablesSet) -> {
                 final RelOptCluster cluster = input.getCluster();
                 final RelDataType rowType =
                         RexUtil.createStructType(cluster.getTypeFactory(), projects,

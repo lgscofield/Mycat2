@@ -31,7 +31,7 @@ import org.apache.calcite.rex.RexPermuteInputsShuttle;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
-import org.apache.calcite.util.ImmutableBeans;
+import org.immutables.value.Value;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.mapping.Mappings;
 
@@ -62,6 +62,7 @@ import java.util.List;
  * <p>Before the rule, one join has two conditions and the other has none
  * ({@code ON TRUE}). After the rule, each join has one condition.</p>
  */
+@Value.Enclosing
 public class MycatJoinPushThroughJoinRule
         extends RelRule<MycatJoinPushThroughJoinRule.Config> {
     /** Instance of the rule that works on logical joins only, and pushes to the
@@ -327,14 +328,15 @@ public class MycatJoinPushThroughJoinRule
     }
 
     /** Rule configuration. */
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        Config RIGHT = EMPTY.withDescription("MycatJoinPushThroughJoinRule:right")
-                .as(Config.class)
+        Config RIGHT = ImmutableMycatJoinPushThroughJoinRule.Config.of()
+                .withDescription("MycatJoinPushThroughJoinRule:right")
                 .withOperandFor(LogicalJoin.class)
                 .withRight(true);
 
-        Config LEFT = EMPTY.withDescription("MycatJoinPushThroughJoinRule:left")
-                .as(Config.class)
+        Config LEFT = ImmutableMycatJoinPushThroughJoinRule.Config.of()
+                .withDescription("MycatJoinPushThroughJoinRule:left")
                 .withOperandFor(LogicalJoin.class)
                 .withRight(false);
 
@@ -343,9 +345,9 @@ public class MycatJoinPushThroughJoinRule
         }
 
         /** Whether to push on the right. If false, push to the left. */
-        @ImmutableBeans.Property
-        @ImmutableBeans.BooleanDefault(false)
-        boolean isRight();
+        @Value.Default default boolean isRight() {
+            return false;
+        }
 
         /** Sets {@link #isRight()}. */
         Config withRight(boolean right);

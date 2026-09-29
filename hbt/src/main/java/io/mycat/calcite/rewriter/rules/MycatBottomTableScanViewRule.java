@@ -19,7 +19,9 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.immutables.value.Value;
 
+@Value.Enclosing
 public class MycatBottomTableScanViewRule extends RelRule<MycatBottomTableScanViewRule.Config> {
 
     public MycatBottomTableScanViewRule(Config config) {
@@ -33,8 +35,9 @@ public class MycatBottomTableScanViewRule extends RelRule<MycatBottomTableScanVi
 
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        MycatBottomTableScanViewRule.Config DEFAULT = EMPTY.as(MycatBottomTableScanViewRule.Config.class)
+        MycatBottomTableScanViewRule.Config DEFAULT = ImmutableMycatBottomTableScanViewRule.Config.builder().build()
                 .withOperandFor();
 
         @Override

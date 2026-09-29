@@ -51,7 +51,7 @@ public class MycatRepeatUnion extends RepeatUnion implements MycatRel {
      */
     public MycatRepeatUnion(RelOptCluster cluster, RelTraitSet traitSet,
                             RelNode seed, RelNode iterative, boolean all, int iterationLimit) {
-        super(cluster,  Objects.requireNonNull(traitSet).replace(MycatConvention.INSTANCE), seed, iterative, all, iterationLimit);
+        super(cluster,  Objects.requireNonNull(traitSet).replace(MycatConvention.INSTANCE), seed, iterative, all, iterationLimit, null);
     }
 
     @Override public MycatRepeatUnion copy(RelTraitSet traitSet, List<RelNode> inputs) {

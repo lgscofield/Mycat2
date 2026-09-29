@@ -2,9 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将三个 God Module 拆解为 18 模块 5 层架构，迁移 ~408 个文件，创建 protocol 和 calcite-core 新模块，重命名 mycat2 → server。
+**Goal:** 创建 protocol 模块、重命名 mycat2→server、迁移函数到 executor、清理废弃目录。完成模块重构的剩余工作（~338 文件迁移）。
 
-**Architecture:** 按照依赖 DAG 的自底向上顺序执行：先创建底层 protocol 模块（Layer 1）→ calcite-core 模块（Layer 2）→ 重命名 server（Layer 4）→ 迁移函数到 executor（Layer 3）。每次文件迁移后立即修复所有级联 import。
+**Architecture:** 按照依赖 DAG 的自底向上顺序执行：先创建底层 protocol 模块（Layer 1）→ 重命名 server（Layer 4）→ 迁移函数到 executor（Layer 3）。每次文件迁移后立即修复所有级联 import。
+
+> **Note:** calcite-core 模块已在独立项目中完成（见 `2026-09-28-calcite-core-fork-design.md`），本计划不再包含其创建任务。
 
 **Tech Stack:** JDK 21, Maven, Calcite 1.42.0, Arrow 18.1.0
 
@@ -558,336 +560,69 @@ git commit -m "chore: finalize protocol module - verify clean compilation"
 
 ---
 
-## Milestone 1.2: 创建 calcite-core 模块 + Calcite 1.42.0 升级
+## Milestone 1.2: ~~创建 calcite-core 模块~~ ✅ 已完成
 
-**Gate:** `mvn compile -pl calcite-core` 通过 + `mvn compile -DskipTests` 全项目通过
+calcite-core 模块已作为独立项目完成，详细记录见：
+- 设计文档：`docs/superpowers/specs/2026-09-28-calcite-core-fork-design.md`
+- 实施计划：`docs/superpowers/plans/2026-09-28-calcite-core-fork.md`
+- 进度账本：`.superpowers/sdd/2026-09-28-calcite-core-fork/progress.md`
 
-> ⚠️ **这是 Phase 1 中风险最高的 Milestone。** 61 个 fork 文件需要逐个对照 Calcite 1.42.0 源码 merge 差异。建议每 merge 5-10 个文件做一次编译验证。
+**完成指标：**
+- calcite-core 模块：1651 Java 文件（1646 Calcite 1.42.0 源码 + 5 Mycat 新增）
+- Mycat 定制覆盖：3 个文件（RexImpTable, SqlLiteral, CalciteCatalogReader）
+- hbt bridge 文件：17 个（含 `io.mycat` 依赖的覆盖类）
+- 旧 fork 代码删除：36,672 行
+- 构建状态：calcite-core BUILD SUCCESS；hbt Calcite 代码编译通过
 
-### Task 12: 创建 calcite-core 模块骨架
+### Task 12-17: ✅ 全部已完成（详见上述进度账本）
 
-**Files:**
-- Create: `calcite-core/pom.xml`
-- Create: `calcite-core/src/main/java/`
-- Modify: `pom.xml`（根 POM `<modules>`）
+### Task 18: 删除废弃目录 `calcite/` 和 `linq4j/`
 
-**Steps:**
-
-- [ ] **Step 1: 创建目录结构**
-
-```bash
-mkdir -p calcite-core/src/main/java/org/apache/calcite
-mkdir -p calcite-core/src/test/java/org/apache/calcite
-```
-
-- [ ] **Step 2: 创建 calcite-core/pom.xml**
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>io.mycat</groupId>
-        <artifactId>mycat-parent</artifactId>
-        <version>1.22-release</version>
-    </parent>
-
-    <artifactId>calcite-core</artifactId>
-    <version>1.42.0-mycat</version>
-    <name>Mycat2 Calcite Fork</name>
-    <description>Fork of Apache Calcite 1.42.0 with Mycat2 customizations</description>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.calcite</groupId>
-            <artifactId>calcite-core</artifactId>
-            <version>1.42.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.calcite</groupId>
-            <artifactId>calcite-linq4j</artifactId>
-            <version>1.42.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.calcite.avatica</groupId>
-            <artifactId>avatica-core</artifactId>
-            <version>1.26.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-    </dependencies>
-</project>
-```
-
-- [ ] **Step 3: 在根 pom.xml 的 `<modules>` 中添加 calcite-core**
-
-在 `<module>hbt</module>` 之前添加：
-```xml
-<module>calcite-core</module>
-```
-
-- [ ] **Step 4: 验证**
-
-Run: `mvn validate -pl calcite-core`
-Expected: BUILD SUCCESS
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add calcite-core/ pom.xml
-git commit -m "feat: create calcite-core module skeleton (1.42.0-mycat)"
-```
-
----
-
-### Task 13: 列出并分析 61 个 fork 文件
-
-**Steps:**
-
-- [ ] **Step 1: 列出 hbt 中所有 org/apache/calcite/ 下的文件**
-
-```bash
-dir /s /b hbt\src\main\java\org\apache\calcite\
-```
-
-记录完整文件列表（预期 ~61-68 个文件）。
-
-- [ ] **Step 2: 按子包分组**
-
-将文件按包分组统计，例如：
-- `org.apache.calcite.runtime` — SqlFunctions.java 等
-- `org.apache.calcite.rex` — RexBuilder.java 等
-- `org.apache.calcite.sql` — SqlLiteral.java 等
-- `org.apache.calcite.sql.type` — 类型相关文件
-- 其他子包
-
-- [ ] **Step 3: 下载 Calcite 1.42.0 源码**
-
-从 Maven Central 或 Apache 仓库下载 Calcite 1.42.0 的源码 JAR，解压到临时目录作为 merge 参考：
-
-```bash
-# 下载 Calcite 1.42.0 源码
-mvn dependency:copy -Dartifact=org.apache.calcite:calcite-core:1.42.0:jar:sources -DoutputDirectory=calcite-sources
-```
-
-- [ ] **Step 4: Commit（仅记录分析结果，不修改代码）**
-
-将分析结果写入一个临时文件，commit 后在后续任务中删除。
-
----
-
-### Task 14: 逐批 merge fork 文件到 calcite-core（第一批：runtime 包）
+> **Note:** hbt 中的旧 fork 文件已在 calcite-core fork 项目中删除。hbt 中保留的 17 个 bridge 文件是有意保留的，不在此任务中删除。
 
 **Files:**
-- Copy+Merge: `hbt/src/main/java/org/apache/calcite/runtime/*.java` → `calcite-core/src/main/java/org/apache/calcite/runtime/`
-
-> 关键文件：`SqlFunctions.java` (96KB) — 这是最大的 fork 文件，包含 Mycat 自定义的 SQL 运行时函数。
-
-**Steps:**
-
-- [ ] **Step 1: 逐个文件对比 Calcite 1.26.0 和 1.42.0 的差异**
-
-对每个 fork 文件：
-1. 读取 hbt 中的当前文件（基于 1.26.0 的 Mycat 定制版）
-2. 读取 Calcite 1.42.0 源码中的同名文件
-3. 识别 Mycat 的定制修改点（与 1.26.0 的差异）
-4. 将定制修改点应用到 1.42.0 版本上
-
-- [ ] **Step 2: 将 merge 后的文件放入 calcite-core**
-
-```bash
-git mv hbt/src/main/java/org/apache/calcite/runtime/SqlFunctions.java calcite-core/src/main/java/org/apache/calcite/runtime/SqlFunctions.java
-```
-
-- [ ] **Step 3: 编译验证 calcite-core**
-
-Run: `mvn compile -pl calcite-core -DskipTests`
-
-- [ ] **Step 4: 处理编译错误**
-
-如果出现 Calcite 1.42.0 API 变更导致的编译错误：
-- 查阅 Calcite 1.42.0 Javadoc 找到替代 API
-- 在 fork 文件中适配新 API，同时保留 Mycat 的定制逻辑
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add -A
-git commit -m "feat: merge calcite runtime fork files to calcite-core (1.42.0)"
-```
-
----
-
-### Task 15: 逐批 merge fork 文件（第二批：rex + sql 包）
-
-**Files:**
-- Copy+Merge: `hbt/src/main/java/org/apache/calcite/rex/*.java`
-- Copy+Merge: `hbt/src/main/java/org/apache/calcite/sql/*.java`
-
-> 关键文件：`RexBuilder.java` (61KB), `SqlLiteral.java` (50KB)
+- Delete: `calcite/`（废弃空壳，仅 pom.xml，parent version 1.15-dev，未参与构建）
+- Delete: `linq4j/`（废弃空壳，仅 pom.xml，parent version 1.13-realase，未参与构建）
 
 **Steps:**
 
-- [ ] **Step 1-5: 同 Task 14 的模式**
+- [ ] **Step 1: 确认两个目录确实是废弃空壳**
 
-逐个文件 merge → 放入 calcite-core → 编译验证 → 修复 API 变更 → commit。
-
-重点关注的 Calcite 1.26→1.42 API 变更：
-- `RelNode` 接口可能新增方法
-- `RexBuilder` 签名变更（方法参数类型/数量）
-- `SqlLiteral` 枚举值增减
-- `HepPlanner` / `VolcanoPlanner` API 调整
-
-```bash
-git add -A
-git commit -m "feat: merge calcite rex+sql fork files to calcite-core (1.42.0)"
+```powershell
+Get-ChildItem -Recurse calcite\ -Filter *.java
+Get-ChildItem -Recurse linq4j\ -Filter *.java
 ```
 
----
+Expected: 无 Java 源文件（仅有 pom.xml）。
 
-### Task 16: 逐批 merge fork 文件（第三批：剩余包）
+- [ ] **Step 2: 确认两个目录不在根 POM 的 `<modules>` 中**
 
-**Files:**
-- Copy+Merge: `hbt/src/main/java/org/apache/calcite/` 下剩余所有子包
-
-**Steps:**
-
-- [ ] **Step 1: 确认剩余文件列表**
-
-```bash
-dir /s /b hbt\src\main\java\org\apache\calcite\
+```powershell
+Select-String -Path pom.xml -Pattern "<module>calcite</module>|<module>linq4j</module>"
 ```
 
-排除已在 Task 14 和 Task 15 中处理的文件。
+Expected: 无匹配（已不参与构建）。
 
-- [ ] **Step 2-5: 同 Task 14 的模式**
+- [ ] **Step 3: 删除废弃目录**
 
-```bash
-git add -A
-git commit -m "feat: merge remaining calcite fork files to calcite-core (1.42.0)"
-```
-
----
-
-### Task 17: 切换 hbt 依赖到 calcite-core
-
-**Files:**
-- Modify: `hbt/pom.xml`
-
-**Steps:**
-
-- [ ] **Step 1: 修改 hbt/pom.xml**
-
-移除：
-```xml
-<dependency>
-    <groupId>org.apache.calcite</groupId>
-    <artifactId>calcite-core</artifactId>
-    <version>1.26.0</version>
-</dependency>
-```
-
-替换为：
-```xml
-<dependency>
-    <groupId>io.mycat</groupId>
-    <artifactId>calcite-core</artifactId>
-    <version>1.42.0-mycat</version>
-</dependency>
-```
-
-同时排除传递的 calcite-core 原版：
-```xml
-<dependency>
-    <groupId>io.mycat</groupId>
-    <artifactId>calcite-core</artifactId>
-    <version>1.42.0-mycat</version>
-    <exclusions>
-        <exclusion>
-            <groupId>org.apache.calcite</groupId>
-            <artifactId>calcite-core</artifactId>
-        </exclusion>
-    </exclusions>
-</dependency>
-```
-
-- [ ] **Step 2: 更新 linq4j 和 avatica 版本**
-
-在 `hbt/pom.xml` 中：
-```xml
-<dependency>
-    <groupId>org.apache.calcite</groupId>
-    <artifactId>calcite-linq4j</artifactId>
-    <version>1.42.0</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.calcite.avatica</groupId>
-    <artifactId>avatica-core</artifactId>
-    <version>1.26.0</version>
-</dependency>
-```
-
-- [ ] **Step 3: 编译验证 hbt**
-
-Run: `mvn compile -pl hbt -DskipTests`
-Expected: BUILD SUCCESS
-
-如果编译失败，分析是否是 hbt 中的非 fork 代码引用了 Calcite 1.26.0 的旧 API。逐文件修复。
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add hbt/pom.xml
-git commit -m "feat: switch hbt dependency to io.mycat:calcite-core:1.42.0-mycat"
-```
-
----
-
-### Task 18: 删除 hbt 中的旧 fork 文件 + 废弃目录
-
-**Files:**
-- Delete: `hbt/src/main/java/org/apache/calcite/`（整个目录，已迁入 calcite-core）
-- Delete: `calcite/`（废弃空壳目录）
-- Delete: `linq4j/`（废弃空壳目录）
-
-**Steps:**
-
-- [ ] **Step 1: 确认 calcite-core 包含所有 fork 文件**
-
-对比 `hbt/src/main/java/org/apache/calcite/` 和 `calcite-core/src/main/java/org/apache/calcite/`，确保所有文件已迁移。
-
-- [ ] **Step 2: 删除 hbt 中的旧 fork 目录**
-
-```bash
-git rm -r hbt/src/main/java/org/apache/calcite/
-```
-
-- [ ] **Step 3: 删除废弃的 calcite/ 和 linq4j/ 目录**
-
-```bash
+```powershell
 git rm -r calcite/
 git rm -r linq4j/
 ```
 
 - [ ] **Step 4: 全项目编译验证**
 
-Run: `mvn clean compile -DskipTests`
-Expected: BUILD SUCCESS
+```powershell
+mvn clean compile -DskipTests
+```
+
+Expected: BUILD SUCCESS（删除不影响编译）
 
 - [ ] **Step 5: Commit**
 
-```bash
+```powershell
 git add -A
-git commit -m "chore: remove old calcite fork files and deprecated directories"
+git commit -m "chore: remove deprecated calcite/ and linq4j/ directories"
 ```
 
 ---
@@ -897,6 +632,8 @@ git commit -m "chore: remove old calcite fork files and deprecated directories"
 **Gate:** `mvn compile -DskipTests` 全项目通过
 
 ### Task 19: 重命名 mycat2 模块为 server
+
+
 
 **Files:**
 - Rename: `mycat2/` → `server/`

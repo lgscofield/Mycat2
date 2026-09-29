@@ -12,7 +12,9 @@ import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.tools.RelBuilder;
+import org.immutables.value.Value;
 
+@Value.Enclosing
 public class MycatTableLookupCombineRule extends RelRule<MycatTableLookupCombineRule.Config> {
 
     public static final MycatTableLookupCombineRule INSTANCE = MycatTableLookupCombineRule.Config.DEFAULT.toRule();
@@ -78,9 +80,9 @@ public class MycatTableLookupCombineRule extends RelRule<MycatTableLookupCombine
         }
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        MycatTableLookupCombineRule.Config DEFAULT = EMPTY
-                .as(MycatTableLookupCombineRule.Config.class)
+        MycatTableLookupCombineRule.Config DEFAULT = ImmutableMycatTableLookupCombineRule.Config.builder().build()
                 .withOperandFor(b0 ->
                         b0.operand(Join.class).inputs(b1 -> b1.operand(MycatSQLTableLookup.class)
                                         .predicate(i -> i.getType() == MycatSQLTableLookup.Type.NONE).anyInputs(),

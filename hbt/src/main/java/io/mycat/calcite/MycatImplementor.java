@@ -156,7 +156,7 @@ public static final SqlSpecialOperator ROW = new MycatSqlRowOperator("MYCAT_ROW"
             RelDataType type = aggCall.type;
             SqlNode aggCallSqlNode = builder.context.toSql(aggCall);
             if (aggCall.getAggregation() instanceof SqlSingleValueAggFunction) {
-                aggCallSqlNode = dialect.rewriteSingleValueExpr(aggCallSqlNode);
+                aggCallSqlNode = dialect.rewriteSingleValueExpr(aggCallSqlNode, type);
                 aggCallSqlNode = SqlStdOperatorTable.CAST.createCall(POS,
                         aggCallSqlNode, dialect.getCastSpec(type));
             }

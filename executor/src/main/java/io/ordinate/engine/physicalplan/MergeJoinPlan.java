@@ -21,6 +21,7 @@ import io.mycat.MycatRxJavaUtl;
 import io.ordinate.engine.builder.PhysicalSortProperty;
 import io.ordinate.engine.function.Function;
 import io.ordinate.engine.record.*;
+import io.ordinate.engine.record.Record; // MYCAT CHANGE: JDK 21 java.lang.Record ambiguity
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import org.apache.arrow.vector.VectorSchemaRoot;
@@ -100,8 +101,8 @@ public class MergeJoinPlan implements PhysicalPlan {
         Enumerable < Record > records = EnumerableDefaults.mergeJoin(
                 outer,
                 inner,
-                outerKeySelector,innerKeySelector ,extraPredicate,resultSelector,joinType
-                ,comparator);
+                outerKeySelector, innerKeySelector, extraPredicate, resultSelector, joinType,
+                comparator, null); // MYCAT CHANGE: Calcite 1.42 added EqualityComparer param
         return InputRecordPhysicalPlan.create(schema(), Observable.fromIterable(records)).execute(rootContext);
     }
 

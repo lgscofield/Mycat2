@@ -1304,8 +1304,9 @@ public class MycatBuiltInMethodImpl {
                 throw new UnsupportedOperationException();
             case MILLENNIUM:
                 return temporal.get(ChronoField.MILLI_OF_SECOND);
-            case SECOND_TO_MICROSECOND:
-                return temporal.get(ChronoField.SECOND_OF_DAY) * 1000000L + temporal.get(ChronoField.NANO_OF_SECOND);
+            // MYCAT CHANGE: SECOND_TO_MICROSECOND requires TimeUnitRange customization (Task 6)
+            // case SECOND_TO_MICROSECOND:
+            //     return temporal.get(ChronoField.SECOND_OF_DAY) * 1000000L + temporal.get(ChronoField.NANO_OF_SECOND);
             default:
                 throw new UnsupportedOperationException();
         }

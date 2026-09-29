@@ -101,12 +101,15 @@ public class EnumUtils {
 
   private EnumUtils() {}
 
-  static final boolean BRIDGE_METHODS = true;
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static final boolean BRIDGE_METHODS = true;
 
-  static final List<ParameterExpression> NO_PARAMS =
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static final List<ParameterExpression> NO_PARAMS =
       ImmutableList.of();
 
-  static final List<Expression> NO_EXPRS =
+  // MYCAT CHANGE: package-private → public for Mycat bridge access
+  public static final List<Expression> NO_EXPRS =
       ImmutableList.of();
 
   public static final List<String> LEFT_RIGHT =

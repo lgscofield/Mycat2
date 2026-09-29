@@ -24,6 +24,7 @@ import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rel.type.StructKind;
 import org.apache.calcite.sql.SqlCollation;
 import org.apache.calcite.sql.SqlIntervalQualifier;
+import org.apache.calcite.sql.type.SqlTypeMappingRule;
 import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.lang.reflect.Type;
@@ -135,6 +136,15 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
     }
 
     @Override
+    public RelDataType leastRestrictive(List<RelDataType> list, SqlTypeMappingRule typeMappingRule) {
+        RelDataType relDataType = this.javaTypeFactory.leastRestrictive(list, typeMappingRule);
+        if (relDataType == null) {
+            return list.get(0);
+        }
+        return relDataType;
+    }
+
+    @Override
     public RelDataType createSqlType(SqlTypeName sqlTypeName) {
         return this.javaTypeFactory.createSqlType(sqlTypeName);
     }
@@ -207,5 +217,20 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
     @Override
     public RelDataType toSql(RelDataType type) {
         return javaTypeFactory.toSql(type);
+    }
+
+    @Override
+    public RelDataType enforceTypeWithNullability(RelDataType type, boolean nullable) {
+        return javaTypeFactory.enforceTypeWithNullability(type, nullable);
+    }
+
+    @Override
+    public RelDataType createMeasureType(RelDataType valueType) {
+        return javaTypeFactory.createMeasureType(valueType);
+    }
+
+    @Override
+    public RelDataType createFunctionSqlType(RelDataType parameterType, RelDataType returnType) {
+        return javaTypeFactory.createFunctionSqlType(parameterType, returnType);
     }
 }

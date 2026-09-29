@@ -47,6 +47,12 @@
             <groupId>io.mycat</groupId>
             <artifactId>config</artifactId>
         </dependency>
+        <!-- Druid: required directly because sibling module POMs have missing versions,
+             making transitive dependency resolution fail -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

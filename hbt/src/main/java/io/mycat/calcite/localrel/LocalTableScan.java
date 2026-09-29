@@ -23,7 +23,7 @@ public class LocalTableScan extends TableScan implements LocalRel{
         super(cluster, traitSet.replace(LocalConvention.INSTANCE), hints, table);
     }
     public LocalTableScan(RelInput input) {
-        this(input.getCluster(), input.getTraitSet(),input.getHints(), input.getTable("table"));
+        this(input.getCluster(), input.getTraitSet(), ImmutableList.of(), input.getTable("table"));
     }
 
 

@@ -2911,6 +2911,18 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     throw new RuntimeException("cannot translate expression " + nodeAndFieldIndex);
   }
 
+  // MYCAT CHANGE: Calcite 1.42 added RexLambda support
+  @Override public Result visitLambda(RexLambda lambda) {
+    throw new RuntimeException("cannot translate expression " + lambda
+        + ". Lambda expressions are not supported in Mycat2 enumerable implementation");
+  }
+
+  // MYCAT CHANGE: Calcite 1.42 added RexLambdaRef support
+  @Override public Result visitLambdaRef(RexLambdaRef lambdaRef) {
+    throw new RuntimeException("cannot translate expression " + lambdaRef
+        + ". Lambda expressions are not supported in Mycat2 enumerable implementation");
+  }
+
   Expression checkNull(Expression expr) {
     if (Primitive.flavor(expr.getType())
         == Primitive.Flavor.PRIMITIVE) {

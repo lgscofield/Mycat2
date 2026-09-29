@@ -58,7 +58,7 @@ public class LocalJoin extends Join implements LocalRel {
             };
 
     static final RelFactories.CorrelateFactory CORRELATE_FACTORY =
-            (left, right, correlationId, requiredColumns, joinType) -> {
+            (left, right, hints, correlationId, requiredColumns, joinType) -> {
                 throw new UnsupportedOperationException("LocalCorrelate");
             };
     @Override

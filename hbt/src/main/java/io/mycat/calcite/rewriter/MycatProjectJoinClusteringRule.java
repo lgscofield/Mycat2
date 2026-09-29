@@ -23,9 +23,11 @@ import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.logical.LogicalProject;
+import org.immutables.value.Value;
 
 import java.util.Optional;
 
+@Value.Enclosing
 public  class MycatProjectJoinClusteringRule extends RelRule<MycatProjectJoinClusteringRule.Config> {
 
         public MycatProjectJoinClusteringRule(Config config) {
@@ -50,8 +52,9 @@ public  class MycatProjectJoinClusteringRule extends RelRule<MycatProjectJoinClu
             }
         }
 
+        @Value.Immutable
         public interface Config extends RelRule.Config {
-            MycatProjectJoinClusteringRule.Config DEFAULT = EMPTY.as(MycatProjectJoinClusteringRule.Config.class)
+            MycatProjectJoinClusteringRule.Config DEFAULT = ImmutableMycatProjectJoinClusteringRule.Config.builder().build()
                     .withOperandFor(LogicalJoin.class);
 
             @Override

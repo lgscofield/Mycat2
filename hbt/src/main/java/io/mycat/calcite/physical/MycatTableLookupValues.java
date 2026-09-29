@@ -32,7 +32,6 @@ public class MycatTableLookupValues extends AbstractRelNode {
     public MycatTableLookupValues(RelOptCluster cluster, RelDataType relDataType, List<RexNode> exprs, RelTraitSet traitSet) {
         super(cluster, traitSet.replace(MycatConvention.INSTANCE));
         this.exprs = exprs;
-        this.traitSet = traitSet;
         RelDataTypeFactory.FieldInfoBuilder builder = MycatCalciteSupport.TypeFactory.builder();
         int index = 0;
         for (RelDataTypeField relDataTypeField : relDataType.getFieldList()) {

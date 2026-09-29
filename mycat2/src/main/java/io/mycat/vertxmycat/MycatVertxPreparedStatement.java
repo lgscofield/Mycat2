@@ -19,7 +19,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.sqlclient.*;
-import jdk.nashorn.internal.runtime.logging.DebugLogger;
+// MYCAT CHANGE: removed jdk.nashorn.internal.runtime.logging.DebugLogger (removed in JDK 15+)
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

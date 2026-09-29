@@ -23,8 +23,7 @@ import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.ast.statement.SQLCreateTriggerStatement.TriggerType;
 import com.alibaba.druid.sql.ast.statement.SQLInsertStatement.ValuesClause;
 import com.alibaba.druid.sql.ast.statement.SQLJoinTableSource.JoinType;
-import com.alibaba.druid.sql.ast.statement.SQLMergeStatement.MergeInsertClause;
-import com.alibaba.druid.sql.ast.statement.SQLMergeStatement.MergeUpdateClause;
+// MYCAT CHANGE: Druid 1.2.28 removed MergeInsertClause/MergeUpdateClause, now using When/WhenUpdate/WhenInsert/WhenDelete
 import com.alibaba.druid.sql.dialect.hive.ast.HiveInputOutputFormat;
 import com.alibaba.druid.sql.dialect.hive.stmt.HiveCreateTableStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.MySqlPrimaryKey;
@@ -36,7 +35,7 @@ import com.alibaba.druid.sql.dialect.oracle.ast.expr.OracleCursorExpr;
 import com.alibaba.druid.sql.dialect.oracle.ast.expr.OracleDatetimeExpr;
 import com.alibaba.druid.sql.dialect.oracle.ast.stmt.OracleCreatePackageStatement;
 import com.alibaba.druid.sql.dialect.oracle.ast.stmt.OracleForStatement;
-import com.alibaba.druid.sql.dialect.oracle.ast.stmt.OracleSelectPivot;
+// MYCAT CHANGE: Druid 1.2.28 removed OracleSelectPivot; using OracleSelectPivotBase instead
 import com.alibaba.druid.sql.dialect.oracle.parser.OracleFunctionDataType;
 import com.alibaba.druid.sql.dialect.oracle.parser.OracleProcedureDataType;
 import com.alibaba.druid.util.FnvHash;
@@ -2305,7 +2304,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             println();
         } else if ((parent instanceof SQLStatement
             && !(parent instanceof OracleForStatement))
-            || parent instanceof OracleSelectPivot.Item) {
+            || parent instanceof SQLPivot) { // MYCAT CHANGE: Druid 1.2.28 removed OracleSelectPivot.Item
             this.indentCount++;
 
             println();
@@ -7778,14 +7777,10 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         x.getOn().accept(this);
         print0(") ");
 
-        if (x.getUpdateClause() != null) {
+        // MYCAT CHANGE: Druid 1.2.28 replaced getUpdateClause/getInsertClause with getWhens()
+        for (SQLMergeStatement.When when : x.getWhens()) {
             println();
-            x.getUpdateClause().accept(this);
-        }
-
-        if (x.getInsertClause() != null) {
-            println();
-            x.getInsertClause().accept(this);
+            when.accept(this);
         }
 
         if (x.getErrorLoggingClause() != null) {
@@ -7796,13 +7791,13 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
         return false;
     }
 
-    @Override
-    public boolean visit(MergeUpdateClause x) {
-        if (x.isDelete()) {
-            print0(ucase ? "WHEN MATCHED THEN DELETE" : "when matched then delete");
-            return false;
+    // MYCAT CHANGE: Druid 1.2.28 renamed MergeUpdateClause to WhenUpdate
+    public boolean visit(SQLMergeStatement.WhenUpdate x) {
+        if (x.isNot()) {
+            print0(ucase ? "WHEN NOT MATCHED THEN UPDATE SET " : "when not matched then update set ");
+        } else {
+            print0(ucase ? "WHEN MATCHED THEN UPDATE SET " : "when matched then update set ");
         }
-        print0(ucase ? "WHEN MATCHED THEN UPDATE SET " : "when matched then update set ");
         printAndAccept(x.getItems(), ", ");
 
         SQLExpr where = x.getWhere();
@@ -7814,21 +7809,34 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
             this.indentCount--;
         }
 
-        SQLExpr deleteWhere = x.getDeleteWhere();
-        if (deleteWhere != null) {
-            this.indentCount++;
-            println();
-            print0(ucase ? "DELETE WHERE " : "delete where ");
-            printExpr(deleteWhere, parameterized);
-            this.indentCount--;
-        }
-
         return false;
     }
 
-    @Override
-    public boolean visit(MergeInsertClause x) {
-        print0(ucase ? "WHEN NOT MATCHED THEN INSERT" : "when not matched then insert");
+    // MYCAT CHANGE: Druid 1.2.28 added WhenDelete
+    public boolean visit(SQLMergeStatement.WhenDelete x) {
+        if (x.isNot()) {
+            print0(ucase ? "WHEN NOT MATCHED THEN DELETE" : "when not matched then delete");
+        } else {
+            print0(ucase ? "WHEN MATCHED THEN DELETE" : "when matched then delete");
+        }
+        SQLExpr where = x.getWhere();
+        if (where != null) {
+            this.indentCount++;
+            println();
+            print0(ucase ? "WHERE " : "where ");
+            printExpr(where, parameterized);
+            this.indentCount--;
+        }
+        return false;
+    }
+
+    // MYCAT CHANGE: Druid 1.2.28 renamed MergeInsertClause to WhenInsert
+    public boolean visit(SQLMergeStatement.WhenInsert x) {
+        if (x.isNot()) {
+            print0(ucase ? "WHEN NOT MATCHED THEN INSERT" : "when not matched then insert");
+        } else {
+            print0(ucase ? "WHEN MATCHED THEN INSERT" : "when matched then insert");
+        }
         if (x.getColumns().size() > 0) {
             print(" (");
             printAndAccept(x.getColumns(), ", ");

@@ -12,9 +12,11 @@ import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.tools.RelBuilder;
+import org.immutables.value.Value;
 
 import java.util.Optional;
 
+@Value.Enclosing
 public class MycatJoinTableLookupTransposeRule extends RelRule<MycatJoinTableLookupTransposeRule.Config> {
 
     public static final MycatJoinTableLookupTransposeRule LEFT_INSTANCE = Config.DEFAULT_LEFT.toRule();
@@ -100,15 +102,14 @@ public class MycatJoinTableLookupTransposeRule extends RelRule<MycatJoinTableLoo
         return Optional.empty();
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
-        MycatJoinTableLookupTransposeRule.Config DEFAULT_LEFT = EMPTY
-                .as(MycatJoinTableLookupTransposeRule.Config.class)
+        MycatJoinTableLookupTransposeRule.Config DEFAULT_LEFT = ImmutableMycatJoinTableLookupTransposeRule.Config.builder().build()
                 .withOperandFor(b0 ->
                         b0.operand(Join.class).inputs(b1 -> b1.operand(MycatSQLTableLookup.class).anyInputs(), b1 -> b1.operand(MycatView.class).predicate(m->((MycatView)m).allowPushdown()).noInputs()))
                 .withDescription("MycatJoinTableLookupLeftTransposeRule")
                 .as(MycatJoinTableLookupTransposeRule.Config.class);
-        MycatJoinTableLookupTransposeRule.Config DEFAULT_RIGHT = EMPTY
-                .as(MycatJoinTableLookupTransposeRule.Config.class)
+        MycatJoinTableLookupTransposeRule.Config DEFAULT_RIGHT = ImmutableMycatJoinTableLookupTransposeRule.Config.builder().build()
                 .withOperandFor(b0 ->
                         b0.operand(Join.class).inputs(b1 -> b1.operand(MycatView.class).predicate(m->((MycatView)m).allowPushdown()).noInputs(), b1 -> b1.operand(MycatSQLTableLookup.class).anyInputs()))
                 .withDescription("MycatJoinTableLookupRightTransposeRule")

@@ -601,6 +601,16 @@ public class RexImpTable {
   private final ImmutableMap<SqlOperator, Supplier<? extends TableFunctionCallImplementor>>
       tvfImplementorMap;
 
+  // MYCAT CHANGE: Mutable custom function registry for Mycat date functions etc.
+  private static final Map<SqlOperator, RexCallImplementor> mycatCustomRegistry =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  /** MYCAT CHANGE: Register a custom RexCallImplementor for a SqlOperator. */
+  public static void registerMycatFunction(SqlOperator operator,
+      RexCallImplementor implementor) {
+    mycatCustomRegistry.put(operator, implementor);
+  }
+
   private RexImpTable(Builder builder) {
     final ImmutableMap.Builder<SqlOperator, PairList<SqlOperator, RexCallImplementor>>
         mapBuilder = ImmutableMap.builder();
@@ -1473,6 +1483,11 @@ public class RexImpTable {
   }
 
   public @Nullable RexCallImplementor get(final SqlOperator operator) {
+    // MYCAT CHANGE: Check custom registry first
+    RexCallImplementor custom = mycatCustomRegistry.get(operator);
+    if (custom != null) {
+      return custom;
+    }
     // MYCAT CHANGE: Dispatch MycatSqlDefinedFunction before generic SqlUserDefinedFunction
     if (operator instanceof MycatSqlDefinedFunction) {
       CallImplementor implementor = ((MycatSqlDefinedFunction) operator);
@@ -4432,6 +4447,23 @@ public class RexImpTable {
 
     abstract Expression implementSafe(RexToLixTranslator translator,
         RexCall call, List<Expression> argValueList);
+  }
+
+  // MYCAT CHANGE: Public bridge for Mycat custom function implementors
+  /** MYCAT CHANGE: Public abstract class for Mycat custom RexCall implementors. */
+  public abstract static class MycatAbstractRexCallImplementor
+      extends AbstractRexCallImplementor {
+    public MycatAbstractRexCallImplementor(NullPolicy nullPolicy, boolean harmonize) {
+      super("mycat_custom", nullPolicy, harmonize);
+    }
+
+    /** MYCAT CHANGE: Bridge package-private implementSafe to public so cross-package subclasses can override. */
+    @Override
+    public abstract Expression implementSafe(RexToLixTranslator translator,
+        RexCall call, List<Expression> argValueList);
+
+    /** MYCAT CHANGE: Override to provide a meaningful variable name for debugging. */
+    public abstract String getVariableName();
   }
 
   /**

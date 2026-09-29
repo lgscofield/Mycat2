@@ -280,7 +280,7 @@ public class MycatView extends AbstractRelNode implements MycatRel {
                     if (RelOptUtil.areRowTypesEqual(orginalRowType, mycatProject.getRowType(), false)) {
                         tableArrayList.add(mycatProject);
                     } else {
-                        RelNode newRel = RelOptUtil.createCastRel(mycatProject, orginalRowType, true, (input, hints, childExprs, fieldNames) -> MycatProject.create(input, childExprs, orginalRowType));
+                        RelNode newRel = RelOptUtil.createCastRel(mycatProject, orginalRowType, true, (input, hints, childExprs, fieldNames, correlationVariables) -> MycatProject.create(input, childExprs, orginalRowType));
                         if (RelOptUtil.areRowTypesEqual(orginalRowType, newRel.getRowType(), false)) {
                             tableArrayList.add(newRel);
                         }

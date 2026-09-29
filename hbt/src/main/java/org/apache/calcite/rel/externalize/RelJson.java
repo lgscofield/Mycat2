@@ -784,11 +784,12 @@ public class RelJson {
         boolean isRows = Optional.ofNullable((Boolean) map.get("isRows")).orElse(false);
         RexWindowBound lowerBound = (RexWindowBound) Optional.ofNullable((Map) map.get("lowerBound")).map(node -> toRexWindowBound(relInput, node)).orElse(null);
         RexWindowBound upperBound = (RexWindowBound) Optional.ofNullable((Map) map.get("upperBound")).map(node -> toRexWindowBound(relInput, node)).orElse(null);
+        RexWindowExclusion exclude = RexWindowExclusion.EXCLUDE_NO_OTHER;
         RelCollation orderKeys = (RelCollation) Optional.ofNullable((List) map.get("orderKeys")).map(node -> toCollation(node)).orElse(null);
         List<Window.RexWinAggCall> aggCalls = (List) Optional.ofNullable((List) map.get("aggCalls")).map(list -> {
             return list.stream().map(i -> (Window.RexWinAggCall) toRexRexWinAggCall(relInput, (Map) i)).collect(Collectors.toList());
         }).orElse(Collections.emptyList());
-        return new Window.Group(keys, isRows, lowerBound, upperBound, orderKeys, aggCalls);
+        return new Window.Group(keys, isRows, lowerBound, upperBound, exclude, orderKeys, aggCalls);
     }
 
     private Window.RexWinAggCall toRexRexWinAggCall(RelInput relInput, Map<String, Object> map) {

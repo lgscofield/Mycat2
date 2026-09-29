@@ -38,7 +38,7 @@ public class LocalCorrelate extends Correlate implements LocalRel {
     }
 
     static final RelFactories.CorrelateFactory CORRELATE_FACTORY =
-            (left, right, correlationId, requiredColumns, joinType) -> {
+            (left, right, hints, correlationId, requiredColumns, joinType) -> {
                 throw new UnsupportedOperationException("LocalCorrelate");
             };
 

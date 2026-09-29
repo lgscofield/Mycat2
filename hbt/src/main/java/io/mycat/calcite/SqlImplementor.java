@@ -1630,7 +1630,7 @@ public abstract class SqlImplementor {
                         if (selectList.get(aggregatesArg) instanceof SqlBasicCall) {
                             final SqlBasicCall call =
                                     (SqlBasicCall) selectList.get(aggregatesArg);
-                            for (SqlNode operand : call.getOperands()) {
+                            for (SqlNode operand : call.getOperandList()) {
                                 if (operand instanceof SqlCall
                                         && ((SqlCall) operand).getOperator() instanceof SqlAggFunction) {
                                     return true;

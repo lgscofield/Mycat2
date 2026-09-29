@@ -22,6 +22,7 @@ import io.ordinate.engine.builder.RexConverter;
 import io.ordinate.engine.function.BinarySequence;
 import io.ordinate.engine.function.Function;
 import io.ordinate.engine.record.*;
+import io.ordinate.engine.record.Record; // MYCAT CHANGE: JDK 21 java.lang.Record ambiguity
 import io.ordinate.engine.schema.InnerType;
 import io.ordinate.engine.schema.IntInnerType;
 import io.reactivex.rxjava3.annotations.NonNull;

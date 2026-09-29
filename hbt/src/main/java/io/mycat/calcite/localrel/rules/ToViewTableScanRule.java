@@ -5,7 +5,9 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.immutables.value.Value;
 
+@Value.Enclosing
 public class ToViewTableScanRule extends RelRule<ToViewTableScanRule.Config> {
 
         public ToViewTableScanRule(ToViewTableScanRule.Config config) {
@@ -19,8 +21,9 @@ public class ToViewTableScanRule extends RelRule<ToViewTableScanRule.Config> {
             call.transformTo(localTableScan);
         }
 
-      static   public interface Config extends RelRule.Config {
-          Config DEFAULT = EMPTY.as(ToViewTableScanRule.Config.class)
+      @Value.Immutable
+      public interface Config extends RelRule.Config {
+          Config DEFAULT = ImmutableToViewTableScanRule.Config.builder().build()
                     .withOperandFor();
 
             @Override

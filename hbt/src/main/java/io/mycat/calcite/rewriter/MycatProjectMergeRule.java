@@ -27,7 +27,7 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
-import org.apache.calcite.util.ImmutableBeans;
+import org.immutables.value.Value;
 import org.apache.calcite.util.Permutation;
 
 import java.util.List;
@@ -39,6 +39,7 @@ import java.util.List;
  *
  * @see CoreRules#PROJECT_MERGE
  */
+@Value.Enclosing
 public class MycatProjectMergeRule
     extends RelRule<MycatProjectMergeRule.Config> {
   /** Default amount by which complexity is allowed to increase.
@@ -121,8 +122,10 @@ public class MycatProjectMergeRule
   }
 
   /** Rule configuration. */
+  @Value.Immutable
+  @Value.Style(defaults = @Value.Immutable(builder = true, singleton = true))
   public interface Config extends RelRule.Config {
-    Config DEFAULT = EMPTY.as(Config.class)
+    Config DEFAULT = ImmutableMycatProjectMergeRule.Config.of()
         .withOperandFor(Project.class);
 
     @Override default MycatProjectMergeRule toRule() {
@@ -131,17 +134,17 @@ public class MycatProjectMergeRule
 
     /** Limit how much complexity can increase during merging.
      * Default is {@link #DEFAULT_BLOAT} (100). */
-    @ImmutableBeans.Property
-    @ImmutableBeans.IntDefault(MycatProjectMergeRule.DEFAULT_BLOAT)
-    int bloat();
+    @Value.Default default int bloat() {
+      return MycatProjectMergeRule.DEFAULT_BLOAT;
+    }
 
     /** Sets {@link #bloat()}. */
     Config withBloat(int bloat);
 
     /** Whether to always merge projects, default true. */
-    @ImmutableBeans.Property
-    @ImmutableBeans.BooleanDefault(true)
-    boolean force();
+    @Value.Default default boolean force() {
+      return true;
+    }
 
     /** Sets {@link #force()}. */
     Config withForce(boolean force);

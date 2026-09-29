@@ -9,11 +9,13 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.SingleRel;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.logical.*;
+import org.immutables.value.Value;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Value.Enclosing
 public abstract class MycatBiRelViewRule extends RelRule<MycatBiRelViewRule.Config> {
 
     public MycatBiRelViewRule(MycatBiRelViewRule.Config config) {
@@ -21,7 +23,7 @@ public abstract class MycatBiRelViewRule extends RelRule<MycatBiRelViewRule.Conf
     }
 
     public MycatBiRelViewRule(Class<? extends BiRel> up) {
-        super(MycatBiRelViewRule.Config.EMPTY.as(MycatBiRelViewRule.Config.class)
+        super(ImmutableMycatBiRelViewRule.Config.builder().build()
                 .withOperandFor(up));
     }
 
@@ -30,7 +32,12 @@ public abstract class MycatBiRelViewRule extends RelRule<MycatBiRelViewRule.Conf
         SQLRBORewriter.on(call.rel(1), call.rel(2), call.rel(0)).ifPresent(relNode -> call.transformTo(relNode));
     }
 
+    @Value.Immutable
     public interface Config extends RelRule.Config {
+        @Override default MycatBiRelViewRule toRule() {
+            return new MycatBiRelViewRule(this) {};
+        }
+
         default MycatBiRelViewRule.Config withOperandFor(Class<? extends BiRel> up) {
             return withOperandSupplier(b0 ->
                     b0.operand(up).inputs(b1 -> b1.operand(MycatView.class).noInputs(),

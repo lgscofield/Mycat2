@@ -23,6 +23,7 @@ import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.rules.SubstitutionRule;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilderFactory;
+import org.immutables.value.Value;
 
 /**
  * Planner rule that,
@@ -36,6 +37,7 @@ import org.apache.calcite.tools.RelBuilderFactory;
  * @see ProjectMergeRule
  * @see CoreRules#PROJECT_REMOVE
  */
+@Value.Enclosing
 public class ProjectRemoveRule
     extends RelRule<ProjectRemoveRule.Config>
     implements SubstitutionRule {
@@ -86,8 +88,9 @@ public class ProjectRemoveRule
   }
 
   /** Rule configuration. */
+  @Value.Immutable
   public interface Config extends RelRule.Config {
-    Config DEFAULT = EMPTY
+    Config DEFAULT = ImmutableProjectRemoveRule.Config.builder().build()
         .withOperandSupplier(b ->
             b.operand(Project.class)
                 // Use a predicate to detect non-matches early.
