@@ -1,0 +1,17 @@
+1	SELECT *\nFROM t1\nWHERE id = 1
+2	SELECT a, b\nFROM sharding_tab\nWHERE id IN (1, 2, 3)
+3	SELECT *\nFROM t1\nWHERE name <=> 'abc'
+4	SELECT /*!50000 STRAIGHT_JOIN */ a\nFROM t1
+5	SELECT GROUP_CONCAT(DISTINCT name ORDER BY name SEPARATOR ',')\nFROM t1\nGROUP BY id
+6	SELECT `order`, `group`\nFROM `my table`\nWHERE `id` = 1
+7	SELECT id\nFROM t1\nLIMIT 10, 20
+8	SELECT 1 + 2, NOW()\nFROM DUAL
+9	CREATE INDEX idx_a ON t1 (a, b)
+10	CREATE TABLE t1 (\n\tid INT PRIMARY KEY,\n\tname VARCHAR(20)\n)
+11	ALTER TABLE t1\n\tADD COLUMN c1 INT
+12	INSERT INTO t1 (id, name)\nVALUES (1, 'x')
+13	UPDATE t1\nSET name = 'y'\nWHERE id = 1
+14	DELETE FROM t1\nWHERE id IN (1, 2)
+15	SELECT *\nFROM t1\nWHERE id = ?\n\tAND name = ?
+16	!!ERR!! java.lang.NoSuchMethodError: 'void com.alibaba.druid.sql.parser.SQLExprParser.parseAssignItems(java.util.List, com.alibaba.druid.sql.ast.SQLObject, boolean)'
+17	SELECT *\nFROM t1\n\tJOIN t2 ON t1.id = t2.id\nWHERE t2.x > 5
