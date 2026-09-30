@@ -62,15 +62,15 @@ Layer 5 (工具扩展):   seata · migrate · assistant · console · vertx
 |---|------|-----------|-----------|------|
 | 0 | config | 配置 POJO（数据源、集群、表等） | ~45 | 保持 |
 | 0 | common | 核心抽象接口 + 通用工具 | ~185 | 精简 |
-| 1 | protocol | MySQL/MariaDB 协议类型、包结构、编解码、认证 | ~105 | 新建 |
+| 1 | protocol | MySQL/MariaDB 协议类型、包结构、编解码、认证 | ~71 | ✅ 新建 |
 | 2 | router | 分片路由算法 | ~30 | 保持 |
 | 2 | plug | SPI 扩展点 + 负载均衡 + 序列生成 + 框架补丁 | ~32 | 微调 |
 | 2 | replica | 副本管理 + 心跳检测 + 读写分离 | ~20 | 保持 |
 | 2 | va | Vert.x 异步数据访问层 | ~10 | 保持 |
 | 2 | datasource | JDBC 连接池 + 多后端适配 | ~15 | 保持 |
 | 2 | calcite-core | Calcite fork 源码隔离（✅ 已完成） | ~1651 | 新建 |
-| 3 | hbt | SQL 编译→关系代数→优化→物理计划 | ~475 | 精简 |
-| 3 | executor | Arrow 向量执行 + 148 个 MySQL 函数实现 | ~156 | 增强 |
+| 3 | hbt | SQL 编译→关系代数→优化→物理计划 | ~617 | 保持（sqlfunction 因循环依赖保留） |
+| 3 | executor | Arrow 向量执行 | ~8 | 保持（148 函数因循环依赖保留 hbt） |
 | 4 | server | 服务器运行时（SQL 处理/命令/监控/认证/配置） | ~250 | 重命名 |
 | 4 | proxy | NIO Reactor 网络栈 | ~50 | 保持 |
 | 5 | seata/migrate/assistant/console/vertx | 扩展工具 | 各异 | 保持 |
@@ -108,7 +108,7 @@ vertx           → []
 |------|------|--------|------|
 | common 不含 MySQL 类型 | `beans/mysql/*` 在 common | 移入 protocol | 协议与核心分离 |
 | hbt 不直接依赖 Calcite 内部 | fork 混在 hbt 里 | 通过 calcite-core 间接 | fork 隔离 |
-| executor 有实质内容 | 仅 ~8 文件 | 接收 148 个函数 | 执行层有深度 |
+| executor 有实质内容 | 仅 ~8 文件 | ~~接收 148 个函数~~ ❗ 跳过（循环依赖） | ~8 文件保持 |
 | server 显式依赖 protocol | mycat2 用 common 中的类型 | 显式依赖 | 协议层显式化 |
 | datasource 依赖 protocol | 不依赖协议层 | 依赖 protocol | 后端连接需理解协议类型 |
 
@@ -129,19 +129,19 @@ vertx           → []
 | `io/mycat/replica/` | 5 | PhysicsInstance、BalanceType、InstanceType |
 | `io/mycat/util/` | ~30 | 纯工具类（StringUtil、ByteUtil、CharsetUtil、DateUtil 等） |
 
-#### 移出 → protocol（~95 文件）
+#### 移出 → protocol（~95 计划 / 56 实际）
 
-| 包 | 文件数 |
-|---|--------|
-| `io/mycat/beans/mysql/` | 28 |
-| `io/mycat/beans/mysql/charset/` | 4 |
-| `io/mycat/beans/mysql/packet/` | 17 |
-| `io/mycat/swapbuffer/` | 10 |
-| `io/vertx/mysqlclient/impl/codec/` | 4 |
-| MySQL 特定工具（SecurityUtil、MySQLUtil、PacketUtil） | ~10 |
-| `io/mycat/util/packet/` | 8 |
-| 新增协议抽象（ProtocolCodec、AuthPlugin、CapabilityFlags、ServerStatus） | ~5 |
-| 新增 eddsa fork 源码 | ~10 |
+| 包 | 计划 | 实际 | 状态 |
+|---|--------|------|------|
+| `io/mycat/beans/mysql/` | 28 | 28 | ✅ 已迁移 |
+| `io/mycat/beans/mysql/charset/` | 4 | 4 | ✅ 已迁移 |
+| `io/mycat/beans/mysql/packet/` | 17 | 0 | ❗ 保留 common（循环依赖） |
+| `io/mycat/swapbuffer/` | 10 | 10 | ✅ 已迁移 |
+| `io/vertx/mysqlclient/impl/codec/` | 4 | 0 | ❗ 保留 vertx（SPI 包路径） |
+| MySQL 特定工具 | ~10 | 4 | ✅ 已迁移（SecurityUtil, MySQLUtil, RandomUtil, MySQLUtil） |
+| `io/mycat/util/packet/` | 8 | 8 | ✅ 已迁移 |
+| 新增协议抽象 | ~5 | 4 | ✅ 已创建（AuthPlugin, CapabilityFlags, ServerStatus, ProtocolCodec） |
+| 新增 eddsa fork 源码 | ~10 | 0 | ❗ 延后到 Phase 2+ |
 
 #### 移出 → server（~55 文件）
 
@@ -154,17 +154,17 @@ vertx           → []
 
 #### 移出 → plug（1 文件）
 
-| 包 | 文件数 |
-|---|--------|
-| `org/apache/doris/` (PatternMatcher) | 1 |
+| 包 | 文件数 | 状态 |
+|---|--------|------|
+| `org/apache/doris/` (PatternMatcher) | 1 | ❗ 未执行 |
 
-### 二、hbt（617 → ~475 文件）
+### 二、hbt（617 文件，保持原样）
 
-#### 保留（~475 文件）
+#### 保留（617 文件）
 
 | 包 | 文件数 | 说明 |
 |---|--------|------|
-| `io/mycat/calcite/`（减去 sqlfunction） | 247 | SQL 编译/优化/物理计划核心 |
+| `io/mycat/calcite/`（含 sqlfunction） | 247 + 148 = 395 | SQL 编译/优化/物理计划核心 + SQL 函数实现（因循环依赖保留） |
 | `io/mycat/hbt/` | 60 | HBT 查询语言 |
 | `io/mycat/`（根） | 17 | DRDS 编译入口 |
 | `io/mycat/connectionschedule/` | 6 | 连接调度 |
@@ -454,7 +454,7 @@ Phase（阶段）
 
 | 依赖升级 | 影响文件数 | 风险等级 | 关键风险点 |
 |----------|-----------|---------|----------|
-| ~~Calcite 1.26→1.42 fork merge~~ | ~~61 fork~~ | ~~极高~~ | ✅ 已完成：bridge-first 策略，仅 fork ~18 文件，51 文件已删除 |
+| ~~Calcite 1.26→1.42 fork merge~~ | ~~61 fork~~ | ~~极高~~ | ✅ 已完成：完整源码 fork 策略，calcite-core 1651 文件，hbt 保留 17 bridge 文件 |
 | Vert.x 4.2.5→4.5.14 | ~80+ | 极高 | 大量使用 `impl.*` 内部 API |
 | Arrow 5.0→18.1 | ~38+ | 高 | VectorSchemaRoot 包路径变更 + allocator API 签名变更 |
 | Druid 1.2.6→1.2.28 | ~15 | 中 | 连接池 API 微调，StatFilter 变更 |
@@ -569,7 +569,10 @@ Gate: `mvn compile` 全项目通过
 | 1.3.4 | 移出 Vert.x 补丁 (9) → vertx 模块，Druid 补丁 (7) + sequence (2) → plug | 同上 |
 | 1.3.5 | 级联 import 更新 + 全项目编译 | `mvn compile` 全项目通过 |
 
-#### Milestone 1.4: 函数迁移到 executor（148 文件迁入）
+#### Milestone 1.4: ~~函数迁移到 executor（148 文件迁入）~~ ⏭ 已跳过
+
+> **跳过原因**：hbt 核心类（MycatCalciteSupport, MycatCalciteMySqlNodeVisitor）深度引用 sqlfunction 包，
+> 而 executor 依赖 hbt（不能反向），会造成循环依赖。待 Phase 2+ 通过 SPI 解耦。
 Gate: `mvn compile` 全项目通过
 
 | # | 原子任务 | 验收标准 |
@@ -770,7 +773,7 @@ src/test/resources/
 | **Vert.x 内部 API 不兼容** | **极高** | **极高** | 80+ 文件使用 impl.* 内部 API，升级前逐一确认公开替代方案 |
 | Arrow API 包路径变更 | 高 | 高 | 38+ 文件受影响，逐文件修复 + 编译验证 |
 | Druid 1.2.6→1.2.28 API 变更 | 中 | 中 | 连接池 API 微调，StatFilter 变更 |
-| 模块迁移导致循环依赖 | 中 | 高 | 严格 DAG 约束 + Maven Enforcer 插件 |
+| **模块迁移导致循环依赖** | ~~中~~ ✅已发生 | 高 | 4 处因循环依赖保留原位（sequencemodifier/prototypeserver/sqlfunction/sequence） |
 | MariaDB 协议差异遗漏 | 中 | 高 | 协议兼容性测试套件（TCK） |
 | synchronized → ReentrantLock 引入 Bug | 中 | 中 | 逐文件替换 + 单元测试覆盖 |
 | eddsa fork 安全漏洞 | 低 | 高 | 定期安全审计 + 关注上游替代方案 |

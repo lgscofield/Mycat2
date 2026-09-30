@@ -31,6 +31,11 @@
 
 ### Task 1: 创建 protocol 模块骨架
 
+> **❗ 实施偏差**：下方 pom.xml 示例与实际实现有差异：
+> - parent artifactId: `mycat-parent` → `parent`
+> - 删除了 common 依赖（protocol 改为叶子模块）
+> - 新增依赖：rxjava3, vertx-core, guava, mysql-connector-j（因 swapbuffer 等文件迁入需要）
+
 **Files:**
 - Create: `protocol/pom.xml`
 - Modify: `pom.xml`（根 POM `<modules>` 部分）
@@ -890,11 +895,12 @@ git commit -m "chore: finalize server module restructuring"
 
 ---
 
-## Milestone 1.4: 函数迁移到 executor（148 文件迁入）
+## Milestone 1.4: ~~函数迁移到 executor（148 文件迁入）~~ ⏭ 已跳过
 
-**Gate:** `mvn compile -DskipTests` 全项目通过
+> **跳过原因**：hbt 核心类深度引用 sqlfunction 包（MycatCalciteSupport, MycatCalciteMySqlNodeVisitor 等），
+> 而 executor 依赖 hbt（不能反向），会造成循环依赖。待 Phase 2+ 通过 SPI 解耦。
 
-### Task 26: 移动 sqlfunction/datefunction/ (64 文件) → executor
+### Task 26-30: ⏭ 全部已跳过
 
 **Files:**
 - Move: `hbt/src/main/java/io/mycat/calcite/sqlfunction/datefunction/*.java` (64 files)
@@ -1065,16 +1071,31 @@ git commit -m "chore: finalize function migration - verify clean compilation"
 
 ## Phase 1 完成验证
 
-- [ ] `mvn clean compile -DskipTests` BUILD SUCCESS
-- [ ] protocol 模块 ~105 文件，仅依赖 common, config
-- [ ] calcite-core 模块 ~70 文件，版本 1.42.0-mycat
-- [ ] server 模块 ~250 文件（原 mycat2 重命名）
-- [ ] executor 模块 ~156 文件（含 148 个 SQL 函数）
-- [ ] hbt 模块 ~475 文件（不含 fork 和 sqlfunction）
-- [ ] common 模块 ~185 文件（精简后）
-- [ ] 废弃的 `calcite/` 和 `linq4j/` 目录已删除
-- [ ] 依赖 DAG 无循环
-- [ ] 每个 Task 都有独立的 git commit
+- [x] `mvn clean compile -DskipTests` BUILD SUCCESS
+- [x] protocol 模块 ~71 文件，仅依赖 config（叶子模块）
+- [x] calcite-core 模块 1651 文件，版本 1.42.0-mycat
+- [x] server 模块 ~266 文件（原 mycat2 重命名）
+- [ ] executor 模块 ~8 文件（❗ 148 函数因循环依赖保留在 hbt）
+- [x] hbt 模块 ~617 文件（含 sqlfunction + bridge 文件）
+- [x] common 模块 ~219 文件（精简后）
+- [x] 废弃的 `calcite/` 和 `linq4j/` 目录已删除
+- [x] 依赖 DAG 无循环
+- [x] 每个 Task 都有独立的 git commit
+
+### Phase 1 实施偏差记录
+
+| 偏差项 | 原计划 | 实际结果 | 原因 |
+|---------|--------|---------|------|
+| protocol 依赖方向 | protocol→[common,config] | protocol→[config], common→[protocol,config] | 避免循环依赖 |
+| beans/mysql/packet/ | 迁移到 protocol | 保留 common | 15 文件被 common 深度引用 |
+| sequencemodifier/ | common→server | 保留 common | router 依赖 |
+| prototypeserver/ | hbt→server | 保留 hbt | hbt 内部引用 |
+| SequenceMySQLGenerator | server→plug | 保留 server | datasource→plug 循环 |
+| Vert.x codec patches | server→protocol | 保留 vertx | Vert.x SPI 包路径绑定 |
+| sqlfunction 148文件 | hbt→executor | 保留 hbt | hbt 核心类深度引用 |
+| protocol 文件数 | ~105 | 71 | beans/mysql/packet 保留 common |
+| protocol pom.xml parent | 1.22-release | 1.13-alpha | 计划示例版本号与实际不符 |
+| protocol 依赖 | common,config | config,netty,guava,mysql,rxjava3,vertx,slf4j | 实际依赖链与计划示例不同 |
 
 ## 后续阶段
 

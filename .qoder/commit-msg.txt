@@ -1,8 +1,19 @@
-docs: update spec to reflect Phase 1 execution reality
+docs: align spec and plan with Phase 1 execution reality
 
-Key corrections:
-- Fix dependency DAG: protocol → [config] (leaf module), common → [protocol, config]
-- Mark 4 migrations as skipped with dependency constraint reasons
-- Mark Milestone 1.4 (sqlfunction → executor) as skipped (circular dep)
-- Update file migration summary with actual vs planned counts
-- Add eddsa fork as deferred to Phase 2+
+Spec corrections (8 changes):
+- Module table: protocol ~105→~71, hbt ~475→~617, executor ~156→~8
+- Dependency change table: mark executor migration as skipped
+- Common→protocol table: add plan vs actual with status per package
+- beans/mysql/packet/ (17): marked retained in common (circular dep)
+- Vert.x codec (4): marked retained in vertx (SPI path binding)
+- hbt section: 617 files kept as-is, sqlfunction included (395 calcite files)
+- Milestone 1.4: marked as skipped with circular dependency reason
+- Calcite fork: updated from "~18 files" to "1651 files, 17 bridge"
+- Risk table: circular dependency marked as "已发生" (4 instances)
+- Plug migration: marked as not executed
+
+Plan corrections (3 changes):
+- Task 1: added deviation note for parent artifactId and dependencies
+- Milestone 1.4: marked Tasks 26-30 as all skipped
+- Completion checklist: updated all 10 items with actual values
+- Added comprehensive deviation table (10 entries)
