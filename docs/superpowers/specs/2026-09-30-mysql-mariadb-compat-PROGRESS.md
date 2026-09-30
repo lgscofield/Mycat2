@@ -27,8 +27,11 @@
   而运行时胜出的 `hbt/.../sql/validate/SqlValidatorImpl:1177` 返 SelectScope）。
   **⇒ 板上原写“SqlValidatorImpl 最大、最后做”的排序已被实测推翻：它在 L1 关键路径上，必须最先做**
 - **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ 待与上一条一并裁定顺序
-- **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；25 处 `MYCAT CHANGE` 全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径。**方法论已在实战验证：删影子零适配、黄金基线只出 2 条差异**
-- **下一步**：待定（用户裁）——用 M2-1 同一方法论治 I-DB-1 B 组的 `SqlValidatorImpl`（解锁 L1 结果集），还是先治 D13(example) 让既有冒烟测试能跑
+- **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；27 处 `MYCAT CHANGE`（终审实测，本节原记 25）全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径。**方法论已在实战验证：删影子零适配、黄金基线只出 2 条差异**
+- **下一步**：已裁定（用户 2026-10-01）→ 做 **I-DEBT-3**：设 `SqlValidatorImpl` 为首个归一类。
+  设计已写：`docs/superpowers/specs/2026-10-01-calcite-validator-shadow-removal-design.md`（待用户评审后拆计划）。
+  方案 P1：把 `<=>` 的 BOOLEAN 推导上提到算子自身 → 删 hbt 副本 → fork 1.42 胜出，**fork 保持零 `import io.mycat`**。
+  D13（example，I-DEBT-2）顺延，不阻塞本路径
 - **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子、D1 关闭) → I-DB-1 首个类(SqlValidatorImpl) → L1 拿到 rows → M3**（D13 example 依赖可并行）
 - **最后更新**：2026-10-01（M2-1 交付：影子清零 + 黄金基线对账 + L1 探针入 CI；新登记 L1 结果集受 Calcite 影子阻）
 
@@ -144,3 +147,4 @@
 | 2026-10-01 | I-DEBT-1 | M2-1 交付，改 Evidenced-Done（G1/G2/G6 全过，G4 部分过） | 提交 6020939ca..6d89b6545；账本 `.superpowers/sdd/2026-09-30-druid-shadow-removal/progress.md` |
 | 2026-10-01 | I-DEBT-3（新开） | L1 结果集受 Calcite 影子阻；I-DB-1 的 B 组排序被实测推翻 | `bash ci/verify-l1.sh` 新 jar rc=1，日志 NoSuchMethodError=0、CCE 在 `SqlToRelConverter:735` |
 | 2026-10-01 | I-DEBT-1 | M2-1 整支终审（fresh reviewer）后回写 spec：无代码返工，仅纠正文档事实 + G4 拆为 G4a/G4b | 实测 `git grep -o "MYCAT CHANGE" d9415b55e^ -- "*com/alibaba/druid*"` = 27 行（原写 25）；旧 `MycatOutputVisitor` 内标记 = 0 处；终审重跑 G1 exit=0、G2 3/3、G5 router 15/0/0 + hbt 26/0/23、G6 0 行、G4a 日志计数 0 |
+| 2026-10-01 | I-DEBT-3 | 用户裁三项（仅做 L1 路径必要类 / 先建校验行为黄金基线 / 待移植 >10 条即止损），设计文档已落盘待评审 | `docs/superpowers/specs/2026-10-01-calcite-validator-shadow-removal-design.md`；实测新证：`calcite-core` 内 42 个文件命中 `SqlValidatorImpl`（含自身）、fork 侧该类零 `MYCAT CHANGE`、hbt 副本仅 1 处真定制（`StrictEqualFunction` 强判 BOOLEAN） |
