@@ -41,6 +41,8 @@ NoSuchMethodError: 'void com.alibaba.druid.sql.visitor.SQLASTOutputVisitor.<init
 
 **判定**：影子的差异 = **版本陈旧 + 兼容补丁**，不含任何 Mycat 业务定制。留着它们等于长期手工维护一份 2017 年的 druid。
 
+**改继承的可行性已正面实证**（非假设）：`javap` 得官方 1.2.28 `SQLASTOutputVisitor` 含 `protected final StringBuilder appender`、`protected DbType dbType`、`protected boolean parameterized`、`protected boolean shardingSupport`，均与 `MycatOutputVisitor.java:44-47` 实例初始化块所用字段对应；`ExportParameterVisitorUtils.exportParameter(List<Object>, SQLExpr)` 与 `SQLExprParser(String)`、`SQLHexExpr(String)` 均在官方存在。
+
 ### 1.3 全量清单（12 文件，按类加载危害分类）
 
 **A 组·真影子（官方 1.2.28 存在同名类 → 删除）**
@@ -59,10 +61,12 @@ NoSuchMethodError: 'void com.alibaba.druid.sql.visitor.SQLASTOutputVisitor.<init
 
 | 类 | 位置 | 行数 | 官方是否存在 |
 |---|---|---|---|
-| `MycatOutputVisitor` | `hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/` | 4689（**195 个 `@Override`**） | 否（官方 jar 内 `*Mycat*` 条目 0） |
-| `MycatSQLUtils` | `hbt/src/main/java/com/alibaba/druid/sql/` | 11 | 否 |
-| `MycatSQLEvalVisitorUtils` | hbt 1664 + plug 1661（**跨模块重复**） | — | 否 |
-| `functions.Timestamp` | hbt 35 + plug 35（**跨模块重复**） | 35 | 否（官方 `...visitor.functions` 包内无 `Timestamp.class`） |
+| `MycatOutputVisitor` | `hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/` | 5575（**195 个 `@Override`**） | 否（官方 jar 内 `*Mycat*` 条目 0） |
+| `MycatSQLUtils` | `hbt/src/main/java/com/alibaba/druid/sql/` | 13 | 否 |
+| `MycatSQLEvalVisitorUtils` | hbt 2008 + plug 2005（**跨模块重复**） | — | 否（官方对应类名为 `SQLEvalVisitorUtils`） |
+| `functions.Timestamp` | hbt 39 + plug 39（**跨模块重复**） | 39 | 否（官方 `...visitor.functions` 包内无 `Timestamp.class`，也无 `FunctionManager`） |
+
+上表行数均以 `(Get-Content).Count` 重测修正（先前使用的 `Measure-Object -Line` 计数不可靠）。
 
 B 组不与官方撞名，**没有类加载危险**，只是寄生在 druid 包名下（违背后既定的"业务模块不得出现与上游同包名自定义类"约束）。
 
@@ -94,11 +98,11 @@ B 组不与官方撞名，**没有类加载危险**，只是寄生在 druid 包�
 | `MycatSQLUtils` | `io.mycat.sql.MycatSQLUtils` |
 | `MycatSQLEvalVisitorUtils` | `io.mycat.sql.visitor.MycatSQLEvalVisitorUtils` |
 
-**`functions.Timestamp` 例外——先验生死，再谈搬家**：全仓检索显示该类**只有自引用**（`hbt`/`plug` 两份各自引用自己的 `instance`），无任何业务代码或 druid 注册路径使用它。实施时先确认它是否经官方 `FunctionManager` 的反射/包扫描注册：若确无生效路径，**直接删除，不搬家**（不把死码搬进干净命名空间）；若确有注册路径，才按上表迁入 `io.mycat.sql.visitor.functions.MycatTimestampFunction` 并补上显式注册。
+**`functions.Timestamp` 必须保留——它是活代码，不是死码**：取证推翻了"只有自引用"的初判——`hbt/.../sql/visitor/MycatSQLEvalVisitorUtils.java:138` 有 `functions.put("now", Timestamp.instance)`，即 **Mycat 把官方 `now` 函数换成了自己的 `Timestamp` 实现**（对 `SQLVariantRefExpr` 参数直接取回原始 String，否则抛 `UnsupportedOperationException`）。官方 1.2.28 根本不存在 `Timestamp` 函数类（无 `Timestamp.class`、无 `FunctionManager`）。因此该类必须随 `MycatSQLEvalVisitorUtils` 一同迁移并**保持注册关系不断**。
 
 **例外条款**：若某个类必须访问 druid 的**包级私有**成员（搬迁后编译不过），则不强行搬名，改为留在 druid 包树下、放入独立的 `com.alibaba.druid.<上游子包>.mycat` 子包——**类名保持 `Mycat*` 前缀故永不撞名**。此做法与 calcite 先例一致（`org.apache.calcite.mycat` 包）。裁定依据：优先干净命名，其次保证可编译，绝不用撞名换取访问权限。
 
-**跨模块重复去重**（`MycatSQLEvalVisitorUtils` 有 hbt 1664 / plug 1661 两份）：两份先 `diff`。**完全相同** → 保留 `hbt` 副本（消费方所在模块），删除 `plug` 副本；**有差异** → 逐条差异裁定并记 `Ruling:`，保留被真实调用路径覆盖的那份。A 组的 `SQLIndexDefinition` 两份无需裁定，直接一起删。禁止凭行数猜孰新。
+**跨模块重复去重**（`MycatSQLEvalVisitorUtils` 有 hbt 2008 / plug 2005 两份）：两份先 `diff`。**完全相同** → 保留 `hbt` 副本（消费方所在模块），删除 `plug` 副本；**有差异** → 逐条差异裁定并记 `Ruling:`，保留被真实调用路径覆盖的那份。A 组的 `SQLIndexDefinition` 两份无需裁定，直接一起删。禁止凭行数猜孰新。
 
 ### D3 `MycatOutputVisitor` 改为直接继承官方类
 - `extends com.alibaba.druid.sql.visitor.SQLASTOutputVisitor`（官方）。
@@ -114,9 +118,13 @@ B 组不与官方撞名，**没有类加载危险**，只是寄生在 druid 包�
 | `router/src/main/java/io/mycat/router/function/AutoFunctionFactory.java:21,1181` | `new SQLExprParser(methodExpr)` | 导入不变，实例化官方 1.2.28 `SQLExprParser` |
 | `common/src/main/java/io/mycat/PreparedStatement.java:104,108` | `new SQLHexExpr(s)` | 使用官方 `SQLHexExpr`；确认 `common` 能解析到 druid（当前经传递依赖，需显式核对并在必要时补直接依赖声明） |
 | `hbt/src/main/java/io/mycat/MetadataManager.java:20,683` | `instanceof SQLHexExpr` | 无需改名，随导入解析到官方类 |
-| `hbt/src/main/java/io/mycat/DrdsSql.java` | 使用 `MycatOutputVisitor` | 导入更新为 D2 新包名 |
-| `hbt/.../calcite/executor/MycatInsertExecutor.java`、`hbt/.../vertx/VertxExecuter.java`、`server/.../sqlhandler/dml/SetSQLHandler.java` | 使用 `MycatSQLEvalVisitorUtils`（3 处真实调用，非孤儿） | 导入更新为 D2 新包名 |
-| `server/.../config/MycatRouterConfigOps.java`、`server/.../sqlhandler/ddl/CreateIndexSQLHandler.java` | 使用 `MycatSQLUtils` | 导入更新为 D2 新包名 |
+| `hbt/src/main/java/io/mycat/DrdsSql.java:24` | import `MycatOutputVisitor` | 导入更新为 D2 新包名 |
+| `hbt/src/main/java/io/mycat/vertx/VertxExecuter.java:30`、`server/src/main/java/io/mycat/sqlhandler/dml/SetSQLHandler.java:19` | import `MycatSQLEvalVisitorUtils`（仅此 2 处活调用；`MycatInsertExecutor.java:15` 那行 import 已被注释，不算消费方） | 导入更新为 D2 新包名 |
+| `server/.../config/MycatRouterConfigOps.java:21`、`server/.../sqlhandler/ddl/CreateIndexSQLHandler.java:17` | import `MycatSQLUtils` | 导入更新为 D2 新包名 |
+| `router/src/main/java/io/mycat/router/function/AutoFunctionFactory.java:1181` | `new SQLExprParser(methodExpr)` | **无需改代码**：已实测官方 1.2.28 存在 `SQLExprParser(String)`，删影子后自动解析到官方 |
+| `common/src/main/java/io/mycat/PreparedStatement.java:104,108`、`hbt/src/main/java/io/mycat/MetadataManager.java:683` | `new SQLHexExpr(s)` / `instanceof SQLHexExpr` | **无需改代码**：已实测官方存在 `SQLHexExpr(String)`；仅确认 `common` 能解析到 druid（必要时补直接依赖声明） |
+| `hbt/.../sql/MycatSQLUtils.java:4` | B 组内部互相 import `MycatOutputVisitor` | 随 D2 新包名一同更新 |
+| `hbt/.../sql/visitor/MycatSQLEvalVisitorUtils.java:32` | 通配导入 `com.alibaba.druid.sql.visitor.functions.*` | 保留通配导入取官方函数，另补一行 `io.mycat.sql.visitor.functions.Timestamp` 显式导入以接住 :138 的 `now` 注册 |
 
 ### D5 依赖与构建不动
 `com.alibaba:druid` 保持根 pom `dependencyManagement` 的 `1.2.28` 单一真源，10 个声明 druid 的模块 pom **不改坐标、不引 fork**。本设计不新增 Maven 模块。
@@ -156,8 +164,9 @@ G4 是 M1 验证网挖出的原始缺陷；G4 不过即视为本设计未交付�
 | B 组类依赖 druid 包级私有成员，搬名后编译不过 | D2 受阻 | 走 D2 例外条款（`...druid.*.mycat` 子包），不牺牲正确性 |
 | `SQLExprParser` 官方 1.2.28 解析行为与旧影子不同，影响分片路由 | 路由结果变化 | G2 语料含分片 DDL/DML；G5 跑 router 测试 |
 | `common` 对 druid 仅有传递依赖，删影子后解析不到 | G1 编译失败 | D4 末行已列为核对项，必要时补直接依赖声明 |
-| `functions.Timestamp` 若靠包扫描注册，改名/删除会静默失效 | `TIMESTAMP()` 函数求值行为变化 | D2 已要求先验注册路径再决定删除或迁移；G5 跑 hbt 测试兜底 |
-| 影子中确有未被 `MYCAT CHANGE` 标注的隐性定制 | 静默功能丢失 | D6 基线兜底；G2 差异即线索，逐条裁定 |
+| `functions.Timestamp` 迁移时漏掉 `now` 注册 | `now` 常量折叠行为变化 | D2 已固定其在 `MycatSQLEvalVisitorUtils` 新包下的显式导入；G2 语料含 `now` 参数化折叠用例 |
+| 官方父类字段不够，`MycatOutputVisitor` 改继承后编译不过 | D3 受阻 | 已用 `javap` 预先证实 `appender`/`dbType`/`parameterized`/`shardingSupport` 均为 protected（见 1.2 节）；若仍有缺口，走 D2 例外条款而不是回退到 fork |
+| 影子中确有未被 `MYCAT CHANGE` 标注的隐性定制（已发现一例：`Timestamp` 替换官方 `now`） | 静默功能丢失 | D6 基线兜底；G2 差异即线索，逐条裁定 |
 
 ---
 
