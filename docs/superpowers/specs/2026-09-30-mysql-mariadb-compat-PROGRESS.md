@@ -18,14 +18,19 @@
 
 ## 当前快照（随时看这里 = "进行到哪 / 下一步"）
 
-- **当前里程碑**：M1（验证网）—— ✅ 网已建成；✅ JDK21 构建产出 fat jar；✅ **Mycat 已能在 JDK21 下启动**（修 Calcite 一行，提交 f2118b9df）；⚠ L1 跑绿基线受 D1(druid)/D13(example) 阻塞
+- **当前里程碑**：M2-1（druid 影子清理）—— ✅ 6 个影子文件（5 类）已删、`MycatOutputVisitor` 直接继续官方、抢加载 hack 已移除；✅ JDK21 全链构建绿；✅ **D1 已端到端关闭**（新 jar 服务端日志 `NoSuchMethodError` 次数 0，认证 + Connector/J 会话初始化全过）；⚠ L1 “拿到结果集”被新暴露的 Calcite 影子阻（见下方 I-DEBT-3）
 - **✅ 战果（A 探路）**：修 calcite-core `ConverterRule:114-117`（退上游写法）后，Mycat 启动、Vertx server started、8066 监听、客户端连接过认证建 session
-- **🔴 下一阻碍（网的第2条战果）**：boot 通后 L1 连接期撞 `NoSuchMethodError: druid SQLASTOutputVisitor.<init>(Appendable)`（D1 影子类打架）→ **已立项 M2-1，设计已出 spec，待评审**
-- **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ **M2-2，另出计划**
-- **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；25 处 `MYCAT CHANGE` 全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径
-- **下一步**：等你对 M2-1 spec 的评审意见 → 调 writing-plans 拆实施计划（验收门含 G4：客户端过认证并**真的拿到一条 SQL 的结果集**）
-- **关键路径**：M1(✅建网+boot) → **M2-1 拆 druid 影子（spec 已出待审）→ M2-2 example 依赖 → L1 跑绿** → M3
-- **最后更新**：2026-09-30（M1 收尾；M2-1 取证完成、设计落盘 `docs/superpowers/specs/2026-09-30-druid-shadow-removal-design.md`）
+- **✅ 第2条战果（M2-1 主体）**：druid 影子全除。`git ls-files "*com/alibaba/druid*"` = 0 行；19234 行删除；
+  **零代码适配**即编译通过（spec 第 5 节止损阈值实测 0）；黄金基线 17/17 已对账（#5 移植回 `SEPARATOR`，#16 从报错变正常）
+- **🔴 当前阻碍（网的第4条战果，新发现）**：`bash ci/verify-l1.sh` 在新 jar 上仍 rc=1，原因不是 druid 而是
+  `ClassCastException: SelectScope cannot be cast to MeasureScope`（`calcite-core/.../SqlToRelConverter:735` 无条件强转，
+  而运行时胜出的 `hbt/.../sql/validate/SqlValidatorImpl:1177` 返 SelectScope）。
+  **⇒ 板上原写“SqlValidatorImpl 最大、最后做”的排序已被实测推翻：它在 L1 关键路径上，必须最先做**
+- **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ 待与上一条一并裁定顺序
+- **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；25 处 `MYCAT CHANGE` 全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径。**方法论已在实战验证：删影子零适配、黄金基线只出 2 条差异**
+- **下一步**：待定（用户裁）——用 M2-1 同一方法论治 I-DB-1 B 组的 `SqlValidatorImpl`（解锁 L1 结果集），还是先治 D13(example) 让既有冒烟测试能跑
+- **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子、D1 关闭) → I-DB-1 首个类(SqlValidatorImpl) → L1 拿到 rows → M3**（D13 example 依赖可并行）
+- **最后更新**：2026-10-01（M2-1 交付：影子清零 + 黄金基线对账 + L1 探针入 CI；新登记 L1 结果集受 Calcite 影子阻）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
@@ -39,7 +44,8 @@
 | I-CI-2 | 多库服务矩阵 | T-CI | M1 | WIP | I-CI-1 | 7版本 matrix 已写入 workflow；待 CI 实跑 pass/fail |
 | I-CI-3 | 兼容性 harness | T-CI | M1 | WIP | I-CI-1 | ConnectionSmokeTest 已建；待跑绿 |
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
-| I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | REVIEW | I-CI-1 | 设计已出：`2026-09-30-druid-shadow-removal-design.md`，待评审 |
+| I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | Evidenced-Done | I-CI-1 | G1 `mvn -B install '-Dmaven.test.skip=true' -pl server -am` exit=0；G2 `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest'` → 3/3 pass（基线 17/17）；G6 `git ls-files "*com/alibaba/druid*"` → 空输出；G5 `mvn -B test -pl router,executor,hbt` → router 15/0/0、hbt 26/0/23，与开工基准逐条对齐（多出的 3 条是本计划 golden 全绿；executor 在 hbt 失败后被跳过，基准本就 0 条）；G4 拆成两半：**认证+会话初始化已过**（新 jar 日志 NoSuchMethodError=0），**结果集未过** → 该未过项不属于本影子系统，已另开 I-DEBT-3 |
+| I-DEBT-3 | L1 拿到一条 SQL 的结果集 | T-DEBT | M2 | WIP | I-DB-1(B组 SqlValidatorImpl) | 未过项：`bash ci/verify-l1.sh` rc=1，`ClassCastException: SelectScope → MeasureScope`（`calcite-core/.../SqlToRelConverter:735` vs 运行时胜出的 `hbt/.../SqlValidatorImpl:1177`）；已过项：探针 RED 能精确复现并已消除 D1（commit 6d89b6545） |
 | I-DEBT-2 | example 模块依赖/测试修复 | T-DEBT | M2 | TODO | I-DEBT-1 | ~40 个坏测试，阻塞 ConnectionSmokeTest |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
 | I-VE-2 | EOF 能力位连接级化 | T-VER | M2 | TODO | I-VE-1 | |
@@ -70,7 +76,7 @@
 ## 里程碑勾选板
 
 - [ ] **M1 验证网**：I-CI-1 ☐ I-CI-2 ☐ I-CI-3 ☐ （I-CI-4 属 M4 前置）
-- [ ] **M2 L1 连接**：I-VE-1/2/3 ☐ I-AU-1/2/3/5 ☐
+- [ ] **M2 L1 连接**：I-DEBT-1 ☑（druid 影子已清）I-DEBT-3 ☐（结果集受 Calcite 影子阻）I-VE-1/2/3 ☐ I-AU-1/2/3/5 ☐
 - [ ] **M3 L2 工具**：I-ME-1/2/3/4 ☐（mysqldump 往返全版本绿）
 - [ ] **M4 L3 迁移**：I-CI-4 ☐ I-RP-1/2/3 ☐
 - [ ] **M5 生产就绪**：I-PR-1/2/3 ☐
@@ -96,6 +102,10 @@
 ## I-DB-1 遮蔽类归一子清单（T-DEBT，逐类回合）
 
 > 实测 hbt 下 `org.apache.calcite.*` 共 17 类，分两组。（开工前已 `git ls-files` 清点，非估算）
+>
+> 口径校对（M2-1 交付时补）：按“calcite-core 里是否存在同路径副本”数出来是 **12** 个 =
+> 下面 B 组 11 个真遮蔽 + A 组的 `mycat/MycatBuiltInMethodImpl`（它是 Mycat 自研，但 fork 里也带了一份，
+> 故两边同路径）。所以 B 组“逐类归一”是 11 件，而“需先去重”的同 FQCN 对是 12 对。
 
 **A. Mycat 自研寄生 calcite 包（6）——只需改包名，低风险，可先行：**
 
@@ -122,7 +132,7 @@
 | rel/metadata/RelMdUniqueKeys | TODO | |
 | rel/metadata/RelMdUtil | TODO | |
 | rex/RexLiteral | TODO | |
-| sql/validate/SqlValidatorImpl | TODO | 6124 行最大，最后做 |
+| sql/validate/SqlValidatorImpl | 🔴 BLOCKING-L1 | 实测：它不在“最后做”的位置——它在 L1 关键路径上。hbt 副本 6723 行（旧 Calcite）vs calcite-core 8782 行；:1177 `getMeasureScope` 返 `scopes.get(select)`（SelectScope）并注有“Calcite 1.42 added MEASURE clause; not yet used in hbt”，而 calcite-core :1554 返 `getScope(select, Clause.MEASURE)`且 :735 无条件强转 MeasureScope → 客户端 `SELECT 1` 直接 CCE |
 
 ---
 
@@ -131,3 +141,5 @@
 | 日期 | 项 | 动作 | 证据 |
 |---|---|---|---|
 | 2026-09-30 | — | 看板初始化，全 TODO | 本文件 |
+| 2026-10-01 | I-DEBT-1 | M2-1 交付，改 Evidenced-Done（G1/G2/G6 全过，G4 部分过） | 提交 6020939ca..6d89b6545；账本 `.superpowers/sdd/2026-09-30-druid-shadow-removal/progress.md` |
+| 2026-10-01 | I-DEBT-3（新开） | L1 结果集受 Calcite 影子阻；I-DB-1 的 B 组排序被实测推翻 | `bash ci/verify-l1.sh` 新 jar rc=1，日志 NoSuchMethodError=0、CCE 在 `SqlToRelConverter:735` |
