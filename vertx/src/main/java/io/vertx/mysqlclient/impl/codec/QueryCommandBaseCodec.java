@@ -30,7 +30,8 @@ import io.vertx.sqlclient.impl.command.QueryCommandBase;
 
 import java.util.stream.Collector;
 
-import static io.vertx.mysqlclient.impl.protocol.Packets.*;
+import static io.vertx.mysqlclient.impl.protocol.Packets.OkPacket;
+import static io.vertx.mysqlclient.impl.protocol.Packets.ServerStatusFlags;
 
 abstract class QueryCommandBaseCodec<T, C extends QueryCommandBase<T>> extends CommandCodec<Boolean, C> {
 
@@ -95,7 +96,8 @@ abstract class QueryCommandBaseCodec<T, C extends QueryCommandBase<T>> extends C
   protected void handleResultsetColumnDefinitionsDecodingCompleted() {
     commandHandlerState = CommandHandlerState.HANDLING_ROW_DATA_OR_END_PACKET;
     Collector<Row, ?, T> collector = cmd.collector();
-    MySQLRowDesc mySQLRowDesc = new MySQLRowDesc(columnDefinitions, format);
+    // MYCAT CHANGE: Vert.x 4.5.14 MySQLRowDesc constructor is private, use factory method
+    MySQLRowDesc mySQLRowDesc = MySQLRowDesc.create(columnDefinitions, format);
     if(collector instanceof MysqlCollector){
       ((MysqlCollector) collector).onColumnDefinitions(mySQLRowDesc);
     }
@@ -171,11 +173,11 @@ abstract class QueryCommandBaseCodec<T, C extends QueryCommandBase<T>> extends C
   protected void handleAllResultsetDecodingCompleted() {
     CommandResponse<Boolean> response;
     if (this.failure != null) {
-      response = CommandResponse.failure(this.failure);
+      // MYCAT CHANGE: Vert.x 4.5.14 completionHandler removed from CommandCodec, use cmd.fail/complete
+      cmd.fail(this.failure);
     } else {
-      response = CommandResponse.success(this.result);
+      cmd.complete(io.vertx.core.Future.succeededFuture(this.result));
     }
-    completionHandler.handle(response);
   }
 
   private int decodeColumnCountPacketPayload(ByteBuf payload) {

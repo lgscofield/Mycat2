@@ -1,4 +1,4 @@
-BuildTime  2026-09-30 02:15:15
+BuildTime  2026-09-30 02:31:21
 GitVersion   {1}
 MavenVersion 1.22-release
 GitUrl https://github.com/MyCATApache/Mycat2.git

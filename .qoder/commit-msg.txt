@@ -1,8 +1,11 @@
-refactor: move hint/ ratelimiter/ sql/ from common to server
+refactor: move Vert.x patches and Druid patches out of server
 
-Task 20: Move hint/ (48 files) from common to server
-Task 21: Move ratelimiter/ (4 files) + sql/ (1 file) from common to server
-Task 22: prototypeserver/ stays in hbt (hbt references it, circular dep)
-  - sequencemodifier/ stays in common (router depends on it via common)
+Task 23: Move Vert.x patches (9 files) from server to vertx module
+- Trace, TraceContext, TraceSpan, MySQLRepository, etc.
+- QueryCommandBaseCodec (server version replaces vertx version)
+- FutureImpl, PromiseImpl (Vert.x future internals)
 
-Package names unchanged — only physical file location moves between modules.
+Task 24: Move Druid patches (7 files) from server to plug module
+- SQLIndexDefinition, SQLHexExpr, SQLExprParser, etc.
+- Sequence generators stay in server (SequenceMySQLGenerator depends on
+  datasource which depends on plug — circular dep prevents move)
