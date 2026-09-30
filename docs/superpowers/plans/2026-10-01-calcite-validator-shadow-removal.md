@@ -17,8 +17,9 @@
 - **本轮只删一类**：`hbt/src/main/java/org/apache/calcite/sql/validate/SqlValidatorImpl.java`。其余 11 个同 FQCN 副本、A 组改包名类、`example` 坏测试、`hbt` 既有 23 个 `ColumnMappingTest` error 全部不在本轮（spec §5）。
 - **新测试必须 JUnit 5**（`org.junit.jupiter.api`）。实测：仓库无 `junit-vintage-engine`，JUnit 4 测试静默 `Tests run: 0`（`DruidOutputGoldenTest:29-30` 已记此坑）。
 - **状态只允许 `Evidenced-Done`**：每个门的判定必须当场跑命令并贴原始输出摘要；禁止凭 commit message 或本计划文字标 Done。
-- **账本**：`.superpowers/sdd/2026-10-01-calcite-validator-shadow/progress.md`，每步实测（含 RED/GREEN 原文摘要）写进去。该目录被 `.superpowers/sdd/.gitignore`（内容 `*`）整体忽略，**不会进提交**，这是有意的。
+- **账本**（SDD workspace）：`.superpowers/sdd/2026-10-01-calcite-validator-shadow-removal/progress.md`，每步实测（含 RED/GREEN 原文摘要）写进去。brief/report/review-package 也落同一目录。该目录被 `.superpowers/sdd/.gitignore`（内容 `*`）整体忽略，**不会进提交**，这是有意的。
 - **提交时排除** `server/src/main/resources/version.txt`（每次构建改 `BuildTime` 弄脏）与 `.qoder/skills/*`。
+- **bash 环境事实**：本机的 `bash` 是 WSL（`uname -s` → Linux，cwd 映射为 `/mnt/d/Workspaces/IdeaProjects/Mycat2`），且 WSL 自带 JDK 21（`/usr/bin/java`）。`ci/verify-l1.sh` 是 LF，能直接跑；但 `.qoder/skills/subagent-driven-development/scripts/*` 是 CRLF，需先清成 LF 副本再跑（本项目已放 `target/sdd/`）。
 - **止损闸门**：三方 diff 判为"真定制且 fork 无对应能力"的条数 **> 10** → 停止并回报用户，回退 spec §4.6 的 P2；不允许"边删边猜"。
 
 ## 环境实测事实（写死，省得执行者重踩）
@@ -279,6 +280,10 @@ Expected: FAIL，报告 1 个候选孤儿（名字就是 `vliidateLiteralBogus`�
 然后撤销临时改动，同命令再跑一次。
 Expected: PASS，0 候选。两次原始输出都入账本——这才叫证明过网有效。
 
+**本步出口条件**（Step 7 用 `git add -A hbt/src`，残留会被一并提交）：撤销后必须跑
+`git diff --stat hbt/src/main/java/io/mycat/calcite/MycatSqlValidator.java` 与
+`git grep -n "vliidateLiteralBogus" -- hbt/src`，两者都必须空。不空就不准往下走。
+
 - [ ] **Step 3: 删副本**
 
 ```bash
@@ -399,8 +404,8 @@ git commit -m "fix(hbt): 解锁 L1 结果集路径（I-DEBT-3 Task 6, G4b）"
 
 - [ ] **Step 1: G5 回归**
 
-Run: `$env:JAVA_HOME="D:\Program Files\BellSoft\LibericaJDK-21-Full"; mvn -B test -pl router,executor,hbt`
-Expected: 相对开工基准（router 15/0/0、hbt 26/0/23）不新增失败。既有 23 个 error 是 `RelBuilder.transientScan` NPE，另案；**若本轮之后数字变了，必须逐条点名**（TDD 要求：跑过的红不能靠省略写成绿）。
+Run: `$env:JAVA_HOME="D:\Program Files\BellSoft\LibericaJDK-21-Full"; mvn -B test -pl router,executor,hbt -Dmaven.test.failure.ignore=true`
+Expected: **退出码不是判据**（既有 23 个 error 会让 rc≠0），加 `-Dmaven.test.failure.ignore=true` 是为了让三个模块的汇总全部打印。判据是三项数字不劣于基准（router 15/0/0、hbt 26/0/23）。既有 23 个 error 是 `RelBuilder.transientScan` NPE，另案；**若本轮之后数字变了，必须逐条点名**（TDD 要求：跑过的红不能靠省略写成绿）。
 
 - [ ] **Step 2: 摘掉软门**
 
