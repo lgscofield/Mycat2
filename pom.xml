@@ -91,6 +91,7 @@
     <openhft-compiler.version>2.4.1</openhft-compiler.version>
     <commons-csv.version>1.9.0</commons-csv.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-codec.version>1.16.0</commons-codec.version>
     <commons-io.version>2.15.0</commons-io.version>
     <hppc.version>0.9.0</hppc.version>
     <reflections.version>0.10</reflections.version>
@@ -555,6 +556,11 @@
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons-codec.version}</version>
       </dependency>
       <dependency>
         <groupId>com.carrotsearch</groupId>
