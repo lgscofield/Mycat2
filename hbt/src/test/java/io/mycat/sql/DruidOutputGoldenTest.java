@@ -24,7 +24,7 @@ import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
  * druid 影子类删除前后的 SQL 序列化黄金基线（spec 2026-09-30-druid-shadow-removal D6）。
  *
  * 语料逐条走 MycatSQLUtils.toString(parse(sql))，输出与 druid-output-baseline.txt 对账。
- * -Dgolden.update=true 时改为重写基线，并断言 visitor 实现来自 plug 影子（采集锚点）。
+ * -Dgolden.update=true 时改为重写基线，并按 -Dgolden.from 断言实现来源（plug 影子 / 官方 druid）。
  *
  * 用 JUnit 5 而非本模块既有的 JUnit 4：仓库无 junit-vintage-engine，JUnit 4 测试
  * 实测 Tests run: 0（静默不跑），量不到的门不成门。见账本 Task 1 Ruling。
@@ -100,8 +100,17 @@ public class DruidOutputGoldenTest {
 			String visitorFrom = SQLASTOutputVisitor.class.getProtectionDomain().getCodeSource().getLocation()
 					.toString();
 			System.out.println("visitor from " + visitorFrom);
-			Assertions.assertTrue(visitorFrom.contains("plug") && !visitorFrom.contains("druid-1.2.28.jar"),
-					"采集基线时必须由 plug 影子胜出，实际来源：" + visitorFrom);
+			// 采集锚点：基线必须说清它是从哪份实现取的值，否则对账失去意义。
+			// 影子删除前（Task 1）用 -Dgolden.from=plug，删除后（Task 4 只余官方）用 official（默认）。
+			// 不声明就默认为 official，防止日后重采集时影子又悄悄胜出。
+			String expectFrom = System.getProperty("golden.from", "official");
+			if ("plug".equals(expectFrom)) {
+				Assertions.assertTrue(visitorFrom.contains("plug") && !visitorFrom.contains("druid-1.2.28.jar"),
+						"采集基线时必须由 plug 影子胜出，实际来源：" + visitorFrom);
+			} else {
+				Assertions.assertTrue(visitorFrom.contains("druid-1.2.28.jar"),
+						"采集基线时必须由官方 druid 1.2.28 胜出，实际来源：" + visitorFrom);
+			}
 			try (PrintWriter writer = new PrintWriter(
 					new OutputStreamWriter(new FileOutputStream(BASELINE), StandardCharsets.UTF_8))) {
 				for (int i = 0; i < corpus.size(); i++) {
@@ -134,6 +143,20 @@ public class DruidOutputGoldenTest {
 		if (!diffs.isEmpty()) {
 			Assertions.fail(diffs.size() + " 条基线差异：\n" + String.join("\n", diffs));
 		}
+	}
+
+	/**
+	 * 差分探针：黄金基线 #5 显示删影子后官方 visitor 路径不打印 `SEPARATOR`。
+	 * 实测根因：本类原方法 `visitAggreateRest`（拼写少一个 a）只在影子的同名钩子下才会被调用，
+	 * 影子一删就成了孤儿方法，`SEPARATOR` 随之丢失（非默认分隔符也一样丢）。
+	 * Mycat 分片改写后要把 SQL 文本下发给后端，丢分隔符会改变 GROUP_CONCAT 结果，
+	 * 属于真语义回归而非“省略默认值”，因此裁定“需要移植”（见账本 Task 4 Golden 条目）。
+	 */
+	@Test
+	public void groupConcatNonDefaultSeparatorIsPreserved() {
+		String rendered = render("SELECT GROUP_CONCAT(name SEPARATOR '|') FROM t1 GROUP BY id");
+		System.out.println("groupconcat probe: <" + rendered + ">");
+		Assertions.assertTrue(rendered.contains("SEPARATOR"), "官方丢了非默认分隔符：" + rendered);
 	}
 
 	/**

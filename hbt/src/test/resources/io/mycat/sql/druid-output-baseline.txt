@@ -13,5 +13,5 @@
 13	UPDATE t1\nSET name = 'y'\nWHERE id = 1
 14	DELETE FROM t1\nWHERE id IN (1, 2)
 15	SELECT *\nFROM t1\nWHERE id = ?\n\tAND name = ?
-16	!!ERR!! java.lang.NoSuchMethodError: 'void com.alibaba.druid.sql.parser.SQLExprParser.parseAssignItems(java.util.List, com.alibaba.druid.sql.ast.SQLObject, boolean)'
+16	SET autocommit = 1, NAMES utf8mb4
 17	SELECT *\nFROM t1\n\tJOIN t2 ON t1.id = t2.id\nWHERE t2.x > 5

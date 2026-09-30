@@ -4004,14 +4004,14 @@ public class MycatOutputVisitor extends SQLASTOutputVisitor implements MySqlASTV
         return false;
     }
 
-    protected void visitAggreateRest(SQLAggregateExpr aggregateExpr) {
-        {
-            SQLOrderBy value = aggregateExpr.getOrderBy();
-            if (value != null) {
-                print(' ');
-                ((SQLObject) value).accept(this);
-            }
-        }
+    // MYCAT CHANGE: Druid 1.2.28 将聚合函数的方言尾缀拆到了 MySqlOutputVisitor.visitAggregateRest，
+    // 基类 SQLASTOutputVisitor.visitAggregateRest(:2103) 只打 WITHIN GROUP / ORDER BY / LIMIT，不打 SEPARATOR。
+    // 原先本类这个钩子名叫 visitAggreateRest（少一个 a），与 plug 影子基类的拼写一致因而被影子调用；
+    // M2-1 删除影子后它不再是任何方法的覆写，成了永不被调用的孤儿方法，GROUP_CONCAT 的 SEPARATOR 随之丢失
+    // （黄金基线 #5，账本 Task 4）。改为正确拼写 + @Override，其余部分交回官方以免重复实现 WITHIN GROUP/LIMIT。
+    @Override
+    protected void visitAggregateRest(SQLAggregateExpr aggregateExpr) {
+        super.visitAggregateRest(aggregateExpr);
         {
             Object value = aggregateExpr.getAttribute("SEPARATOR");
             if (value != null) {
