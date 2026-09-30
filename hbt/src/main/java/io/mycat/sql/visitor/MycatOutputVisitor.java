@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.druid.sql.dialect.mysql.visitor;
+package io.mycat.sql.visitor;
 
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.ast.*;
@@ -27,6 +27,9 @@ import com.alibaba.druid.sql.dialect.mysql.ast.expr.*;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateTableStatement.TableSpaceOption;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlCreateUserStatement.UserSpecification;
+// MYCAT CHANGE: 本类已从 com.alibaba.druid.sql.dialect.mysql.visitor 搬到 io.mycat.sql.visitor（M2-1 D2），
+// 原先靠同包隐式可见的 MySqlASTVisitor 等接口必须显式导入。
+import com.alibaba.druid.sql.dialect.mysql.visitor.*;
 import com.alibaba.druid.sql.visitor.ExportParameterVisitorUtils;
 import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
 import com.alibaba.druid.sql.visitor.VisitorFeature;

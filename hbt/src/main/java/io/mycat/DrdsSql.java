@@ -21,7 +21,7 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLCommentHint;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.druid.sql.dialect.mysql.visitor.MycatOutputVisitor;
+import io.mycat.sql.visitor.MycatOutputVisitor;
 import io.mycat.calcite.MycatHint;
 import io.mycat.calcite.spm.Constraint;
 import io.mycat.calcite.spm.Plan;

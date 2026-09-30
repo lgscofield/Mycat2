@@ -14,9 +14,10 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.alibaba.druid.sql.MycatSQLUtils;
+import io.mycat.sql.MycatSQLUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
+import io.mycat.sql.visitor.MycatSQLEvalVisitorUtils;
 import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
 
 /**
@@ -128,5 +129,21 @@ public class DruidOutputGoldenTest {
 						+ "> actual=<" + encode(actual) + ">");
 			}
 		}
+	}
+
+	/**
+	 * Mycat 把官方 `now` 函数换成自造的 Timestamp 实现（MycatSQLEvalVisitorUtils:138 的
+	 * functions.put("now", Timestamp.instance)）。搬迁时漏接这个注册会让 now 的常量折叠
+	 * 静默回退到官方行为，故单独钉住。
+	 */
+	@Test
+	public void nowFunctionIsMycatTimestampNotOfficial() throws Exception {
+		java.lang.reflect.Field field = MycatSQLEvalVisitorUtils.class.getDeclaredField("functions");
+		field.setAccessible(true);
+		@SuppressWarnings("unchecked")
+		java.util.Map<String, Object> functions = (java.util.Map<String, Object>) field.get(null);
+		Object now = functions.get("now");
+		Assertions.assertNotNull(now, "functions 里没有 now 的注册");
+		Assertions.assertEquals("io.mycat.sql.visitor.functions.Timestamp", now.getClass().getName());
 	}
 }

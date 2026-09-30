@@ -27,7 +27,7 @@ import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
-import com.alibaba.druid.sql.visitor.MycatSQLEvalVisitorUtils;
+import io.mycat.sql.visitor.MycatSQLEvalVisitorUtils;
 import com.google.common.collect.ImmutableList;
 import io.mycat.*;
 import io.mycat.SimpleColumnInfo.Type;

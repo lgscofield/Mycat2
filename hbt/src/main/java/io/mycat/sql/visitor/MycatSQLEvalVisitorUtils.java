@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.druid.sql.visitor;
+package io.mycat.sql.visitor;
 
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.FastsqlException;
@@ -29,7 +29,13 @@ import com.alibaba.druid.sql.dialect.db2.visitor.DB2EvalVisitor;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlEvalVisitorImpl;
 import com.alibaba.druid.sql.dialect.oracle.visitor.OracleEvalVisitor;
 import com.alibaba.druid.sql.dialect.postgresql.visitor.PGEvalVisitor;
+// MYCAT CHANGE: 本类已从 com.alibaba.druid.sql.visitor 搬到 io.mycat.sql.visitor（M2-1 D2），
+// 原先靠同包隐式可见的 druid visitor 类必须显式导入。
+import com.alibaba.druid.sql.visitor.*;
 import com.alibaba.druid.sql.visitor.functions.*;
+// MYCAT CHANGE: Mycat 自造的 Timestamp 经 functions.put("now", Timestamp.instance) 替掉官方 now（见 :138）。
+// 单类导入优先于 on-demand 导入，所以这里的 Timestamp 仍然解析到 Mycat 版本。
+import io.mycat.sql.visitor.functions.Timestamp;
 import com.alibaba.druid.util.HexBin;
 import com.alibaba.druid.util.Utils;
 import com.alibaba.druid.wall.spi.WallVisitorUtils;
@@ -42,7 +48,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.alibaba.druid.sql.visitor.SQLEvalVisitor.*;
+import static com.alibaba.druid.sql.visitor.SQLEvalVisitor.EVAL_ERROR;
+import static com.alibaba.druid.sql.visitor.SQLEvalVisitor.EVAL_EXPR;
+import static com.alibaba.druid.sql.visitor.SQLEvalVisitor.EVAL_VALUE;
+import static com.alibaba.druid.sql.visitor.SQLEvalVisitor.EVAL_VALUE_NULL;
 
 public class MycatSQLEvalVisitorUtils {
 

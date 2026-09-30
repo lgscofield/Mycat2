@@ -14,7 +14,7 @@
  */
 package io.mycat.sqlhandler.ddl;
 
-import com.alibaba.druid.sql.MycatSQLUtils;
+import io.mycat.sql.MycatSQLUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLIndexDefinition;
 import com.alibaba.druid.sql.ast.statement.SQLCreateIndexStatement;

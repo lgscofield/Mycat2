@@ -16,7 +16,7 @@ package io.mycat.sqlhandler.dml;
 
 import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.ast.expr.*;
-import com.alibaba.druid.sql.visitor.MycatSQLEvalVisitorUtils;
+import io.mycat.sql.visitor.MycatSQLEvalVisitorUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.statement.SQLAssignItem;

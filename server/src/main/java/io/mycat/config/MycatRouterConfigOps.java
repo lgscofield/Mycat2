@@ -18,7 +18,7 @@ import cn.mycat.vertx.xa.MySQLManager;
 import cn.mycat.vertx.xa.XaLog;
 import cn.mycat.vertx.xa.impl.LocalXaMemoryRepositoryImpl;
 import cn.mycat.vertx.xa.impl.XaLogImpl;
-import com.alibaba.druid.sql.MycatSQLUtils;
+import io.mycat.sql.MycatSQLUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLIndexDefinition;

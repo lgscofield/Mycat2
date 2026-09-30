@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.druid.sql.visitor.functions;
+package io.mycat.sql.visitor.functions;
 
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.expr.SQLMethodInvokeExpr;
 import com.alibaba.druid.sql.ast.expr.SQLVariantRefExpr;
 import com.alibaba.druid.sql.visitor.SQLEvalVisitor;
+// MYCAT CHANGE: 本类已从 com.alibaba.druid.sql.visitor.functions 搬到 io.mycat.sql.visitor.functions（M2-1 D2），
+// 官方 Function 接口必须显式导入。
+import com.alibaba.druid.sql.visitor.functions.Function;
 
 
 public class Timestamp implements Function {
