@@ -66,7 +66,7 @@
     <mysql.connector.version>9.3.0</mysql.connector.version>
     <mariadb.connector.version>3.5.3</mariadb.connector.version>
     <kafka.version>4.0.0</kafka.version>
-    <clickhouse.version>0.3.2</clickhouse.version>
+    <clickhouse.version>0.7.2</clickhouse.version>
     <oshi.version>6.8.2</oshi.version>
     <ehcache.version>3.10.8</ehcache.version>
 
@@ -626,7 +626,7 @@
         <version>${jooq.version}</version>
       </dependency>
       <dependency>
-        <groupId>ru.yandex.clickhouse</groupId>
+        <groupId>com.clickhouse</groupId>
         <artifactId>clickhouse-jdbc</artifactId>
         <version>${clickhouse.version}</version>
       </dependency>
@@ -848,20 +848,6 @@
   </repositories>
 
   <build>
-    <!--<resources>-->
-    <!--<resource>-->
-    <!--<directory>src/main/resources</directory>-->
-    <!--<excludes>-->
-    <!--<exclude>**/.svn/**</exclude>-->
-    <!--</excludes>-->
-    <!--</resource>-->
-    <!--<resource>-->
-    <!--<directory>${basedir}</directory>-->
-    <!--<includes>-->
-    <!--<include>${version.file}</include>-->
-    <!--</includes>-->
-    <!--</resource>-->
-    <!--</resources>-->
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
@@ -870,79 +856,66 @@
         </excludes>
       </testResource>
     </testResources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.1</version>
+          <configuration>
+            <source>21</source>
+            <target>21</target>
+            <encoding>UTF-8</encoding>
+            <compilerArgs>
+              <arg>--add-exports</arg>
+              <arg>java.base/sun.nio.ch=ALL-UNNAMED</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>4.9.3.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>3.1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.3</version>
+          <configuration>
+            <forkCount>1</forkCount>
+            <reuseForks>true</reuseForks>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.7.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.1</version>
-        <configuration>
-          <source>21</source>
-          <target>21</target>
-          <encoding>UTF-8</encoding>
-          <compilerArgs>
-            <arg>--add-exports</arg>
-            <arg>java.base/sun.nio.ch=ALL-UNNAMED</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-
-      <!--<plugin>-->
-      <!--<groupId>org.apache.maven.plugins</groupId>-->
-      <!--<artifactId>maven-source-plugin</artifactId>-->
-      <!--<version>2.1.2</version>-->
-      <!--<configuration>-->
-      <!--<attach>true</attach>-->
-      <!--</configuration>-->
-      <!--<executions>-->
-      <!--<execution>-->
-      <!--<id>attach-sources</id>-->
-      <!--<goals>-->
-      <!--<goal>jar-no-fork</goal>-->
-      <!--</goals>-->
-      <!--</execution>-->
-      <!--</executions>-->
-      <!--</plugin>-->
-      <!--<plugin>-->
-      <!--<groupId>org.apache.maven.plugins</groupId>-->
-      <!--<artifactId>maven-jar-plugin</artifactId>--><!--<version>3.1.2</version>-->
-      <!--<configuration>-->
-      <!--<excludes>-->
-      <!--<exclude>**/.svn/**</exclude>-->
-      <!--</excludes>-->
-      <!--</configuration>-->
-      <!--<executions>-->
-      <!--<execution>-->
-      <!--<goals>-->
-      <!--<goal>test-jar</goal>-->
-      <!--</goals>-->
-      <!--</execution>-->
-      <!--</executions>-->
-      <!--</plugin>-->
-      <plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>3.1.11</version>
-        <dependencies>
-          <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
-          <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs</artifactId>
-            <version>4.0.0-beta2</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>2.5.2</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.3</version>
-        <configuration>
-           <forkMode>once</forkMode>
-        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -6,7 +6,7 @@
 
 **Architecture:** 在根 POM 中引入 `<pluginManagement>` 统一管理所有插件版本和基础配置，子模块不再重复声明版本号。同时将 ClickHouse JDBC 驱动从已废弃的 `ru.yandex.clickhouse` 迁移到官方新坐标 `com.clickhouse`。
 
-**Tech Stack:** Maven 3.9+, JDK 21, ClickHouse JDBC 0.7.3
+**Tech Stack:** Maven 3.9+, JDK 21, ClickHouse JDBC 0.7.2
 
 ## Global Constraints
 
@@ -39,7 +39,7 @@
 
 **变更详情:**
 
-1. 根 POM `<properties>` 中 `clickhouse.version` 从 `0.3.2` 改为 `0.7.3`
+1. 根 POM `<properties>` 中 `clickhouse.version` 从 `0.3.2` 改为 `0.7.2`
 2. 根 POM `<dependencyManagement>` 中 clickhouse-jdbc 的 `<groupId>` 从 `ru.yandex.clickhouse` 改为 `com.clickhouse`
 3. `datasource/pom.xml` 中 clickhouse-jdbc 的 `<groupId>` 从 `ru.yandex.clickhouse` 改为 `com.clickhouse`
 4. `server/pom.xml` 中 clickhouse-jdbc 的 `<groupId>` 从 `ru.yandex.clickhouse` 改为 `com.clickhouse`
