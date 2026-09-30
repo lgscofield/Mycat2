@@ -44,7 +44,7 @@
 | I-CI-2 | 多库服务矩阵 | T-CI | M1 | WIP | I-CI-1 | 7版本 matrix 已写入 workflow；待 CI 实跑 pass/fail |
 | I-CI-3 | 兼容性 harness | T-CI | M1 | WIP | I-CI-1 | ConnectionSmokeTest 已建；待跑绿 |
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
-| I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | Evidenced-Done | I-CI-1 | G1 `mvn -B install '-Dmaven.test.skip=true' -pl server -am` exit=0；G2 `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest'` → 3/3 pass（基线 17/17）；G6 `git ls-files "*com/alibaba/druid*"` → 空输出；G5 `mvn -B test -pl router,executor,hbt` → router 15/0/0、hbt 26/0/23，与开工基准逐条对齐（多出的 3 条是本计划 golden 全绿；executor 在 hbt 失败后被跳过，基准本就 0 条）；G4 拆成两半：**认证+会话初始化已过**（新 jar 日志 NoSuchMethodError=0），**结果集未过** → 该未过项不属于本影子系统，已另开 I-DEBT-3 |
+| I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | Evidenced-Done | I-CI-1 | G1 `mvn -B install '-Dmaven.test.skip=true' -pl server -am` exit=0；G2 `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest'` → 3/3 pass（基线 17/17）；G6 `git ls-files "*com/alibaba/druid*"` → 空输出；G5 `mvn -B test -pl router,executor,hbt` → router 15/0/0、hbt 26/0/23，与开工基准逐条对齐（多出的 3 条是本计划 golden 全绿；executor 在 hbt 失败后被跳过，基准本就 0 条）；G4 已按根因归属拆为两行并回写 spec 第 3 节：**G4a 认证+会话初始化已过**（新 jar 日志 NoSuchMethodError=0），**G4b 结果集未过** → 根因在 Calcite 影子，不属本影子系统，已另开 I-DEBT-3 |
 | I-DEBT-3 | L1 拿到一条 SQL 的结果集 | T-DEBT | M2 | WIP | I-DB-1(B组 SqlValidatorImpl) | 未过项：`bash ci/verify-l1.sh` rc=1，`ClassCastException: SelectScope → MeasureScope`（`calcite-core/.../SqlToRelConverter:735` vs 运行时胜出的 `hbt/.../SqlValidatorImpl:1177`）；已过项：探针 RED 能精确复现并已消除 D1（commit 6d89b6545） |
 | I-DEBT-2 | example 模块依赖/测试修复 | T-DEBT | M2 | TODO | I-DEBT-1 | ~40 个坏测试，阻塞 ConnectionSmokeTest |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
@@ -143,3 +143,4 @@
 | 2026-09-30 | — | 看板初始化，全 TODO | 本文件 |
 | 2026-10-01 | I-DEBT-1 | M2-1 交付，改 Evidenced-Done（G1/G2/G6 全过，G4 部分过） | 提交 6020939ca..6d89b6545；账本 `.superpowers/sdd/2026-09-30-druid-shadow-removal/progress.md` |
 | 2026-10-01 | I-DEBT-3（新开） | L1 结果集受 Calcite 影子阻；I-DB-1 的 B 组排序被实测推翻 | `bash ci/verify-l1.sh` 新 jar rc=1，日志 NoSuchMethodError=0、CCE 在 `SqlToRelConverter:735` |
+| 2026-10-01 | I-DEBT-1 | M2-1 整支终审（fresh reviewer）后回写 spec：无代码返工，仅纠正文档事实 + G4 拆为 G4a/G4b | 实测 `git grep -o "MYCAT CHANGE" d9415b55e^ -- "*com/alibaba/druid*"` = 27 行（原写 25）；旧 `MycatOutputVisitor` 内标记 = 0 处；终审重跑 G1 exit=0、G2 3/3、G5 router 15/0/0 + hbt 26/0/23、G6 0 行、G4a 日志计数 0 |

@@ -35,7 +35,9 @@ NoSuchMethodError: 'void com.alibaba.druid.sql.visitor.SQLASTOutputVisitor.<init
 | 官方 druid **1.2.28** 构造器全部为 `(StringBuilder, ...)` | `javap` on `druid-1.2.28.jar` |
 | 影子 `SQLASTOutputVisitor` 保留 `(Appendable)` | `plug/.../SQLASTOutputVisitor.java:108/112/117` |
 | → 影子是 **1.0.18 年代（2017）的整份拷贝** | 文件头 `Copyright 1999-2017` |
-| 影子里 25 处标记**全部**是兼容补丁，措辞一律 `MYCAT CHANGE: Druid 1.2.28 removed/renamed X` | `SQLASTOutputVisitor`(14 处)、`SQLExprParser`(10 处) |
+| 影子里 **27** 处标记**全部**是兼容补丁，措辞一律 `MYCAT CHANGE: Druid 1.2.28 removed/renamed X` | `git grep -o "MYCAT CHANGE" d9415b55e^ -- "*com/alibaba/druid*"` → 27 行：`SQLASTOutputVisitor` 14、`SQLExprParser` 10、`SQLHexExpr` 2、`ExportParameterVisitorUtils` 1。**终审实测纠错**：本行原写“25 处、两个文件”，处数与文件归属都不准 |
+| 这些补丁**全在被删的影子文件里**，`MycatOutputVisitor` 自身一处都没有 | `git show d9415b55e^:hbt/src/main/java/com/alibaba/druid/sql/dialect/mysql/visitor/MycatOutputVisitor.java` 内 `MYCAT CHANGE` 命中 **0** |
+| 影子基类只有旧拼写 `visitAggreateRest`（官方 1.2.28 已改名 `visitAggregateRest`），这是删影子后唯一行为回归的根因 | 删除前 `plug/.../SQLASTOutputVisitor.java:2066` 调用、`:2103` 定义；全仓 grep 无正确拼写版本 ⇒ `MycatOutputVisitor` 的同名钩子当年覆写的是影子，影子一删即成孤儿方法（黄金基线 #5，Task 4 已移植回 `SEPARATOR`） |
 | 影子**完全不引用 Mycat 代码** | 12 个文件中 `^import io.mycat` 命中 **0 处** |
 | 当年定制的核心特性已被上游收编 | 官方 1.2.28 已有 `protected boolean shardingSupport` |
 
@@ -147,11 +149,16 @@ B 组不与官方撞名，**没有类加载危险**，只是寄生在 druid 包�
 | G1 编译 | `mvn -B install '-Dmaven.test.skip=true' -pl server -am` | BUILD SUCCESS；产物 jar 时间戳新鲜 |
 | G2 黄金基线 | `mvn -B test -pl hbt -Dtest=*DruidOutputGolden*` | 语料逐条通过，或每条差异已有账本裁定 |
 | G3 启动 | `java -jar server/target/server-1.22-release-jar-with-dependencies.jar` | 日志出现 `Mycat Vertx server ... started up.`，8066 可连 |
-| **G4 L1 真跑通（本设计的存在理由）** | 客户端连 8066 完成认证并**收到一条 SQL 的结果集** | 不再出现 `NoSuchMethodError`；服务端日志无该栈 |
+| **G4a 认证与会话初始化（本设计的直接职责）** | `bash ci/verify-l1.sh`，看服务端日志 | 日志出现 `Mycat Vertx server ... started up.` 且 `NoSuchMethodError`/`NoClassDefFoundError` 计数为 **0**；客户端过认证、完成 Connector/J 会话初始化 |
+| **G4b 拿到结果集（跨影子系统）** | 同上脚本的探针退出码 | 探针输出 `L1 OK rows=1`；未过则须先定位根因归属再决定挂哪一项 |
 | G5 无回退 | `mvn -B test -pl router,executor,hbt` | 相对本次改动前不新增失败 |
 | G6 影子清零 | `git ls-files "*com/alibaba/druid*"` | 只剩 D2 例外条款允许的 `com.alibaba.druid.*.mycat` 子包条目（理想为 0） |
 
-G4 是 M1 验证网挖出的原始缺陷；G4 不过即视为本设计未交付。
+G4a 是 M1 验证网挖出的原始缺陷（D1），属本设计职责，不过即视为本设计未交付。
+
+**G4 的拆分裁定（终审 2026-10-01 回写；决策依据见账本 Task 6 / Task 7）**：本节原文“G4 不过即视为本设计未交付”未区分根因。实测新 jar 上 `ci/verify-l1.sh` 仍 rc=1，但服务端日志 `NoSuchMethodError` 计数为 0（D1 已端到端关闭），卡点变成
+`ClassCastException: SelectScope cannot be cast to MeasureScope`——根因在 **Calcite 层的同类影子**（`hbt/.../sql/validate/SqlValidatorImpl:1177` 返 `SelectScope`，撞 `calcite-core/.../SqlToRelConverter:735` 的无条件强转），与 druid 无关。
+本设计只治 druid 影子，顺手改 Calcite 属越界；故 G4b 未过不阻断本设计收口，改由看板项 **I-DEBT-3** 追踪。
 
 ---
 
