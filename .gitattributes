@@ -1,0 +1,4 @@
+# CI/本机共用的 shell 脚本必须是 LF：仓库 core.autocrlf=true，否则 Windows 检出后
+# 脚本带 CRLF，bash 会把 `set -euo pipefail` 读成 `pipefail\r` 之类的坏行直接失败。
+# 先例：M2-1 的 ci/verify-l1.sh 与既有的 ci/run-example.sh 都在 WSL/Git Bash 下本机跑过。
+*.sh text eol=lf
