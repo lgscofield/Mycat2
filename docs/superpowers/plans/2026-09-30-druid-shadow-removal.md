@@ -6,7 +6,7 @@
 
 **Architecture:** druid 回归为普通第三方依赖（不建 fork 模块）。先采集"SQL 序列化黄金基线"锁住删除前的行为，再搬 Mycat 类、删影子、改继承，最后用基线对账 + 端到端 L1 探针证明行为未倒退。
 
-**Tech Stack:** Java 21、Maven 多模块（`io.mycat:parent:1.22-release`）、`com.alibaba:druid:1.2.28`、JUnit 4（hbt 测试沿用 `org.junit.Test`）、bash + Docker MySQL（L1 探针）。
+**Tech Stack:** Java 21、Maven 多模块（`io.mycat:parent:1.22-release`）、`com.alibaba:druid:1.2.28`、JUnit 5（`org.junit.jupiter`；见 Global Constraints 里对 JUnit 4 的推翻）、bash + Docker MySQL（L1 探针）。
 
 **Spec:** `docs/superpowers/specs/2026-09-30-druid-shadow-removal-design.md`
 
@@ -17,7 +17,9 @@
 - **不新增 Maven 模块**（已裁定不建 `druid-core`）。
 - PowerShell 下 Maven 的 `-D` 属性必须整体加单引号：`'-Dmaven.test.skip=true'`（不加会被拆词，报 `Unknown lifecycle phase '.test.skip=true'`）。
 - 构建产物门一律用 `install '-Dmaven.test.skip=true'`，**不用 `-DskipTests`**（后者仍编译全仓测试，会被无关历史坏测试连累）。
-- hbt 模块测试用 **JUnit 4** 风格（对齐 `hbt/src/test/java/io/mycat/calcite/rewriter/ColumnMappingTest.java:19-20` 的 `org.junit.Assert`/`org.junit.Test`）。
+- 新增测试一律用 **JUnit 5**（`org.junit.jupiter.api.Test` / `Assertions`，注意 message 参数在最后一位）。
+  原计划写的是 JUnit 4（沿用 hbt 既有风格），Task 1 实测推翻：仓库无 `junit-vintage-engine`，
+  JUnit 4 类报 `Tests run: 0` 静默不跑，量不到的门不成门（详见账本 Task 1 Ruling）。
 - 看板状态只允许 `Evidenced-Done`，须附可重跑命令与实测输出；禁止凭 commit message 标 Done。
 - 上游补丁痕迹沿用既有约定注释前缀 `// MYCAT CHANGE: <原因>`（现存 25 处先例）。
 
@@ -99,7 +101,7 @@ git commit -m "test(M2-1): druid SQL 序列化黄金基线，锁定影子删除�
 
 - [ ] **Step 1: 先给 `now` 注册加一条断言测试（RED 起点）**
 
-在 `DruidOutputGoldenTest` 增 `@Test public void nowFunctionIsMycatTimestampNotOfficial()`：取语料第 8 条 `SELECT 1 + 2, NOW() FROM DUAL` 的参数化求值路径，断言 `MycatSQLEvalVisitorUtils` 的 `functions` 映射中 `"now"` 对应的实例 `getClass().getName()` 等于搬迁后的 `io.mycat.sql.visitor.functions.Timestamp`。因 `functions` 是 `private static Map`，用反射读取（`getDeclaredField("functions")` + `setAccessible(true)`）。
+在 `DruidOutputGoldenTest` 增 `@Test public void nowFunctionIsMycatTimestampNotOfficial()`：断言 `MycatSQLEvalVisitorUtils` 的 `functions` 映射中 `"now"` 对应的实例 `getClass().getName()` 等于搬迁后的 `io.mycat.sql.visitor.functions.Timestamp`。因 `functions` 是 `private static Map`，用反射读取（`getDeclaredField("functions")` + `setAccessible(true)`）。
 
 Run: `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest#nowFunctionIsMycatTimestampNotOfficial'`
 Expected: FAIL —— 断言得到 `com.alibaba.druid.sql.visitor.functions.Timestamp`，与期望的 `io.mycat...` 不符（搬迁前本就该失败，证明该测试真的在量搬迁）。
