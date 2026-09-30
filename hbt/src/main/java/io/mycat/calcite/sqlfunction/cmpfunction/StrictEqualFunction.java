@@ -14,11 +14,13 @@
  */
 package io.mycat.calcite.sqlfunction.cmpfunction;
 
+import io.mycat.calcite.MycatCalciteSupport;
 import io.mycat.calcite.MycatScalarFunction;
 
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.schema.ScalarFunction;
 import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -30,9 +32,27 @@ public class StrictEqualFunction extends MycatSqlDefinedFunction {
     public static StrictEqualFunction INSTANCE = new StrictEqualFunction();
 
 
+    /**
+     * MYCAT CHANGE (I-DEBT-3): 结果类型推导由算子自己携带。
+     *
+     * <p>
+     * hbt 的 SqlValidatorImpl 副本在 deriveType 里对 {@code <=>} 特判返回
+     * {@code createSqlType(SqlTypeName.BOOLEAN)}（不可空）；而沿用父类的
+     * {@code CalciteCatalogReader.infer(function)} 只能得可空的 {@code BOOLEAN}（实测：删副本前的探针输出
+     * {@code expected: <BOOLEAN NOT NULL> but was: <BOOLEAN>}）。可空性位会进入下发给 MySQL 客户端的字段元数据，
+     * 所以下沉到这里的 inference 与副本同值，而不是只对齐 {@code SqlTypeName}。
+     *
+     * <p>
+     * 副本的特判按对象身份比较（{@code operator == INSTANCE}），每次新建的实例走不到它；上提到 inference 后所有实例一致。
+     * 操作数类型推断与元信息保持与父类 3 参构造器同样的取值方式（{@link MycatSqlDefinedFunction.GetOperandTypes}）。
+     */
     public StrictEqualFunction() {
-        super("<=>", scalarFunction, SqlFunctionCategory.SYSTEM);
+        this(new MycatSqlDefinedFunction.GetOperandTypes(scalarFunction).invoke());
+    }
 
+    private StrictEqualFunction(MycatSqlDefinedFunction.GetOperandTypes carried) {
+        super("<=>", opBinding -> MycatCalciteSupport.TypeFactory.createSqlType(SqlTypeName.BOOLEAN),
+                carried.getOperandTypeInference(), carried.getOperandMetadata(), scalarFunction, SqlFunctionCategory.SYSTEM);
     }
 
     public static Boolean strictEqual(BigDecimal b0, BigDecimal b1) {
