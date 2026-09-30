@@ -116,6 +116,7 @@ public class DruidOutputGoldenTest {
 				"基线尚未采集，先跑 -Dgolden.update=true：" + BASELINE.getAbsolutePath());
 		List<String> baseline = readLines(BASELINE);
 		Assertions.assertEquals(corpus.size(), baseline.size(), "基线条数与语料条数不符");
+		List<String> diffs = new ArrayList<>();
 		for (int i = 0; i < corpus.size(); i++) {
 			String expect = baseline.get(i);
 			int tab = expect.indexOf('\t');
@@ -125,9 +126,13 @@ public class DruidOutputGoldenTest {
 			String sql = corpus.get(i);
 			String actual = render(sql);
 			if (!expected.equals(actual)) {
-				Assertions.fail("golden diff #" + (i + 1) + ": " + sql + " expected=<" + encode(expected)
-						+ "> actual=<" + encode(actual) + ">");
+				// 汇总报告：逐条 fail 会让第一条之后的所有差异被遮蔽，无法一次排完裁定。
+				diffs.add("golden diff #" + (i + 1) + ": " + sql + "\n    expected=<" + encode(expected)
+						+ ">\n    actual  =<" + encode(actual) + ">");
 			}
+		}
+		if (!diffs.isEmpty()) {
+			Assertions.fail(diffs.size() + " 条基线差异：\n" + String.join("\n", diffs));
 		}
 	}
 

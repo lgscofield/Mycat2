@@ -72,8 +72,10 @@ public class MycatCore {
         }
         boolean initialize = !Boolean.getBoolean("MYCAT_LAZY_STARTUP");
         try {
-            Class.forName("com.alibaba.druid.sql.visitor.SQLASTOutputVisitor", initialize, classLoader);
-            Class.forName("com.alibaba.druid.sql.parser.SQLExprParser", initialize, classLoader);
+            // MYCAT CHANGE: 删除下面两行对 com.alibaba.druid.sql.visitor.SQLASTOutputVisitor /
+            // com.alibaba.druid.sql.parser.SQLExprParser 的 Class.forName 预热。它们由 4a3e5f6ad（2021-07-26）
+            // 与 druid 影子类机制同期加入，目的是抢在官方类之前完成类加载以取得覆盖；
+            // M2-1 删除影子后该目的不复存在，预热其余官方/Calcite 类保留不动。
             Class.forName("org.apache.calcite.rel.core.Project", initialize, classLoader);
             //Class.forName("oshi.util.platform.windows.PerfCounterQuery", initialize, classLoader);
             Class.forName("io.mycat.datasource.jdbc.datasource.JdbcConnectionManager", initialize, classLoader);
