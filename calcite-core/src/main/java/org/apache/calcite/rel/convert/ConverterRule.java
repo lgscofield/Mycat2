@@ -111,10 +111,10 @@ public abstract class ConverterRule
   protected <R extends RelNode> ConverterRule(Class<R> clazz,
       Predicate<? super R> predicate, RelTrait in, RelTrait out,
       RelBuilderFactory relBuilderFactory, String descriptionPrefix) {
-    this(ImmutableConverterRule.Config.builder()
+    this(Config.INSTANCE
+        .withConversion(clazz, predicate, in, out, descriptionPrefix)
         .withRelBuilderFactory(relBuilderFactory)
-        .build()
-        .withConversion(clazz, predicate, in, out, descriptionPrefix));
+        .as(Config.class));
   }
 
   @SuppressWarnings("Guava")
