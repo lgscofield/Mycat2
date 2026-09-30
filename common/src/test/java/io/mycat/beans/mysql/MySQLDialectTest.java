@@ -14,6 +14,7 @@
  */
 package io.mycat.beans.mysql;
 
+import io.mycat.protocol.mysql.type.MySQLDialect;
 import org.junit.Assert;
 import org.junit.Test;
 
