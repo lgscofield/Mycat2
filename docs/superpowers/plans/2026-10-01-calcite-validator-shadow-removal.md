@@ -97,20 +97,26 @@ Expected: FAIL。断言消息里会给出算子当前实际推导值——**把�
 
 - [ ] **Step 3: 按 Step 2 的实际值裁定并动手**
 
-- 若实际值 ≠ `BOOLEAN NOT NULL`：把 `StrictEqualFunction` 的构造器从 3 参重载换成 6 参重载，inference 用固定 `BOOLEAN NOT NULL`，其余参数照抄 `MycatSqlDefinedFunction:60-66` 的取值方式（`GetOperandTypes` 是它的 public 静态嵌套类，可直接 new）：
+- 若实际值 ≠ `BOOLEAN NOT NULL`：把 `StrictEqualFunction` 的构造器从 3 参重载（`MycatSqlDefinedFunction:53-57`）换到 6 参重载（`:37-51`），inference 用固定 `BOOLEAN NOT NULL`，其余三个参数照抄 `:60-66` 的取值方式。`GetOperandTypes` 是 `MycatSqlDefinedFunction` 的 **public 静态嵌套类**（`:72`），但它在另一个包，必须写成限定名（或 `import org.apache.calcite.mycat.MycatSqlDefinedFunction.GetOperandTypes;`）。用 `this(...)` 委派到私有构造器，避免两次 `invoke()`（两次各自新建 dummy type factory）：
 
 ```java
 public StrictEqualFunction() {
+    this(new MycatSqlDefinedFunction.GetOperandTypes(scalarFunction).invoke());
+}
+
+private StrictEqualFunction(MycatSqlDefinedFunction.GetOperandTypes carried) {
     super("<=>",
             opBinding -> MycatCalciteSupport.TypeFactory.createSqlType(SqlTypeName.BOOLEAN),
-            new GetOperandTypes(scalarFunction).invoke().getOperandTypeInference(),
-            new GetOperandTypes(scalarFunction).invoke().getOperandMetadata(),
+            carried.getOperandTypeInference(),
+            carried.getOperandMetadata(),
             scalarFunction,
             SqlFunctionCategory.SYSTEM);
 }
 ```
 
+  `scalarFunction` 是同类 `public static` 字段（`:28`，声明在 `INSTANCE:30` 之前），所以在 super 实参里读它是安好的；反之新增一个static 字段夹在两者之间会拿到 `null`——不要那样写。
   `createSqlType(BOOLEAN)` 默认不可空，与副本 `:5859` 的写法逐字同型，故不需要 `createTypeWithNullability`。
+  另需知道：副本的特判条件是 `operator == StrictEqualFunction.INSTANCE`（身份比较，`:5858`），而 `MycatOperatorTable.lookupOperatorOverloads:46-50` 与 `MycatCalciteSupport.builtIn` 会 **每次新建实例**——那些实例在副本下根本走不到特判，而是落回 `operator.deriveType(...)`。上提到算子 inference 后所有实例都一致，这是 P1 比副本更正确的地方，写进测试类注释。
 - 若实际值已 = `BOOLEAN NOT NULL`：不改产品代码，账本记"算子自带，副本特判是冗余"，Step 4 直接绿。两种分支都必须留可重跑命令。
 
 - [ ] **Step 4: 再跑，确认通过**
