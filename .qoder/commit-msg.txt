@@ -1,11 +1,17 @@
-refactor: move Vert.x patches and Druid patches out of server
+chore: finalize server module + remove deprecated calcite/ and linq4j/
 
-Task 23: Move Vert.x patches (9 files) from server to vertx module
-- Trace, TraceContext, TraceSpan, MySQLRepository, etc.
-- QueryCommandBaseCodec (server version replaces vertx version)
-- FutureImpl, PromiseImpl (Vert.x future internals)
+Task 18: Delete deprecated calcite/ and linq4j/ directories
+  (empty shells with only pom.xml, not in build)
 
-Task 24: Move Druid patches (7 files) from server to plug module
-- SQLIndexDefinition, SQLHexExpr, SQLExprParser, etc.
-- Sequence generators stay in server (SequenceMySQLGenerator depends on
-  datasource which depends on plug — circular dep prevents move)
+Task 25: Server module final verification
+  - Server: 266 Java files (renamed from mycat2)
+  - Common: 219 Java files (trimmed)
+  - Full clean compile: BUILD SUCCESS (19 modules)
+
+Milestone 1.3 summary:
+  - mycat2 → server rename (artifactId, module, shade finalName)
+  - 53 files moved into server: hint/ (48), ratelimiter/ (4), sql/ (1)
+  - 9 Vert.x patch files moved out: server → vertx
+  - 7 Druid patch files moved out: server → plug
+  - Kept in place due to dependency constraints:
+    sequencemodifier/ (common), prototypeserver/ (hbt)
