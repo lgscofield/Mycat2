@@ -59,9 +59,9 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - name: Build server jar
-        run: mvn -B package -DskipTests -pl server -am
+      - name: Build server jar (skip test compile to isolate artifact vs compat-test)
+        run: mvn -B install '-Dmaven.test.skip=true' -pl server -am
       - name: Run example + compat smoke against ${{ matrix.db }}
         env:
           COMPAT_DB: ${{ matrix.db }}
-        run: bash ci/run-example.sh -Dcompat.db=${{ matrix.db }}
+        run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}"

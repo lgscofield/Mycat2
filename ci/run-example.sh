@@ -21,6 +21,7 @@ for i in $(seq 1 60); do
 done
 [ "$ready" = 1 ] || { echo "Mycat 8066 未就绪"; exit 1; }
 
-# 3) 跑测试（含兼容冒烟 ConnectionSmokeTest），输出留档
+# 3) 只跑 example 模块测试（含兼容冒烟 ConnectionSmokeTest），不加 -am 以免
+#    reactor 连带跑上游模块测试；上游产物由前置 `mvn install` 落入本地仓库。
 mkdir -p target/ci 2>/dev/null || true
-mvn -B test -pl example -am "$@" 2>&1 | tee target/ci/example-test.log
+mvn -B test -pl example "$@" 2>&1 | tee target/ci/example-test.log

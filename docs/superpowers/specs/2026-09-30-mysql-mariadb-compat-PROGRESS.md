@@ -18,10 +18,12 @@
 
 ## 当前快照（随时看这里 = "进行到哪 / 下一步"）
 
-- **当前里程碑**：M1（验证网）—— **尚未开工，全仓库无有效 CI**
-- **下一步（唯一入口）**：`I-CI-1` 修复 workflow（JDK21 + `server/target` 路径）
-- **关键路径**：M1 → M2 → M3；M4/M5 并行；M6 依赖 M2
-- **最后更新**：2026-09-30（初始化，全部 TODO）
+- **当前里程碑**：M1（验证网）—— 本机 JDK21 构建产出 fat jar ✅（224MB）；CI workflow/脚本/冒烟测已提交；**但 Mycat 当前完全无法 boot**
+- **🔴 阻塞真相（网的头号战果）**：`java -jar` 起 Mycat → `ExceptionInInitializerError`，根因 `calcite-core/…/ConverterRule.java:114-117` 旧构造器在 `withConversion` 之前误调 `build()`（D1 Calcite 漂移的运行期实锤；旧 CI 死掉导致长期无人发现）
+- **下一步（需你拍板）**：(A) 授权一次"解锁 boot"detour——按上游正确写法修 calcite-core 那一行，重启拿到真实 L1 基线（但后面可能还埋更多 Calcite 漂移）；或 (B) M1 保持纯建网、boot 修复列为 M2 首项。详见账本 Ruling
+- **环境事实（本机实证）**：Liberica JDK 21.0.6 ✅、Docker Hub 网络正常 ✅、mysql:8.0 镜像已拉 ✅、3306/3307 容器在跑 ✅
+- **关键路径**：M1 →(需 boot 解锁)→ M2 → M3；M4/M5 并行；M6 依赖 M2
+- **最后更新**：2026-09-30（本机取证：构建绿但 boot 崩，暴露 D1 致命缺陷）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
@@ -31,9 +33,9 @@
 
 | ID | 项 | Track | Milestone | 状态 | Dep | Done 证据（检查名 + 版本矩阵） |
 |---|---|---|---|---|---|---|
-| I-CI-1 | 修复现有 workflow | T-CI | M1 | TODO | — | |
-| I-CI-2 | 多库服务矩阵 | T-CI | M1 | TODO | I-CI-1 | |
-| I-CI-3 | 兼容性 harness | T-CI | M1 | TODO | I-CI-1 | |
+| I-CI-1 | 修复现有 workflow | T-CI | M1 | WIP | — | 交付物已提交(76bc806..847961e)，YAML/bash 静态校验过；待构建绿 |
+| I-CI-2 | 多库服务矩阵 | T-CI | M1 | WIP | I-CI-1 | 7版本 matrix 已写入 workflow；待 CI 实跑 pass/fail |
+| I-CI-3 | 兼容性 harness | T-CI | M1 | WIP | I-CI-1 | ConnectionSmokeTest 已建；待跑绿 |
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
 | I-VE-2 | EOF 能力位连接级化 | T-VER | M2 | TODO | I-VE-1 | |
