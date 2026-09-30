@@ -20,11 +20,12 @@
 
 - **当前里程碑**：M1（验证网）—— ✅ 网已建成；✅ JDK21 构建产出 fat jar；✅ **Mycat 已能在 JDK21 下启动**（修 Calcite 一行，提交 f2118b9df）；⚠ L1 跑绿基线受 D1(druid)/D13(example) 阻塞
 - **✅ 战果（A 探路）**：修 calcite-core `ConverterRule:114-117`（退上游写法）后，Mycat 启动、Vertx server started、8066 监听、客户端连接过认证建 session
-- **🔴 下一阻碍（网的第2条战果，触发止损）**：boot 通后 L1 连接期又撞 `NoSuchMethodError: druid SQLASTOutputVisitor.<init>(Appendable)`——plug 影子类(9453行, 与真 druid 1.2.28 同名)编译/运行期绑定不一致（D1 影子类打架）
-- **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖），ConnectionSmokeTest 被连累；本次改用 jshell 直连取到连接层证据
-- **下一步（需你定）**：按约定已止于 A 边界。建议：将 D1(druid 影子类) 与 D13(example 模块依赖) 列为 **M2 头两项**；M1 交付物（网+构建+boot）取为已验。
-- **关键路径**：M1(✅建网+boot) → M2(修 druid 影子类 + example 依赖 → L1 跑绿) → M3
-- **最后更新**：2026-09-30（A 探路：boot 解锁✅，又撞 druid 漂移→按约定止损；基线如实挂账）
+- **🔴 下一阻碍（网的第2条战果）**：boot 通后 L1 连接期撞 `NoSuchMethodError: druid SQLASTOutputVisitor.<init>(Appendable)`（D1 影子类打架）→ **已立项 M2-1，设计已出 spec，待评审**
+- **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ **M2-2，另出计划**
+- **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；25 处 `MYCAT CHANGE` 全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径
+- **下一步**：等你对 M2-1 spec 的评审意见 → 调 writing-plans 拆实施计划（验收门含 G4：客户端过认证并**真的拿到一条 SQL 的结果集**）
+- **关键路径**：M1(✅建网+boot) → **M2-1 拆 druid 影子（spec 已出待审）→ M2-2 example 依赖 → L1 跑绿** → M3
+- **最后更新**：2026-09-30（M1 收尾；M2-1 取证完成、设计落盘 `docs/superpowers/specs/2026-09-30-druid-shadow-removal-design.md`）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
@@ -38,6 +39,8 @@
 | I-CI-2 | 多库服务矩阵 | T-CI | M1 | WIP | I-CI-1 | 7版本 matrix 已写入 workflow；待 CI 实跑 pass/fail |
 | I-CI-3 | 兼容性 harness | T-CI | M1 | WIP | I-CI-1 | ConnectionSmokeTest 已建；待跑绿 |
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
+| I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | REVIEW | I-CI-1 | 设计已出：`2026-09-30-druid-shadow-removal-design.md`，待评审 |
+| I-DEBT-2 | example 模块依赖/测试修复 | T-DEBT | M2 | TODO | I-DEBT-1 | ~40 个坏测试，阻塞 ConnectionSmokeTest |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
 | I-VE-2 | EOF 能力位连接级化 | T-VER | M2 | TODO | I-VE-1 | |
 | I-VE-3 | 消除启动期全局可变量 | T-VER | M2 | TODO | I-VE-1 | |
