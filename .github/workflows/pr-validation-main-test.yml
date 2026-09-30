@@ -1,7 +1,6 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Java CI - Mycat2 Main
+# M1 验证网：JDK 21 构建 Mycat2 + MySQL/MariaDB 多版本兼容矩阵。
+# 详见 docs/superpowers/plans/2026-09-30-m1-verification-net.md
+name: Java CI - Mycat2 Compat Matrix
 
 on:
   push:
@@ -10,29 +9,59 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
+  compat:
     runs-on: ubuntu-latest
-
+    # M1 目标=产出逐版本 pass/fail，不是全绿。尚未确认支持的版本标
+    # experimental:true → 允许红但不阻塞 PR。M2/M3 逐档转绿后撤该标记。
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mysql:5.7
+            experimental: false
+          - db: mysql:8.0
+            experimental: false
+          - db: mysql:8.4
+            experimental: false
+          - db: mysql:9.0
+            experimental: true
+          - db: mariadb:10.6
+            experimental: true
+          - db: mariadb:10.11
+            experimental: true
+          - db: mariadb:11.4
+            experimental: true
+    services:
+      mysql-a:
+        image: ${{ matrix.db }}
+        ports: [ "3306:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MARIADB_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      mysql-b:
+        image: ${{ matrix.db }}
+        ports: [ "3307:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MARIADB_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: 1.8
-      - name: Setup MySQL 3306
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          mysql root password: 123456
-      - name: Setup MySQL 3307
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3307
-          mysql root password: 123456
-      - name: test
-        run: |
-          mvn -B package -Dmaven.test.skip=true -pl !assistant
-          java -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar mycat2/target/mycat2-1.22-release-jar-with-dependencies.jar &
-          sleep 10s
-          mvn test -pl example -am
-
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build server jar
+        run: mvn -B package -DskipTests -pl server -am
+      - name: Run example + compat smoke against ${{ matrix.db }}
+        env:
+          COMPAT_DB: ${{ matrix.db }}
+        run: bash ci/run-example.sh -Dcompat.db=${{ matrix.db }}
