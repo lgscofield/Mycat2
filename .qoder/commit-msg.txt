@@ -1,7 +1,22 @@
-feat: create protocol abstraction interfaces
+chore: finalize protocol module - remove empty dirs, verify clean build
 
-New interfaces and constants in protocol module:
-- AuthPlugin: authentication plugin SPI (mysql_native_password, etc.)
-- CapabilityFlags: MySQL/MariaDB client-server capability flag constants
-- ServerStatus: server status flag constants for OK/EOF packets
-- ProtocolCodec: packet encoding/decoding abstraction with ProtocolVariant enum
+Remove empty directories left after file migrations:
+- common/beans/mysql/charset/
+- common/swapbuffer/
+- common/util/packet/
+
+Full project `mvn clean compile` passes across all 19 modules.
+
+Protocol module dependency DAG verified:
+- protocol depends on: config, netty-buffer, guava, mysql-connector-j,
+  rxjava3, vertx-core, slf4j-api
+- protocol does NOT depend on common (correct leaf module)
+- common depends on protocol (correct dependency direction)
+
+Milestone 1.1 summary:
+- Protocol module: 71 Java files across 9 packages
+- Moved from common: beans/mysql/ (28), charset/ (4), swapbuffer/ (10),
+  util/packet/ (8), util auth classes (4), view interfaces (2)
+- Created new: AuthPlugin, ProtocolCodec, CapabilityFlags, ServerStatus
+- Kept in common: beans/mysql/packet/ (15 files, circular dep with common)
+- Kept in vertx: codec patches (3 files, Vert.x SPI path dependency)
