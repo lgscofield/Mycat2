@@ -18,12 +18,13 @@
 
 ## 当前快照（随时看这里 = "进行到哪 / 下一步"）
 
-- **当前里程碑**：M1（验证网）—— 本机 JDK21 构建产出 fat jar ✅（224MB）；CI workflow/脚本/冒烟测已提交；**但 Mycat 当前完全无法 boot**
-- **🔴 阻塞真相（网的头号战果）**：`java -jar` 起 Mycat → `ExceptionInInitializerError`，根因 `calcite-core/…/ConverterRule.java:114-117` 旧构造器在 `withConversion` 之前误调 `build()`（D1 Calcite 漂移的运行期实锤；旧 CI 死掉导致长期无人发现）
-- **下一步（需你拍板）**：(A) 授权一次"解锁 boot"detour——按上游正确写法修 calcite-core 那一行，重启拿到真实 L1 基线（但后面可能还埋更多 Calcite 漂移）；或 (B) M1 保持纯建网、boot 修复列为 M2 首项。详见账本 Ruling
-- **环境事实（本机实证）**：Liberica JDK 21.0.6 ✅、Docker Hub 网络正常 ✅、mysql:8.0 镜像已拉 ✅、3306/3307 容器在跑 ✅
-- **关键路径**：M1 →(需 boot 解锁)→ M2 → M3；M4/M5 并行；M6 依赖 M2
-- **最后更新**：2026-09-30（本机取证：构建绿但 boot 崩，暴露 D1 致命缺陷）
+- **当前里程碑**：M1（验证网）—— ✅ 网已建成；✅ JDK21 构建产出 fat jar；✅ **Mycat 已能在 JDK21 下启动**（修 Calcite 一行，提交 f2118b9df）；⚠ L1 跑绿基线受 D1(druid)/D13(example) 阻塞
+- **✅ 战果（A 探路）**：修 calcite-core `ConverterRule:114-117`（退上游写法）后，Mycat 启动、Vertx server started、8066 监听、客户端连接过认证建 session
+- **🔴 下一阻碍（网的第2条战果，触发止损）**：boot 通后 L1 连接期又撞 `NoSuchMethodError: druid SQLASTOutputVisitor.<init>(Appendable)`——plug 影子类(9453行, 与真 druid 1.2.28 同名)编译/运行期绑定不一致（D1 影子类打架）
+- **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖），ConnectionSmokeTest 被连累；本次改用 jshell 直连取到连接层证据
+- **下一步（需你定）**：按约定已止于 A 边界。建议：将 D1(druid 影子类) 与 D13(example 模块依赖) 列为 **M2 头两项**；M1 交付物（网+构建+boot）取为已验。
+- **关键路径**：M1(✅建网+boot) → M2(修 druid 影子类 + example 依赖 → L1 跑绿) → M3
+- **最后更新**：2026-09-30（A 探路：boot 解锁✅，又撞 druid 漂移→按约定止损；基线如实挂账）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
