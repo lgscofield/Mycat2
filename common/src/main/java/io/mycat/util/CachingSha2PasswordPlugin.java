@@ -30,6 +30,7 @@
 package io.mycat.util;
 
 import io.mycat.MycatException;
+import io.mycat.protocol.mysql.auth.SecurityUtil;
 import io.mycat.protocol.mysql.type.ServerVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

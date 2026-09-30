@@ -1,4 +1,4 @@
-package io.mycat.util;
+package io.mycat.protocol.mysql.auth;
 
 /**
  * @author jamie12221

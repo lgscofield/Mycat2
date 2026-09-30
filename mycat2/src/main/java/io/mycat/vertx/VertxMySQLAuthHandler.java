@@ -25,7 +25,7 @@ import io.mycat.mycatmysql.MycatVertxMysqlSession;
 import io.mycat.proxy.handler.front.MySQLClientAuthHandler;
 import io.mycat.proxy.handler.front.SocketAddressUtil;
 import io.mycat.runtime.MycatDataContextImpl;
-import io.mycat.util.MysqlNativePasswordPluginUtil;
+import io.mycat.protocol.mysql.auth.MysqlNativePasswordPluginUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;

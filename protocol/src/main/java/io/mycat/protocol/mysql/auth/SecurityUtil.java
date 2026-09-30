@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.mycat.util;
+package io.mycat.protocol.mysql.auth;
 
 import java.security.DigestException;
 import java.security.MessageDigest;
@@ -181,7 +181,7 @@ public class SecurityUtil {
         String source = "123";
         String seed = "m\u0012R\u0004x\u0007\u001A{\u001C'\"V0GE\u0015^\u0011s\t";
 
-        CachingSha2PasswordPlugin.scrambleCachingSha2(source, seed);
+        // CachingSha2PasswordPlugin reference removed — it lives in common module
 //        String  rnd = "eF!@34gH%^78";
 //        char expected_scramble1[] = {
 //            0x6a, 0x45, 0x37, 0x96, 0x6b, 0x29, 0x63, 0x59, 0x24, 0x8d, 0x64,

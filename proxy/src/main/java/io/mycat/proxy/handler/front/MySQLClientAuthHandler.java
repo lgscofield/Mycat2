@@ -34,7 +34,7 @@ import io.mycat.proxy.session.MycatSession;
 import io.mycat.proxy.session.MycatSessionManager;
 import io.mycat.proxy.session.ProcessState;
 import io.mycat.util.CachingSha2PasswordPlugin;
-import io.mycat.util.MysqlNativePasswordPluginUtil;
+import io.mycat.protocol.mysql.auth.MysqlNativePasswordPluginUtil;
 import io.mycat.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -30,7 +30,7 @@ import io.mycat.proxy.session.MySQLClientSession;
 import io.mycat.proxy.session.SessionManager;
 import io.mycat.util.CachingSha2PasswordPlugin;
 import io.mycat.util.CharsetUtil;
-import io.mycat.util.MysqlNativePasswordPluginUtil;
+import io.mycat.protocol.mysql.auth.MysqlNativePasswordPluginUtil;
 import io.vertx.core.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
