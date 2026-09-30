@@ -14,34 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.mycat.beans.mysql.charset;
+package io.mycat.protocol.mysql.charset;
 
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * @author jamie12221
- * date 2019-05-05 16:22
- * <p>
- * mysql 状态 字符集 INDEX_TO_CHARSET
+ *  date 2019-05-05 16:22
+ *
+ * mysql 状态 字符集 LCollationTable
  **/
-public class MySQLCollationIndex {
-    /**
-     * collationIndex 和 charsetName 的映射
-     */
-    public final Map<Integer, String> INDEX_TO_CHARSET = new HashMap<>();
+public class MySQLCollationTable {
+    final Map<Integer, MySQLCollation> indexMap = new HashMap<>();
+    final Map<String, MySQLCollation> collationNameMap = new HashMap<>();
 
-    public void put(Integer index, String charset) {
-        INDEX_TO_CHARSET.put(index, charset);
+    public MySQLCollation getCollationById(Integer id) {
+        return indexMap.get(id);
     }
 
-    public String getCharsetByIndex(Integer integer) {
-        return INDEX_TO_CHARSET.get(integer);
+    public MySQLCollation getByCollationName(String collationName) {
+        return collationNameMap.get(collationName);
     }
 
-    public boolean isEmpty() {
-        return INDEX_TO_CHARSET.isEmpty();
+    public void put(MySQLCollation collation) {
+        collationNameMap.put(collation.getCollatioNname(), collation);
+        indexMap.put(collation.getId(), collation);
     }
-
 }

@@ -1,19 +1,5 @@
-refactor: move beans/mysql/ types to protocol module
+refactor: move beans/mysql/charset/ (4 files) to protocol/mysql/charset/
 
-Move 33 files from common to protocol, reversing dependency direction
-(protocol becomes leaf module, common depends on protocol).
-
-Moved files:
-- beans/mysql/*.java (28 files) → protocol/mysql/type/
-- util/ByteArrayOutput, NameMap, CaseInsensitiveComparator → protocol/codec/
-- beans/mysql/packet/MySQLPayload{Write,Read}View → protocol/mysql/packet/
-
-Dependency changes:
-- protocol/pom.xml: removed common dep, added guava + mysql-connector-j
-- common/pom.xml: added protocol dependency
-- Parent POM: added slf4j-api 2.0.16 to dependencyManagement
-
-Import updates across ~140 files:
-- io.mycat.beans.mysql.* → io.mycat.protocol.mysql.type.*
-- io.mycat.util.{ByteArrayOutput,NameMap,CaseInsensitiveComparator} → io.mycat.protocol.codec.*
-- Static imports updated for MySQLErrorCode, MySQLFieldsType, MySQLType, etc.
+MySQLCharset, MySQLCollation, MySQLCollationIndex, MySQLCollationTable
+moved from common to protocol module. Package updated to
+io.mycat.protocol.mysql.charset. No external references to update.
