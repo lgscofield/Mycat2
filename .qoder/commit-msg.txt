@@ -1,12 +1,7 @@
-refactor: move MySQL auth utilities to protocol/mysql/auth/
+feat: create protocol abstraction interfaces
 
-Move 4 pure utility files from common/util/ to protocol/mysql/auth/:
-- SecurityUtil: SHA-1/SHA-256 scramble, XOR, RSA operations
-- MysqlNativePasswordPluginUtil: mysql_native_password auth plugin
-- RandomUtil: random byte generation (only used by auth code)
-- MySQLUtil: fix-int byte array conversion (currently unused)
-
-These files had zero dependencies on common module classes, making them
-safe to move. CachingSha2PasswordPlugin stays in common (depends on
-MycatException, MycatRowMetaData) and now imports SecurityUtil from
-protocol.
+New interfaces and constants in protocol module:
+- AuthPlugin: authentication plugin SPI (mysql_native_password, etc.)
+- CapabilityFlags: MySQL/MariaDB client-server capability flag constants
+- ServerStatus: server status flag constants for OK/EOF packets
+- ProtocolCodec: packet encoding/decoding abstraction with ProtocolVariant enum
