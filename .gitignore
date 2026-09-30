@@ -60,3 +60,9 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Qoder directory
+.qoder
+
+# maven-shade-plugin 副产物，不是源文件
+server/dependency-reduced-pom.xml
