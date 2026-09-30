@@ -1,4 +1,4 @@
-package io.mycat.util.packet;
+package io.mycat.protocol.codec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

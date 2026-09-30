@@ -31,7 +31,7 @@ import io.mycat.config.MycatServerConfig;
 import io.mycat.config.UserConfig;
 import io.mycat.protocol.codec.NameMap;
 import io.mycat.util.Pair;
-import io.mycat.util.packet.AbstractWritePacket;
+import io.mycat.protocol.codec.AbstractWritePacket;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.ObservableEmitter;
 import lombok.EqualsAndHashCode;

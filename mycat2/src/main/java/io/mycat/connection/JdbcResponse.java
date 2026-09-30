@@ -8,8 +8,8 @@
 //import io.mycat.api.collector.MysqlObjectArrayRow;
 //import io.mycat.beans.mycat.MycatRowMetaData;
 //import io.mycat.newquery.NewMycatConnection;
-//import io.mycat.swapbuffer.PacketRequest;
-//import io.mycat.swapbuffer.PacketResponse;
+//import io.mycat.protocol.swapbuffer.PacketRequest;
+//import io.mycat.protocol.swapbuffer.PacketResponse;
 //import io.mycat.vertx.VertxExecuter;
 //import io.reactivex.rxjava3.core.Emitter;
 //import io.reactivex.rxjava3.core.Observable;

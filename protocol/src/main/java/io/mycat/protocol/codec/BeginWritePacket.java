@@ -1,4 +1,4 @@
-package io.mycat.util.packet;
+package io.mycat.protocol.codec;
 
 public abstract class BeginWritePacket extends AbstractWritePacket {
 

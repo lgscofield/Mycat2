@@ -1,4 +1,4 @@
-package io.mycat.swapbuffer;
+package io.mycat.protocol.swapbuffer;
 
 import io.reactivex.rxjava3.core.Emitter;
 import io.vertx.core.Future;

@@ -1,4 +1,4 @@
-package io.mycat.swapbuffer;
+package io.mycat.protocol.swapbuffer;
 
 import java.nio.ByteBuffer;
 

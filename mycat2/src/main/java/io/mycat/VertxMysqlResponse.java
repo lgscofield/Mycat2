@@ -1,8 +1,8 @@
 //package io.mycat;
 //
-//import io.mycat.util.packet.BeginWritePacket;
-//import io.mycat.util.packet.CommitWritePacket;
-//import io.mycat.util.packet.RollbackWritePacket;
+//import io.mycat.protocol.codec.BeginWritePacket;
+//import io.mycat.protocol.codec.CommitWritePacket;
+//import io.mycat.protocol.codec.RollbackWritePacket;
 //import io.mycat.vertx.VertxResponse;
 //import io.mycat.vertx.VertxSession;
 //import io.vertx.core.impl.future.PromiseInternal;

@@ -23,7 +23,7 @@ import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.calcite.DrdsRunnerHelper;
 import io.mycat.prototypeserver.mysql.HackRouter;
 import io.mycat.swapbuffer.MySQLSwapbufferBuilder;
-import io.mycat.swapbuffer.PacketRequest;
+import io.mycat.protocol.swapbuffer.PacketRequest;
 import io.mycat.util.Pair;
 import io.ordinate.engine.util.ResultWriterUtil;
 import io.reactivex.rxjava3.core.Observable;

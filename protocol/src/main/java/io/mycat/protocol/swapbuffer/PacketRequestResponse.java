@@ -1,4 +1,4 @@
-package io.mycat.swapbuffer;
+package io.mycat.protocol.swapbuffer;
 
 public abstract class PacketRequestResponse implements PacketRequest,PacketResponse{
     int copyCount;

@@ -1,5 +1,12 @@
-refactor: move beans/mysql/charset/ (4 files) to protocol/mysql/charset/
+refactor: move swapbuffer/ and util/packet/ to protocol module
 
-MySQLCharset, MySQLCollation, MySQLCollationIndex, MySQLCollationTable
-moved from common to protocol module. Package updated to
-io.mycat.protocol.mysql.charset. No external references to update.
+Task 6: Move swapbuffer/ (10 files) from common to protocol/swapbuffer/
+- PacketRequest, PacketResponse, SwapBufferSender, SwapBufferUtil, etc.
+- Package: io.mycat.swapbuffer → io.mycat.protocol.swapbuffer
+- Added rxjava3 + vertx-core dependencies to protocol/pom.xml
+
+Task 7: Move util/packet/ (8 files) from common to protocol/codec/
+- AbstractWritePacket, BeginWritePacket, CommitWritePacket, etc.
+- Package: io.mycat.util.packet → io.mycat.protocol.codec
+
+Import updates across 5 files for swapbuffer, 2 files for util/packet.
