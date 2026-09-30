@@ -49,7 +49,6 @@
     <arrow.version>18.1.0</arrow.version>
 
     <!-- 安全关键项 -->
-    <jackson.version>2.18.4</jackson.version>
     <logback.version>1.5.18</logback.version>
     <slf4j.version>2.0.16</slf4j.version>
     <netty.version>4.1.119.Final</netty.version>
@@ -79,6 +78,74 @@
 
     <!-- 内部模块版本 -->
     <mycat.version>1.22-release</mycat.version>
+
+    <!-- 连接池 -->
+    <hikaricp.version>3.4.5</hikaricp.version>
+
+    <!-- 路由 / 脚本 -->
+    <groovy.version>3.0.6</groovy.version>
+    <jwildcard.version>1.4</jwildcard.version>
+
+    <!-- 计算引擎 -->
+    <fastutil.version>8.5.6</fastutil.version>
+    <openhft-compiler.version>2.4.1</openhft-compiler.version>
+    <commons-csv.version>1.9.0</commons-csv.version>
+    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-io.version>2.15.0</commons-io.version>
+    <hppc.version>0.9.0</hppc.version>
+    <reflections.version>0.10</reflections.version>
+    <rxjava3-extensions.version>3.0.1</rxjava3-extensions.version>
+
+    <!-- NoSQL 驱动 -->
+    <mongo-driver.version>3.12.10</mongo-driver.version>
+    <sequoiadb.version>5.0.2</sequoiadb.version>
+    <jta.version>1.1</jta.version>
+    <jooq.version>3.11.9</jooq.version>
+
+    <!-- HTTP / 序列化 / 工具 -->
+    <okhttp.version>4.7.2</okhttp.version>
+    <snakeyaml.version>1.23</snakeyaml.version>
+    <objenesis.version>3.0.1</objenesis.version>
+    <validation-api.version>2.0.1.Final</validation-api.version>
+    <joda-time.version>2.10.1</joda-time.version>
+    <ehcache2.version>2.10.6</ehcache2.version>
+    <idworker.version>1.4.0</idworker.version>
+    <questdb.version>6.0.1</questdb.version>
+
+    <!-- UI 工具 -->
+    <tablesaw.version>0.38.3</tablesaw.version>
+    <testfx.version>4.0.16-alpha</testfx.version>
+    <hibernate-validator.version>5.2.0.Final</hibernate-validator.version>
+
+    <!-- Calcite 生态 -->
+    <dateparser.version>1.0.5</dateparser.version>
+    <dom4j.version>2.1.3</dom4j.version>
+    <jaxen.version>1.2.0</jaxen.version>
+    <database-metadata-bind.version>3.2.0</database-metadata-bind.version>
+    <lz4.version>1.3.0</lz4.version>
+    <esri-geometry.version>2.2.0</esri-geometry.version>
+    <checker-qual.version>3.10.0</checker-qual.version>
+    <aspectjweaver.version>1.9.6</aspectjweaver.version>
+    <apiguardian.version>1.1.2</apiguardian.version>
+    <jsr305.version>3.0.2</jsr305.version>
+    <json-path.version>2.10.0</json-path.version>
+    <sketches-core.version>0.9.0</sketches-core.version>
+    <aggdesigner.version>6.1</aggdesigner.version>
+    <commons-dbcp2.version>2.11.0</commons-dbcp2.version>
+    <commons-math3.version>3.6.1</commons-math3.version>
+    <commons-text.version>1.11.0</commons-text.version>
+    <uzaygezer.version>0.2</uzaygezer.version>
+    <joou.version>0.9.5</joou.version>
+    <error-prone.version>2.36.0</error-prone.version>
+    <jts.version>1.19.0</jts.version>
+    <proj4j.version>1.2.2</proj4j.version>
+
+    <!-- 测试辅助 -->
+    <jcip-annotations.version>1.0-1</jcip-annotations.version>
+    <gson.version>2.11.0</gson.version>
+
+    <!-- 根 POM 自身 -->
+    <jetbrains-annotations.version>1.2.0</jetbrains-annotations.version>
   </properties>
 
   <scm>
@@ -92,7 +159,7 @@
     <dependency>
       <groupId>org.realityforge.org.jetbrains.annotations</groupId>
       <artifactId>org.jetbrains.annotations</artifactId>
-      <version>1.2.0</version>
+      <version>${jetbrains-annotations.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -185,11 +252,6 @@
       </dependency>
       <dependency>
         <groupId>io.mycat</groupId>
-        <artifactId>server</artifactId>
-        <version>${mycat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.mycat</groupId>
         <artifactId>example</artifactId>
         <version>${mycat.version}</version>
       </dependency>
@@ -239,26 +301,13 @@
         <scope>provided</scope>
       </dependency>
 
-      <!-- Jackson -->
+      <!-- Jackson BOM — 统一管理所有 Jackson 制品版本 -->
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>${jackson.version}</version>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>2.22.3</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <!-- Guava -->
@@ -457,6 +506,296 @@
         <artifactId>junit-jupiter</artifactId>
         <version>${testcontainers.version}</version>
         <scope>test</scope>
+      </dependency>
+      <!-- ====== 新增集中管理的依赖 ====== -->
+
+      <!-- 连接池 -->
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>${hikaricp.version}</version>
+      </dependency>
+
+      <!-- 路由 / 脚本 -->
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy.version}</version>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>com.yevdo</groupId>
+        <artifactId>jwildcard</artifactId>
+        <version>${jwildcard.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- 计算引擎 -->
+      <dependency>
+        <groupId>it.unimi.dsi</groupId>
+        <artifactId>fastutil</artifactId>
+        <version>${fastutil.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.openhft</groupId>
+        <artifactId>compiler</artifactId>
+        <version>${openhft-compiler.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-csv</artifactId>
+        <version>${commons-csv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.carrotsearch</groupId>
+        <artifactId>hppc</artifactId>
+        <version>${hppc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>${reflections.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.akarnokd</groupId>
+        <artifactId>rxjava3-extensions</artifactId>
+        <version>${rxjava3-extensions.version}</version>
+      </dependency>
+
+      <!-- NoSQL 驱动 -->
+      <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongo-java-driver</artifactId>
+        <version>${mongo-driver.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sequoiadb</groupId>
+        <artifactId>sequoiadb-driver</artifactId>
+        <version>${sequoiadb.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.transaction</groupId>
+        <artifactId>jta</artifactId>
+        <version>${jta.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
+      </dependency>
+
+      <!-- HTTP / 序列化 / 工具 -->
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>${okhttp.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.objenesis</groupId>
+        <artifactId>objenesis</artifactId>
+        <version>${objenesis.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>${validation-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>${joda-time.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.ehcache</groupId>
+        <artifactId>ehcache</artifactId>
+        <version>${ehcache2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.imadcn.framework</groupId>
+        <artifactId>idworker</artifactId>
+        <version>${idworker.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.questdb</groupId>
+        <artifactId>questdb-jdk8</artifactId>
+        <version>${questdb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.oshi</groupId>
+        <artifactId>oshi-core</artifactId>
+        <version>${oshi.version}</version>
+      </dependency>
+
+      <!-- UI 工具 -->
+      <dependency>
+        <groupId>tech.tablesaw</groupId>
+        <artifactId>tablesaw-core</artifactId>
+        <version>${tablesaw.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testfx</groupId>
+        <artifactId>testfx-core</artifactId>
+        <version>${testfx.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testfx</groupId>
+        <artifactId>testfx-junit</artifactId>
+        <version>${testfx.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>${hibernate-validator.version}</version>
+      </dependency>
+
+      <!-- Calcite 生态 -->
+      <dependency>
+        <groupId>com.github.sisyphsu</groupId>
+        <artifactId>dateparser</artifactId>
+        <version>${dateparser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>${dom4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jaxen</groupId>
+        <artifactId>jaxen</artifactId>
+        <version>${jaxen.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.jinahya</groupId>
+        <artifactId>database-metadata-bind</artifactId>
+        <version>${database-metadata-bind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.jpountz.lz4</groupId>
+        <artifactId>lz4</artifactId>
+        <version>${lz4.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.esri.geometry</groupId>
+        <artifactId>esri-geometry-api</artifactId>
+        <version>${esri-geometry.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.checkerframework</groupId>
+        <artifactId>checker-qual</artifactId>
+        <version>${checker-qual.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>${aspectjweaver.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apiguardian</groupId>
+        <artifactId>apiguardian-api</artifactId>
+        <version>${apiguardian.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>${jsr305.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.jayway.jsonpath</groupId>
+        <artifactId>json-path</artifactId>
+        <version>${json-path.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.yahoo.datasketches</groupId>
+        <artifactId>sketches-core</artifactId>
+        <version>${sketches-core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.hydromatic</groupId>
+        <artifactId>aggdesigner-algorithm</artifactId>
+        <version>${aggdesigner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-dbcp2</artifactId>
+        <version>${commons-dbcp2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-math3</artifactId>
+        <version>${commons-math3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>${commons-text.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.uzaygezen</groupId>
+        <artifactId>uzaygezer-core</artifactId>
+        <version>${uzaygezer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>joou-java-6</artifactId>
+        <version>${joou.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.errorprone</groupId>
+        <artifactId>error_prone_annotations</artifactId>
+        <version>${error-prone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.locationtech.jts</groupId>
+        <artifactId>jts-core</artifactId>
+        <version>${jts.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.locationtech.jts.io</groupId>
+        <artifactId>jts-io-common</artifactId>
+        <version>${jts.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.locationtech.proj4j</groupId>
+        <artifactId>proj4j</artifactId>
+        <version>${proj4j.version}</version>
+      </dependency>
+
+      <!-- 测试辅助 -->
+      <dependency>
+        <groupId>com.github.stephenc.jcip</groupId>
+        <artifactId>jcip-annotations</artifactId>
+        <version>${jcip-annotations.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-junit5</artifactId>
+        <version>${vertx.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
