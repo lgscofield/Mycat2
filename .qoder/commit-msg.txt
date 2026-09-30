@@ -1,22 +1,14 @@
-chore: finalize protocol module - remove empty dirs, verify clean build
+chore: clean up Calcite fork artifacts from project root
 
-Remove empty directories left after file migrations:
-- common/beans/mysql/charset/
-- common/swapbuffer/
-- common/util/packet/
+Remove 256+ temporary files left over from the Calcite fork extraction:
+- 243 root-level .java files (Calcite source duplicates, already in calcite-core/)
+- 13 .tmp-*.java files (decompilation/extraction temp files)
+- 2 .tmp-*.class files (compiled temp artifacts)
+- .tmp-calcite-src/ directory (1 file)
+- hbt compile logs (3 .txt files)
+- Architecture review HTML files (2 files)
+- Mycat2-monitor.json, list_tests.ps1
 
-Full project `mvn clean compile` passes across all 19 modules.
-
-Protocol module dependency DAG verified:
-- protocol depends on: config, netty-buffer, guava, mysql-connector-j,
-  rxjava3, vertx-core, slf4j-api
-- protocol does NOT depend on common (correct leaf module)
-- common depends on protocol (correct dependency direction)
-
-Milestone 1.1 summary:
-- Protocol module: 71 Java files across 9 packages
-- Moved from common: beans/mysql/ (28), charset/ (4), swapbuffer/ (10),
-  util/packet/ (8), util auth classes (4), view interfaces (2)
-- Created new: AuthPlugin, ProtocolCodec, CapabilityFlags, ServerStatus
-- Kept in common: beans/mysql/packet/ (15 files, circular dep with common)
-- Kept in vertx: codec patches (3 files, Vert.x SPI path dependency)
+Root directory now contains only project-essential files:
+.gitignore, pom.xml, README.md, LICENSE.txt, start.bat,
+code style XMLs, 注意.txt
