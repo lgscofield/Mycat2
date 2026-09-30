@@ -1,10 +1,7 @@
-chore: clean up .qoder/ temporary files
+refactor: rename mycat2 module to server
 
-Remove 82 temp files from .qoder/ directory:
-- 40+ compile output logs (.txt)
-- 20+ analysis/migration/fix scripts (.ps1)
-- commit-msg.txt, diff-output.txt, temp-spec.md
-- RxBuiltInMethod-orig.java reference file
-- druid-src/ directory (26 Druid source files for API checking)
-
-Only commands/ and skills/ subdirectories remain.
+- git mv mycat2/ → server/
+- Updated artifactId in server/pom.xml, root pom.xml, and 3 dependent
+  modules (assistant, example, seata)
+- Updated shade plugin finalName
+- Root POM modules list updated

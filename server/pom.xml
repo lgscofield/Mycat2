@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-    <artifactId>mycat2</artifactId>
+    <artifactId>server</artifactId>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/io.netty/netty-codec-haproxy -->
@@ -252,7 +252,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <finalName>mycat2-${project.version}-jar-with-dependencies</finalName>
+                    <finalName>server-${project.version}-jar-with-dependencies</finalName>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>

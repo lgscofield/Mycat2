@@ -14,7 +14,7 @@
     <module>common</module>
     <module>protocol</module>
     <module>datasource</module>
-    <module>mycat2</module>
+    <module>server</module>
     <!--<module>grid</module>-->
     <module>replica</module>
       <module>calcite-core</module>
@@ -185,7 +185,7 @@
       </dependency>
       <dependency>
         <groupId>io.mycat</groupId>
-        <artifactId>mycat2</artifactId>
+        <artifactId>server</artifactId>
         <version>${mycat.version}</version>
       </dependency>
       <dependency>

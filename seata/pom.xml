@@ -27,7 +27,7 @@
 <!--        </dependency>-->
         <dependency>
             <groupId>io.mycat</groupId>
-            <artifactId>mycat2</artifactId>
+            <artifactId>server</artifactId>
             <version>1.13-alpha</version>
         </dependency>
     </dependencies>
