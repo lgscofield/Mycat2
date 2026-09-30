@@ -1,0 +1,48 @@
+1	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8",age=INTEGER,amount=DECIMAL(10, 2),c_date=DATE,c_ts=TIMESTAMP(0),flag=BOOLEAN
+2	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
+3	cols=i=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
+4	cols=?+?=INTEGER NOT NULL,?=VARCHAR CHARACTER SET "UTF-8" NOT NULL,?=DECIMAL(19, 0) NOT NULL
+5	cols=id=INTEGER NOT NULL
+6	cols=id=INTEGER NOT NULL
+7	cols=plus_one=INTEGER NOT NULL,doubled=INTEGER
+8	cols=count(*)=BIGINT NOT NULL
+9	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+10	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+11	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+12	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+13	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+14	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+15	cols=id<=>name=BOOLEAN NOT NULL
+16	cols=NULL<=>NULL=BOOLEAN NOT NULL
+17	cols=age<=>?=BOOLEAN NOT NULL
+18	cols=id=INTEGER NOT NULL,amount<=>?=BOOLEAN NOT NULL
+19	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+20	cols=id=INTEGER NOT NULL
+21	cols=id=INTEGER NOT NULL
+22	cols=mx=DECIMAL(10, 2)
+23	cols=name=VARCHAR(64) CHARACTER SET "UTF-8"
+24	cols=id=INTEGER NOT NULL
+25	cols=deptno=INTEGER
+26	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+27	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+28	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+29	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+30	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+31	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
+32	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
+33	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
+34	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
+35	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
+36	cols=id=INTEGER NOT NULL
+37	cols=id=INTEGER NOT NULL
+38	cols=id=INTEGER NOT NULL
+39	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8",age=INTEGER
+40	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
+41	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8",age=INTEGER,amount=DECIMAL(10, 2),c_date=DATE,c_ts=TIMESTAMP(0),flag=BOOLEAN
+42	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8",age=INTEGER,amount=DECIMAL(10, 2),c_date=DATE,c_ts=TIMESTAMP(0),flag=BOOLEAN
+43	cols=MYCAT_VERSION()=ANY
+44	cols=MYCAT_LAST_INSERT_ID()=ANY
+45	cols=DATABASE()=VARCHAR CHARACTER SET "UTF-8" NOT NULL
+46	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Column 'nosuchcol' not found in any table
+47	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Object 'nosuchtable' not found within 'mycat'
+48	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'

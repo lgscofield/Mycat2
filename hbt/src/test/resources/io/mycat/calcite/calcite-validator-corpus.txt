@@ -1,0 +1,48 @@
+select * from t1
+select id, name from t1
+select t1.id as i, t1.name from t1
+select 1 + 1, 'abc', 3.14 from t1
+select id from t1 limit 10
+select id from t1 limit 10 offset 5
+select id + 1 as plus_one, age * 2 as doubled from t1
+select count(*) from t1
+select deptno, count(*) from employee group by deptno
+select deptno, avg(salary) from employee group by deptno
+select deptno, count(distinct name) from employee group by deptno
+select deptno, group_concat(name separator '|') from employee group by deptno
+select deptno, max(salary) as mx, min(salary) as mn from employee group by deptno
+select flag, count(*) from t1 group by flag
+select id <=> name from t1
+select NULL <=> NULL
+select age <=> ? from t1
+select id, amount <=> 1.05 from t1
+select t1.id, t2.id from t1 inner join t2 on t1.id <=> t2.t1_id
+select id from t1 where id in (select t1_id from t2)
+select id from t1 where exists (select 1 from t2 where t2.t1_id = t1.id)
+select (select max(salary) from employee) as mx
+select name from t1 where amount > (select avg(amount) from t2)
+select id from t1 where id not in (1, 2, 3)
+select deptno from employee e where exists (select 1 from t1 where t1.id = e.id)
+select t1.id, t2.note from t1 inner join t2 on t1.id = t2.t1_id
+select t1.id, t2.note from t1 left join t2 on t1.id = t2.t1_id
+select a.id, b.id, c.deptno from t1 a inner join t2 b on a.id = b.t1_id inner join employee c on c.id = b.id
+select t1.*, t2.* from t1, t2 where t1.id = t2.t1_id
+select e.name as ename, e.salary from employee e left join t1 on t1.id = e.id where e.deptno > 2
+select id from t1 union all select id from t2
+select id, name from t1 union select id, note from t2
+select id from t1 union all select id, name from t2
+select deptno, count(*) from employee group by deptno union select id, amount from t1
+select id, name from t1 where age > ?
+select id from t1 where name = ?
+select id from t1 where c_date = ?
+select id from t1 where id in (?)
+insert into t1 (id, name, age) values (1, 'a', 10)
+insert into t1 (id, name) select id, note from t2
+update t1 set age = age + 1 where id = ?
+delete from t1 where id = ?
+select MYCAT_VERSION()
+select MYCAT_LAST_INSERT_ID()
+select DATABASE()
+select nosuchcol from t1
+select * from nosuchtable
+select name, count(*) from t1 group by flag
