@@ -1,7 +1,8 @@
-refactor: rename mycat2 module to server
+refactor: move hint/ ratelimiter/ sql/ from common to server
 
-- git mv mycat2/ → server/
-- Updated artifactId in server/pom.xml, root pom.xml, and 3 dependent
-  modules (assistant, example, seata)
-- Updated shade plugin finalName
-- Root POM modules list updated
+Task 20: Move hint/ (48 files) from common to server
+Task 21: Move ratelimiter/ (4 files) + sql/ (1 file) from common to server
+Task 22: prototypeserver/ stays in hbt (hbt references it, circular dep)
+  - sequencemodifier/ stays in common (router depends on it via common)
+
+Package names unchanged — only physical file location moves between modules.
