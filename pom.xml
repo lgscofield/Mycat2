@@ -72,6 +72,8 @@
 
     <!-- 测试框架 -->
     <junit.version>5.12.2</junit.version>
+    <!-- junit-jupiter 5.12.2 对应的 junit-platform 版本 -->
+    <junit.platform.version>1.12.2</junit.platform.version>
     <mockito.version>5.16.1</mockito.version>
     <assertj.version>3.27.3</assertj.version>
     <testcontainers.version>1.21.0</testcontainers.version>
@@ -179,6 +181,15 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- MYCAT CHANGE: 补 junit-vintage-engine，让上面那个 JUnit 4 兼容层的测试真正被执行。
+         没有它时 surefire 的 junit-platform provider 不识别 JUnit 4 类，
+         实测 router/hbt/executor 三模块均报 Tests run: 0 —— 回归门量不到任何东西。 -->
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -494,6 +505,17 @@
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <!-- MYCAT CHANGE: 钉住 junit-platform-launcher。
+           org.codehaus.groovy:groovy-test-junit5:3.0.6 会把 junit-platform-launcher 1.7.0
+           以 compile 作用域传递进来，与 1.12.2 的 junit-platform-engine 错位，
+           surefire 表现为 "TestEngine with ID 'junit-jupiter' failed to discover tests"
+           (Caused by: OutputDirectoryProvider not available)，全仓测试无法启动。 -->
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-launcher</artifactId>
+        <version>${junit.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
