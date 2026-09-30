@@ -79,8 +79,8 @@ Layer 5 (工具扩展):   seata · migrate · assistant · console · vertx
 
 ```
 config          → []
-common          → [config]
-protocol        → [common, config]
+protocol        → [config]              ← protocol 是叶子模块，不依赖 common
+common          → [protocol, config]    ← common 依赖 protocol（反转原设计方向）
 router          → [config, common]
 va              → [common]
 plug            → [router, common]
@@ -97,6 +97,10 @@ assistant       → [server]
 console         → []
 vertx           → []
 ```
+
+> **实施偏差说明**：原设计 `protocol → [common, config]`，实际执行时发现 common 有 19 个文件引用 beans/mysql/ 类型，
+> 导致循环依赖。最终采用**依赖方向反转**：protocol 作为叶子模块（仅依赖 config），common 依赖 protocol。
+> 这是更优的架构决策，避免了 common↔protocol 循环依赖。
 
 ### 与当前依赖的关键变化
 
@@ -141,12 +145,12 @@ vertx           → []
 
 #### 移出 → server（~55 文件）
 
-| 包 | 文件数 |
-|---|--------|
-| `io/mycat/hint/` | 48 |
-| `io/mycat/ratelimiter/` | 4 |
-| `io/mycat/sequencemodifier/` | 2 |
-| `io/mycat/sql/` | 1 |
+| 包 | 文件数 | 状态 |
+|---|--------|------|
+| `io/mycat/hint/` | 48 | ✅ 已迁移 |
+| `io/mycat/ratelimiter/` | 4 | ✅ 已迁移 |
+| `io/mycat/sequencemodifier/` | 2 | ❗ 保留 common（router 依赖） |
+| `io/mycat/sql/` | 1 | ✅ 已迁移 |
 
 #### 移出 → plug（1 文件）
 
@@ -191,19 +195,22 @@ hbt 中保留 **17 个 bridge 文件**（含 `io.mycat` 依赖的 Calcite 覆盖
 
 #### 移出 → executor（~148 文件）
 
-| 包 | 文件数 |
-|---|--------|
-| `io/mycat/calcite/sqlfunction/datefunction/` | 64 |
-| `io/mycat/calcite/sqlfunction/stringfunction/` | 63 |
-| `io/mycat/calcite/sqlfunction/infofunction/` | 11 |
-| `io/mycat/calcite/sqlfunction/mathfunction/` | 5 |
-| `io/mycat/calcite/sqlfunction/`（其他） | 5 |
+> **❗ 已跳过**：hbt 核心类（MycatCalciteSupport, MycatCalciteMySqlNodeVisitor）深度引用 sqlfunction 包，
+> 而 executor 依赖 hbt（不能反向），会造成循环依赖。sqlfunction 保留在 hbt 中，待 Phase 2+ 通过 SPI 解耦。
+
+| 包 | 文件数 | 状态 |
+|---|--------|------|
+| `io/mycat/calcite/sqlfunction/datefunction/` | 64 | ❗ 保留 hbt |
+| `io/mycat/calcite/sqlfunction/stringfunction/` | 63 | ❗ 保留 hbt |
+| `io/mycat/calcite/sqlfunction/infofunction/` | 11 | ❗ 保留 hbt |
+| `io/mycat/calcite/sqlfunction/mathfunction/` | 5 | ❗ 保留 hbt |
+| `io/mycat/calcite/sqlfunction/`（json/lock/cmp 等） | ~5 | ❗ 保留 hbt |
 
 #### 移出 → server（~11 文件）
 
-| 包 | 文件数 |
-|---|--------|
-| `io/mycat/prototypeserver/` | 11 |
+| 包 | 文件数 | 状态 |
+|---|--------|------|
+| `io/mycat/prototypeserver/` | 11 | ❗ 保留 hbt（hbt 内部引用） |
 
 ### 三、mycat2 → server（218 → ~250 文件）
 
@@ -225,33 +232,33 @@ hbt 中保留 **17 个 bridge 文件**（含 `io.mycat` 依赖的 Calcite 覆盖
 | `io/mycat/exporter/` | 14 | 原有 |
 | `io/mycat/monitor/` | 11 | 原有 |
 | `io/mycat/executor/` | 1 | 原有 |
-| `io/mycat/hint/` | 48 | 从 common 移入 |
-| `io/mycat/ratelimiter/` | 4 | 从 common 移入 |
-| `io/mycat/sequencemodifier/` | 2 | 从 common 移入 |
-| `io/mycat/prototypeserver/` | 11 | 从 hbt 移入 |
+| `io/mycat/hint/` | 48 | 从 common 移入 ✅ |
+| `io/mycat/ratelimiter/` | 4 | 从 common 移入 ✅ |
+| `io/mycat/sequencemodifier/` | 2 | 保留 common（router 依赖） |
+| `io/mycat/plug/sequence/` | 2 | 保留 server（datasource 依赖约束） |
+| `io/mycat/prototypeserver/` | 11 | 保留 hbt（hbt 内部引用） |
 
 **移出：**
 
-| 包 | 文件数 | 目标 |
-|---|--------|------|
-| `io/vertx/` 补丁 | 9 | → vertx 模块 |
-| `com/alibaba/druid/` 补丁 | 7 | → plug 模块 |
-| `io/mycat/plug/sequence/` | 2 | → plug 模块 |
+| 包 | 文件数 | 目标 | 状态 |
+|---|--------|------|------|
+| `io/vertx/` 补丁 | 9 | → vertx 模块 | ✅ 已迁移 |
+| `com/alibaba/druid/` 补丁 | 7 | → plug 模块 | ✅ 已迁移 |
+| `io/mycat/plug/sequence/` | 2 | → plug 模块 | ❗ 保留 server（datasource→plug 循环） |
 
 ## 文件迁移总账
 
-| 迁移路径 | 文件数 | 说明 |
-|----------|--------|------|
-| common → protocol | ~95 | MySQL/MariaDB 协议类型+包+编解码 |
-| common → server | ~55 | Hint 命令+限流+序列 |
-| common → plug | ~1 | Doris fork |
-| ~~hbt → calcite-core~~ | ~~70~~ | ✅ 已完成（实际 1651 文件，完整源码 fork） |
-| hbt → executor | ~148 | MySQL 函数实现 |
-| hbt → server | ~11 | 原型服务器 |
-| mycat2 → vertx | ~9 | Vert.x 框架补丁 |
-| mycat2 → plug | ~9 | Druid 补丁 + 序列生成器 |
-| 新增 eddsa fork → protocol | ~10 | ed25519 认证库 fork |
-| **剩余迁移量** | **~338** | **（不含已完成的 calcite-core）** |
+| 迁移路径 | 计划 | 实际 | 状态 |
+|----------|--------|------|------|
+| common → protocol | ~95 | 56 | ✅ 完成（beans/mysql, charset, swapbuffer, util/packet, auth 工具） |
+| common → server | ~55 | 53 | ✅ 完成（hint, ratelimiter, sql） |
+| common → plug | ~1 | 0 | ❗ 未执行 |
+| ~~hbt → calcite-core~~ | ~~70~~ | — | ✅ 已完成（1651 文件 fork） |
+| hbt → executor | ~148 | 0 | ❗ 跳过（循环依赖） |
+| hbt → server | ~11 | 0 | ❗ 跳过（hbt 内部引用） |
+| server → vertx | ~9 | 9 | ✅ 完成 |
+| server → plug | ~9 | 7 | ✅ 完成（Druid 补丁，sequence 保留） |
+| 新增 eddsa fork → protocol | ~10 | 0 | ❗ 延后到 Phase 2+ |
 
 ## protocol 模块双协议设计
 

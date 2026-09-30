@@ -1,17 +1,8 @@
-chore: finalize server module + remove deprecated calcite/ and linq4j/
+docs: update spec to reflect Phase 1 execution reality
 
-Task 18: Delete deprecated calcite/ and linq4j/ directories
-  (empty shells with only pom.xml, not in build)
-
-Task 25: Server module final verification
-  - Server: 266 Java files (renamed from mycat2)
-  - Common: 219 Java files (trimmed)
-  - Full clean compile: BUILD SUCCESS (19 modules)
-
-Milestone 1.3 summary:
-  - mycat2 → server rename (artifactId, module, shade finalName)
-  - 53 files moved into server: hint/ (48), ratelimiter/ (4), sql/ (1)
-  - 9 Vert.x patch files moved out: server → vertx
-  - 7 Druid patch files moved out: server → plug
-  - Kept in place due to dependency constraints:
-    sequencemodifier/ (common), prototypeserver/ (hbt)
+Key corrections:
+- Fix dependency DAG: protocol → [config] (leaf module), common → [protocol, config]
+- Mark 4 migrations as skipped with dependency constraint reasons
+- Mark Milestone 1.4 (sqlfunction → executor) as skipped (circular dep)
+- Update file migration summary with actual vs planned counts
+- Add eddsa fork as deferred to Phase 2+
