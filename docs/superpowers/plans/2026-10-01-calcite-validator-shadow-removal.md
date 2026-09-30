@@ -343,6 +343,8 @@ Expected: 日志 `validator from ...calcite-core...`（断言若非 fork 即 fai
 
 先 `git diff hbt/src/test/resources/io/mycat/calcite/calcite-validator-baseline.txt` 看全部差异；把差异逐条抄进 `target/shadowdiff/fork-recollect.txt`，每条标注：类型漂移 / 列名大小写 / 错误消息文案 / 新增或消失的 `!!ERR!!`。
 
+**Task 2 已实测的预期类别（不应当成意外）**：copy 侧基线 19 条 `!!ERR!!` 中有 **17 条是两侧 jar 之间的 ABI 自相矛盾**（GROUP BY 7 条 `extendedExpandGroupBy`、JOIN 6 条 `getNamespaceOrThrow`、UNION 4 条 `scopes` 字段），另 2 条是故意报错样本。这 17 条在 fork 胜出后**预期变成正常 `cols=`**（副本本来就在阻断它们）：归“从错到对”类，**不计入 spec §4.6 的止损计数**；若仍报错或结果类型丢失，逐条上升为待移植差异。
+
 - [ ] **Step 3: 逐条裁定**（Review Focus 第 3、4 条在这里落地）
 
 每条差异写"接受 / 移植 / 待议"之一：
