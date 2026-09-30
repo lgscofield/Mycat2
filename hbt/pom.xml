@@ -181,11 +181,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.calcite.avatica</groupId>
-            <artifactId>avatica-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>scott-data-hsqldb</artifactId>
             <version>0.1</version>
