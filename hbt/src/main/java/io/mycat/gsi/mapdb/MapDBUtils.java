@@ -1,12 +1,13 @@
 package io.mycat.gsi.mapdb;
 
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.util.TypeUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MapDBUtils {
 
-    public static Object cast(Object value,Class javaClass){
-        Object result = TypeUtils.cast(value, javaClass, ParserConfig.getGlobalInstance());
-        return result;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @SuppressWarnings("rawtypes")
+    public static Object cast(Object value, Class javaClass) {
+        return MAPPER.convertValue(value, javaClass);
     }
 }

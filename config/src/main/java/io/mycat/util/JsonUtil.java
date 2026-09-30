@@ -1,14 +1,17 @@
 package io.mycat.util;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class JsonUtil {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     public static Map<String, String> urlSplit(String s) {
         Map<String, String> mapRequest = new HashMap<>(2);
         String strUrlParam = truncateUrlPage(s);
@@ -50,16 +53,22 @@ public class JsonUtil {
         return from(toJson(o), clazz);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T from(String text, Class<T> clazz) {
-        return (T) JSON.parseObject(text, clazz);
+        try {
+            return MAPPER.readValue(text, clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    @SuppressWarnings("rawtypes")
     public static Optional<String> fromMap(String text, String item) {
         if (text == null) {
             return Optional.empty();
         }
         try {
-            Map map = JSON.parseObject(text, Map.class);
+            Map map = MAPPER.readValue(text, Map.class);
             return Optional.ofNullable(map).map(i -> (String) i.get(item));
         } catch (Throwable t) {
             return Optional.empty();
@@ -67,6 +76,10 @@ public class JsonUtil {
     }
 
     public static String toJson(Object o) {
-        return JSON.toJSONString(o, SerializerFeature.PrettyFormat);
+        try {
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
