@@ -22,7 +22,18 @@ import java.util.stream.StreamSupport;
 
 public class RxBuiltInMethodImpl {
 
-    public static Observable<Object[]> select(Observable<Object[]> input, org.apache.calcite.linq4j.function.Function1<Object[], Object[]> map) {
+    /**
+     * 投影算子：对输入流每个元素应用 {@code map}。
+     *
+     * <p>必须是泛型 {@code <T, R>}：单列标量投影（如 {@code SHOW DATABASES} 改写为
+     * {@code select SCHEMA_NAME ... }）的 codegen 会传入返回裸标量（如 String）的
+     * {@code Function1}。若把签名收窄为 {@code Function1<Object[], Object[]>}，javac
+     * 会在 {@code map.apply(..)} 的返回值处烘焙 {@code (Object[])} 强转，标量投影即抛
+     * {@code ClassCastException: String -> Object[]}。元素是否为 {@code Object[]} 由
+     * 计划自述的 {@code getElementType()} 决定，再由 {@code MycatBindable.asObjectArray}
+     * 统一升箱；此处不应假定行必为 {@code Object[]}。
+     */
+    public static <T, R> Observable<R> select(Observable<T> input, org.apache.calcite.linq4j.function.Function1<T, R> map) {
         return input.map(objects -> map.apply(objects));
     }
 
