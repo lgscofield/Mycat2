@@ -4,13 +4,11 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import io.reactivex.rxjava3.core.Observable;
-import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.EnumerableRelImplementor;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.tree.*;
 import org.apache.calcite.plan.RelOptUtil;
-import org.apache.calcite.runtime.Bindable;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.BuiltInMethod;
 import org.apache.calcite.util.RxBuiltInMethod;
@@ -48,7 +46,7 @@ public class StreamMycatEnumerableRelImplementor extends MycatEnumerableRelImple
                 Collections2.transform(stashedParameters.values(),
                         input -> Expressions.declare(Modifier.FINAL, input,
                                 Expressions.convert_(
-                                        Expressions.call(DataContext.ROOT,
+                                        Expressions.call(MycatBindable.ROOT,
                                                 BuiltInMethod.DATA_CONTEXT_GET.method,
                                                 Expressions.constant(input.name)),
                                         input.type)));
@@ -61,8 +59,8 @@ public class StreamMycatEnumerableRelImplementor extends MycatEnumerableRelImple
                 Expressions.methodDecl(
                         Modifier.PUBLIC,
                        Object.class,
-                        "bindObservable",
-                        Expressions.list(DataContext.ROOT),
+                        "bind",
+                        Expressions.list(MycatBindable.ROOT),
                         block));
         memberDeclarations.add(
                 Expressions.methodDecl(Modifier.PUBLIC, boolean.class,
@@ -81,7 +79,7 @@ public class StreamMycatEnumerableRelImplementor extends MycatEnumerableRelImple
         return Expressions.classDecl(Modifier.PUBLIC,
                 "Baz",
                 null,
-                Collections.singletonList(Bindable.class),
+                Collections.singletonList(MycatBindable.class),
                 memberDeclarations);
     }
 
