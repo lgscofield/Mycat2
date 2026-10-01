@@ -16,7 +16,7 @@
  */
 package io.mycat.calcite.sqlfunction.infofunction;
 
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.RexImpTable;
 import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
 import org.apache.calcite.linq4j.tree.Expression;
@@ -42,7 +42,7 @@ public class MycatUserValueFunction extends MycatSqlDefinedFunction {
     @Override
     public Expression implement(RexToLixTranslator translator, RexCall call, RexImpTable.NullAs nullAs) {
         List<Expression> argValueList = translator.translateList(call.getOperands());
-        return Expressions.call(DataContext.ROOT,
+        return Expressions.call(MycatBindable.ROOT,
                 "getUserVariable"
                 ,argValueList.get(0));
     }

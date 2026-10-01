@@ -16,7 +16,7 @@ package io.mycat.calcite.physical;
 
 import com.google.common.collect.ImmutableList;
 import io.mycat.calcite.*;
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.PhysType;
 import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
@@ -149,7 +149,7 @@ public class MycatMemSort
         if (rexNode instanceof RexDynamicParam) {
             final RexDynamicParam param = (RexDynamicParam) rexNode;
             return Expressions.convert_(
-                    Expressions.call(DataContext.ROOT,
+                    Expressions.call(MycatBindable.ROOT,
                             BuiltInMethod.DATA_CONTEXT_GET.method,
                             Expressions.constant("?" + param.getIndex())),
                     Integer.class);

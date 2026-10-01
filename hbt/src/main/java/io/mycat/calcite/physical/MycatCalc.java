@@ -17,7 +17,7 @@ package io.mycat.calcite.physical;
 import com.google.common.collect.ImmutableList;
 import io.mycat.calcite.*;
 import io.reactivex.rxjava3.core.Observable;
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.*;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.Enumerator;
@@ -210,7 +210,7 @@ public class MycatCalc extends Calc implements MycatRel {
                         conformance,
                         builder3,
                         physType,
-                        DataContext.ROOT,
+                        MycatBindable.ROOT,
                         new RexToLixTranslator.InputGetterImpl(
                                 Collections.singletonList(
                                         Pair.of(input, result.physType))),
@@ -340,7 +340,7 @@ public class MycatCalc extends Calc implements MycatRel {
                                 conformance,
                                 projectBuilder,
                                 physType,
-                                DataContext.ROOT,
+                                MycatBindable.ROOT,
                                 new RexToLixTranslator.InputGetterImpl(
                                         Collections.singletonList(
                                                 Pair.of(input, result.physType))),

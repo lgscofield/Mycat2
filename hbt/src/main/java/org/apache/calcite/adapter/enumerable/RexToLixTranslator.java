@@ -18,7 +18,7 @@ package org.apache.calcite.adapter.enumerable;
 
 import com.google.common.collect.ImmutableList;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.util.ByteString;
 import org.apache.calcite.linq4j.function.Function1;
@@ -175,7 +175,7 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
   /** Creates a translator for translating aggregate functions. */
   public static RexToLixTranslator forAggregation(JavaTypeFactory typeFactory,
       BlockBuilder list, InputGetter inputGetter, SqlConformance conformance) {
-    final ParameterExpression root = DataContext.ROOT;
+    final ParameterExpression root = MycatBindable.ROOT;
     return new RexToLixTranslator(null, typeFactory, root, inputGetter, list,
         new RexBuilder(typeFactory), conformance, null);
   }
@@ -2405,7 +2405,7 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     if (program.getCondition() == null) {
       return RexImpTable.TRUE_EXPR;
     }
-    final ParameterExpression root = DataContext.ROOT;
+    final ParameterExpression root = MycatBindable.ROOT;
     RexToLixTranslator translator =
         new RexToLixTranslator(program, typeFactory, root, inputGetter, list,
             new RexBuilder(typeFactory), conformance, null);

@@ -25,7 +25,6 @@ import org.apache.calcite.adapter.enumerable.EnumerableInterpretable;
 import org.apache.calcite.config.CalciteSystemProperty;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.runtime.ArrayBindable;
 import org.apache.calcite.runtime.NewMycatDataContext;
 import org.apache.calcite.runtime.Utilities;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;

@@ -37,7 +37,7 @@ import io.mycat.vertx.VertxExecuter;
 import io.mycat.vertx.VertxUpdateExecuter;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.Future;
-import org.apache.calcite.runtime.ArrayBindable;
+import io.mycat.calcite.MycatBindable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,7 +238,7 @@ public class ObservablePlanImplementorImpl implements PlanImplementor {
             PrepareExecutor.ArrowObservable observable1 = prepare.asObservableVector(sqlMycatDataContext, plan.getMetaData());
             return response.sendVectorResultSet(observable1.getMycatRowMetaData(), observable1.getObservable());
         } else {
-            ArrayBindable arrayBindable = prepare.getArrayBindable();
+            MycatBindable arrayBindable = prepare.getArrayBindable();
             Observable<MysqlPayloadObject> observable1 = PrepareExecutor
                     .getMysqlPayloadObjectObservable(arrayBindable, sqlMycatDataContext, plan.getMetaData());
             Observable observable = mapToTimeoutObservable(observable1, drdsSqlWithParams);

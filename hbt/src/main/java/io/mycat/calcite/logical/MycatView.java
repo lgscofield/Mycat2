@@ -35,7 +35,7 @@ import io.mycat.calcite.spm.ParamHolder;
 import io.mycat.calcite.table.*;
 import io.mycat.querycondition.QueryType;
 import io.reactivex.rxjava3.core.Observable;
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.EnumerableRelImplementor;
 import org.apache.calcite.adapter.enumerable.JavaRowFormat;
 import org.apache.calcite.adapter.enumerable.PhysType;
@@ -843,7 +843,7 @@ public class MycatView extends AbstractRelNode implements MycatRel {
         if (rexNode instanceof RexDynamicParam) {
             final RexDynamicParam param = (RexDynamicParam) rexNode;
             return Expressions.convert_(
-                    Expressions.call(DataContext.ROOT,
+                    Expressions.call(MycatBindable.ROOT,
                             BuiltInMethod.DATA_CONTEXT_GET.method,
                             Expressions.constant("?" + param.getIndex())),
                     Integer.class);

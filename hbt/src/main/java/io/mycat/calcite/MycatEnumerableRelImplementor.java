@@ -19,7 +19,6 @@ package io.mycat.calcite;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.EnumerableRelImplementor;
 import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
@@ -70,7 +69,7 @@ public class MycatEnumerableRelImplementor extends EnumerableRelImplementor {
                 Collections2.transform(stashedParameters.values(),
                         input -> Expressions.declare(Modifier.FINAL, input,
                                 Expressions.convert_(
-                                        Expressions.call(DataContext.ROOT,
+                                        Expressions.call(MycatBindable.ROOT,
                                                 BuiltInMethod.DATA_CONTEXT_GET.method,
                                                 Expressions.constant(input.name)),
                                         input.type)));
@@ -84,7 +83,7 @@ public class MycatEnumerableRelImplementor extends EnumerableRelImplementor {
                         Modifier.PUBLIC,
                         Enumerable.class,
                         BuiltInMethod.BINDABLE_BIND.method.getName(),
-                        Expressions.list(DataContext.ROOT),
+                        Expressions.list(MycatBindable.ROOT),
                         block));
         memberDeclarations.add(
                 Expressions.methodDecl(Modifier.PUBLIC, Class.class,

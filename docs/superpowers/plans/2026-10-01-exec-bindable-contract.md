@@ -160,8 +160,8 @@ server：ExecutorProviderImpl import/:104 返回类型/:110/:131 强转/:121 `se
 - [ ] **Step 4: 合同测试加 asObjectArray 双态钉子并全跑绿**
 
 `MycatBindableContractTest` 追加用例⑤⑥：`asObjectArray(非数组 Enumerable 装)` bind 后逐行 `Object[]` 长度 1；Observable 态同理 `.blockingIterable` 验证。
-Run: `mvn -B -o test -pl hbt "-Dtest=MycatBindableContractTest"` → PASS；
-`mvn -B -o test -pl hbt` → 32/0/23 不劣化；`git grep -c "\bArrayBindable\b" -- hbt/src server/src` → 0 行（server 旧私有 asObjectArray 的 ArrayBindable 也清）。
+Run: `mvn -B -o test -pl hbt "-Dtest=MycatBindableContractTest"` → PASS（5 用例）；
+`mvn -B -o test -pl hbt` → 34/0/23 不劣化（29 基准 + 5 合同）；`git grep -n "\bArrayBindable\b" -- hbt/src server/src` → 代码引用 0 行（MycatBindable javadoc 历史说明 1 处不算）。
 
 - [ ] **Step 5: Commit**
 
@@ -193,7 +193,7 @@ Run: `git grep -n "DataContext\.ROOT" -- hbt/src/main` → Expected 空输出；
 - [ ] **Step 3: 全链构建 + 三道数字门复跑**
 
 Run: `mvn -B -o install '-Dmaven.test.skip=true' -pl server -am` → BUILD SUCCESS；
-`mvn -B -o test -pl hbt` → 32/0/23；
+`mvn -B -o test -pl hbt` → 34/0/23；
 孪生对枚举（I-DEBT-3 Task 7 同款 pwsh 循环）→ **10**；
 `git grep -l "^import io.mycat" -- calcite-core/src/main/java` → 0。
 
@@ -249,7 +249,7 @@ Expected: rc=0 且输出 `L1 OK rows=`。
 
 - [ ] **Step 1: 三门数字**
 
-`mvn -B -o test -pl router,executor,hbt "-Dmaven.test.failure.ignore=true"` → router 15/0/0、hbt 32/0/23、executor 0；
+`mvn -B -o test -pl router,executor,hbt "-Dmaven.test.failure.ignore=true"` → router 15/0/0、hbt 34/0/23、executor 0；
 `mvn -B -o test -pl hbt "-Dtest=CalciteValidatorGoldenTest"` → 1/0/0；
 G6v=10、G7=0（命令同 Task 3）。
 

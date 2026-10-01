@@ -15,7 +15,6 @@ import lombok.Getter;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
-import org.apache.calcite.runtime.ArrayBindable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class PrepareExecutor {
     ArrowBindable arrowBindable = null;
-    ArrayBindable arrayBindable = null;
+    MycatBindable arrayBindable = null;
     public static interface ArrowBindable {
         ArrowObservable apply(AsyncMycatDataContextImpl newMycatDataContext, MycatRowMetaData mycatRowMetaData);
     }
@@ -47,12 +46,12 @@ public class PrepareExecutor {
         }
     }
 
-    public PrepareExecutor( ArrowBindable arrowBindable, ArrayBindable arrayBindable ) {
+    public PrepareExecutor( ArrowBindable arrowBindable, MycatBindable arrayBindable ) {
         this.arrowBindable = arrowBindable;
         this.arrayBindable = arrayBindable;
     }
 
-    public static PrepareExecutor of(ArrowBindable arrowBindable, ArrayBindable arrayBindable ) {
+    public static PrepareExecutor of(ArrowBindable arrowBindable, MycatBindable arrayBindable ) {
         return new PrepareExecutor(arrowBindable, arrayBindable);
     }
 
@@ -64,7 +63,7 @@ public class PrepareExecutor {
 
     @NotNull
     public static Observable<MysqlPayloadObject> getMysqlPayloadObjectObservable(
-            ArrayBindable bindable,
+            MycatBindable bindable,
             AsyncMycatDataContextImpl newMycatDataContext,
             MycatRowMetaData rowMetaData) {
         Observable<MysqlPayloadObject> rowObservable = Observable.<MysqlPayloadObject>create(emitter -> {

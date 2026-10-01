@@ -19,11 +19,8 @@ import io.reactivex.rxjava3.core.Observable;
 import lombok.SneakyThrows;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
-import org.apache.calcite.DataContext; // MYCAT CHANGE: Calcite 1.42
 import org.apache.calcite.adapter.enumerable.EnumerableInterpretable;
 import org.apache.calcite.config.CalciteSystemProperty;
-import org.apache.calcite.linq4j.Enumerable;
-import org.apache.calcite.runtime.ArrayBindable;
 import org.apache.calcite.runtime.NewMycatDataContext;
 import org.apache.calcite.runtime.Utilities;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;
@@ -101,13 +98,13 @@ public class ExecutorProviderImpl implements ExecutorProvider {
     }
 
     @NotNull
-    private ArrayBindable getArrayBindable(CodeExecuterContext codeExecuterContext) {
-        ArrayBindable bindable1 = asObjectArray(getBindable(codeExecuterContext.getCodeContext()));
+    private MycatBindable getArrayBindable(CodeExecuterContext codeExecuterContext) {
+        MycatBindable bindable1 = MycatBindable.asObjectArray(getBindable(codeExecuterContext.getCodeContext()));
         return bindable1;
     }
 
     @SneakyThrows
-    static ArrayBindable getBindable(CodeContext codeContext) {
+    static MycatBindable getBindable(CodeContext codeContext) {
         ICompilerFactory compilerFactory;
         try {
             compilerFactory = CompilerFactoryFactory.getDefaultCompilerFactory();
@@ -118,7 +115,7 @@ public class ExecutorProviderImpl implements ExecutorProvider {
         final IClassBodyEvaluator cbe = compilerFactory.newClassBodyEvaluator();
         cbe.setClassName(codeContext.getName());
         cbe.setExtendedClass(Utilities.class);
-        cbe.setImplementedInterfaces(new Class[]{ArrayBindable.class});
+        cbe.setImplementedInterfaces(new Class[]{MycatBindable.class});
         cbe.setParentClassLoader(EnumerableInterpretable.class.getClassLoader());
         if (CalciteSystemProperty.DEBUG.value()) {
             // Add line numbers to the generated janino class
@@ -128,28 +125,7 @@ public class ExecutorProviderImpl implements ExecutorProvider {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(code);
         }
-        return (ArrayBindable) cbe.createInstance(new StringReader(code));
-    }
-
-    @NotNull
-    private static ArrayBindable asObjectArray(ArrayBindable bindable) {
-        if (bindable.getElementType().isArray()) {
-            return bindable;
-        }
-        return new ArrayBindable() {
-            @Override
-            public Class<Object[]> getElementType() {
-                return Object[].class;
-            }
-
-            @Override
-            public Enumerable<Object[]> bind(DataContext dataContext) { // MYCAT CHANGE: Calcite 1.42 bind() takes DataContext
-                Enumerable enumerable = bindable.bind(dataContext);
-                return enumerable.select(e -> {
-                    return new Object[]{e};
-                });
-            }
-        };
+        return (MycatBindable) cbe.createInstance(new StringReader(code));
     }
 
 }

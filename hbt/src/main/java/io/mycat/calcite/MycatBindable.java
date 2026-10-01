@@ -1,5 +1,7 @@
 package io.mycat.calcite;
 
+import io.reactivex.rxjava3.core.Observable;
+import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.tree.Expressions;
 import org.apache.calcite.linq4j.tree.ParameterExpression;
 import org.apache.calcite.runtime.NewMycatDataContext;
@@ -31,4 +33,34 @@ public interface MycatBindable {
     Object bind(NewMycatDataContext root);
 
     Class getElementType();
+
+    /**
+     * 将非数组行元素升箱为 {@code Object[]}（双态）：原仅 ExecutorProviderImpl 私有且
+     * 只处理 Enumerable 态（返回 Observable 时会 ClassCastException）；归位到契约接口后
+     * Enumerable/Observable 两态均正确升箱（spec §4.3 / Review Focus 第 1 条）。
+     */
+    static MycatBindable asObjectArray(MycatBindable bindable) {
+        if (bindable.getElementType().isArray()) {
+            return bindable;
+        }
+        return new MycatBindable() {
+            @Override
+            public Class getElementType() {
+                return Object[].class;
+            }
+
+            @Override
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            public Object bind(NewMycatDataContext root) {
+                Object out = bindable.bind(root);
+                if (out instanceof Enumerable) {
+                    return ((Enumerable) out).select(e -> new Object[] {e});
+                }
+                if (out instanceof Observable) {
+                    return ((Observable) out).map(e -> new Object[] {e});
+                }
+                return out;
+            }
+        };
+    }
 }

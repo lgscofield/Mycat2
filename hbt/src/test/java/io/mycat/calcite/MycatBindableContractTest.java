@@ -7,6 +7,7 @@ import org.apache.calcite.adapter.enumerable.JavaRowFormat;
 import org.apache.calcite.adapter.enumerable.PhysType;
 import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
 import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.linq4j.Linq4j;
 import org.apache.calcite.linq4j.tree.BlockBuilder;
 import org.apache.calcite.linq4j.tree.ClassDeclaration;
 import org.apache.calcite.linq4j.tree.Expressions;
@@ -24,6 +25,7 @@ import java.io.StringReader;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -131,5 +133,59 @@ public class MycatBindableContractTest {
         Object out = b2.bind(fakeContext(recorded));
         Assertions.assertTrue(out instanceof Observable,
                 "流式计划 bind 应返回 Observable，实际：" + out.getClass());
+    }
+
+    /** 钉子⑤：非数组标量 Enumerable 经 asObjectArray 逐行升箱为长度 1 的 Object[]。 */
+    @Test
+    public void asObjectArrayShouldBoxScalarEnumerable() {
+        MycatBindable scalar = new MycatBindable() {
+            @Override
+            public Class getElementType() {
+                return Integer.class;
+            }
+
+            @Override
+            public Object bind(NewMycatDataContext root) {
+                return Linq4j.asEnumerable(new Integer[] {1, 2, 3});
+            }
+        };
+        MycatBindable wrapped = MycatBindable.asObjectArray(scalar);
+        Assertions.assertEquals(Object[].class, wrapped.getElementType());
+        Object out = wrapped.bind(fakeContext(new ArrayList<>()));
+        Assertions.assertTrue(out instanceof Enumerable, "Enumerable 态应仍返 Enumerable");
+        Iterator<?> it = ((Enumerable<?>) out).iterator();
+        int n = 0;
+        while (it.hasNext()) {
+            Object row = it.next();
+            Assertions.assertTrue(row instanceof Object[], "升箱后每行必为 Object[]");
+            Assertions.assertEquals(1, ((Object[]) row).length);
+            n++;
+        }
+        Assertions.assertEquals(3, n);
+    }
+
+    /** 钉子⑥：非数组标量 Observable 经 asObjectArray 逐行升箱（旧 wrapper 此处会 ClassCastException）。 */
+    @Test
+    public void asObjectArrayShouldBoxScalarObservable() {
+        MycatBindable scalar = new MycatBindable() {
+            @Override
+            public Class getElementType() {
+                return Integer.class;
+            }
+
+            @Override
+            public Object bind(NewMycatDataContext root) {
+                return Observable.just(1, 2, 3);
+            }
+        };
+        MycatBindable wrapped = MycatBindable.asObjectArray(scalar);
+        Object out = wrapped.bind(fakeContext(new ArrayList<>()));
+        Assertions.assertTrue(out instanceof Observable, "Observable 态应仍返 Observable");
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = ((Observable<Object[]>) out).toList().blockingGet();
+        Assertions.assertEquals(3, rows.size());
+        for (Object[] row : rows) {
+            Assertions.assertEquals(1, row.length);
+        }
     }
 }

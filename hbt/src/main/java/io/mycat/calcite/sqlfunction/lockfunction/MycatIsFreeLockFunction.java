@@ -14,7 +14,7 @@
  */
 package io.mycat.calcite.sqlfunction.lockfunction;
 
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.RexImpTable;
 import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
 import org.apache.calcite.linq4j.tree.Expression;
@@ -40,7 +40,7 @@ public class MycatIsFreeLockFunction extends MycatSqlDefinedFunction {
     @Override
     public Expression implement(RexToLixTranslator translator, RexCall call, RexImpTable.NullAs nullAs) {
         List<Expression> argValueList = translator.translateList(call.getOperands(), nullAs);
-        return Expressions.call(DataContext.ROOT,
+        return Expressions.call(MycatBindable.ROOT,
                 "isFreeLock",argValueList.get(0));
     }
 }

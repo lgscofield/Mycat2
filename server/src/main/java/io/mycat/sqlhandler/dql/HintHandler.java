@@ -61,7 +61,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Future;
 import io.vertx.core.impl.future.PromiseInternal;
-import org.apache.calcite.runtime.ArrayBindable;
+import io.mycat.calcite.MycatBindable;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
@@ -150,7 +150,7 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                         DrdsSqlCompiler drdsRunner = MetaClusterCurrent.wrapper(DrdsSqlCompiler.class);
                         Plan plan = drdsRunner.doHbt(hbt);
                         AsyncMycatDataContextImpl.HbtMycatDataContextImpl sqlMycatDataContext = new AsyncMycatDataContextImpl.HbtMycatDataContextImpl(dataContext, plan.getCodeExecuterContext());
-                        ArrayBindable arrayBindable = MetaClusterCurrent.wrapper(ExecutorProvider.class).prepare(plan).getArrayBindable();
+                        MycatBindable arrayBindable = MetaClusterCurrent.wrapper(ExecutorProvider.class).prepare(plan).getArrayBindable();
                         Observable<MysqlPayloadObject> mysqlPayloadObjectObservable = PrepareExecutor.getMysqlPayloadObjectObservable(arrayBindable, sqlMycatDataContext, plan.getMetaData());
                         return response.sendResultSet(mysqlPayloadObjectObservable);
                     }

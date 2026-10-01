@@ -5,7 +5,6 @@ import io.mycat.DrdsSqlWithParams;
 import io.mycat.MycatDataContext;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.calcite.spm.Plan;
-import org.apache.calcite.runtime.ArrayBindable;
 
 public interface ExecutorProvider {
 

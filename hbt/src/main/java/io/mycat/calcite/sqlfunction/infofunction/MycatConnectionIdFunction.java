@@ -16,7 +16,7 @@
  */
 package io.mycat.calcite.sqlfunction.infofunction;
 
-import org.apache.calcite.DataContext;
+import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.RexImpTable;
 import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
 import org.apache.calcite.linq4j.tree.Expression;
@@ -39,7 +39,7 @@ public class MycatConnectionIdFunction extends MycatSqlDefinedFunction {
 
     @Override
     public Expression implement(RexToLixTranslator translator, RexCall call, RexImpTable.NullAs nullAs) {
-        return Expressions.call(DataContext.ROOT, "getConnectionId"
+        return Expressions.call(MycatBindable.ROOT, "getConnectionId"
         );
     }
 }
