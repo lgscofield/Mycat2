@@ -18,22 +18,17 @@
 
 ## 当前快照（随时看这里 = "进行到哪 / 下一步"）
 
-- **当前里程碑**：M2-1（druid 影子清理）—— ✅ 6 个影子文件（5 类）已删、`MycatOutputVisitor` 直接继续官方、抢加载 hack 已移除；✅ JDK21 全链构建绿；✅ **D1 已端到端关闭**（新 jar 服务端日志 `NoSuchMethodError` 次数 0，认证 + Connector/J 会话初始化全过）；⚠ L1 “拿到结果集”被新暴露的 Calcite 影子阻（见下方 I-DEBT-3）
+- **当前里程碑**：M2-1（druid 影子清理）—— ✅ 6 个影子文件（5 类）已删、`MycatOutputVisitor` 直接继续官方、抢加载 hack 已移除；✅ JDK21 全链构建绿；✅ **D1 已端到端关闭**（新 jar 服务端日志 `NoSuchMethodError` 次数 0，认证 + Connector/J 会话初始化全过）；⚠ L1 “拿到结果集”改受执行层 codegen 契约断层阻（非影子，见 I-DEBT-4）
 - **✅ 战果（A 探路）**：修 calcite-core `ConverterRule:114-117`（退上游写法）后，Mycat 启动、Vertx server started、8066 监听、客户端连接过认证建 session
 - **✅ 第2条战果（M2-1 主体）**：druid 影子全除。`git ls-files "*com/alibaba/druid*"` = 0 行；19234 行删除；
   **零代码适配**即编译通过（spec 第 5 节止损阈值实测 0）；黄金基线 17/17 已对账（#5 移植回 `SEPARATOR`，#16 从报错变正常）
-- **🔴 当前阻碍（网的第4条战果，新发现）**：`bash ci/verify-l1.sh` 在新 jar 上仍 rc=1，原因不是 druid 而是
-  `ClassCastException: SelectScope cannot be cast to MeasureScope`（`calcite-core/.../SqlToRelConverter:735` 无条件强转，
-  而运行时胜出的 `hbt/.../sql/validate/SqlValidatorImpl:1177` 返 SelectScope）。
-  **⇒ 板上原写“SqlValidatorImpl 最大、最后做”的排序已被实测推翻：它在 L1 关键路径上，必须最先做**
+- **✅ 第4条战果（I-DEBT-3，2026-10-01 收口）**：`SqlValidatorImpl` 副本（6723 行）已删、fork 1.42 归一胜出；黄金基线 48 条对账 **SAME 31 + 从错到对 17、零回归**；L1 旧靶心 `ClassCastException: SelectScope→MeasureScope` 实测消失，查询首次走通“校验→转换”全段；fork 保持零 `import io.mycat`；提交 8529638..df9856c14
+- 🔴 **当前阻碍（网的第5条战果，新发现→I-DEBT-4）**：`bash ci/verify-l1.sh` 仍 rc=1，但已非影子问题：执行期 janino 编译生成的 `Baz` 类缺 1.42 契约方法 `Bindable.bind(DataContext)`（生成器 `StreamMycatEnumerableRelImplementor:60-85` 只产 bindObservable/isObservable/getElementType；真实异常被 `ExecutorProviderImpl.prepare:82-86` 吞后表现为 NPE，见 l1-server.log:547）。定性：executor codegen 与 1.42 Bindable 契约从未对齐的旧病（以前 SELECT 全死在 validator 段，此路径从未执行到），非删副本回归
 - **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ 待与上一条一并裁定顺序
 - **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；27 处 `MYCAT CHANGE`（终审实测，本节原记 25）全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径。**方法论已在实战验证：删影子零适配、黄金基线只出 2 条差异**
-- **下一步**：已裁定（用户 2026-10-01）→ 做 **I-DEBT-3**：设 `SqlValidatorImpl` 为首个归一类。
-  设计已写：`docs/superpowers/specs/2026-10-01-calcite-validator-shadow-removal-design.md`（待用户评审后拆计划）。
-  方案 P1：把 `<=>` 的 BOOLEAN 推导上提到算子自身 → 删 hbt 副本 → fork 1.42 胜出，**fork 保持零 `import io.mycat`**。
-  D13（example，I-DEBT-2）顺延，不阻塞本路径
-- **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子、D1 关闭) → I-DB-1 首个类(SqlValidatorImpl) → L1 拿到 rows → M3**（D13 example 依赖可并行）
-- **最后更新**：2026-10-01（M2-1 交付：影子清零 + 黄金基线对账 + L1 探针入 CI；新登记 L1 结果集受 Calcite 影子阻）
+- **下一步**：已裁定（用户 2026-10-01）→ **I-DEBT-3 已收口**（见上）。新开 **I-DEBT-4**：executor codegen 与 1.42 `Bindable.bind(DataContext)` 契约对齐，需先建执行行为黄金基线再动（同 I-DEBT-3 方法论），完成后 L1 转硬门。D13（example，I-DEBT-2）继续顺延
+- **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子) → I-DEBT-3(✅删 validator 副本、CCE 消失) → I-DEBT-4(codegen bind 契约→L1 拿 rows) → M3**（D13 可并行）
+- **最后更新**：2026-10-01（I-DEBT-3 收口：validator 影子归一 + 基线零回归 + L1 转绿前半程；新开 I-DEBT-4；测试后端改定 Docker 容器 m1-mysql-a/b，本地 MySQL84 服务不用）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
@@ -48,7 +43,8 @@
 | I-CI-3 | 兼容性 harness | T-CI | M1 | WIP | I-CI-1 | ConnectionSmokeTest 已建；待跑绿 |
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
 | I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | Evidenced-Done | I-CI-1 | G1 `mvn -B install '-Dmaven.test.skip=true' -pl server -am` exit=0；G2 `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest'` → 3/3 pass（基线 17/17）；G6 `git ls-files "*com/alibaba/druid*"` → 空输出；G5 `mvn -B test -pl router,executor,hbt` → router 15/0/0、hbt 26/0/23，与开工基准逐条对齐（多出的 3 条是本计划 golden 全绿；executor 在 hbt 失败后被跳过，基准本就 0 条）；G4 已按根因归属拆为两行并回写 spec 第 3 节：**G4a 认证+会话初始化已过**（新 jar 日志 NoSuchMethodError=0），**G4b 结果集未过** → 根因在 Calcite 影子，不属本影子系统，已另开 I-DEBT-3 |
-| I-DEBT-3 | L1 拿到一条 SQL 的结果集 | T-DEBT | M2 | WIP | I-DB-1(B组 SqlValidatorImpl) | 未过项：`bash ci/verify-l1.sh` rc=1，`ClassCastException: SelectScope → MeasureScope`（`calcite-core/.../SqlToRelConverter:735` vs 运行时胜出的 `hbt/.../SqlValidatorImpl:1177`）；已过项：探针 RED 能精确复现并已消除 D1（commit 6d89b6545） |
+| I-DEBT-3 | 删 SqlValidatorImpl 影子、fork 归一（L1 拿 rows 后半程转 I-DEBT-4） | T-DEBT | M2 | Evidenced-Done | I-DB-1(B组 SqlValidatorImpl) | G1 `mvn -B -o install '-Dmaven.test.skip=true' -pl server -am` → BUILD SUCCESS（jar 10-01 08:34）；G2v 黄金基线对账（锚点已转 fork）`mvn -B -o test -pl hbt -Dtest=CalciteValidatorGoldenTest` → 1/0/0，SAME 31+从错到对 17+零回归；G6v 同 FQCN 孪生对 12→11；G7 `git grep -l "^import io.mycat" calcite-core/src/main/java` → 0；G5 `mvn -B -o test -pl router,executor,hbt -Dmaven.test.failure.ignore=true` → router 15/0/0、hbt 29/0/23（基准 26/0/23 + 3 新测全绿，23 error 全为既有 ColumnMappingTest）、executor 0；提交 8529638..df9856c14，账本 `2026-10-01-calcite-validator-shadow-removal/progress.md` |
+| I-DEBT-4 | executor codegen 与 1.42 Bindable 契约对齐（L1 拿 rows 最后一公里） | T-DEBT | M2 | TODO | I-DEBT-3 | 未过项：`bash ci/verify-l1.sh` rc=1，janino `CompileException: Baz must implement Bindable.bind(DataContext)`（l1-server.log:547；根因 `StreamMycatEnumerableRelImplementor:60-85` 无 bind 外壳，症状 NPE `ObservablePlanImplementorImpl:241`）；已过项：旧 CCE 彻底消失、G3 启动、8066 就绪、认证会话全过 |
 | I-DEBT-2 | example 模块依赖/测试修复 | T-DEBT | M2 | TODO | I-DEBT-1 | ~40 个坏测试，阻塞 ConnectionSmokeTest |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
 | I-VE-2 | EOF 能力位连接级化 | T-VER | M2 | TODO | I-VE-1 | |
@@ -121,7 +117,7 @@
 | util/RxBuiltInMethod | TODO | 迁 io.mycat.* |
 | util/RxBuiltInMethodImpl | TODO | 迁 io.mycat.* |
 
-**B. 真·遮蔽类（11）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
+**B. 真·遮蔽类（原 11，已减 1 剩 10）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
 
 | 类 | 状态 | 备注 |
 |---|---|---|
@@ -135,7 +131,7 @@
 | rel/metadata/RelMdUniqueKeys | TODO | |
 | rel/metadata/RelMdUtil | TODO | |
 | rex/RexLiteral | TODO | |
-| sql/validate/SqlValidatorImpl | 🔴 BLOCKING-L1 | 实测：它不在“最后做”的位置——它在 L1 关键路径上。hbt 副本 6723 行（旧 Calcite）vs calcite-core 8782 行；:1177 `getMeasureScope` 返 `scopes.get(select)`（SelectScope）并注有“Calcite 1.42 added MEASURE clause; not yet used in hbt”，而 calcite-core :1554 返 `getScope(select, Clause.MEASURE)`且 :735 无条件强转 MeasureScope → 客户端 `SELECT 1` 直接 CCE |
+| sql/validate/SqlValidatorImpl | ✅ DONE（I-DEBT-3） | 副本已删（ae8a80b8b，6723 行），fork 1.42 归一胜出；`<=>` 定制上提算子 inference（8529638）+ Task 5 两处移植（df9856c14）；48 条基线零回归；旧 CCE `SqlToRelConverter:735` 实测消失。剩余 10 类中 DataContext/RexToLixTranslator 两族与 I-DEBT-4 codegen 契约相关，归 I-DEBT-4 一并裁定 |
 
 ---
 
@@ -148,4 +144,5 @@
 | 2026-10-01 | I-DEBT-3（新开） | L1 结果集受 Calcite 影子阻；I-DB-1 的 B 组排序被实测推翻 | `bash ci/verify-l1.sh` 新 jar rc=1，日志 NoSuchMethodError=0、CCE 在 `SqlToRelConverter:735` |
 | 2026-10-01 | I-DEBT-1 | M2-1 整支终审（fresh reviewer）后回写 spec：无代码返工，仅纠正文档事实 + G4 拆为 G4a/G4b | 实测 `git grep -o "MYCAT CHANGE" d9415b55e^ -- "*com/alibaba/druid*"` = 27 行（原写 25）；旧 `MycatOutputVisitor` 内标记 = 0 处；终审重跑 G1 exit=0、G2 3/3、G5 router 15/0/0 + hbt 26/0/23、G6 0 行、G4a 日志计数 0 |
 | 2026-10-01 | I-DEBT-3 | 用户裁三项（仅做 L1 路径必要类 / 先建校验行为黄金基线 / 待移植 >10 条即止损），设计文档已落盘待评审 | `docs/superpowers/specs/2026-10-01-calcite-validator-shadow-removal-design.md`；实测新证：`calcite-core` 内 42 个文件命中 `SqlValidatorImpl`（含自身）、fork 侧该类零 `MYCAT CHANGE`、hbt 副本仅 1 处真定制（`StrictEqualFunction` 强判 BOOLEAN） |
-| 2026-10-01 | I-DEBT-3 | **Task 3 三方血统 diff 收口：止损闸门未触发（N=2 ≤ 10），P1 维持** | 实测 `target/shadowdiff/`：`copy-vs-1.23` `+191/-178`（副本≈1.23）、`copy-vs-1.42` `+1059/-2970`（代际漂移）；空白归一后副本独有且 fork 查无同形的 `+` 行仅 43/168；Mycat 语义定制 4 处—`<=>` 特判(`:5856-5862` A类·已移植 8529638)、`callToOperandTypesMap`(`:265` B类·fork:281 自带)、`getMeasureScope`(`:1177` B类·fork:1554 真实现)、`getOrderList();//fix bug`(`:2585` C类·hbt 无 SelectScope 副本故打 fork:178 懒加载，交 Task 5 G2v 对账)；需裁定去向 N=2。账本 `2026-10-01-calcite-validator-shadow-removal/progress.md` |
+| 2026-10-01 | I-DEBT-3 | **收口交付（Evidenced-Done）**：副本删/基线零回归/CCE 消失/G5 不劣化/G6v=11/G7=0；L1 后半程转 I-DEBT-4；L1 转硬门推迟（workflow 本轮未改，软门保留） | G1 BUILD SUCCESS；G2v 1/0/0（锚点已转 fork）；G5 router 15/0/0 + hbt 29/0/23；G6v=11；G7=0；CCE 计数 0（l1-server.log）；提交 8529638..df9856c14 |
+| 2026-10-01 | I-DEBT-4（新开） | executor codegen 缺 `Bindable.bind(DataContext)` 成 L1 新阻断；用户裁定另立专项不扩 I-DEBT-3 面 | `l1-server.log:547` janino CompileException；`StreamMycatEnumerableRelImplementor:60-85`；`ExecutorProviderImpl:82-86` 吞异常坐实 NPE 因果；用户补充裁定：测试后端一律 Docker 容器（m1-mysql-a/b），本地 MySQL84 服务不用 |
