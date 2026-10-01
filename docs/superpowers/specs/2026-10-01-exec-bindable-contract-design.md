@@ -143,8 +143,9 @@ SqlResultSetService:170、HintHandler:153-154（server）。
   的生成语义。
 3. **双态钉子**：对同一代码串断言 `bind` 声明返回 `Object`（不是 Enumerable），
   防 B 方案回潮。
-4. 流式态（isObservable 分支）由 L1 端到端的真实查询覆盖（DML over MycatView
-  的 Observable 路径），不在单测强造——YAGNI，端到端门兜底。
+4. 流式态（isObservable 分支）：实装比本节原计更严——单测已强造 Observable 态
+  （MycatBindableContractTest 用例③ bind 返 Observable + ⑥ asObjectArray Observable 升箱），
+  L1 端到端（DML over MycatView 的 Observable 路径）作为第二层兑现兜底。
 
 ## 5. 验收门（逐条命令，账本实录原始输出）
 
@@ -154,7 +155,7 @@ SqlResultSetService:170、HintHandler:153-154（server）。
 | G1 构建 | `mvn -B -o install '-Dmaven.test.skip=true' -pl server -am` | BUILD SUCCESS |
 | **G4b-L1** | 容器后端（m1-mysql-a:3306）`bash ci/verify-l1.sh` | **rc=0 且 `L1 OK rows=`**（I-DEBT-3 起挂账的本债终门，首次转硬门前仍走 CI 软门一轮） |
 | G2v | `mvn -B -o test -pl hbt -Dtest=CalciteValidatorGoldenTest` | 1/0/0 不劣化 |
-| G5 | `mvn -B -o test -pl router,executor,hbt "-Dmaven.test.failure.ignore=true"` | router 15/0/0；hbt 30/0/23（29+本债 1 新测，23 error 仍全为既有 ColumnMappingTest）；executor 0 |
+| G5 | `mvn -B -o test -pl router,executor,hbt "-Dmaven.test.failure.ignore=true"` | router 15/0/0；hbt 34/0/23（29+本债 5 合同用例；23 error 仍全为既有 ColumnMappingTest=I-DEBT-5）；executor 0（实跑订正：本节原写 30/0/23 漏计 Task 1-2 实际新增 5 例，以计划+账本为准） |
 | G6v | 同 FQCN 孪生对枚举命令（I-DEBT-3 同款） | 11 → **10** |
 | G7 | `git grep -l "^import io.mycat" calcite-core/src/main/java` | 0（fork 纯净性不变） |
 

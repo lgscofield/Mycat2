@@ -61,12 +61,14 @@ jobs:
           cache: maven
       - name: Build server jar (skip test compile to isolate artifact vs compat-test)
         run: mvn -B install '-Dmaven.test.skip=true' -pl server -am
+      # M2-1 L1 端到端门：真客户端过认证 + 会话初始化 + 一条查询，钉住 druid 影子导致的
+      # NoSuchMethodError 不回归。I-DEBT-3/I-DEBT-4 已清 Calcite 层同 FQCN 影子（hbt DataContext
+      # 副本已删，ROOT 寄生归位 MycatBindable），本机实证 L1 OK，硬门生效。
+      # 步序注意：必须排在 Run example 之前——example 模块已知编译红（D13/I-DEBT-2），
+      # 排在其后会被跳过，硬门变永不可达的假绿灯（终审 Important-1）。
+      - name: Verify L1 query path
+        run: bash ci/verify-l1.sh
       - name: Run example + compat smoke against ${{ matrix.db }}
         env:
           COMPAT_DB: ${{ matrix.db }}
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}"
-      # M2-1 L1 端到端门：真客户端过认证 + 会话初始化 + 一条查询，钉住 druid 影子导致的
-      # NoSuchMethodError 不回归。I-DEBT-3/I-DEBT-4 已清 Calcite 层同 FQCN 影子（hbt DataContext
-      # 副本已删，ROOT 寄生归位 MycatBindable），本机实证 L1 OK，硬门生效。
-      - name: Verify L1 query path
-        run: bash ci/verify-l1.sh
