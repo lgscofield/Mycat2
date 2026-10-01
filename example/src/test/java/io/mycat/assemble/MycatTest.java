@@ -83,7 +83,16 @@ public interface MycatTest {
 
     public default void execute(Connection mySQLConnection, String sql) throws Exception {
         LOGGER.info(sql);
-        JdbcUtils.execute(mySQLConnection, sql);
+        // 用 JDBC Statement.execute() 而非 druid JdbcUtils.execute（其内部强制 PreparedStatement.executeUpdate）。
+        // Connector/J 的 executeUpdate 在“发送前”有一道纯客户端静态分类守卫：把 /*+ mycat:... */ 这类
+        // 注释/hint 串（无被识别的起始关键字）判为“产出结果集”，直接抛
+        // "Can not issue executeUpdate() ... with statements that produce result sets"
+        // （ClientPreparedStatement:1145），根本没走到网络，与 Mycat 服务端 sendOk 无关。
+        // Statement.execute() 对 OK/结果集/hint 任意形态都不抛，返回 boolean 在此忽略即可；
+        // 本方法返回 void，调用方从不依赖 updateCount，故行为对既有用例保持不变。
+        try (Statement statement = mySQLConnection.createStatement()) {
+            statement.execute(sql);
+        }
         System.out.println(sql);
     }
 
