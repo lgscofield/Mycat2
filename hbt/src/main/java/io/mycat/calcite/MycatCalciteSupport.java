@@ -455,7 +455,11 @@ public enum MycatCalciteSupport implements Context {
 
             @Override
             public void lookupOperatorOverloads(SqlIdentifier opName, SqlFunctionCategory category, SqlSyntax syntax, List<SqlOperator> operatorList, SqlNameMatcher nameMatcher) {
-                Collection<SqlOperator> sqlOperator = map.get(opName.getSimple().toUpperCase());
+                // MYCAT CHANGE (I-DEBT-3): 函数算子表按简单名注册，复合标识符（如 t1.id）不能调 getSimple()
+                // —— 那会踩 SqlIdentifier.getSimple 的 assert（-ea 下抛 AssertionError），且无 -ea 时会误把首段 "t1" 当函数名查。
+                // fork 1.42 的 expandStar→makeNullaryCall 会以限定标识符回调本表，故仅当 isSimple() 才查 map。
+                Collection<SqlOperator> sqlOperator =
+                        opName.isSimple() ? map.get(opName.getSimple().toUpperCase()) : null;
                 if (sqlOperator != null) {
 //                    sqlOperator =  sqlOperator.stream() .filter(m-> {
 //                        boolean validCount = m.getOperandCountRange().isValidCount(operatorList.size());

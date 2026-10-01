@@ -18,9 +18,12 @@ import io.mycat.calcite.MycatCalciteSupport;
 import io.mycat.calcite.MycatScalarFunction;
 
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.schema.ScalarFunction;
 import org.apache.calcite.sql.*;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.sql.validate.SqlValidator;
+import org.apache.calcite.sql.validate.SqlValidatorScope;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -45,6 +48,13 @@ public class StrictEqualFunction extends MycatSqlDefinedFunction {
      * <p>
      * 副本的特判按对象身份比较（{@code operator == INSTANCE}），每次新建的实例走不到它；上提到 inference 后所有实例一致。
      * 操作数类型推断与元信息保持与父类 3 参构造器同样的取值方式（{@link MycatSqlDefinedFunction.GetOperandTypes}）。
+     *
+     * <p>
+     * 仅上提 inference 不够：{@code SqlFunction.deriveType} 会走 {@code SqlUtil.lookupRoutine → canCastFrom}，
+     * 对 NULL/未定型动态参数（SqlTypeName.OTHER）在 {@code SqlTypeMappingRule.canApplyFrom} 踩 assert 抛
+     * {@code AssertionError: No assign rules for OTHER defined}（Task 5 fork 侧重采实测）。副本当年在
+     * {@code DeriveTypeVisitor.visit(SqlCall)} 里直接 return BOOLEAN、从不对实参做类型指派校验，故不触发；
+     * 这里覆写 {@code deriveType} 短路，忠实复刻副本语义（见下）。
      */
     public StrictEqualFunction() {
         this(new MycatSqlDefinedFunction.GetOperandTypes(scalarFunction).invoke());
@@ -92,6 +102,16 @@ public class StrictEqualFunction extends MycatSqlDefinedFunction {
             return null;
         }
         return Arrays.equals(left, right);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-3): 复刻 hbt 副本 {@code DeriveTypeVisitor.visit(SqlCall)} 的短路——
+     * {@code <=>} 直接返回不可空 BOOLEAN，不进入父类 {@code SqlFunction.deriveType} 的 routine 查找与实参类型指派校验
+     * （那会在 OTHER 类型上抛 {@code AssertionError: No assign rules for OTHER defined}）。
+     */
+    @Override
+    public RelDataType deriveType(SqlValidator validator, SqlValidatorScope scope, SqlCall call) {
+        return MycatCalciteSupport.TypeFactory.createSqlType(SqlTypeName.BOOLEAN);
     }
 
     @Override

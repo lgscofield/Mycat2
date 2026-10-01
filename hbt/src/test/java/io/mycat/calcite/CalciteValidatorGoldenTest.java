@@ -221,6 +221,7 @@ public class CalciteValidatorGoldenTest {
 			SqlNode validated = validator.validate(visitor.getSqlNode());
 			return "cols=" + renderFields(validator.getValidatedNodeType(validated));
 		} catch (Throwable t) {
+			if (System.getProperty("golden.trace") != null) { t.printStackTrace(); }
 			return ERROR_PREFIX + t.getClass().getName() + ": " + t.getMessage();
 		}
 	}
@@ -232,7 +233,8 @@ public class CalciteValidatorGoldenTest {
 		Assertions.assertEquals(CORPUS_SIZE, corpus.size(), "语料条数必须与计划一致");
 
 		// 来源锚点无条件校验：对账时悄悄换了实现（副本已删）也必须被发现，否则“全绿”是假绿。
-		String from = System.getProperty("golden.validator", "copy");
+		// I-DEBT-3 Task 5：副本已删，默认锚点转 fork，CI 重采集不会悄悄退回副本。
+		String from = System.getProperty("golden.validator", "fork");
 		String realFrom = SqlValidatorImpl.class.getProtectionDomain().getCodeSource().getLocation().toString();
 		System.out.println("validator from " + realFrom);
 		if ("copy".equals(from)) {

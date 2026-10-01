@@ -6,32 +6,32 @@
 6	cols=id=INTEGER NOT NULL
 7	cols=plus_one=INTEGER NOT NULL,doubled=INTEGER
 8	cols=count(*)=BIGINT NOT NULL
-9	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
-10	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
-11	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
-12	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
-13	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
-14	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+9	cols=deptno=INTEGER,count(*)=BIGINT NOT NULL
+10	cols=deptno=INTEGER,avg(salary)=DOUBLE
+11	cols=deptno=INTEGER,count(name)=BIGINT NOT NULL
+12	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Expression 'name' is not being grouped
+13	cols=deptno=INTEGER,mx=DECIMAL(10, 2),mn=DECIMAL(10, 2)
+14	cols=flag=BOOLEAN,count(*)=BIGINT NOT NULL
 15	cols=id<=>name=BOOLEAN NOT NULL
 16	cols=NULL<=>NULL=BOOLEAN NOT NULL
 17	cols=age<=>?=BOOLEAN NOT NULL
 18	cols=id=INTEGER NOT NULL,amount<=>?=BOOLEAN NOT NULL
-19	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
+19	cols=id=INTEGER NOT NULL,id=INTEGER NOT NULL
 20	cols=id=INTEGER NOT NULL
 21	cols=id=INTEGER NOT NULL
 22	cols=mx=DECIMAL(10, 2)
 23	cols=name=VARCHAR(64) CHARACTER SET "UTF-8"
 24	cols=id=INTEGER NOT NULL
 25	cols=deptno=INTEGER
-26	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
-27	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
-28	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
-29	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
-30	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.validate.SqlValidatorNamespace org.apache.calcite.sql.validate.SqlValidatorImpl.getNamespaceOrThrow(org.apache.calcite.sql.SqlNode)'
-31	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
-32	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
-33	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
-34	!!ERR!! java.lang.NoSuchFieldError: Class org.apache.calcite.sql.validate.SqlValidatorImpl does not have member field 'java.util.IdentityHashMap scopes'
+26	cols=id=INTEGER NOT NULL,note=VARCHAR(64) CHARACTER SET "UTF-8"
+27	cols=id=INTEGER NOT NULL,note=VARCHAR(64) CHARACTER SET "UTF-8"
+28	cols=id=INTEGER NOT NULL,id=INTEGER NOT NULL,deptno=INTEGER
+29	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8",age=INTEGER,amount=DECIMAL(10, 2),c_date=DATE,c_ts=TIMESTAMP(0),flag=BOOLEAN,id0=INTEGER NOT NULL,t1_id=INTEGER,note=VARCHAR(64) CHARACTER SET "UTF-8",amount0=DECIMAL(10, 2),id1=INTEGER NOT NULL,name0=VARCHAR(64) CHARACTER SET "UTF-8",age0=INTEGER,amount1=DECIMAL(10, 2),c_date0=DATE,c_ts0=TIMESTAMP(0),flag0=BOOLEAN,id2=INTEGER NOT NULL,t1_id0=INTEGER,note0=VARCHAR(64) CHARACTER SET "UTF-8",amount2=DECIMAL(10, 2)
+30	cols=ename=VARCHAR(64) CHARACTER SET "UTF-8",salary=DECIMAL(10, 2)
+31	cols=id=INTEGER NOT NULL
+32	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
+33	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Column 'name' not found in any table
+34	cols=deptno=INTEGER,count(*)=DECIMAL(19, 0)
 35	cols=id=INTEGER NOT NULL,name=VARCHAR(64) CHARACTER SET "UTF-8"
 36	cols=id=INTEGER NOT NULL
 37	cols=id=INTEGER NOT NULL
@@ -45,4 +45,4 @@
 45	cols=DATABASE()=VARCHAR CHARACTER SET "UTF-8" NOT NULL
 46	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Column 'nosuchcol' not found in any table
 47	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Object 'nosuchtable' not found within 'mycat'
-48	!!ERR!! java.lang.NoSuchMethodError: 'org.apache.calcite.sql.SqlNode org.apache.calcite.sql.validate.SqlValidatorImpl.extendedExpandGroupBy(org.apache.calcite.sql.SqlNode, org.apache.calcite.sql.validate.SqlValidatorScope, org.apache.calcite.sql.SqlSelect)'
+48	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Expression 'name' is not being grouped
