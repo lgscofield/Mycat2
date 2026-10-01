@@ -1,6 +1,6 @@
 # Mycat2 × MySQL/MariaDB LTS 兼容性路线图 — 设计文档
 
-- 状态：**待用户评审（Draft for Review）**
+- 状态：**已批准（2026-10-01 用户评审通过并预批执行口径；原 2026-09-30 Draft for Review）**，实施状态见 PROGRESS 看板
 - 日期：2026-09-30
 - 作者：架构评审修正落地（承接 `architecture-review-20260930-mycat2-full.html` 的复审结论 D11-D14）
 - 目标一句话：让 Mycat2 成为**在客户端眼中可无缝替代 MySQL 5.7 / 8.0 / 8.4(LTS) / 9.x(Innovation)、并为 MariaDB 10.6/10.11/11.4(LTS) 预留扩展位**的强大代理中间件。
