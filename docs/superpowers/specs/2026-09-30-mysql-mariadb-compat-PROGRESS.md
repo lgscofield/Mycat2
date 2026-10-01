@@ -18,17 +18,17 @@
 
 ## 当前快照（随时看这里 = "进行到哪 / 下一步"）
 
-- **当前里程碑**：M2-1（druid 影子清理）—— ✅ 6 个影子文件（5 类）已删、`MycatOutputVisitor` 直接继续官方、抢加载 hack 已移除；✅ JDK21 全链构建绿；✅ **D1 已端到端关闭**（新 jar 服务端日志 `NoSuchMethodError` 次数 0，认证 + Connector/J 会话初始化全过）；⚠ L1 “拿到结果集”改受执行层 codegen 契约断层阻（非影子，见 I-DEBT-4）
+- **当前里程碑**：M2-1（druid 影子清理）—— ✅ 6 个影子文件（5 类）已删、`MycatOutputVisitor` 直接继续官方、抢加载 hack 已移除；✅ JDK21 全链构建绿；✅ **D1 已端到端关闭**（新 jar 服务端日志 `NoSuchMethodError` 次数 0，认证 + Connector/J 会话初始化全过）；✅ **L1 首绿（I-DEBT-4，2026-10-01）**：`bash ci/verify-l1.sh` rc=0 输出 `L1 OK rows=1`，真客户端过认证+会话+一条查询拿回结果集
 - **✅ 战果（A 探路）**：修 calcite-core `ConverterRule:114-117`（退上游写法）后，Mycat 启动、Vertx server started、8066 监听、客户端连接过认证建 session
 - **✅ 第2条战果（M2-1 主体）**：druid 影子全除。`git ls-files "*com/alibaba/druid*"` = 0 行；19234 行删除；
   **零代码适配**即编译通过（spec 第 5 节止损阈值实测 0）；黄金基线 17/17 已对账（#5 移植回 `SEPARATOR`，#16 从报错变正常）
 - **✅ 第4条战果（I-DEBT-3，2026-10-01 收口）**：`SqlValidatorImpl` 副本（6723 行）已删、fork 1.42 归一胜出；黄金基线 48 条对账 **SAME 31 + 从错到对 17、零回归**；L1 旧靶心 `ClassCastException: SelectScope→MeasureScope` 实测消失，查询首次走通“校验→转换”全段；fork 保持零 `import io.mycat`；提交 8529638..df9856c14
-- 🔴 **当前阻碍（网的第5条战果，新发现→I-DEBT-4）**：`bash ci/verify-l1.sh` 仍 rc=1，但已非影子问题：执行期 janino 编译生成的 `Baz` 类缺 1.42 契约方法 `Bindable.bind(DataContext)`（生成器 `StreamMycatEnumerableRelImplementor:60-85` 只产 bindObservable/isObservable/getElementType；真实异常被 `ExecutorProviderImpl.prepare:82-86` 吞后表现为 NPE，见 l1-server.log:547）。定性：executor codegen 与 1.42 Bindable 契约从未对齐的旧病（以前 SELECT 全死在 validator 段，此路径从未执行到），非删副本回归
+- ✅ **第5条战果（I-DEBT-4，2026-10-01 收口，原阻碍线关闭）**：原断层——janino 生成类缺 `bind` 外壳（旧记“Bindable.bind 缺失”，根因是 Mycat 私有契约寄生在 hbt `DataContext` 副本的 ROOT 重 typed 里）。交付：`MycatBindable` 自有契约（ROOT 类型化 + bind 双态 + asObjectArray 上提，合同测试 5 例钉死）、hbt 21 处 ROOT 引用归零、`DataContext` 影子副本删除（孪生对 11→10）；L1 一轮即绿 `L1 OK rows=1`；workflow `Verify L1` 软门已摘转硬门
 - **🔴 第3条战果（D13）**：example 模块 ~40 个测试文件编译不过（pom 缺 replica/plug 依赖）→ 待与上一条一并裁定顺序
 - **M2-1 取证结论（推翻“该 fork druid”的初判）**：影子是 **druid 1.0.18（2017）整拷贝**（官方 1.0.18 构造器就是 `(Appendable)`，1.2.28 已改 `(StringBuilder)`）；12 个文件里 `import io.mycat` **0 处**；27 处 `MYCAT CHANGE`（终审实测，本节原记 25）全为“1.2.28 removed/renamed X”兼容补丁；官方 1.2.28 已自带 `shardingSupport`；`ExportParameterVisitorUtils`/`SQLIndexDefinition` 与官方只差 36/24 行。**⇒ 裁定：不建 `druid-core` fork**（那意味着永久持有 1644 文件+224 资源且锁死升级），改为**删 5 类真影子 + 把 Mycat 自增类搬出 druid 包 + `MycatOutputVisitor` 直接继续官方类**，与 `2026-09-29` 设计第 114 行“能用原码最好、逐步消除不必要覆盖”同一路径。**方法论已在实战验证：删影子零适配、黄金基线只出 2 条差异**
-- **下一步**：已裁定（用户 2026-10-01）→ **I-DEBT-3 已收口**（见上）。新开 **I-DEBT-4**：executor codegen 与 1.42 `Bindable.bind(DataContext)` 契约对齐，需先建执行行为黄金基线再动（同 I-DEBT-3 方法论），完成后 L1 转硬门。D13（example，I-DEBT-2）继续顺延
-- **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子) → I-DEBT-3(✅删 validator 副本、CCE 消失) → I-DEBT-4(codegen bind 契约→L1 拿 rows) → M3**（D13 可并行）
-- **最后更新**：2026-10-01（I-DEBT-3 收口：validator 影子归一 + 基线零回归 + L1 转绿前半程；新开 I-DEBT-4；测试后端改定 Docker 容器 m1-mysql-a/b，本地 MySQL84 服务不用）
+- **下一步**：已裁定（用户 2026-10-01）→ **I-DEBT-4 已收口，L1 拿 rows 达成、软门已摘**。剩余顺延：**D13（example，I-DEBT-2）**与 **I-DEBT-5（planner 测试基建 ColumnMappingTest 23 error，用户已确认后续闭环）**，之后进 M3（L2 工具：mysqldump 往返）
+- **关键路径**：M1(✅建网+boot) → **M2-1(✅拆 druid 影子) → I-DEBT-3(✅删 validator 副本、CCE 消失) → I-DEBT-4(✅ bind 契约归位、L1 OK rows=1、硬门生效) → M3**（D13/I-DEBT-5 可并行）
+- **最后更新**：2026-10-01（I-DEBT-4 收口：MycatBindable 契约归位 + DataContext 影子副本删除 + L1 首绿 + workflow 软门摘除转硬门）
 
 > "下一步"永远等于：优先级最高的、其所有 Dep 均为 ✅ DONE 且自身尚非 DONE 的项。
 
@@ -44,7 +44,7 @@
 | I-CI-4 | MigrateTest 接矩阵 | T-CI | M1 | TODO | I-CI-2 | |
 | I-DEBT-1 | druid 影子类清理（不 fork） | T-DEBT | M2 | Evidenced-Done | I-CI-1 | G1 `mvn -B install '-Dmaven.test.skip=true' -pl server -am` exit=0；G2 `mvn -B test -pl hbt '-Dtest=DruidOutputGoldenTest'` → 3/3 pass（基线 17/17）；G6 `git ls-files "*com/alibaba/druid*"` → 空输出；G5 `mvn -B test -pl router,executor,hbt` → router 15/0/0、hbt 26/0/23，与开工基准逐条对齐（多出的 3 条是本计划 golden 全绿；executor 在 hbt 失败后被跳过，基准本就 0 条）；G4 已按根因归属拆为两行并回写 spec 第 3 节：**G4a 认证+会话初始化已过**（新 jar 日志 NoSuchMethodError=0），**G4b 结果集未过** → 根因在 Calcite 影子，不属本影子系统，已另开 I-DEBT-3 |
 | I-DEBT-3 | 删 SqlValidatorImpl 影子、fork 归一（L1 拿 rows 后半程转 I-DEBT-4） | T-DEBT | M2 | Evidenced-Done | I-DB-1(B组 SqlValidatorImpl) | G1 `mvn -B -o install '-Dmaven.test.skip=true' -pl server -am` → BUILD SUCCESS（jar 10-01 08:34）；G2v 黄金基线对账（锚点已转 fork）`mvn -B -o test -pl hbt -Dtest=CalciteValidatorGoldenTest` → 1/0/0，SAME 31+从错到对 17+零回归；G6v 同 FQCN 孪生对 12→11；G7 `git grep -l "^import io.mycat" calcite-core/src/main/java` → 0；G5 `mvn -B -o test -pl router,executor,hbt -Dmaven.test.failure.ignore=true` → router 15/0/0、hbt 29/0/23（基准 26/0/23 + 3 新测全绿，23 error 全为既有 ColumnMappingTest）、executor 0；提交 8529638..df9856c14，账本 `2026-10-01-calcite-validator-shadow-removal/progress.md` |
-| I-DEBT-4 | executor codegen 与 1.42 Bindable 契约对齐（L1 拿 rows 最后一公里） | T-DEBT | M2 | TODO | I-DEBT-3 | 未过项：`bash ci/verify-l1.sh` rc=1，janino `CompileException: Baz must implement Bindable.bind(DataContext)`（l1-server.log:547；根因 `StreamMycatEnumerableRelImplementor:60-85` 无 bind 外壳，症状 NPE `ObservablePlanImplementorImpl:241`）；已过项：旧 CCE 彻底消失、G3 启动、8066 就绪、认证会话全过；设计已批：`2026-10-01-exec-bindable-contract-design.md`（03d1fec1c），计划 e70bfd245 |
+| I-DEBT-4 | executor codegen 与 1.42 Bindable 契约对齐（L1 拿 rows 最后一公里） | T-DEBT | M2 | Evidenced-Done | I-DEBT-3 | G4b `bash ci/verify-l1.sh`（WSL，Docker m1-mysql-a/b，L1_CONNECTOR=connector-j-9.3.0）→ rc=0 `L1 OK rows=1`（task-4-l1-evidence.log）；G1 `mvn -B -o install '-Dmaven.test.skip=true' -pl server -am` → BUILD SUCCESS；G5 `mvn -B -o test -pl router,executor,hbt` → router 15/0/0、hbt 34/0/23（+5 合同用例；23 error 全为既有 ColumnMappingTest=I-DEBT-5）、executor 0；G2v CalciteValidatorGoldenTest 1/0/0；G6v 孪生对 11→10、G7=0、hbt org/apache 文件 16→15、`DataContext.ROOT` 引用 0；软门已摘（workflow Verify L1 删 continue-on-error，YAML 解析实证 ABSENT）；提交 392072a0c..cb795bf5b，账本 `2026-10-01-exec-bindable-contract/progress.md` |
 | I-DEBT-5 | planner 测试基建修复（ColumnMappingTest 23 error 另案转正） | T-DEBT | M2 | TODO | — | 实测 G5 日志（10-01 task-7-g5-regression.log）：23/23 error 全在 `io.mycat.calcite.rewriter.ColumnMappingTest`；账本旧注根因 `RelBuilder.transientScan` NPE（接手时须复核）；I-DEBT-4 合同测试已正式绕开 planner 脚手架（计划 Task 1 fixture 裁定），本债闭环后补齐 planner 层测试 |
 | I-DEBT-2 | example 模块依赖/测试修复 | T-DEBT | M2 | TODO | I-DEBT-1 | ~40 个坏测试，阻塞 ConnectionSmokeTest |
 | I-VE-1 | VersionProfile 抽象 | T-VER | M2 | TODO | I-CI-1 | |
@@ -76,7 +76,7 @@
 ## 里程碑勾选板
 
 - [ ] **M1 验证网**：I-CI-1 ☐ I-CI-2 ☐ I-CI-3 ☐ （I-CI-4 属 M4 前置）
-- [ ] **M2 L1 连接**：I-DEBT-1 ☑（druid 影子已清）I-DEBT-3 ☐（结果集受 Calcite 影子阻）I-VE-1/2/3 ☐ I-AU-1/2/3/5 ☐
+- [ ] **M2 L1 连接**：I-DEBT-1 ☑（druid 影子已清）I-DEBT-3 ☑（validator 副本已删）I-DEBT-4 ☑（bind 契约归位、**L1 OK rows=1 已达成**）I-VE-1/2/3 ☐ I-AU-1/2/3/5 ☐
 - [ ] **M3 L2 工具**：I-ME-1/2/3/4 ☐（mysqldump 往返全版本绿）
 - [ ] **M4 L3 迁移**：I-CI-4 ☐ I-RP-1/2/3 ☐
 - [ ] **M5 生产就绪**：I-PR-1/2/3 ☐
@@ -118,11 +118,11 @@
 | util/RxBuiltInMethod | TODO | 迁 io.mycat.* |
 | util/RxBuiltInMethodImpl | TODO | 迁 io.mycat.* |
 
-**B. 真·遮蔽类（原 11，已减 1 剩 10）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
+**B. 真·遮蔽类（原 11，已减 2 剩 9：SqlValidatorImpl→I-DEBT-3、DataContext→I-DEBT-4）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
 
 | 类 | 状态 | 备注 |
 |---|---|---|
-| DataContext | TODO | 接口 |
+| DataContext | ✅ DONE（I-DEBT-4） | 副本已删（cb795bf5b）：ROOT 寄生归位 `io.mycat.calcite.MycatBindable`（21 处引用改写+合同测试 5 例），删除三重实证（ROOT=0/剩余消费者只用标准成员/fork↔副本全量 diff）；孪生对 11→10 |
 | adapter/enumerable/RexToLixTranslator | TODO | ~2924 行 |
 | rel/externalize/RelJson | TODO | |
 | rel/externalize/RelJsonWriter | TODO | |
@@ -149,3 +149,4 @@
 | 2026-10-01 | I-DEBT-4（新开） | executor codegen 缺 `Bindable.bind(DataContext)` 成 L1 新阻断；用户裁定另立专项不扩 I-DEBT-3 面 | `l1-server.log:547` janino CompileException；`StreamMycatEnumerableRelImplementor:60-85`；`ExecutorProviderImpl:82-86` 吞异常坐实 NPE 因果；用户补充裁定：测试后端一律 Docker 容器（m1-mysql-a/b），本地 MySQL84 服务不用 |
 | 2026-10-01 | I-DEBT-4 | 设计获批（方向 A：MycatBindable 自有契约，L1 为界），spec+计划落盘；用户确认 planner 后续闭环 | spec 03d1fec1c；计划 e70bfd245（5 任务，合同测试 Proxy fixture 绕开 planner 泥潭） |
 | 2026-10-01 | I-DEBT-5（新开） | ColumnMappingTest 23 error 从"另案挂账"转正为独立债项，用户确认后续闭环 | G5 日志 23/23 error 全在该类；I-DEBT-4 计划 Task 1 已留绕开裁定 |
+| 2026-10-01 | I-DEBT-4 | **收口交付（Evidenced-Done）**：MycatBindable 自有契约归位（ROOT 类型化+bind 双态+asObjectArray 上提）、hbt 21 处 ROOT 引用归零、`DataContext` 影子副本删（G6v 11→10）、**L1 首绿 `L1 OK rows=1`**；**软门摘除转硬门**（workflow `Verify L1` 删 continue-on-error，闭环 I-DEBT-3 收口行“L1 转硬门推迟”注记；matrix.experimental 未动）；hbt 基线 29→34 | G4b rc=0（task-4-l1-evidence.log，崩溃关键字 grep=0）；G1 BUILD SUCCESS；G5 router 15/0/0 + hbt 34/0/23 + executor 0；G2v 1/0/0；合同测试 5/5；G6v=10；G7=0；YAML 解析 step 字段 ABSENT 实证；提交 392072a0c..cb795bf5b+本次收口提交，账本 `.superpowers/sdd/2026-10-01-exec-bindable-contract/progress.md` |

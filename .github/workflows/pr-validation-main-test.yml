@@ -66,8 +66,7 @@ jobs:
           COMPAT_DB: ${{ matrix.db }}
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}"
       # M2-1 L1 端到端门：真客户端过认证 + 会话初始化 + 一条查询，钉住 druid 影子导致的
-      # NoSuchMethodError 不回归。当前受 Calcite 层同类影子（hbt 内 SqlValidatorImpl 等 12 个
-      # 与 calcite-core 同 FQCN 的副本）阻断，故先不卡住整张网；看板债务清空后去掉本行。
+      # NoSuchMethodError 不回归。I-DEBT-3/I-DEBT-4 已清 Calcite 层同 FQCN 影子（hbt DataContext
+      # 副本已删，ROOT 寄生归位 MycatBindable），本机实证 L1 OK，硬门生效。
       - name: Verify L1 query path
-        continue-on-error: true
         run: bash ci/verify-l1.sh
