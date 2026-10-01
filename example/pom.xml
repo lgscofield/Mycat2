@@ -49,19 +49,10 @@
             <artifactId>spring-boot-test-autoconfigure</artifactId>
             <version>2.4.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.7.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.7.0</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- MYCAT CHANGE: 此处曾硬码 junit-jupiter-api/engine 5.7.0，与根 pom 全局注入的
+             5.12.2（pom.xml:174-192，配套 vintage）冲突：nearest-wins 把 platform 压到 1.7，
+             surefire 3.5.3 forked 实测报 NoClassDefFound OutputDirectoryProvider → Tests run: 0 假绿。
+             删除本地声明，统一走根 pom。 -->
 
 
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
