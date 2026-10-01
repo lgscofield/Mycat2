@@ -16,6 +16,8 @@ import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 public class PrepareExecutor {
+    private static final Logger log = LoggerFactory.getLogger(PrepareExecutor.class);
     ArrowBindable arrowBindable = null;
     MycatBindable arrayBindable = null;
     public static interface ArrowBindable {
@@ -81,6 +84,7 @@ public class PrepareExecutor {
                 }
                 observable.subscribe(objects -> emitter.onNext(new MysqlObjectArrayRow(objects)),
                         throwable -> {
+                            log.error("result-set execution failed (streaming)", throwable);
                             newMycatDataContext.endFuture()
                                     .onComplete(event -> emitter.onError(throwable));
                         }, () -> {
@@ -89,6 +93,7 @@ public class PrepareExecutor {
                             compositeFuture.onFailure(event -> emitter.onError(event));
                         });
             } catch (Throwable throwable) {
+                log.error("result-set execution failed (bind)", throwable);
                 CompositeFuture compositeFuture = newMycatDataContext.endFuture();
                 compositeFuture.onComplete(event -> emitter.onError(throwable));
             }
