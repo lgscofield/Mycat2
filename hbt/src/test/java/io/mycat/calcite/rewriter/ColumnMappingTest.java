@@ -2,8 +2,11 @@ package io.mycat.calcite.rewriter;
 
 import io.mycat.DrdsSqlCompiler;
 import io.mycat.calcite.MycatCalciteSupport;
+import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptSchema;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.TableScan;
@@ -585,6 +588,14 @@ public class ColumnMappingTest {
 
     public static RelBuilder createRelBuilder() {
         RelOptCluster relOptCluster = DrdsSqlCompiler.newCluster();
-        return MycatCalciteSupport.relBuilderFactory.create(relOptCluster, null);
+        // Calcite 1.42 起 RelBuilder.transientScan 要求非空 relOptSchema
+        // （RelBuilder.java:3165 requireNonNull），旧版容忍 null。给脚手架一个空的
+        // root schema（经 CalciteCatalogReader 适配为 RelOptSchema）即可复原本类测试。
+        RelOptSchema schema = new CalciteCatalogReader(
+                CalciteSchema.createRootSchema(false, false),
+                java.util.Collections.<String>emptyList(),
+                MycatCalciteSupport.TypeFactory,
+                MycatCalciteSupport.calciteConnectionConfig);
+        return MycatCalciteSupport.relBuilderFactory.create(relOptCluster, schema);
     }
 }
