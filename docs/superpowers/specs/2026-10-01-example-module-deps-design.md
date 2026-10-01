@@ -60,6 +60,7 @@ com.google.code.findbugs:jsr305 （javax.annotation.concurrent 注解，版本�
 
 - **G-E1（编译门）:** `mvn -B -o test-compile -pl example` → BUILD SUCCESS，`[ERROR] /` 行数 = 0。
 - **G-E2（冒烟门）:** 本机 Docker m1-mysql-a/b 就绪下 `bash ci/run-example.sh`（WSL 内跑）：脚本走通全三步（起 Mycat → 8066 就绪 → surefire 跑完并产出汇总行），且 `ConnectionSmokeTest` **确实执行**（surefire 报告含该类，pass/fail 如实记录）。允许 e2e 测试类存在失败——M1 的语义就是产出逐版本 pass/fail 清单；但 ConnectionSmokeTest 若红，必须root-cause 并纳入本债项闭环（它是纯连接冒烟，红=还有运行时断层，属 D13 本体）。
+  - **执行后注记（终审 Important-1 消解，账本 Final Ruling）**：实测冒烟红于 `String→Object[]` CCE，root-cause 已定向（hbt 侧 SHOW DATABASES 单列行产出裸 String，非本支 pom 修复面）。本节“纳入本债项闭环”的执行后权威释义=**root-cause + 逐出逐版本 pass/fail 清单归属**；修复面属产品代码，按 §2.2 单文件改动阈值同构的止损棘轮拆立 I-DEBT-6（预批口径内顺位调裁，账本有 Ruling）。因此本节 G-E2 在本债项的达成面=**脚本走通 + 冒烟类确实执行 + 红有 root-cause**；“跑绿”验收门转嫁给 I-DEBT-6（看板 I-CI-3 行同步以此为准）。Evidenced-Done 状态指的是本债项（pom 编译面+假绿消解）范围，非冒烟全绿。
 - **G-E3（回归门）:** 三门数字不回退：router 15/0/0、hbt 34/0/23（23 error=I-DEBT-5 既有基线）、executor 0；`mvn -B -o install -Dmaven.test.skip=true -pl server -am` 仍 BUILD SUCCESS。
 - 看板收口：I-DEBT-2/D13 行 TODO→Evidenced-Done，登记逐版本 pass/fail 首轮实录；M1"唯一残留阻断"销账。
 
