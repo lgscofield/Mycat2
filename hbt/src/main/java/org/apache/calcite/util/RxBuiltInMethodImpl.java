@@ -32,6 +32,13 @@ public class RxBuiltInMethodImpl {
      * {@code ClassCastException: String -> Object[]}。元素是否为 {@code Object[]} 由
      * 计划自述的 {@code getElementType()} 决定，再由 {@code MycatBindable.asObjectArray}
      * 统一升箱；此处不应假定行必为 {@code Object[]}。
+     *
+     * <p><b>注意（同族未收口）</b>：本文件下游算子 {@code filter}/{@code topN}/{@code sort}/
+     * {@code toEnumerable}/{@code matierial} 仍声明 {@code Observable<Object[]>}/
+     * {@code Predicate1<Object[]>}/{@code Comparator<Object[]>}，其合成桥仍烘焙 {@code (Object[])}
+     * <em>输入</em>强转。select 泛型化后标量行才首次可能顺到这些算子，若规划器产出此类形态会
+     * 抛同名 CCE。收口（连同 {@code asObjectArray} 对基元数组列的守卫）已另立 I-DEBT-8，本轮按
+     * 止损棘轮不扩面。
      */
     public static <T, R> Observable<R> select(Observable<T> input, org.apache.calcite.linq4j.function.Function1<T, R> map) {
         return input.map(objects -> map.apply(objects));
