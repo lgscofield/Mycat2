@@ -117,5 +117,41 @@
             <artifactId>vertx-junit5</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- MYCAT CHANGE: server 经 maven-shade install 为 dependency-reduced-pom，
+             其 compile 依赖（含兄弟模块）全部剥除——消费方必须显式声明（见 server/pom.xml:232 先例）。
+             将来给 server 新增 compile 依赖时，此处需人工同步，勿当重复声明删除。 -->
+        <dependency>
+            <groupId>io.mycat</groupId>
+            <artifactId>hbt</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mycat</groupId>
+            <artifactId>datasource</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mycat</groupId>
+            <artifactId>plug</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mycat</groupId>
+            <artifactId>replica</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- javax.annotation.concurrent.*（NotThreadSafe 等）在 jsr305 包内，
+             stephenc jcip-annotations 只有 net.jcip.annotations.*，不可互替 -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- LoaddataTest 用 CSVFormat/CSVParser；版本走根 pom 管理（commons-csv 1.9.0） -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
