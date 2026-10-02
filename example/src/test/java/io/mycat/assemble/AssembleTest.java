@@ -1,6 +1,5 @@
 package io.mycat.assemble;
 
-import com.alibaba.druid.util.JdbcUtils;
 import io.mycat.hint.CreateClusterHint;
 import io.mycat.hint.CreateDataSourceHint;
 import lombok.SneakyThrows;
@@ -29,7 +28,7 @@ public class AssembleTest implements MycatTest {
     public void before() throws Exception {
         if (!init) {
             try (Connection connection = getMySQLConnection(DB_MYCAT)) {
-                JdbcUtils.execute(connection, "/*+ mycat:readXARecoveryLog{} */;");
+                execute(connection, "/*+ mycat:readXARecoveryLog{} */;");
             }
             init = true;
         }

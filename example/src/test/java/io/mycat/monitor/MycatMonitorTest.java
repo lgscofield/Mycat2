@@ -55,9 +55,9 @@ public class MycatMonitorTest implements MycatTest {
     @SneakyThrows
     public synchronized void after() {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
-            JdbcUtils.execute(mycatConnection, "/*+mycat:setSqlTimeFilter{value:" +
+            execute(mycatConnection, "/*+mycat:setSqlTimeFilter{value:" +
                     TimeUnit.SECONDS.toMillis(30) +
-                    "} */", Collections.emptyList());
+                    "} */");
         }
     }
 
@@ -162,7 +162,7 @@ public class MycatMonitorTest implements MycatTest {
             String sql = " select * FROM `performance_schema`.`accounts`; ";
             Assert.assertEquals(0, count(prototype, "mycat", "sql_log"));
 
-            JdbcUtils.execute(mySQLConnection, "/*+mycat:setSqlTimeFilter{value:0} */", Collections.emptyList());
+            execute(mySQLConnection, "/*+mycat:setSqlTimeFilter{value:0} */");
             maps = JdbcUtils.executeQuery(mySQLConnection, "/*+mycat:getSqlTimeFilter{} */", Collections.emptyList());
             Assert.assertEquals("[{value=0}]", maps.toString());
             JdbcUtils.executeQuery(mySQLConnection, sql, Collections.emptyList());

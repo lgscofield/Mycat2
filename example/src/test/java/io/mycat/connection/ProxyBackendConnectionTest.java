@@ -18,7 +18,7 @@ public class ProxyBackendConnectionTest  extends DefaultBackendConnectionTest{
     public void before() throws Exception {
         if (!init) {
             try (Connection connection = getMySQLConnection(DB_MYCAT)) {
-                JdbcUtils.execute(connection, "/*+ mycat:readXARecoveryLog{} */;");
+                execute(connection, "/*+ mycat:readXARecoveryLog{} */;");
             }
             init = true;
         }
