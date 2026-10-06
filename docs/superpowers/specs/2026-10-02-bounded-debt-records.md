@@ -131,8 +131,28 @@
 | 本机环境口径 | JDK21=`LibericaJDK-21-Full`；后端=Docker 3306/3307 root/123456；本机 MySQL 服务禁动 | 用户 2026-10-01 指令（亦入记忆）| — 约定，非债项 |
 
 **登记的新增后续债（由 7C 取证拆出，见第 5 节）**：
-- **I-DEBT-7A-2**（建议新开）：修 `MycatTest.executeQuery` helper 的 Connector/J `executeQuery` 镜像守卫（同 7A 法：`Statement.execute()+getResultSet()`），**触共享基元 → 越 bounded → 独立回合 + 全量回归**。
+- **I-DEBT-7A-2**（**已完成，见第 8 节**）：修 `MycatTest.executeQuery` helper 的 Connector/J `executeQuery` 镜像守卫（同 7A 法：`Statement.execute()+getResultSet()`）。**订正**：第 5 节第 2 项当初判其"越 bounded"偏保守——经代码核实修复实为单方法、断言中性（逐字节复刻 druid 转换），回落 bounded 路径在簿留痕；但作为共享基元，验证必须走**全量回归**（验证强度要求，非范围升级）。
 - **I-DEBT-7B**（已在看板）：池耗尽系统性（`maxActive=8` 连接未归还），**先于**可信基线；含 `UserCaseTest` 工具级绕行待处理。
+
+---
+
+## 8. I-DEBT-7A-2：Root A 第二层收口（`executeQuery` 方向镜像守卫，已完成）
+
+- **触发**：7C"发现一"——`MycatTest.execute()` 修好后，某类过首行即 body 里 `executeQuery(纯hint)` 撞见 Connector/J 发送前**镜像守卫** `Statement.executeQuery() cannot issue statements that do not produce result sets`（客户端拒、不走网络、非产品 bug）。用户 2026-10-06 批准起手。
+- **定性**：与 7A 完全同根（Connector/J 8.0.33 静态查询类型分类对 hint 串双向都拒），只是发生在 `executeQuery` 方向。`MycatTest.executeQuery` 原 `return JdbcUtils.executeQuery(conn, sql, emptyList)` → 内部 `PreparedStatement.executeQuery()` 触发守卫。
+- **裁定与理由**：**bounded（订正第 5 节的"越 bounded"判断）**——单方法、断言中性。结果转换用 `javap -c` 反编译 druid 1.2.28 `JdbcUtils` 内部 `ResultSetToMap` 实证其用 `LinkedHashMap + getColumnLabel(i) + getObject(i) + while(rs.next())`，逐字节复刻，保证既有 `.toString()` 断言（如 `[{value=1}]`）多列顺序/取值零漂移。**但**因它是全套件共享基元，验证强度必须是**全量回归**（防复刻漂移打红原绿类）——这是验证要求，不是范围升级。
+- **落地**：
+  1. `MycatTest.executeQuery`：改 `Statement.execute()`→`getResultSet()`，内联复刻 druid 转换；无结果集返回空 list；`executeQueryAsText` 委托本 helper（同修）。`explain`（`"explain "+sql`）、`getUseCon` 等 helper 调用方自动受益。
+  2. 收编 4 处**纯 hint 直调** `JdbcUtils.executeQuery` → helper：`MycatServerStdStorageManagerTest:38/49/52`、`MycatMonitorTest:159/166`。其余 `select/explain/desc` 真 SQL 不撞守卫，**不动**。
+  3. 收编 1 处**裸 `Statement.executeQuery(hint)` 绕过 helper**：`ManagerHintTest.testShowBufferUsage`（全量 sweep 日志实证为**全套件唯一残留镜像守卫点**；原方法无断言，收编保持断言中性；删随之无用的 `java.sql.Statement`/`ResultSet` import）。
+- **证据（Docker m1-mysql-a/b，凭实测不凭记忆，持久化 `.superpowers/sdd/2026-10-02-i7c-baseline/`）**：
+  - 全量 sweep（复用 `i7c_sweep.sh`，同 7C excludes，同类集 58 类）：**58 类 = 27 绿 / 31 红**（基线 21 绿 → **净 +6**）；`i7a2_diff.txt` 同类集 diff：**回归（基线G→新R）= 空**（复刻零漂移的实证）；转绿 6 类 = MySQLCheckTest、AddSequenceTest、SqlResultSetTest、MycatServerStdStorageManagerTest、ThreadTest、ExceptionCaseTest；`executeUpdate` 残留 = NONE。*注：本轮 `ManagerHintTest` 仍 Errors:1，系其在编辑前已编译进该次 mvn，非修复无效。*
+  - 定向 `target/i7a2_v_hint.sh` 跑 `ManagerHintTest`：**`Tests run: 14, Failures: 0, Errors: 0`**，镜像守卫命中 = **0**。
+  - 合计：**全套件 Connector/J 查询方向镜像守卫彻底关闭**（`execute()`+`executeQuery()` 双向、helper 与绕过点全覆盖）。
+- **环境留痕（非代码问题）**：本轮起手时 Docker Desktop 引擎一度 "unable to start"（3306/3307 掉线）；经启动 Docker Desktop + `docker start m1-mysql-a m1-mysql-b` 恢复，验证前后端均 Up。
+- **裁定（顺位与诚实口径）**：31 红 = **Root B 池耗尽**（XaBackend 205s、CreateGsi 453s、PushDownSharding 106s，`GetConnectionTimeoutException maxActive 8`）+ 其它产品根（springdata JPA ×21 err·服务端 `NoSuchMethodError ×8`、Migrate ×9、GlobalInsert、Blob、Charset 等）。**不为确认 +1 绿（=28）再烧 30min 重跑整 sweep**——守卫关闭 + 零回归已由"全量 sweep + 定向"两跑逻辑闭合；**可信 28 绿产品基线留待 7B 修完池耗尽后一次性重生成**（既定下一轮）。
+- **遗留**：I-DEBT-7B（下一轮起手，池耗尽）；7C 产品红归类待 7B 后重基线时正式坐实。
+- **提交**：见本节配套代码/文档提交。
 
 ---
 
@@ -142,4 +162,5 @@
 |---|---|
 | 2026-10-02 | 建簿：收录 I-DEBT-5、I-DEBT-7 拆债裁定、I-DEBT-7A 三条已完成记录 + 7C 预授权口径（用户指示"bounded 都补充留痕，防遗忘"） |
 | 2026-10-06 | 回填 §5（7C 全量 sweep 取证：58 类=21/37、CCE=0、根因归类快照、**发现一 Root A 方向不完整(executeQuery 未修)**、**发现二 排序失误覆写逐类报告**、顺位裁定）；新增 §6（收编 9+1 处 + UserCaseTest 工具 bug 绕行裁定）；新增 §7（历史 bounded 裁定索引，含 3 个账本目录已空的诚实落盘状态）；登记新增后续债 I-DEBT-7A-2 |
+| 2026-10-06 | **§8 I-DEBT-7A-2 完成**：修 `MycatTest.executeQuery` helper 镜像守卫（`Statement.execute()+getResultSet()`+逐字节复刻 druid 转换）+ 收编 4 处 `JdbcUtils` 纯 hint 直调 + 1 处裸 `Statement.executeQuery(hint)`（`ManagerHintTest`）；全量回归实测 **21→27 绿、回归=0**，定向 ManagerHintTest 14/0/0；全套件查询方向守卫关闭；订正 §5/§7 对 7A-2 的"越 bounded"判断为 bounded |
 

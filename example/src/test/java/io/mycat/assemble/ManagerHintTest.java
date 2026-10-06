@@ -5,8 +5,6 @@ import org.junit.Test;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +16,10 @@ public class ManagerHintTest implements MycatTest {
     public void testShowBufferUsage() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection,RESET_CONFIG);
-            try (Statement statement = mycatConnection.createStatement()) {
-
-                ResultSet resultSet = statement.executeQuery(
-                        "/*+ mycat:showBufferUsage{}*/");
-                resultSet.next();
-            }
+            // 走 helper executeQuery（内部 Statement.execute()+getResultSet()），与同类其余 hint 查询一致。
+            // 原裸 statement.executeQuery("/*+ mycat:... */") 会被 Connector/J 发送前静态分类守卫拒
+            // （"cannot issue statements that do not produce result sets"）。断言保持中性：原方法无断言。
+            executeQuery(mycatConnection, "/*+ mycat:showBufferUsage{}*/");
         }
     }
 

@@ -156,14 +156,14 @@ public class MycatMonitorTest implements MycatTest {
                     "\tPRIMARY KEY (`traceId`)\n" +
                     ") ENGINE = InnoDB CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;");
             deleteData(prototype, "mycat", "sql_log");
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mySQLConnection, "/*+mycat:getSqlTimeFilter{} */", Collections.emptyList());
+            List<Map<String, Object>> maps = executeQuery(mySQLConnection, "/*+mycat:getSqlTimeFilter{} */");
             Object orginalValue = maps.get(0).get("value");
             // String sql = " select sleep(1)";
             String sql = " select * FROM `performance_schema`.`accounts`; ";
             Assert.assertEquals(0, count(prototype, "mycat", "sql_log"));
 
             execute(mySQLConnection, "/*+mycat:setSqlTimeFilter{value:0} */");
-            maps = JdbcUtils.executeQuery(mySQLConnection, "/*+mycat:getSqlTimeFilter{} */", Collections.emptyList());
+            maps = executeQuery(mySQLConnection, "/*+mycat:getSqlTimeFilter{} */");
             Assert.assertEquals("[{value=0}]", maps.toString());
             JdbcUtils.executeQuery(mySQLConnection, sql, Collections.emptyList());
             Thread.sleep(1000);

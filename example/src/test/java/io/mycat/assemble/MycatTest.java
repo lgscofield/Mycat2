@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,11 +100,36 @@ public interface MycatTest {
 
     public default List<Map<String, Object>> executeQuery(Connection mySQLConnection, String sql) throws Exception {
         LOGGER.info(sql);
-        return JdbcUtils.executeQuery(mySQLConnection, sql, Collections.emptyList());
+        // 用 JDBC Statement.execute()+getResultSet() 而非 JdbcUtils→PreparedStatement.executeQuery()。
+        // 与 execute() 同族的 Connector/J 发送前纯客户端静态分类守卫：把 /*+ mycat:... */ 这类
+        // 无被识别起始关键字的 hint 串误判为“不产出结果集”，直接抛
+        // "Statement.executeQuery() cannot issue statements that do not produce result sets"，未走网络。
+        // Statement.execute() 不做该预分类（返回 boolean），再取回真正的 ResultSet。
+        // 转换逐字节复刻 druid 1.2.28 JdbcUtils 内部 ResultSetToMap：LinkedHashMap + getColumnLabel + getObject，
+        // 保证既有断言（如 "[{value=1}]"）的多列 toString 顺序/取值形态不变。
+        try (Statement statement = mySQLConnection.createStatement()) {
+            boolean hasResultSet = statement.execute(sql);
+            List<Map<String, Object>> list = new ArrayList<>();
+            if (!hasResultSet) {
+                return list;
+            }
+            try (ResultSet rs = statement.getResultSet()) {
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columns = metaData.getColumnCount();
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>(columns);
+                    for (int i = 1; i <= columns; ++i) {
+                        row.put(metaData.getColumnLabel(i), rs.getObject(i));
+                    }
+                    list.add(row);
+                }
+            }
+            return list;
+        }
     }
     public default String executeQueryAsText(Connection mySQLConnection, String sql) throws Exception {
         LOGGER.info(sql);
-        return JdbcUtils.executeQuery(mySQLConnection, sql, Collections.emptyList()).toString();
+        return executeQuery(mySQLConnection, sql).toString();
     }
 
     public default String explain(Connection mySQLConnection, String sql) throws Exception {

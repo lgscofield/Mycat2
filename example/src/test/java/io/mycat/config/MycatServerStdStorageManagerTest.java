@@ -35,7 +35,7 @@ public class MycatServerStdStorageManagerTest implements MycatTest {
 
 
 
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mySQLConnection, checkConfigConsistency, Collections.emptyList());
+            List<Map<String, Object>> maps = executeQuery(mySQLConnection, checkConfigConsistency);
             Assert.assertEquals("[{value=1}]", maps.toString());
 
             DatasourceConfig ds = CreateDataSourceHint.createConfig("prototypeDs", DB1);
@@ -46,10 +46,10 @@ public class MycatServerStdStorageManagerTest implements MycatTest {
             String tmpName = System.currentTimeMillis() + "";
             datasourceConfigKV.put(tmpName, CreateDataSourceHint.createConfig(tmpName, DB1));
 
-            maps = JdbcUtils.executeQuery(mySQLConnection, checkConfigConsistency, Collections.emptyList());
+            maps = executeQuery(mySQLConnection, checkConfigConsistency);
             Assert.assertEquals("[{value=0}]", maps.toString());
             execute(mySQLConnection, syncConfigFromFileToDb);
-            maps = JdbcUtils.executeQuery(mySQLConnection, checkConfigConsistency, Collections.emptyList());
+            maps = executeQuery(mySQLConnection, checkConfigConsistency);
             Assert.assertEquals("[{value=1}]", maps.toString());
 
             Thread.sleep(1);
