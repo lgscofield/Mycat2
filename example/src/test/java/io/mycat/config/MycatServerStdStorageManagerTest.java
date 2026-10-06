@@ -30,8 +30,8 @@ public class MycatServerStdStorageManagerTest implements MycatTest {
     @SneakyThrows
     public void test() {
         try (Connection mySQLConnection = getMySQLConnection(DB_MYCAT);) {
-            JdbcUtils.execute(mySQLConnection, RESET_CONFIG);
-            JdbcUtils.execute(mySQLConnection, syncConfigFromFileToDb);
+            execute(mySQLConnection, RESET_CONFIG);
+            execute(mySQLConnection, syncConfigFromFileToDb);
 
 
 
@@ -48,15 +48,15 @@ public class MycatServerStdStorageManagerTest implements MycatTest {
 
             maps = JdbcUtils.executeQuery(mySQLConnection, checkConfigConsistency, Collections.emptyList());
             Assert.assertEquals("[{value=0}]", maps.toString());
-            JdbcUtils.execute(mySQLConnection, syncConfigFromFileToDb);
+            execute(mySQLConnection, syncConfigFromFileToDb);
             maps = JdbcUtils.executeQuery(mySQLConnection, checkConfigConsistency, Collections.emptyList());
             Assert.assertEquals("[{value=1}]", maps.toString());
 
             Thread.sleep(1);
             tmpName = System.currentTimeMillis() + "";
             datasourceConfigKV.put(tmpName, CreateDataSourceHint.createConfig(tmpName, DB1));
-            JdbcUtils.execute(mySQLConnection, syncConfigFromDbToFile);
-            JdbcUtils.execute(mySQLConnection, loadConfigFromFile);
+            execute(mySQLConnection, syncConfigFromDbToFile);
+            execute(mySQLConnection, loadConfigFromFile);
             maps = executeQuery(mySQLConnection, "/*+mycat:showDatasources{}*/");
 
             Assert.assertTrue(maps.toString().contains(tmpName));
