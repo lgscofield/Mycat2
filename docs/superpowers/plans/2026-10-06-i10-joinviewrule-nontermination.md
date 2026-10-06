@@ -1,167 +1,106 @@
-# I-DEBT-10 JoinViewRule 自触发不收敛修复 实施计划
+# I-DEBT-10 planner 自触发不收敛修复 实施计划（纠偏版 v2）
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 修复 `JoinViewRule` 在「GSI + LEFT JOIN + 相关子查询（分布不可合并）」下的规则自触发不收敛，使触发查询在有限步内产出计划并返回，且不改变任何正常（可收敛）join 的最终计划。
+**Goal:** 修复 Mycat 服务端 Calcite 优化器在「GSI + LEFT JOIN + 相关子查询（分布不可合并）」下的规则自触发不收敛（I-DEBT-10），使触发查询在有限步内产出计划并返回，且不改变任何正常（可收敛）join 的最终计划。
 
-**Architecture:** 两道互补守卫，全在 hbt：乙=在 `tryMergeJoin` 遇「两视图分布不可合并」时不再产出会回炉的 `MycatSortMergeJoin`（直接掐断自触发燃料）；甲=在 `JoinViewRule` 的匹配面加约定谓词，禁止规则吃自身产出的 Mycat 物理 join（加固，防其它回炉路径）。先实施乙验证收敛，再叠加甲并回归确认无差异。
+**Architecture:** 实测（干净 proxy + 实时 planner 日志，call# 达 13,816,313 且飙升）坐实**主失控者是 `MycatExtraSortRule`**（靠 `join.copy` 自我供料 + `pushSort` 幂等守卫失效），不是初稿所指的 `JoinViewRule`。故主修 = 给 `MycatExtraSortRule` 加收敛守卫；`JoinViewRule` 的乙（已写）/甲降为**次级加固**。守卫变体以红测 + `call#` 是否有界为**唯一裁断**，落不定按具名 fallback 阶梯迭代（不凭读码断言一枪命中）。
 
 **Tech Stack:** JDK 21（BellSoft Liberica 21-Full）、Calcite fork（VolcanoPlanner / RelRule）、JUnit 4（`org.junit.Test`）、Maven（offline Nexus）、Docker 后端 m1-mysql-a:3306 / b:3307（root/123456）。
 
-**Spec:** `docs/superpowers/specs/2026-10-06-i10-joinviewrule-nontermination-design.md`（根因见留痕簿 §9/§9.1，诊断报告 `.superpowers/sdd/2026-10-06-i7b-diagnosis/i10_rootcause.md`）
+**Spec:** `docs/superpowers/specs/2026-10-06-i10-joinviewrule-nontermination-design.md`（§根因已按 2026-10-06 实测纠偏；诊断 `.superpowers/sdd/2026-10-06-i7b-diagnosis/i10_rootcause.md`；本计划恢复记录 `.superpowers/sdd/2026-10-06-i10-joinviewrule-nontermination/progress.md`）
 
 ## Global Constraints
 - 改动**只在 hbt 模块**；不动 `calcite-core` fork；不采用 planner matchLimit（丙，治标）。
 - 一切结论以**当前实测**为凭（运行时日志 / 定向跑），不凭本计划推断；仅 Evidenced-Done。
 - 不 merge / 不 push / 不发布；不做不可逆操作。
-- 甲的最终排除面以 **join 全量回归为唯一裁判**：若「排除所有 Mycat convention join」引发正常 join 回归，则收窄为「仅排除本规则产物类型 `MycatSortMergeJoin`/`MycatSortMergeSemiJoin`」。
-- 环境：`$env:JAVA_HOME="D:\Program Files\BellSoft\LibericaJDK-21-Full"`；`$env:MAVEN_ARGS="-Dmaven.repo.local=D:\Nexus\repository -o"`；起 proxy 用 `java -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar server/target/server-1.22-release-jar-with-dependencies.jar`（蓝本见 `.superpowers/sdd/2026-10-06-i7b-diagnosis/i7b_red.sh`）。
+- **主修/甲/乙 的最终形态以 join 全量回归为唯一裁判**：任何守卫若引发正常 join 回归，收窄其触发面至不收敛子集；收窄记录入账本 Ruling。
+- 环境（Windows 原生起 proxy + mvn，绕开 WSL 脆弱网络）：`$env:JAVA_HOME="D:\Program Files\BellSoft\LibericaJDK-21-Full"`；mvn 传 `"-Dmaven.repo.local=D:\Nexus\repository"`（**每个 `-D`/含 `.` 的参数整体加引号**，pwsh 会拆坏）；起 proxy `java "-Duser.timezone=Asia/Shanghai" "-Dfile.encoding=UTF-8" -jar server/target/server-1.22-release-jar-with-dependencies.jar`（后台）。
+- **每次改 hbt 源码后必须** `mvn -B -o -pl hbt -am install` + `mvn -B -o -pl server -am package`（重新 shade fat-jar）并**重启 proxy** 才生效；判结果直接读 `example/target/surefire-reports/TEST-*.xml`（勿依赖 pwsh 重定向日志，易 UTF-16 污染）。
+- **跑测前确保干净环境**：无残留 proxy/maven java 进程（`Get-CimInstance Win32_Process -Filter "Name='java.exe'"` 排除 IDE 的 redhat.java）；红测挂死会拖住 proxy 侧失控 planner，**测毕立即 kill proxy**，防 call# 无界烧垮机器（历史已烧垮过 WSL VM）。
 - 从属 6 处连接泄漏不在本计划修（无可观测绿信号），基线重生阶段另行收编。
 
 ## Review Focus（spec 隐含、须由测试钉住的输入类）
-- 非 GSI 的相关子查询（`EXISTS` / `IN` 子查询下推）不得因甲/乙回归 → Task 4 断言相关用例结果不变。
-- 其它 join 类型（INNER / RIGHT / SEMI / ANTI / FULL）× 各种分布组合不得因甲回归 → Task 4 join 全量回归覆盖。
-- 分布「部分可合并」边界（`PHY×BROADCAST`、`SHARDING×BROADCAST`）行为不变（乙守卫只在 `distribution.join` 为 empty 时生效）→ Task 2 断言这些组合仍能正常下推。
+- 非 GSI 的相关子查询（`EXISTS` / `IN` 子查询下推）不得因主修/甲/乙回归 → Task 4 断言相关用例结果不变。
+- 其它 join 类型（INNER / RIGHT / SEMI / ANTI / FULL）× 各分布组合不得因主修（MycatExtraSortRule 语义变更）回归 → Task 4 join 全量回归覆盖，重点含 sort-merge join 的计划选型不变。
+- MycatExtraSortRule 的 `RelNode(anyInputs)` 变体恒匹配是自我供料放大器 → 主修须证明它不再产出「输入未变却仍 transformTo」的等价新节点。
 
 ---
 
-### Task 1: 建立收敛红测（定测试落点，watched-fail）
+### Task 1: 建立收敛红测（已完成）
 
 **Files:**
-- Modify: `example/src/test/java/io/mycat/gsi/CreateGsiTest.java`（新增独立测试方法 `testGsiJoinConverges`，不动既有用例）
-- Test: 同上
+- Modify: `example/src/test/java/io/mycat/gsi/CreateGsiTest.java`（新增 `testGsiJoinConverges`，守护线程 + `Future.get(60s)`，TimeoutException→Assert.fail）
 
-**Interfaces:**
-- Consumes: `MycatTest.getMySQLConnection(DB_MYCAT)`、`MycatTest.execute()`/`executeQuery(...)`（既有测试基元，7A/7A-2 已改）
-- Produces: 一个可重复运行的「触发查询在 60s 内返回」的收敛断言，供 Task 2/3 复用为红→绿门
+- [x] **Step 1–3:** 落点=example 定向黑盒（DrdsSqlCompiler 脱机编译需全量元数据，A 方案不可行）；RED 已实证（查询挂死、planner 不收敛）。
+- [x] **Step 4: Commit** — 已入库 `7eb27410e`（compaction 前摘要所称 `0b1f606f2` 系失真、从未存在，已凭 git 校正补提）。
 
-- [ ] **Step 1: 探测脱机编译入口（决定红测形态）**
-
-Grep `DrdsSqlCompiler` 是否有不依赖运行中 server 的 `SQL→RelNode plan` 编译入口（形如 `compile(String)`/`getPlan(...)`，且能在无 MetaCluster 网络时构造带 GSI 的 `ShardingTable`）。
-Expected：若存在且可喂带 GSI 的真实 schema → 采用「hbt planner 级超时断言」；否则（预期大概率如此，因 GSI 元数据重）→ 采用「example 定向 + JUnit 超时」。**本计划后续步骤按后者（B）写；若 Step 1 得 A，把 B 的定向跑等价替换为 planner 级断言，其余不变。**
-
-- [ ] **Step 2: 写失败测试（B 形态：超时守卫）**
-
-在 `CreateGsiTest` 新增：
-```java
-@Test(timeout = 60_000L)   // 正常可收敛 join 应秒级返回；挂死则 JUnit 超时判红
-public void testGsiJoinConverges() throws Exception {
-    Connection c = getMySQLConnection(DB_MYCAT);
-    // 复用该类既有的建表/建 GSI 前置（与 createGsi3 相同的 db2.fp + GLOBAL INDEX）
-    ensureGsiFpSetup();
-    List<Map<String, Object>> rows =
-        executeQuery(c, "SELECT a.id FROM db2.fp a LEFT JOIN db2.normal b ON a.user_id=b.user_id WHERE a.user_id=1 LIMIT 10");
-    Assert.assertNotNull(rows);   // 关键断言：能在 60s 内产出结果（不再 planner 不收敛挂死）
-}
-```
-`ensureGsiFpSetup()`：从 `createGsi3` 抽出「建 `db2.fp`（带 GLOBAL INDEX）+ `db2.normal` + 必要行」的前置语句，复用而非复制（若 createGsi3 已内联这些，提取为私有方法供两者调用）。
-
-- [ ] **Step 3: 起 proxy + 定向跑，确认 RED**
-
-```
-java -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar server/target/server-1.22-release-jar-with-dependencies.jar   # 后台
-mvn -B -o test -pl example -Dtest=CreateGsiTest#testGsiJoinConverges
-```
-Expected: **FAIL / timeout**（`testGsiJoinConverges` 因 planner 不收敛、查询 60s 不返回被 JUnit 超时判红）。抓 `mycat.log` 尾部确认 `JoinViewRule` `call#` 无界增长（对齐诊断证据）。
-
-- [ ] **Step 4: Commit（红测入仓）**
-
-```
-git add example/src/test/java/io/mycat/gsi/CreateGsiTest.java
-git commit -m "test(example): I-DEBT-10 收敛红测——GSI+LEFT JOIN 查询超时守卫（修复前应 RED）"
-```
+**Produces:** 可复跑的「触发查询 60s 内返回」收敛门，供 Task 2/3 作红→绿门。当前状态：含乙 jar 下仍 RED（见下诊断）。
 
 ---
 
-### Task 2: 乙——tryMergeJoin 分布不可合并则不产 MergeJoin
+### Task 2: 主修——MycatExtraSortRule 收敛守卫（假设驱动，红测裁断）
 
 **Files:**
-- Modify: `hbt/src/main/java/io/mycat/calcite/rewriter/SQLRBORewriter.java:327-343`（`tryMergeJoin`）
+- Modify: `hbt/src/main/java/io/mycat/calcite/rules/MycatExtraSortRule.java:52-100`（`onMatch` + `pushSort`）
+- 保留（次级加固，已在工作区）：`hbt/src/main/java/io/mycat/calcite/rewriter/SQLRBORewriter.java:335-343`（乙）
 - Test: 复用 Task 1 `testGsiJoinConverges`
 
 **Interfaces:**
-- Consumes: `MycatView.getDistribution()`、`Distribution.join(Distribution)→Optional<Distribution>`、`MycatView`（`left/right instanceof MycatView`）
-- Produces: 分布不可合并的两视图 join 不再被强转 `MycatSortMergeJoin`，交回常规收敛
+- Consumes: `MycatView.getRelNode()`、`MycatView.changeTo(RelNode)`、`RelNode.getTraitSet().getCollation()`、`join.copy(...)`
+- Produces: MycatExtraSortRule 对「输入无需再排序 / 视图已满足目标 collation」不再产出等价新节点，使自触发环有界
 
-- [ ] **Step 1: 加守卫（GREEN 目标实现）**
+- [ ] **Step 1: 守卫主变体 (a)+(b)**
 
-在 `tryMergeJoin` 现有 `isleftView && isRightView` 且 `banPushdown` 检查之后、调用 `MycatMergeJoinRule...tryMycatSortMergeJoin` 之前，插入：
-```java
-Distribution ld = ((MycatView) left).getDistribution();
-Distribution rd = ((MycatView) right).getDistribution();
-if (!ld.join(rd).isPresent()) {
-    // 分布维度不兼容：不可下推合并，也不应产出会再次触发 JoinViewRule 的 MergeJoin
-    return Optional.empty();
-}
-```
-（`Distribution` 与 `Optional` 已在该文件可见；缺则补 import。）
+(a) `onMatch`：先算 `newLeft = pushSort(left, collations.get(0))`、`newRight = pushSort(right, collations.get(1))`；若 `newLeft == left && newRight == right`（引用同一），**`return` 不调 `transformTo`**；否则才 `transformTo(join.copy(traitSet, [newLeft, newRight]))`。
+(b) `pushSort` MycatView 分支：包 sort 前判「视图有效 collation 已满足目标」——若 `relNode.getTraitSet().getCollation()` 已含/等于 target，**或** `mycatView.getRelNode()` 已是同 collation 的 `Sort`——则**返回原视图引用不变**（现有仅比 outer traitSet，补 inner-is-Sort 判据）。
+（`Distribution`/`RelCollations`/`Sort` 已可见，缺则补 import。保持既有 catch-log 包裹。）
 
-- [ ] **Step 2: 重建 hbt + server fat-jar**
+- [ ] **Step 2: 重建 + 干净起 proxy + 定向复跑**
 
 ```
 mvn -B -o -pl hbt -am install
-mvn -B -o -pl server -am package    # 产出 server-1.22-release-jar-with-dependencies.jar
+mvn -B -o -pl server -am package
+# kill 任何残留 proxy java，再起新 proxy（含主修），等 8066 LISTEN
+mvn -B -o clean test -pl example "-Dtest=CreateGsiTest#testGsiJoinConverges"
 ```
-Expected: BUILD SUCCESS。
+Expected（判据）：
+- 转绿：`surefire` XML `failures="0"`、testcase 秒级返回；
+- 或仍红：testcase `AssertionError`（60s 未返回）→ **立即 kill proxy**，抓该查询的 planner 日志确认 `call#` 是否仍有界/哪条规则仍无限 fire。
 
-- [ ] **Step 3: 重起 proxy + 定向复跑，确认转绿**
+- [ ] **Step 3: 若仍红 → fallback 阶梯（逐个上、每次重跑判据，记 Ruling）**
 
-```
-# 重启 proxy（加载新 jar）后
-mvn -B -o test -pl example -Dtest=CreateGsiTest#testGsiJoinConverges
-```
-Expected: **PASS**（60s 内返回）。抓 `mycat.log`：`JoinViewRule` `call#`/`rel#` 有界（对齐 §9.1 成功判据）。
+- F1（相关子查询放大器）：若日志显示 `call#` 仍随 MycatView 重展开无界增长，则给 MycatExtraSortRule 的 `Join` operand 收窄——`b0.operand(Join.class).predicate(j -> /* 仅未排过目标 collation 的 join */)`，阻断对「已带目标排序的 join」再排一次；重跑判据。
+- F2（operand 约定排除物理 join，粗粒度，慎用）：`b0.operand(Join.class).predicate(j -> j.getConvention() != MycatConvention.INSTANCE)`。**风险高**（可能整体禁用物理 join 的 merge-sort）→ 必须紧接 Task 4 回归证实零差异，否则回撤。
+- 若 F1/F2 皆不能收敛且回归有损 → 停止，升级回 systematic-debugging/brainstorming（可能触及 fork planner 终止保证，属更重路径），不强行加丙掩盖。
 
-- [ ] **Step 4: 边界断言（Review Focus 第 3 行）**
-
-临时（或作为 Task 4 子集）验证 `PHY×BROADCAST`、`SHARDING×BROADCAST` 等**可合并**分布仍能下推：这些组合 `ld.join(rd)` 非 empty → 乙守卫不触发 → 计划不变。跑 `AssembleTest` 中 broadcast/sharding join 用例，Expected：结果与修复前一致（无差异）。
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit（主修 + 乙一并）**
 
 ```
-git add hbt/src/main/java/io/mycat/calcite/rewriter/SQLRBORewriter.java
-git commit -m "fix(hbt): I-DEBT-10 乙——tryMergeJoin 遇分布不可合并不再产 MergeJoin，断 JoinViewRule 自触发"
+git add hbt/src/main/java/io/mycat/calcite/rules/MycatExtraSortRule.java hbt/src/main/java/io/mycat/calcite/rewriter/SQLRBORewriter.java
+git commit -m "fix(hbt): I-DEBT-10 主修——MycatExtraSortRule 收敛守卫(断 join.copy 自喂) + 乙 tryMergeJoin 次级加固"
 ```
 
 ---
 
-### Task 3: 甲——JoinViewRule 匹配面排除 Mycat 物理 join（加固）
+### Task 3: 甲——JoinViewRule 匹配面排除 Mycat 物理 join（次级加固，可选）
 
 **Files:**
 - Modify: `hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java:288-295`（`JoinViewRuleConfig.withOperandFor`）
-- Test: 复用 Task 1 `testGsiJoinConverges`
+- Test: 复用 Task 1；Task 4 回归裁断
 
 **Interfaces:**
 - Consumes: `join.getConvention()`、`MycatConvention.INSTANCE`
-- Produces: `JoinViewRule` 不再匹配自身产出的 Mycat 物理 join
+- Produces: JoinViewRule 不再吃自身产出的 Mycat 物理 join
 
-- [ ] **Step 1: 加约定谓词**
+- [ ] **Step 1: 决策是否叠加**（凭 Task 2 后红测/日志）：若 Task 2 主修后 JoinViewRule 已非失控者且回归无碍，甲作为纵深加固保留；若甲引发正常 join 回归则**不落地甲**（记 Ruling）。
 
-将 `b0.operand(Join.class)` 改为带谓词形态：
-```java
-b0.operand(Join.class).predicate(j -> j.getConvention() != MycatConvention.INSTANCE)
-```
-（保持其后 `.inputs(...)` 两 MycatView 谓词不变。`MycatConvention` 已在文件 import。）
+- [ ] **Step 2: 若落地** — `b0.operand(Join.class).predicate(j -> j.getConvention() != MycatConvention.INSTANCE)`（其后两 MycatView 谓词不变）；重建 + 定向复跑保持绿。
 
-- [ ] **Step 2: 重建 + 定向复跑保持绿**
-
-```
-mvn -B -o -pl hbt -am install && mvn -B -o -pl server -am package
-```
-重起 proxy 后 `mvn -B -o test -pl example -Dtest=CreateGsiTest#testGsiJoinConverges`
-Expected: **PASS**。
-
-- [ ] **Step 3: join 回归门（甲的排除面裁定）**
-
-跑 join 相关类（见 Task 4 清单）中最小代表集：`AssembleTest`、`BkaJoinExecuteTest`。
-Expected: 相对 Task 2 后**无新增红、正常 join 计划无差异**。
-若出现因甲排除过宽导致的下推缺失回归 → 按 Global Constraints 收窄谓词为 `.predicate(j -> !(j instanceof MycatSortMergeJoin) && !(j instanceof MycatSortMergeSemiJoin))`，重跑本步至无差异，并在 commit message / 留痕记录该裁定。
-
-- [ ] **Step 4: Commit**
-
+- [ ] **Step 3: Commit（若落地）**
 ```
 git add hbt/src/main/java/io/mycat/calcite/localrel/LocalRules.java
-git commit -m "fix(hbt): I-DEBT-10 甲——JoinViewRule 匹配面排除 Mycat 物理 join，加固断自触发环"
+git commit -m "fix(hbt): I-DEBT-10 甲——JoinViewRule 匹配面排除 Mycat 物理 join（次级加固）"
 ```
 
 ---
@@ -169,37 +108,34 @@ git commit -m "fix(hbt): I-DEBT-10 甲——JoinViewRule 匹配面排除 Mycat �
 ### Task 4: join 全量回归 + 收敛确认（Review Focus 钉桩）
 
 **Files:**
-- Test: 复用既有 `example` join/gsi 用例；必要时 `CreateGsiTest` 内补结果断言
-- 无新生产代码（除非回归暴露缺陷）
+- Test: 复用既有 `example` join/gsi 用例；无新生产代码（除非回归暴露缺陷）
 
 **Interfaces:**
-- Consumes: Task 2/3 的改后 planner 行为
-- Produces: 「无新增红 + 正常 join 计划/结果零差异」的回归证据（Evidenced-Done）
+- Consumes: Task 2/3 改后 planner 行为
+- Produces: 「无新增红 + 正常 join 计划/结果零差异」的 Evidenced-Done 回归证据
 
-- [ ] **Step 1: 全量定向回归**
-
-起 proxy 跑 join/gsi 相关类：`CreateGsiTest`、`BkaJoinExecuteTest`、`AssembleTest`、`PushDownFunctionShardingTableTest`，及含相关子查询（`EXISTS`/`IN`）的既有用例。命令：
+- [ ] **Step 1: 全量定向回归**（干净起 proxy）
 ```
 mvn -B -o test -pl example -Dtest=CreateGsiTest,BkaJoinExecuteTest,AssembleTest
 ```
-Expected: 相对修复前基线**无新增红**；`testGsiJoinConverges` 绿；相关子查询用例结果不变（Review Focus 第 1 行）。
+Expected: 相对修复前基线**无新增红**；`testGsiJoinConverges` 绿；含相关子查询（EXISTS/IN）用例结果不变；含 sort-merge join 的用例计划选型不变。
 
-- [ ] **Step 2: 计划零差异抽查**
+- [ ] **Step 2: 计划零差异抽查** — 对若干正常 join（可合并分布、非 GSI）比对修复前后最终计划（EXPLAIN/断言计划串），确认主修/甲/乙**只影响不收敛路径**、正常 join 计划无变化。
 
-对若干正常 join（可合并分布、非 GSI）比对修复前后最终计划（`EXPLAIN`/测试断言的计划串），确认甲/乙**只影响不收敛路径**、正常 join 计划无变化（Review Focus 第 2 行）。
-
-- [ ] **Step 3: 留痕登记 + Commit**
-
-在 `docs/superpowers/specs/2026-10-02-bounded-debt-records.md` 追加 §10（I-DEBT-10 完成记录：乙+甲改动、收敛实测、join 回归结果、甲排除面最终形态），更新看板 `2026-09-30-mysql-mariadb-compat-PROGRESS.md`（关键路径 I-DEBT-10→✅、基线重生为下一步）。
+- [ ] **Step 3: 留痕登记 + Commit** — 在 `docs/superpowers/specs/2026-10-02-bounded-debt-records.md` 追加 §10（I-DEBT-10 完成记录：主修 MycatExtraSortRule 守卫 + 次级 甲/乙 最终形态、收敛实测 call# 有界、join 回归结果）；更新看板 `2026-09-30-mysql-mariadb-compat-PROGRESS.md`（I-DEBT-10→✅）。
 ```
 git add docs/superpowers/specs/2026-10-02-bounded-debt-records.md docs/superpowers/specs/2026-09-30-mysql-mariadb-compat-PROGRESS.md
-git commit -m "docs(debt): I-DEBT-10 完成入簿——JoinViewRule 自触发修复（乙+甲）+ join 回归证据"
+git commit -m "docs(debt): I-DEBT-10 完成入簿——MycatExtraSortRule 收敛守卫（主修）+ 甲/乙 次级 + join 回归证据"
 ```
 
 ---
 
 ## 完成判据
-- Task 1 红测修复前 RED（超时挂死）、修复后 GREEN（60s 返回）。
-- 甲+乙落地后，join 全量回归相对修复前无新增红、正常 join 计划零差异。
-- `mycat.log` 中该查询 `JoinViewRule` `call#`/`rel#` 有界（对齐 §9.1 成功判据）。
+- Task 1 红测修复前 RED（超时挂死）、主修落地后 GREEN（60s 返回）。
+- 主修（+ 视情况甲/乙）后 join 全量回归相对修复前无新增红、正常 join 计划零差异。
+- `mycat.log` 中该查询 `call#`/`rel#` 有界（对齐实测：修复前 1381 万级）。
 - 基线重生与 6 处连接泄漏收编为后续独立回合，不在本计划内宣告完成。
+
+## v1→v2 变更（实测纠偏，2026-10-06）
+- 主失控者由 `JoinViewRule` 改为 `MycatExtraSortRule`（实时 planner 日志 call#=13,816,313 无限 fire 者为后者）；甲/乙降为次级加固。
+- 新增 Task 2 主修 = MycatExtraSortRule 收敛守卫（onMatch no-op + pushSort 幂等），配 fallback 阶梯；判据强调「凭红测/call# 有界裁断，不凭读码断言」，纠正上一版「乙应能断环」的读码误判。
