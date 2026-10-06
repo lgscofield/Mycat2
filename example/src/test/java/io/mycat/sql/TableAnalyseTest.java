@@ -1,6 +1,5 @@
 package io.mycat.sql;
 
-import com.alibaba.druid.util.JdbcUtils;
 import io.mycat.assemble.MycatTest;
 import io.mycat.hint.CreateClusterHint;
 import io.mycat.hint.CreateDataSourceHint;
@@ -71,7 +70,9 @@ public class TableAnalyseTest implements MycatTest {
                     ") ENGINE=InnoDB  DEFAULT CHARSET=utf8"
                     + " dbpartition by mod_hash(user_id) tbpartition by mod_hash(user_id) tbpartitions 2 dbpartitions 2;");
 
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "/*+ mycat:showErGroup{}*/", Collections.emptyList());
+            // 走 helper 绕开 Connector/J 对纯 hint 串的 executeQuery 方向镜像守卫（同 I-DEBT-7A-2）；
+            // 该单类运行受 Root B 池耗尽阻塞、本轮 sweep 排除，运行时全绿证据待 I-DEBT-7B 重基线。
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "/*+ mycat:showErGroup{}*/");
             Assert.assertEquals(2,maps.size() );
             Assert.assertEquals("[{groupId=0, schemaName=db1, tableName=travelrecord}, {groupId=0, schemaName=db1, tableName=travelrecord2}]",maps.toString() );
         }

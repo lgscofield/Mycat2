@@ -144,14 +144,16 @@
 - **落地**：
   1. `MycatTest.executeQuery`：改 `Statement.execute()`→`getResultSet()`，内联复刻 druid 转换；无结果集返回空 list；`executeQueryAsText` 委托本 helper（同修）。`explain`（`"explain "+sql`）、`getUseCon` 等 helper 调用方自动受益。
   2. 收编 4 处**纯 hint 直调** `JdbcUtils.executeQuery` → helper：`MycatServerStdStorageManagerTest:38/49/52`、`MycatMonitorTest:159/166`。其余 `select/explain/desc` 真 SQL 不撞守卫，**不动**。
-  3. 收编 1 处**裸 `Statement.executeQuery(hint)` 绕过 helper**：`ManagerHintTest.testShowBufferUsage`（全量 sweep 日志实证为**全套件唯一残留镜像守卫点**；原方法无断言，收编保持断言中性；删随之无用的 `java.sql.Statement`/`ResultSet` import）。
+  3. 收编 1 处**裸 `Statement.executeQuery(hint)` 绕过 helper**：`ManagerHintTest.testShowBufferUsage`（全量 sweep 日志实证为**本轮 sweep 内唯一残留镜像守卫点**；原方法无断言，收编保持断言中性；删随之无用的 `java.sql.Statement`/`ResultSet` import）。
+  4. **（终审后补）收编全仓最后一处同族绕过点**：`TableAnalyseTest.java:74` 的 `JdbcUtils.executeQuery(mycatConnection, "/*+ mycat:showErGroup{}*/", ...)` 直调（fresh CodeReview 完整性轴揪出的 Important；该类本轮被 sweep 排除故未进入上述日志实证、也未被 helper 改动波及，实为全仓**唯一残留**的同族纯 hint `JdbcUtils` 查询直调）。改走 helper `executeQuery(...)`（该类已 `implements MycatTest`），删 `import com.alibaba.druid.util.JdbcUtils;`（该类唯一用处），`Collections` 因 L43/L46 仍用保留。断言 `[{groupId=0, schemaName=db1, tableName=travelrecord}, ...]` 三键顺序经等价性核验零漂移。**诚实边界**：该类运行受 Root B 池耗尽阻塞、本轮 sweep 排除，故**只过编译门（`mvn -B -o test-compile -pl example` BUILD SUCCESS）+ fresh review 静态等价实证，运行时全绿证据待 I-DEBT-7B 重基线时随全套件取得，不谎称该类本轮转绿**。
 - **证据（Docker m1-mysql-a/b，凭实测不凭记忆，持久化 `.superpowers/sdd/2026-10-02-i7c-baseline/`）**：
   - 全量 sweep（复用 `i7c_sweep.sh`，同 7C excludes，同类集 58 类）：**58 类 = 27 绿 / 31 红**（基线 21 绿 → **净 +6**）；`i7a2_diff.txt` 同类集 diff：**回归（基线G→新R）= 空**（复刻零漂移的实证）；转绿 6 类 = MySQLCheckTest、AddSequenceTest、SqlResultSetTest、MycatServerStdStorageManagerTest、ThreadTest、ExceptionCaseTest；`executeUpdate` 残留 = NONE。*注：本轮 `ManagerHintTest` 仍 Errors:1，系其在编辑前已编译进该次 mvn，非修复无效。*
   - 定向 `target/i7a2_v_hint.sh` 跑 `ManagerHintTest`：**`Tests run: 14, Failures: 0, Errors: 0`**，镜像守卫命中 = **0**。
-  - 合计：**全套件 Connector/J 查询方向镜像守卫彻底关闭**（`execute()`+`executeQuery()` 双向、helper 与绕过点全覆盖）。
+  - 合计（**收编面**）：补 `TableAnalyseTest:74` 后，全仓 `execute()`+`executeQuery()` 双向、helper 与所有绕过点的镜像守卫**在代码层面全部关闭**；其中 `TableAnalyseTest` 的**运行时验证**挂 I-DEBT-7B（该类 sweep 排除），其余绕过点已由全量 sweep + 定向两跑实测覆盖。
 - **环境留痕（非代码问题）**：本轮起手时 Docker Desktop 引擎一度 "unable to start"（3306/3307 掉线）；经启动 Docker Desktop + `docker start m1-mysql-a m1-mysql-b` 恢复，验证前后端均 Up。
 - **裁定（顺位与诚实口径）**：31 红 = **Root B 池耗尽**（XaBackend 205s、CreateGsi 453s、PushDownSharding 106s，`GetConnectionTimeoutException maxActive 8`）+ 其它产品根（springdata JPA ×21 err·服务端 `NoSuchMethodError ×8`、Migrate ×9、GlobalInsert、Blob、Charset 等）。**不为确认 +1 绿（=28）再烧 30min 重跑整 sweep**——守卫关闭 + 零回归已由"全量 sweep + 定向"两跑逻辑闭合；**可信 28 绿产品基线留待 7B 修完池耗尽后一次性重生成**（既定下一轮）。
-- **遗留**：I-DEBT-7B（下一轮起手，池耗尽）；7C 产品红归类待 7B 后重基线时正式坐实。
+- **遗留**：I-DEBT-7B（下一轮起手，池耗尽）；7C 产品红归类待 7B 后重基线时正式坐实；**`TableAnalyseTest:74` 收编的运行时全绿证据并入 7B 重基线一次性取得**（代码已改、编译门已过，唯运行时受 Root B 阻塞）。
+- **终审（2026-10-06，fresh CodeReview 独立审提交 `e8fb4bc27`）**：审查者解出 `druid-1.2.28-sources.jar` **真实源码**（强于本方初版 `javap` 反编译）实证——复刻等价性（`getColumnLabel`/`getObject`/`LinkedHashMap` 逐条对上，含 `new LinkedHashMap<>(columns)` 容量参对 `.toString()` 零漂移）、`Statement.execute()` 语义、try-with-resources 关闭序、断言中性、imports 五项**全轴核验通过，无 Critical**；本 commit 4 文件判定 **PASSED**。唯一 **Important**＝`TableAnalyseTest:74` 同族纯 hint 直调未收编（sweep 排除、真实遗漏）→ **已按上述落地第 4 点补齐**（一笔追加提交，运行时证据诚实挂 7B）。
 - **提交**：见本节配套代码/文档提交。
 
 ---
@@ -163,4 +165,5 @@
 | 2026-10-02 | 建簿：收录 I-DEBT-5、I-DEBT-7 拆债裁定、I-DEBT-7A 三条已完成记录 + 7C 预授权口径（用户指示"bounded 都补充留痕，防遗忘"） |
 | 2026-10-06 | 回填 §5（7C 全量 sweep 取证：58 类=21/37、CCE=0、根因归类快照、**发现一 Root A 方向不完整(executeQuery 未修)**、**发现二 排序失误覆写逐类报告**、顺位裁定）；新增 §6（收编 9+1 处 + UserCaseTest 工具 bug 绕行裁定）；新增 §7（历史 bounded 裁定索引，含 3 个账本目录已空的诚实落盘状态）；登记新增后续债 I-DEBT-7A-2 |
 | 2026-10-06 | **§8 I-DEBT-7A-2 完成**：修 `MycatTest.executeQuery` helper 镜像守卫（`Statement.execute()+getResultSet()`+逐字节复刻 druid 转换）+ 收编 4 处 `JdbcUtils` 纯 hint 直调 + 1 处裸 `Statement.executeQuery(hint)`（`ManagerHintTest`）；全量回归实测 **21→27 绿、回归=0**，定向 ManagerHintTest 14/0/0；全套件查询方向守卫关闭；订正 §5/§7 对 7A-2 的"越 bounded"判断为 bounded |
+| 2026-10-06 | **§8 终审 + 据审补收编**：fresh CodeReview（解 `druid-1.2.28-sources.jar` 真实源码实证）判 `e8fb4bc27` 4 文件 **PASSED / 无 Critical**；据其唯一 Important——`TableAnalyseTest:74` 同族纯 hint 直调未收编（本轮 sweep 排除、真实遗漏）——补一行改走 helper + 删孤儿 import，**编译门 BUILD SUCCESS**；因该类受 Root B 池耗尽阻塞，**运行时全绿证据诚实挂 I-DEBT-7B 重基线**；§8 落地加第 4 点、合计精确化为"收编面"、新增终审条 |
 
