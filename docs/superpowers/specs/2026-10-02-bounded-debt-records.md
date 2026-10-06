@@ -81,7 +81,7 @@
 - **取证结果（当前 HEAD 实测，凭日志不凭记忆）**：
   - 出报告 58 类 = **21 绿 / 37 红**；服务端 `ClassCastException=0`（I-DEBT-6 战果保持）、`selectList` NPE 计数=27。
   - **根因归类快照**（`target/i7c_roots.txt`，sweep 报告被后续单类验证覆写前所抓，权威）：
-    - `POOL_EXHAUST`（Root B/池耗尽 `GetConnectionTimeoutException`）：XaBackendConnectionTest、PushDownFunctionShardingTableTest；另有 CreateGsiTest 445.8s、XaBackend 326.5s、PushDownSharding 303.7s 超长挂点（部分无池标记，疑似同源）。
+    - `POOL_EXHAUST`（Root B/池耗尽 `GetConnectionTimeoutException`）：XaBackendConnectionTest、PushDownFunctionShardingTableTest；另有 CreateGsiTest 445.8s、XaBackend 326.5s、PushDownSharding 303.7s 超长挂点（部分无池标记，疑似同源）。**⚠ 订正（2026-10-06 RED 复现推翻，见 §9）：CreateGsiTest 长挂经运行时坐实为服务端 Calcite planner 规则匹配爆炸（I-DEBT-10），查询永不返回；本行将 CreateGsi 归 `POOL_EXHAUST` 属误判——客户端池泄漏是从属放大器、非长挂主因。**
     - `SELECTLIST_NPE`（Root C/服务端产品红）：AlterTableTest、PstmtAssembleTest、UserTest、ProxyBackendConnectionTest、XaBackendConnectionTest、CreateGsiTest、BkaJoinExecuteTest、PushDownFunctionShardingTableTest（与 Root B 有交叉）。
     - `EXECUTEUPDATE_RESIDUAL`：收编前仅 MycatServerStdStorageManagerTest 1 类（第 6 节已修）。
 - **⚠ 关键发现一：Root A 是"方向不完整"的（推翻第 4 节"Root A 收口"的乐观边界）**——
@@ -90,7 +90,7 @@
   **含义（诚实口径）**：**当前"37 红"不是可信的产品红清单**——其中有多少其实是这第二层 harness 缺陷伪装，无法从本轮确定（per-class 报告已被单类验证覆写，见"发现二"）。**须先补 `executeQuery` helper 再重跑基线**才有资格谈产品红归类。
 - **⚠ 关键发现二：本轮排序失误（如实留痕）**——收编第 10 处后为验证而跑的单类脚本内含 `rm -rf example/target/surefire-reports`，**覆写了全量 sweep 的逐类报告**，导致"发现一"的按类镜像守卫计数未能及时抓取。已抢救的权威归类 = `target/i7c_roots.txt`（擦除前所抓）+ 持久化 `i7c_client.log`/`i7c_mycat.log`。教训：归类未固化前不得复用会清报告的验证脚本；后续基线应把逐类报告一并拷入持久化目录。
 - **裁定（顺位）**：
-  1. **Root B 经实证为系统性**（非拆债时认定的 SqlFunction/TableAnalyse 两类）→ **干净基线须先修 7B**（连接生命周期/归还或提 `maxActive`），否则挂点类永远跑不完、绿/红信号被污染；
+  1. **Root B 经实证为系统性**（非拆债时认定的 SqlFunction/TableAnalyse 两类）→ **干净基线须先修 7B**（连接生命周期/归还或提 `maxActive`），否则挂点类永远跑不完、绿/红信号被污染；**⚠ 订正（§9）：此判被 RED 复现推翻——CreateGsi 长挂主因非池耗尽而是服务端 planner blowup（I-DEBT-10，产品级）；连接泄漏降级为从属观察；可信基线关键路径阻塞项由 7B 改判为 I-DEBT-10。**
   2. **`executeQuery` 方向 = Root A 未收的第二层**，修它须动**共享测试基元**（`MycatTest.executeQuery`）+ 全量回归 → **越 bounded 阈值**（第 1 节规则：触多调用方/动断言可见形态）→ 升级为独立回合（登记为 I-DEBT-7A-2，复制"诊断先行"先例走 spec→plan）；
   3. 二者皆先于"可信产品红基线"，故 **7C 本轮定位为"取证 + 拆出后续债"，不宣称 Done**；产品红最终归类被 7A-2 + 7B 阻塞。
 - **证据（可重跑，持久化 `.superpowers/sdd/2026-10-02-i7c-baseline/`）**：`i7c_passfail.txt`（58 类）、`i7c_roots.txt`（根因归类快照）、`i7c_client.log`/`i7c_mycat.log`（全量日志）、`i7c_v_client.log` + `i7c_v_MycatServerStdStorageManagerTest.txt`（第 10 处收编后 executeUpdate 守卫残留=0 的单类实测）。
@@ -158,6 +158,22 @@
 
 ---
 
+## 9. I-DEBT-7B 起手 RED：定性反转——CreateGsiTest 长挂真因是服务端 planner 规则爆炸，非连接池泄漏（2026-10-06）
+
+- **触发**：用户批准起手 7B（原定“池耗尽系统性”）。按“凭当前实测不信任既有记录”，实施轮第一步先做 RED 复现（起 proxy 定向跑 `CreateGsiTest`），再动手。
+- **⚠ RED 反转（运行时铁证，推翻 §3/§5 “Root B=客户端池耗尽 maxActive 8”的既有定性）**：
+  - 现象：客户端 `17:54:49.727` 发出 `SELECT a.id FROM db2.fp a LEFT JOIN db2.normal b ON a.user_id=b.user_id WHERE a.user_id=1 LIMIT 10`（`CreateGsiTest.createGsi3` L247）后**再无返回**；`mycat.log` 尾部时间戳 `17:58:17`（发出约 3 分钟后）服务端仍在做 Calcite 查询规划。
+  - 量化证据（`target/i7b_planner_evidence.txt`，已归档 `.superpowers/sdd/2026-10-06-i7b-diagnosis/`）：`JoinViewRule` 命中 **9056 行**、优化器内部 `call#` 冲到 **6,400,163**、含 `db2.fp`（GSI 全局索引表）规划行 **127,057**、`mycat.log` 总 **588,942 行**。
+  - **真根因**：服务端 Calcite 优化器对“**带 GLOBAL INDEX(GSI) 的表 + LEFT JOIN + 相关子查询 `MycatSQLTableLookup(correlationIds=[$cor1])`**”发生 **planner rule-firing blowup / 不收敛**——`JoinViewRule` 在 `MycatHashJoin↔MycatSortMergeJoin↔MycatView` 间反复产生新 successor，查询永不定案。**属产品域（服务端），非测试 harness**。
+- **拆债裁定（正交性）**：原“7B=池耗尽”混了两件事，据 RED 拆开：
+  1. **服务端 planner 爆炸 = 真·长挂主因**，产品级、非 bounded → **另立 I-DEBT-10**，走独立“诊断→spec→plan”（大概率触 calcite-core fork / Mycat 规则集，须专门深挖收敛性/规则守卫/成本上限）。
+  2. **连接泄漏（清查得 6 处裸 `getMySQLConnection` 未 try 化/无 close：`CreateGsiTest:219/258`、`TableAnalyseTest:24`、`UserTest:54`、`PushDownFunctionShardingTableTest:36/38`）= 真缺陷但从属**——它只在“查询已 hang”时放大占用，非长挂根；且当前无可观测转绿信号（单跑难复现累积、planner 又拦着 CreateGsi），故**不在本轮单独收编**，登记并入 I-DEBT-10（待 planner 打通、基线可全量验证时随批收编）。**诚实理由**：无绿信号时改一批当场无法证明有效的码 = 假闭环，与本铁律相左。
+- **对可信基线关键路径的影响（订正）**：7C 可信产品基线的阻塞项从“7B（池耗尽）”**改判为 I-DEBT-10（planner blowup）**。看板“下一步”相应订正。
+- **遗留**：I-DEBT-10 起手需先做 planner 不收敛根因诊断（为何 `JoinViewRule` × GSI correlated lookup 反复改写）；6 处泄漏随其收编；`XaBackendConnectionTest` 长挂是否同源待单独复现（属 `connection/`、本轮未定向跑）。
+- **本轮闭环交付**：RED 诊断结论 + 重新拆债 + 证据归档 + 本文与看板订正（docs 提交）。
+
+---
+
 ## 变更记录
 
 | 日期 | 动作 |
@@ -166,4 +182,5 @@
 | 2026-10-06 | 回填 §5（7C 全量 sweep 取证：58 类=21/37、CCE=0、根因归类快照、**发现一 Root A 方向不完整(executeQuery 未修)**、**发现二 排序失误覆写逐类报告**、顺位裁定）；新增 §6（收编 9+1 处 + UserCaseTest 工具 bug 绕行裁定）；新增 §7（历史 bounded 裁定索引，含 3 个账本目录已空的诚实落盘状态）；登记新增后续债 I-DEBT-7A-2 |
 | 2026-10-06 | **§8 I-DEBT-7A-2 完成**：修 `MycatTest.executeQuery` helper 镜像守卫（`Statement.execute()+getResultSet()`+逐字节复刻 druid 转换）+ 收编 4 处 `JdbcUtils` 纯 hint 直调 + 1 处裸 `Statement.executeQuery(hint)`（`ManagerHintTest`）；全量回归实测 **21→27 绿、回归=0**，定向 ManagerHintTest 14/0/0；全套件查询方向守卫关闭；订正 §5/§7 对 7A-2 的"越 bounded"判断为 bounded |
 | 2026-10-06 | **§8 终审 + 据审补收编**：fresh CodeReview（解 `druid-1.2.28-sources.jar` 真实源码实证）判 `e8fb4bc27` 4 文件 **PASSED / 无 Critical**；据其唯一 Important——`TableAnalyseTest:74` 同族纯 hint 直调未收编（本轮 sweep 排除、真实遗漏）——补一行改走 helper + 删孤儿 import，**编译门 BUILD SUCCESS**；因该类受 Root B 池耗尽阻塞，**运行时全绿证据诚实挂 I-DEBT-7B 重基线**；§8 落地加第 4 点、合计精确化为"收编面"、新增终审条 |
+| 2026-10-06 | **§9 I-DEBT-7B 起手 RED 反转入簿**：起 proxy 定向复现 `CreateGsiTest`，运行时铁证推翻原“池耗尽”定性——真主因=服务端 Calcite planner 对 GSI+LEFT JOIN+相关子查询的 `JoinViewRule` 规则匹配不收敛（`call#`=640万、JoinViewRule 9056行、mycat.log 58.9万行，查询永不返回）；**立 I-DEBT-10**（产品级，需独立诊断→spec→plan）；6 处连接泄漏因无可观测绿信号改为从属挂账、不假修；订正 §5 旧判 + 看板基线关键路径改判 |
 
