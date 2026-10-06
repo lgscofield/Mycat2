@@ -253,6 +253,56 @@ public class CreateGsiTest implements MycatTest {
         Assert.assertEquals(1,maps.size());
     }
 
+    @Test
+    public void testGsiJoinConverges() throws Exception {
+        // I-DEBT-10 收敛门：db2.fp 带 GLOBAL INDEX（GSI 视图分布）LEFT JOIN db2.normal，
+        // 叠加 a.user_id=1 触发相关子查询回表，两视图分布不可合并时修复前 JoinViewRule
+        // 自触发不收敛、查询挂死 → 本方法 60s 超时判红；修复后应秒级返回 size==1。
+        // 不改 createGsi3 既有 RED 现场（含已知连接泄漏挂账），此处内联同样的建库前置。
+        Connection mycatConnection = getMySQLConnection(DB_MYCAT);
+        try {
+            execute(mycatConnection, RESET_CONFIG);
+            execute(mycatConnection, "DROP DATABASE db2");
+            execute(mycatConnection, "CREATE DATABASE db2");
+            execute(mycatConnection, CreateDataSourceHint.create("ds0", DB1));
+            execute(mycatConnection, CreateDataSourceHint.create("ds1", DB2));
+            execute(mycatConnection, CreateClusterHint.create("c0", Arrays.asList("ds0"), Collections.emptyList()));
+            execute(mycatConnection, CreateClusterHint.create("c1", Arrays.asList("ds1"), Collections.emptyList()));
+            execute(mycatConnection, "USE `db2`;");
+            execute(mycatConnection, "CREATE TABLE db2.normal (\n\t`id` bigint(20) NOT NULL AUTO_INCREMENT,\n\t`user_id` varchar(100) DEFAULT NULL,\n\t`traveldate` date DEFAULT NULL,\n\t`fee` decimal(10, 0) DEFAULT NULL,\n\t`days` int(11) DEFAULT NULL,\n\t`blob` longblob,\n\tPRIMARY KEY (`id`),\n\tKEY `id` (`id`)\n) ENGINE = InnoDB AUTO_INCREMENT = 1129569 CHARSET = utf8 ");
+            execute(mycatConnection, "CREATE TABLE IF NOT EXISTS db2.`fp` (\n\t`id` bigint NOT NULL AUTO_INCREMENT,\n\t`user_id` varchar(100) DEFAULT NULL,\n\t`traveldate` date DEFAULT NULL,\n\t`fee` decimal(10, 0) DEFAULT NULL,\n\t`days` int DEFAULT NULL,\n\t`blob` longblob,\n\tPRIMARY KEY (`id`),\n\tKEY `id` (`id`),\n\tGLOBAL INDEX `g_i_user_id`(`user_id`) COVERING (`fee`, id) DBPARTITION BY mod_hash(`user_id`) TBPARTITION BY mod_hash(`user_id`) TBPARTITIONS 2\n) ENGINE = InnoDB CHARSET = utf8\nDBPARTITION BY mod_hash(id) DBPARTITIONS 2\nTBPARTITION BY mod_hash(id) TBPARTITIONS 2");
+            deleteData(mycatConnection, "db2", "fp");
+            execute(mycatConnection, "INSERT INTO `db2`.`fp` (`id`, `user_id`) VALUES ('1', '1'); ");
+            // 收敛门用守护线程 + 有界等待包查询：修复前 JoinViewRule 自触发不收敛、
+            // 查询在 proxy 侧永不返回 → 60s 后判红（守护线程不阻塞 JVM，surefire 能收尾）；
+            // 修复后应秒级返回 size==1。
+            java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "i10-convergence-guard");
+                t.setDaemon(true);
+                return t;
+            });
+            try {
+                List<Map<String, Object>> maps;
+                try {
+                    maps = executor.submit(() -> executeQuery(mycatConnection, "\n" +
+                            " SELECT a.id\n" +
+                            "FROM db2.fp a\n" +
+                            "\tLEFT JOIN db2.normal b ON a.user_id = b.user_id\n" +
+                            "WHERE a.user_id = 1\n" +
+                            "LIMIT 10\n")).get(60, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (java.util.concurrent.TimeoutException te) {
+                    Assert.fail("I-DEBT-10 planner 不收敛：GSI+LEFT JOIN 查询 60s 未返回（JoinViewRule 自触发）");
+                    return;
+                }
+                Assert.assertEquals(1, maps.size());
+            } finally {
+                executor.shutdownNow();
+            }
+        } finally {
+            mycatConnection.close();
+        }
+    }
+
 
     private void initShardingTable() throws Exception {
         Connection mycatConnection = getMySQLConnection(DB_MYCAT);
