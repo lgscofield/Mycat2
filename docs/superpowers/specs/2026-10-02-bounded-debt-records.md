@@ -172,6 +172,19 @@
 - **遗留**：I-DEBT-10 起手需先做 planner 不收敛根因诊断（为何 `JoinViewRule` × GSI correlated lookup 反复改写）；6 处泄漏随其收编；`XaBackendConnectionTest` 长挂是否同源待单独复现（属 `connection/`、本轮未定向跑）。
 - **本轮闭环交付**：RED 诊断结论 + 重新拆债 + 证据归档 + 本文与看板订正（docs 提交）。
 
+### 9.1 源码级根因：`JoinViewRule` 自触发环（2026-10-06 诊断，逐 call# 与 i7b 日志对合）
+
+不收敛链（**全部在 hbt 模块，不动 calcite-core fork**）：
+1. `JoinViewRule`（`hbt/…/localrel/LocalRules.java:259-297`）operand = `Join.class` × 2 个 `allowPushdown()` 的 `MycatView`；`Join.class` 匹配**所有 Join 子类**，含其自身产物 `MycatHashJoin`/`MycatSortMergeJoin`。
+2. onMatch → `rboJoinRewrite = bottomJoin ?: tryMergeJoin`（`hbt/…/rewriter/SQLRBORewriter.java:776-782`）。
+3. GSI 视图分布 `db2.fp_g_i_user_id`(SHARDING) × 普通视图 `db2.fp`(SHARDING) 在 `pushDownJoinByNormalTableOrGlobalTable`（:1118-1210）里 `ldistribution.join(rdistribution)` 返回 **empty**（分布维度不兼容）→ `bottomJoin` empty，**顶层 Join 未消除**。
+4. 落 `tryMergeJoin`（:327-343）产出 `MycatSortMergeJoin`（`extends Join`，`MycatSortMergeJoin.java:48`），两输入仍是那两可 pushdown 的 MycatView。
+5. 新节点**又满足 JoinViewRule operand → 回炉**；相关子查询 `MycatSQLTableLookup(correlationIds=[$cor1])` 子树每轮重展开为新 digest 的 MycatView → VolcanoPlanner 无终止（call#=640万、rel#≈3427万、永不返回）。
+- **为何普通 join 不炸**：普通可下推 join 在第 3 步 `pushDown` 成功合并成单个 MycatView（顶层 Join 消失）→ 规则停手；只有“分布不可合并 + 相关子查询重展开”同时成立才进自触发环。
+- **正源**：`JoinViewRule` 匹配面覆盖自身物理产物，且分布不可合并时不消除 Join 又产出同类 Join → 缺“自触发守卫 / 下推失败即不再 merge”。
+- **候选修法**（spec 阶段裁定）：甲=operand 排除物理 Join 产物断自触发环；乙=bottomJoin 分布不可合并时 tryMergeJoin 亦 empty（交代价化收敛）；丙=planner matchLimit 护栏（治标）。推荐 **甲+乙组合**（改动全在 hbt，需 join 全量回归）。属 **architectural**（改规则语义、影响其它 join）→ 需 spec→plan。
+- **诊断报告**：`.superpowers/sdd/2026-10-06-i7b-diagnosis/i10_rootcause.md`。
+
 ---
 
 ## 变更记录
