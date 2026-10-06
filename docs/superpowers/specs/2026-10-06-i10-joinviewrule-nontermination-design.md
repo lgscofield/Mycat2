@@ -1,61 +1,60 @@
-# I-DEBT-10 JoinViewRule 自触发不收敛修复 设计（Design Spec）
+# I-DEBT-10 GSI+JOIN 服务端优化器不收敛 设计（Design Spec ·架构级根治版）
 
-> **Goal:** 修复 Mycat 服务端 Calcite 优化器在「GSI + LEFT JOIN + 相关子查询（分布不可合并）」下的规则自触发不收敛（I-DEBT-10）。实测坐实主失控者为 `MycatExtraSortRule`（靠 `join.copy` 自我供料、`pushSort` 幂等失效）；`JoinViewRule`（原甲/乙靶点）为次级因素。使 `CreateGsiTest` 等 join 查询在有限步内收敛并返回，且不改变任何正常（可收敛）join 的最终计划。
-
-**背景（凭当前实测，不信任旧记录）**
-- §9（RED 反转）：`CreateGsiTest` 长挂真因 = 服务端 planner 不收敛（`call#`=640万、`rel#`≈3427万、查询 3 分钟后仍在规划、永不返回），非客户端连接池泄漏。
-- §9.1（源码级根因）与诊断报告 `.superpowers/sdd/2026-10-06-i7b-diagnosis/i10_rootcause.md`：不收敛链已逐 call# 与日志对合坐实。
+> **Goal:** 修复 Mycat 服务端 Calcite 优化器在「GSI + LEFT JOIN（两视图分布不可合并）」下的规划不收敛/失控（I-DEBT-10）。根因非任一单条规则，而是「把 MycatView 下推重写当作 Volcano 探索规则」这一执行模型缺陷。方案：将确定性的逻辑下推重写从 Volcano CBO 循环中**剥离为独立、有界的不动点前置阶段**，Volcano 只做约定转换与物理选型/代价。使触发查询在有限步内收敛并返回，且正常（可收敛）join 的最终计划与结果不被破坏。
 
 **触发查询**
 `SELECT a.id FROM db2.fp a LEFT JOIN db2.normal b ON a.user_id=b.user_id WHERE a.user_id=1 LIMIT 10`（`db2.fp` 带 GLOBAL INDEX）。
 
-> **修订记录（2026-10-06 实测纠偏，凭当前实测不信任旧记录）**：干净重启 proxy（含乙 jar、PID 640）后前台真跑触发查询，实时抓服务端 planner 日志坐实——`call#` 冲到 **13,816,313 且持续飙升**，无限 fire 的规则是 **`MycatExtraSortRule`**（产物 `MycatHashJoin`），**不是本文初稿所指的 `JoinViewRule`**。据此：MycatExtraSortRule 为**主失控者**；JoinViewRule（甲/乙）降为**次级/贡献性**因素（该规则本身在此场景 `onMatch` 实为 no-op）。下文 §根因与 §设计 已按此纠偏重写。原始错误假设保留于此修订记录以存证。
+## 修订记录（凭当前实测，逐条推翻旧根因）
+- **v1（初稿）**：归因 `JoinViewRule` 自触发（甲/乙守卫）。→ 实测主失控者是 `MycatExtraSortRule`，`JoinViewRule.onMatch` 此场景近似 no-op。**甲/乙单点守卫全败。**
+- **v2**：主修改 `MycatExtraSortRule` 收敛守卫（onMatch 输入引用未变则不 transformTo + pushSort 内层 collation 幂等）。→ 实测仍挂（call# 1379 万级）。守卫 (a) `newLeft==left` 因 pushSort 恒造新对象而永不成立；守卫 (b) 读 `getTraitSet().getCollation()` 对叶子视图恒空。
+- **v2.1**：`equals→satisfies` 精修。→ 仍挂（1376 万）。
+- **v3（本会话·插桩实测·终）**：三处临时诊断（`AbstractRelNode`/`MycatView`/`MycatExtraSortRule`，**均已回退，不入代码**）坐实：
+  1. **证伪「摘要嵌 id→永不合并」**：`VolcanoPlanner.registerImpl/reregister` 去重键是 `mapDigestToRel.get(rel.getRelDigest())`——`InnerRelDigest.equals→deepEquals`、`hashCode→deepHashCode`，**递归比较子 RelNode 对象（结构）**；`RelDigestWriter.done` 产出的 `LocalSort#<id>` 串仅 `getDigest()` 展示用，非去重键。
+  2. **证伪「BKA/相关子查询每轮重展开 6482 次」**：`MycatTableLookupSemiJoinRule` 实仅 transformTo 6 次，6482 为 `LOGGER.error("MycatExtraSortRule",e)` 堆栈类名噪声。
+  3. **量级实证**：rel 构造榜 LocalProject 6.64M/LocalJoin 6.62M/LocalFilter 3.33M/LocalTableScan 3.33M（≈2:2:1:1 翻倍），MycatView 仅约 2 万 → **爆炸是每视图 payload 尺寸指数增长，不是视图数量**。主导 payload 构造者：`MycatExtraSortRule.pushSort:161`、`JoinViewRule→pushDownERTable/tryMergeJoin→ofCondition/changeTo`、`SortViewRule`、`ProjectViewRule`。
+  4. 落地 pushSort「坍缩而非叠加」根修（防 Sort 叠 Sort）+ satisfies → **仍挂**（call# 1268 万）。判读：坍缩确能防冗余再排序，但视图 payload 的 **base 自身**被 `JoinViewRule` 反复并表做大时，对新的大输入再排序是「合法的」，单规则拦不住。
 
-## 根因（一句话·已纠偏）
-**主因**：`MycatExtraSortRule`（`hbt/…/calcite/rules/MycatExtraSortRule.java`）的匹配面由 `{Join, Aggregate} × {MycatView(allowPushdown) | RelNode(anyInputs)}` 组合生成（`RULES` 静态块 :102-134），其中 `RelNode(anyInputs)` 变体**无视 pushdown 禁令恒匹配**；`onMatch`（:52-84）无条件 `call.transformTo(join.copy(..., pushSort(left), pushSort(right)))` 产出一个「为 merge-sort 预排好序」的**新 Join**，该新 Join 仍是 `Join.class`、又满足自身 operand → **规则靠 `join.copy` 自我供料**。`pushSort`（:86-100）的幂等早退守卫只比对节点自身 `traitSet` 的 collation，对 MycatView 则把排序经 `changeTo` 推进视图内层 relnode；叠加相关子查询 `MycatSQLTableLookup(correlationIds)` 每轮重展开出**新鲜 digest 的 MycatView**，被反复再排序 → VolcanoPlanner 无终止。
+**累计 4 次有据单规则守卫全败（乙 / 守卫a+b / satisfies / pushSort折叠），跨会话证据一致收敛到一个结论：这是规则族在 Volcano 内的复合放大，非单点缺陷。**
 
-**次因（原甲/乙所治，非本次主爆炸点）**：`JoinViewRule`（`LocalRules.java:259`）的 `Join.class × 2 MycatView(allowPushdown)` 匹配面覆盖自身物理产物；分布不可合并时 `bottomJoin` 返回 empty、落 `tryMergeJoin` 产 `MycatSortMergeJoin` 回炉。但实测该查询在加入乙后 `JoinViewRule.onMatch` 已 no-op，主导 `call#` 增长的是 MycatExtraSortRule。
+## 根因（一句话·架构级）
+`DrdsSqlCompiler.optimizeWithCBO`（:440-498）把**逻辑下推重写规则**（`LocalRules.CBO_RULES` 含 `JoinViewRule/ProjectViewRule/SortViewRule/AggViewRule/CalcViewRule/UniversalFilterViewRule`、`MycatViewIndexViewRule`、以及 `MycatExtraSortRule.RULES`）与**物理约定转换/代价**一同作为 Volcano **探索规则**注册，交给 `findBestExp`。而 `MycatView`（`hbt/…/logical/MycatView.java`）在 Volcano 中是**不透明叶子**（未 override `getInputs`、未注册输入）：其下推子树 payload 不被 Volcano 的子集共享/结构去重看见，且 `changeTo/ofCondition` 每次经构造器 `input.accept(new ToLocalConverter())` **深拷贝整棵 payload 产出全新实例**。
 
-## 设计：主修（MycatExtraSortRule）+ 次级加固 甲/乙（改动全在 hbt，不动 calcite-core fork）
+于是：下推重写（把 Join/Sort/Project 并入视图、GSI 回表并表、为 merge-sort 预排序）在 Volcano 里被当作「可反复探索、可与自身产物再组合」的候选，每应用一次 payload 严格变大（并表把两侧子树并入一棵、排序在其上包一层），且 `MycatExtraSortRule.transformTo(join.copy(...))` 产出的新 Join 仍是 `Join.class` 且两侧仍是 `allowPushdown` 的 `MycatView` → `JoinViewRule`/`MycatExtraSortRule` 再触发。GSI 使每条表存在「主表 vs 索引表」两条分布路径，交叉出非闭合的探索空间 → **无不动点 → 失控**。下推重写本质是确定性 RBO（应只求一次不动点），把它塞进带 Alternatives 的 Volcano 搜索是设计错误。
 
-### 主修 — MycatExtraSortRule 收敛守卫（切断「规则靠 join.copy 自我供料」）
-- **改点**：`MycatExtraSortRule.onMatch`（MycatExtraSortRule.java:52-84）与 `pushSort`（:86-100）。
-- **切法（本 spec 裁定）**：
-  1. `onMatch` 计算 `newLeft = pushSort(left, col0)`、`newRight = pushSort(right, col1)` 后，若 `newLeft == left && newRight == right`（**引用同一、无需再排序**），则 `return` 而**不调用 `transformTo`**——使一次已排好的 join 再命中本规则时成为 no-op，规则无法用 `join.copy` 造等价新节点自喂。
-  2. 强化 `pushSort` 幂等：MycatView 分支在 `changeTo` 包 sort 前，先判其**有效 collation 是否已满足目标**（外层 traitSet collation 或内层 relnode 已是同 collation 的 `Sort`）；若已满足则返回**原视图引用不变**，杜绝 `Sort(Sort(...))` 逐层加深的新 digest。
-- **语义**：只让「输入确实缺目标排序」时产一次新计划；重复应用必须收敛到 no-op。不改单次的排序/merge-join 选择行为。
-- **诚实边界**：`RelNode(anyInputs)` 变体恒匹配是自我供料的放大器；若主修后定向复现仍长挂（相关子查询重展开持续造新 base view），回到 systematic-debugging 扩根因，不强行加丙（matchLimit）掩盖。正常查询单次生效不变，由 join 全量回归证实零差异。**回归是唯一裁判**。
+## 设计：两阶段执行模型（改动全在 hbt，不动 calcite-core fork）
 
-### 甲 — 匹配面守卫（切断「JoinViewRule 吃自身产物」，次级加固）
-- **改点**：`JoinViewRuleConfig.withOperandFor()`（LocalRules.java:288-295）。
-- **切法（本 spec 裁定）**：对 `b0.operand(Join.class)` 增加约定谓词——仅匹配 **非 Mycat convention** 的 join（即 `join.getConvention() != MycatConvention.INSTANCE`，等价于逻辑 join：`LogicalJoin`/`LocalJoin`）。
-- **语义**：`JoinViewRule` 是「把逻辑 join 下推/合并成 MycatView」的规则，只对进入 Mycat convention **之前**的 join 生效；一旦节点已是 Mycat 物理 join（`MycatHashJoin`/`MycatSortMergeJoin`/`MycatSortMergeSemiJoin`），不再由本规则回炉。
-- **诚实边界**：爆炸输入实为 `MycatHashJoin`（物理约定）。此守卫的排除面「是否会误挡以物理形态进入下推的正常查询」，由 plan 的 join 全量回归证实；若发现正常下推依赖匹配 Mycat convention join，则收窄为「仅排除本规则产物类型（`MycatSortMergeJoin`/`MycatSortMergeSemiJoin`）」这一更保守形态。**回归是唯一裁判**。
+### 阶段一（新增）·确定性下推前置 pass
+把「构建 MycatView payload」的 RBO 重写移出 Volcano，在**稳定语法树**上以有界、确定的方式求不动点：
+- 用一个**受限 HEP 程序**（`HepPlanner` + `HepProgramBuilder`，含 `addMatchLimit`，`BOTTOM_UP`/`ARBITRARY` 序）依次跑：`ToLocalTableScanRule`、`ToViewTableScanRule`、`UniversalFilterViewRule`、`MycatViewIndexViewRule`(GSI 索引选择)、`ProjectViewRule`、`CalcViewRule`、`AggViewRule`、`SortViewRule`、`JoinViewRule`(并表/ER)、`MycatExtraSortRule`（merge-sort 预排）。
+- HEP 把匹配节点**就地替换**为结果、不保留 Alternatives、matchLimit 兜底 → 每子树一遍成型、payload 不再被反复并大 → 收敛到单一「分片逻辑树」。
+- 输出交给阶段二。
 
-### 乙 — 下推不可行即不再 merge 回炉
-- **改点**：`SQLRBORewriter.tryMergeJoin()`（SQLRBORewriter.java:327-343）。
-- **切法**：当 left、right 均为 `MycatView` 且 `left.getDistribution().join(right.getDistribution())` 为 empty（分布维度不兼容、join 不可下推合并）时，`tryMergeJoin` 返回 `Optional.empty()`——不再产出分布不兼容、且会再次触发 `JoinViewRule` 的 `MycatSortMergeJoin`。
-- **语义**：「分布合不上的两视图」其 join 不该在 RBO 下推阶段被强转 merge；交回常规 `MycatHashJoin`（不满足甲的匹配、无重展开）收敛。
-- **不改 CBO converter**：`MycatMergeJoinRule.convert()`（MycatMergeJoinRule.java:75）走的是物理约定转换，独立路径，本 spec 不改，避免误伤最终计划选择。
+### 阶段二·Volcano 仅做物理选型/代价（现有 `optimizeWithCBO` 收敛裁剪）
+- **移除**阶段一已确定性完成的下推重写规则注册（不再把这些规则加进 Volcano），保留 `MycatConvention.register`（物理转换器 `MycatRules.rules()`）+ 必要的物理选型/代价规则（如 hash/merge join 的物理 `ConverterRule`）+ transpose 类不改 payload 尺寸的规则（`FILTER_INTO_JOIN` 等，若其不作用于 MycatView 叶子内层则保留）。
+- Volcano 因不再持有「会生长不透明叶子 payload」的规则，探索空间闭合，正常 join 的物理计划选择不变。
+
+### 关键约束（决定成败，逐条实测）
+- 阶段一产出的分片逻辑树，须与「修复前 Volcano 在正常（可收敛）join 上最终选中并下推成的形态」等价——否则正常 join 计划漂移。**以 join 全量回归 + 代表性 EXPLAIN 计划比对为唯一裁判**。
+- 不改 `MycatView` 为「暴露输入」的共享节点（它是「一条 SQL 下推到 DN」的执行单元语义，必须保持叶子）；不深改 fork；不加全局迭代上限（丙，治标）。
+- 若阶段一 HEP 内某规则仍不自收敛，回到 systematic-debugging 于该规则内做**幂等/坍缩**（本会话的 pushSort 折叠即属此类，可保留进阶段一），而非回退到在 Volcano 里加守卫。
 
 ## 边界与非目标
-- 只在 hbt 内改：主修 = MycatExtraSortRule 的 onMatch+pushSort 收敛守卫；次级加固 甲 = LocalRules 一处 operand；乙 = SQLRBORewriter 一处守卫。
-- 不动 calcite-core fork；不动 VolcanoPlanner 终止逻辑（排除丙 matchLimit，治标）。
-- 从属的 6 处连接泄漏（CreateGsiTest:219/258、TableAnalyseTest:24、UserTest:54、PushDownFunctionShardingTableTest:36/38）**不在本 spec 修**（当前无可观测绿信号），随基线可全量验证时另行收编。
+- 只重组 `optimizeWithCBO`/新增下推 pass 的规则编排 + 视需要保留 pushSort 折叠；规则**语义**不改（不改单次下推/排序/merge 选择逻辑）。
+- 从属连接泄漏（`CreateGsiTest:219/258`、`TableAnalyseTest:24`、`UserTest:54`、`PushDownFunctionShardingTableTest:36/38`）不在本 spec 修，随基线全量验证另行收编。
 
 ## 验证策略（TDD，plan 阶段展开为任务）
-1. **收敛红测**：以触发查询为断言对象——修复前 planner 在超时时限/匹配上限内不产出最终计划（表现为查询挂死/测试超时），即失败；断言「有限步内产出可行计划并返回结果」→ 修复前 RED。优先找 planner 级测试基座（免起 proxy）；若无，退化为 `CreateGsiTest` 定向黑盒（该查询返回、不再长挂）。
-2. **改动转绿**：实施**主修（MycatExtraSortRule 收敛守卫）**后（必要时叠甲/乙），定向复跑 → 查询返回、服务端日志 `call#`/`rel#` 不再无界增长（对齐实测：修复前该查询 call# 达 1381万级）。
-3. **join 全量回归**：跑 join 相关类（BkaJoinExecuteTest、AssembleTest、其它含 join 的 example 用例）确保正常 join 计划与结果**零变化**；甲的排除面若引发回归，按「诚实边界」收窄到产物类型形态。
-4. **基线重生**：`CreateGsiTest` 转绿/不再长挂后，按 §9 触发一次性全量重跑，重建可信产品红/绿基线；届时收编 6 处连接泄漏。
+1. **收敛门（RED→GREEN）**：以 `CreateGsiTest#testGsiJoinConverges`（守护线程 + 60s 有界等待，触发查询返回 `size==1`）为唯一收敛断言。修复前 RED（60s 未返回），阶段一/二落地后须 GREEN 且服务端 `call#`/`rel#` 有界。**测毕即 kill proxy** 防失控烧机。
+2. **join 全量回归（唯一裁判，护栏）**：跑 `MegreJoinExecuteTest`、`BkaJoinExecuteTest`、`CreateGsiTest`（createGsi/createGsi2/createGsi3）及其它含 join 的 example 用例——相对修复前**无新增红、结果一致**；对代表性 join（含 sort-merge join、broadcast join、GSI 回表）做修复前后 EXPLAIN 计划比对，除「原本即失控的路径」外计划形态等价。漂移即回退该规则编排调整并记录。
+3. **基线重生**：收敛门转绿后，一次性全量重跑重建可信产品红/绿基线。
 
-## 成功判据（Evidenced-Done 定义）
-- 触发查询在有限步内产出计划并返回（运行时日志 `call#` 有界、不再 1381万级）；
-- join 全量回归相对修复前**无新增红、正常 join 计划无差异**；
-- 结论以当前实测（planner 输出/定向跑）为凭，非仅凭本 spec 推断。
+## 成功判据（Evidenced-Done）
+- 触发查询有限步产出计划并返回（运行日志 `call#` 有界，不再百万/千万级）；
+- join 全量回归相对修复前无新增红、正常 join 结果与计划无实质漂移；
+- 一切以当前实测（定向跑 + 全量回归 + EXPLAIN 比对）为凭，非仅凭本 spec 推断。
 
 ## 风险与缓解
-- **主修改幂等误伤正常 merge-sort join**（MycatExtraSortRule 广泛注册于 CBO）→ 守卫只在「输入引用未变/有效 collation 已满足」时跳过 transformTo，单次有效排序行为不变；由 join 全量回归（BkaJoinExecuteTest/AssembleTest 等含 sort-merge join 用例）作为唯一裁判。
-- **甲排除过宽挡住正常下推** → join 回归证实，必要时收窄为「排除规则产物类型」。
-- **乙误伤依赖 MergeJoin 的正常查询** → 守卫严格限定在「两 MycatView 且 distribution.join empty」这一不可下推子集；不碰可合并分布与非 MycatView 输入。
-- **仍有未预见的不收敛路径** → 若甲+乙后定向复现仍长挂，回到 systematic-debugging 扩根因，不强行加丙掩盖。
+- **阶段一与阶段二边界划错致正常 join 计划漂移** → 逐规则迁移、每迁一步跑 join 回归比对；规则语义不动，只动「在哪个 planner、是否保留 Alternatives」。
+- **阶段一 HEP 自身不收敛**（某下推规则对其产物仍再命中）→ HEP matchLimit 兜底 + 规则内幂等（如 pushSort 折叠）；不回退到 Volcano 守卫。
+- **误删 Volcano 仍需的物理规则致选型退化** → 回归结果一致性把关；仅移除「生长 payload 的逻辑重写」，保留物理 ConverterRule 与代价。
+- **无法在本 spec 内一次性验证全量** → 以 ledger 记录每步实测，未证实的形态改动不得声称完成。
