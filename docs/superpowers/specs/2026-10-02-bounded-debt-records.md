@@ -110,6 +110,8 @@
 - **遗留**：
   1. **`UserCaseTest.java` 本轮不改（工具级 bug 绕行裁定）**：编辑该文件时 SearchReplace 保存会把无关行（955/1119/1644 的 `createTableSQL` 里 `\\n`）误序列化成真实换行、破坏字符串字面量——即便只改一行也复现。判定为工具整文件序列化 bug，非本任务范围；连续 `git checkout` 还原两次，本轮不碰该类（其首行 `execute(RESET_CONFIG)` 属 Root-A 红、body 里的 6 处 hint 直调待工具修复或专用编辑器处理）。**教训留痕**：含大段 `\\n` 字面量的测试文件对 SearchReplace 不安全。
   2. 9 处直调残留中的 `executeQuery` 方向部分 → 见第 5 节"发现一"，升级为 I-DEBT-7A-2。
+  3. **观察项（7C-1 scoped 终审 Declined-to-judge）**：`SpmHintTest:94-145`、`SqlFunctionTest:571-573` 直调 `JdbcUtils.execute(conn, "BASELINE <cmd> <id>")`——`BASELINE` 既非 `/*+mycat` hint、亦无被识别的 SQL 起始关键字，是同一 Connector/J 发送前静态分类守卫的**潜在近亲**。本轮 sweep 该类未落进 `EXECUTEUPDATE_RESIDUAL` 集（SqlFunctionTest 又因 Root B 被排除），故不改属正确处置；但若将来重基线暴露其红，属 Root A 同族，一并交 I-DEBT-7A-2 定夺，勿临时扩面。
+- **终审（2026-10-06，fresh CodeReview scoped `07ab1e939..HEAD`）**：**全绿，无 Critical/Important/Minor**；独立复算持久化证据与文档数字自洽（58=21/37、CCE=0、selectList=27、根因归类逐类吻合、I-DEBT-7A-2 调用点行号全部实证命中、第 10 处正确但未谎称转绿）。结论：可放行，无返工。
 
 ---
 
