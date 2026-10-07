@@ -44,13 +44,33 @@ Mycat 自定义函数经 `MycatCalciteMySqlNodeVisitor` 落到 `SqlUnresolvedFun
 
 **⇒ 唯一阻塞点 = line 314 的 category 门**。
 
-### 2.2 codegen 期（DATE_ADD）——implementSafe 形态不足
+### 2.2 23c DATE_ADD——真根因修正（凭服务端完整栈实测，非 implementSafe）
 
-`DATE_ADD` 走 `MycatCalciteMySqlNodeVisitor` 的 `case "DATE_ADD"` 直接 `createCall`（operand 校验用
-`OperandTypes.VARIADIC` 恒过），失败在 `DateAddFunction.implementSafe`：只处理
-`(String,Duration)` / `(Duration,String)` 两形态，其余 **`return null`**（→ 上层 "while converting"）。
-兄弟类 `DateSubFunction.implementSafe` 已多处理 `Period` / `LocalDateTime` 组合且末尾抛
-`UnsupportedOperationException`。差异即 DATE_ADD 缺 `DAY`/`YEAR` 等 unit → 对应 `Duration`/`Period` 的落地形态。
+**订正**：上轮将 DATE_ADD 失败归为“codegen 期 `implementSafe` 返 null”**有误**。服务端完整栈实锤失败发生在 **sql2rel 期**（远早于 codegen）：
+```
+RuntimeException: while converting DATE_ADD(?, INTERVAL '10' DAY)
+  ReflectiveConvertletTable.lambda$registerOpTypeMethod$3:147
+  StandardConvertletTable.convertFunction:982 → convertOperands:1306
+  SqlToRelConverter$Blackboard.visit(SqlLiteral):6103
+  SqlNodeToRexConverterImpl.convertLiteral:158
+  RexBuilder.makeIntervalLiteral:1767 → makeLiteral:1422
+Caused by: IllegalArgumentException @ RexLiteral.<init>:230 (Preconditions.checkArgument)
+```
+即 `INTERVAL '10' DAY` 这个 `SqlIntervalLiteral` 转 `RexLiteral` 时，构造器 `valueMatchesType(value, INTERVAL_DAY, true)` 不通过。
+
+**逐行定根**：运行时加载的是 **hbt PARK 影子 `org.apache.calcite.rex.RexLiteral`**（非 fork），其 `valueMatchesType` 对
+DAY-TIME 区间要求 `value instanceof Duration`（影子 line 368），而 fork `RexBuilder.makeIntervalLiteral` 一贯传 **`BigDecimal`**
+（Calcite 升级后区间内部表示 Duration→BigDecimal）→ 校验失败抛错。且影子 `getValueAs` DAY-TIME 分支（line 1200）`Duration duration = (Duration) value`
+也硬假设 Duration，无 `Duration.class` 目标分支——即影子整个区间表示与 fork 不兼容。**DAY-TIME 区间当前 100% 不可构造**（全经过 throw），
+YEAR-MONTH 因影子要 `instanceof Number`（BigDecimal 是其子类）**已可工作**（故 DATE_SUB…YEAR 不阻）。
+
+**第二障碍**：日期首参被 Mycat 参数化为动态参 `?`，codegen `translateLiteral` 对动态参产出的 Expression 可能非 `String`，
+即使区间修好，`implementSafe` 的 `one.getType()==String.class` 仍可能不成立→返 null。属 23b 同类“动态参型推”问题。
+
+**裁定（不冒进）**：23c 需将 load-bearing PARK 影子 `RexLiteral` 的 DAY-TIME 区间表示从 legacy `Duration` 迁至 fork 的
+`BigDecimal`（改 `valueMatchesType` + `getValueAs` 的 unit→Duration 换算），叠加动态参日期型推——属多层架构迁移，
+需与 I-DEBT-12/13/14 同等的专轮 instrumented 流程（先 hbt 微探针钉死区间 BigDecimal/unit 语义，再改）。
+盲改有产出错日期（假修）风险，故 **保持 23c open**（与已闭 23a/23b 不同层、不共提交）。
 
 ## 3. 正解设计（最小 blast，单调、零回归论证）
 
