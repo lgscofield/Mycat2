@@ -1,6 +1,6 @@
 # I-DEBT-23 函数签名族（bin / CONV / DATE_ADD）MySQL 宽松跨族 coercion
 
-> 状态：**23a+23b 已实现并验证 Evidenced-Done（bin/CONV/CRC32 转绿、hbt47/router15 零回归）；23c DATE_ADD codegen 续办**。源自 I-DEBT-7C 第二轮全量重基线 sweep（2026-10-07）根族分诊 ⑥
+> 状态：**23a+23b 已实现并验证 Evidenced-Done（bin/CONV/CRC32 转绿、hbt47/router15 零回归）；23c DATE_ADD/ADDDATE/DATE_SUB INTERVAL 区间构造+codegen 已收口 Evidenced-Done（回归锁 `MycatIntervalLiteralCoercionTest` 3/0/0、hbt50/router15 零回归）；新开 23e `CURTIME()+0` 时间数值化续办**。源自 I-DEBT-7C 第二轮全量重基线 sweep（2026-10-07）根族分诊 ⑥
 > `sql.PushDownFunctionShardingTableTest ×3E`。本 spec 逐行坐实根因并给出最小 blast 正解。
 
 ## 1. 现象（凭 surefire + 服务端实测签名）
@@ -12,7 +12,7 @@
 | `SELECT BIN('12')`（testCharFunction:79） | 校验期 | `No match found for function signature bin(<CHARACTER>)` @`SqlFunction.java:341` |
 | `SELECT HEX(255), CONV(HEX(255),16,10)`（testCharFunction:94） | 校验期 | `convt` 首参 CHARACTER 期望 mismatch |
 | `SELECT CONV(16,10,16)`（testMathFunction:229） | 校验期 | 同上（NUMERIC→CHARACTER 首参） |
-| `SELECT DATE_ADD('2018-05-01',INTERVAL 1 DAY)`（testTimeFunction:265） | **codegen 期** | `implementSafe` 返 `null` → "while converting DATE_ADD(...)" |
+| `SELECT DATE_ADD('2018-05-01',INTERVAL 1 DAY)`（testTimeFunction:265） | **sql2rel 期**（非 codegen） | `RexBuilder.makeIntervalLiteral→RexLiteral.<init>:230` 抛 `IllegalArgumentException`（影子区间 Duration vs fork BigDecimal）——**已收口 23c** |
 
 ## 2. 根因（逐行坐实，非凭记忆）
 
@@ -70,7 +70,24 @@ YEAR-MONTH 因影子要 `instanceof Number`（BigDecimal 是其子类）**已可
 **裁定（不冒进）**：23c 需将 load-bearing PARK 影子 `RexLiteral` 的 DAY-TIME 区间表示从 legacy `Duration` 迁至 fork 的
 `BigDecimal`（改 `valueMatchesType` + `getValueAs` 的 unit→Duration 换算），叠加动态参日期型推——属多层架构迁移，
 需与 I-DEBT-12/13/14 同等的专轮 instrumented 流程（先 hbt 微探针钉死区间 BigDecimal/unit 语义，再改）。
-盲改有产出错日期（假修）风险，故 **保持 23c open**（与已闭 23a/23b 不同层、不共提交）。
+盲改有产出错日期（假修）风险，故 **曾挂 23c open**（已于 2026-10-08 专轮收口，见 §2.3）。
+
+### 2.3 23c 收口实施（2026-10-08）+ 23e 新开
+
+**先立 hbt 微探针（免重编 jar/免 8066、秒级）钉死区间语义**：经 `SqlLiteral.createInterval(1,"10",DAY)`→`getValueAs(BigDecimal)=864000000`（**毫秒数**）；`'1' YEAR→12`（**总月数**）；`'2' HOUR→7200000`。确认 fork 约定与探针复现的 `makeIntervalLiteral(BigDecimal,DAY)` 在影子下 `IllegalArgumentException`。
+
+**修法（hbt PARK 影子 `org/apache/calcite/rex/RexLiteral.java` 3 处、单调零回归—DAY-TIME 区间此前 100% 不可构造→无绿依赖）**：
+1. `valueMatchesType` DAY-TIME：`value instanceof Duration` → `value instanceof Duration || value instanceof Number`（对齐 fork，且与影子自身已按 Number 处理的 YEAR-MONTH 一致）。
+2. `getValueAs` DAY-TIME 块顶部归一化：`Duration duration = (value instanceof Duration) ? (Duration) value : Duration.ofMillis(((Number) value).longValue());` 并新增 `if (clazz == Duration.class) return clazz.cast(duration);`（此前无 Duration.class 分支，旧值形态依赖 fast-path）。
+3. `INTERVAL_YEAR getValueAs(Period)`：`Period.ofYears(月数)` → `Period.ofMonths(月数)`（探针暴露潜伏 bug：1 年会被错算成12 年）。
+
+“第二障碍”（动态参日期 `?` 型推）经实测 **不成立**：影子 `RexToLixTranslator.translateLiteral` 对日期字面量仍产出 `String` Expression，`ADDDATE(...INTERVAL 10 DAY)` 端到端 checkValue 转绿（值正确），证明区间层修复即可走通。
+
+**证据**：新增回归锁 `hbt/src/test/java/io/mycat/calcite/MycatIntervalLiteralCoercionTest.java` **3/0/0**（DAY→10 天 / HOUR→2 时 / YEAR→P12M）；重编 hbt→server fat jar + JDK21 8066 实跑 `PushDownFunctionShardingTableTest`：`ADDDATE(...INTERVAL 10 DAY)` checkValue 转绿（testChar/testMath 保持）；护栏 hbt **50/0/0**、router **15/0/0** 零回归。⇒ **23c Evidenced-Done**。
+
+**新开 23e（`testTimeFunction` 现红靶，异根）**：修好后测试推进至 `SELECT (CURTIME() + 0)` → `Cannot apply '+' to '<OTHER> + '<INTEGER>'`。Mycat 已配 `TIME/DATE/TIMESTAMP→NUMERIC` 隐式转（`MycatCalciteSupport.getValidatorConfig` 的 `implicitCast:206-211`），但 `CurTimeFunction.curTime()` 返 `java.time.Duration`，其 java→SQL 反查（`MycatRelDataTypeFactory` 缺 `Duration→TIME` 逆向映射）落到 `OTHER`（`getJavaClass(OTHER)=String`，不可 coerercible）→命中不到 TIME 分支。正解=补 `Duration→TIME` java 映射（需与 I-DEBT-13 `OTHER` coercion 登记交互、blast radius 专轮评估，非 crisp 单点，不冒进）。265/266（DATE_ADD DAY / DATE_SUB YEAR）当前被 262 阻断，探针已证语义正确，待 23e 后一并端到端复绿。
+
+
 
 ## 3. 正解设计（最小 blast，单调、零回归论证）
 

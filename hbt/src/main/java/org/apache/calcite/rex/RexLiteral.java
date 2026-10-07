@@ -365,7 +365,10 @@ public class RexLiteral extends RexNode {
         // The value of a DAY-TIME interval (whatever the start and end units,
         // even say HOUR TO MINUTE) is in milliseconds (perhaps fractional
         // milliseconds). The value of a YEAR-MONTH interval is in months.
-        return value instanceof Duration;
+        // MYCAT (I-DEBT-23c): fork RexBuilder.makeIntervalLiteral 一贯传 BigDecimal
+        // （DAY-TIME=毫秒数，YEAR-MONTH=月数），与 fork RexLiteral 表示对齐；
+        // 同时保留旧 Duration 形态兼容，收口 sql2rel 期 DAY-TIME 区间构造崩溃。
+        return value instanceof Duration || value instanceof Number;
       case VARBINARY: // not allowed -- use Binary
         if (strict) {
           throw Util.unexpected(typeName);
@@ -1166,8 +1169,10 @@ public class RexLiteral extends RexNode {
         }
         break;
       case INTERVAL_YEAR:
+        // MYCAT (I-DEBT-23c): fork 将 YEAR-MONTH 区间归一化为“总月数”（'1' YEAR => 12），
+        // 原 Period.ofYears(月数) 会把 1 年错算成 12 年，改为按月的 Period。
         if (clazz == Period.class) {
-          return clazz.cast(Period.ofYears(((Number)value).intValue()));
+          return clazz.cast(Period.ofMonths(((Number)value).intValue()));
         } else if (clazz == Boolean.class) {
           return clazz.cast(Boolean.valueOf(((Number)value).intValue()>0));
         }  else if (clazz == String.class) {
@@ -1197,7 +1202,15 @@ public class RexLiteral extends RexNode {
       case INTERVAL_MINUTE:
       case INTERVAL_MINUTE_SECOND:
       case INTERVAL_SECOND:
-        Duration duration = (Duration) value;
+        // MYCAT (I-DEBT-23c): fork 传下的 DAY-TIME value 是毫秒数（BigDecimal）；
+        // 归一化为 Duration 供 Mycat 代码生成层（RexToLixTranslator/DateAdd 等）消费，
+        // 同时兼容旧的 Duration 直传形态。
+        Duration duration = (value instanceof Duration)
+            ? (Duration) value
+            : Duration.ofMillis(((Number) value).longValue());
+        if (clazz == Duration.class) {
+          return clazz.cast(duration);
+        }
         Long i =0L ;
         switch (typeName) {
           case INTERVAL_DAY:
