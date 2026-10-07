@@ -309,6 +309,13 @@ public class PhysTypeImpl implements PhysType {
     // if (c != 0) return c; // or -c if descending
     // ...
     // return 0;
+    // MYCAT CHANGE (I-DEBT-15): 与同类 generateComparator(见其 Primitive.box(this.javaRowClass))
+    // 对齐——比较器参数与桥接目标类型一律用**装箱**后的行类型。当 javaRowClass 为 primitive
+    // （如单列 BIGINT 行存为 long）时，下面的桥接方法会发射 `this.compare((long) o0, (long) o1)`，
+    // 即 Object 直接强转 primitive——javac 合成桥接会自动插入 `(Long)` 拆箱可过，但 janino 报
+    // `Cannot cast "java.lang.Object" to "long"`。改为装箱目标 `(Long) o0`（引用转换 + 调用处自动拆箱），
+    // 消除该 codegen 崩溃。ARRAY/Object[] 场景下 Primitive.box 为 no-op，行为不变。
+    final Type javaRowClass = Primitive.box(this.javaRowClass);
     BlockBuilder body = new BlockBuilder();
     final ParameterExpression parameterV0 =
         Expressions.parameter(javaRowClass, "v0");
