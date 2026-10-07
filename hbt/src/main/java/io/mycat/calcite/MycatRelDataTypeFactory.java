@@ -30,6 +30,9 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +52,25 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
             public Type getJavaClass(RelDataType type) {
                 if (type.getSqlTypeName()== SqlTypeName.OTHER){
                  return String.class;
+                }
+                // MYCAT CHANGE (I-DEBT-12 方向 A): fork 默认把 DATE→int-days、TIMESTAMP→long-millis、
+                // TIME→int-millis 作内部数值表示，但 Mycat 全栈（物理行源 BaseRowObservable.convertSqlValue、
+                // 结果端 MycatDataType/getTimestamp、影子 RexToLixTranslator 字面量、MycatBuiltInMethodImpl cast 矩阵）
+                // 一律按 java.time 处理时间。codegen 裸列投影经本方法取 storage type，返回数值会与行里的
+                // java.time 值错配 → janino 生成码 (Long) 强转抛 CCE / SqlFunctions.toInt 抛 Cannot convert。
+                // 扳齐为 java.time（拦在 fork 的 primitive/nullable 分支之前，非空列亦归一）。见 spec
+                // docs/superpowers/specs/2026-10-07-i-debt-12-temporal-java-time-representation-design.md。
+                switch (type.getSqlTypeName()) {
+                case DATE:
+                    return LocalDate.class;
+                case TIMESTAMP:
+                case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                    return LocalDateTime.class;
+                case TIME:
+                case TIME_WITH_LOCAL_TIME_ZONE:
+                    return Duration.class;
+                default:
+                    break;
                 }
                 return super.getJavaClass(type);
             }

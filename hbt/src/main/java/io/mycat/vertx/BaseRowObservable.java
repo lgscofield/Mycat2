@@ -422,7 +422,12 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                 case NCLOB:
                 case CLOB: {
                     value = row[columnIndex];
-                    if (value != null && value instanceof Clob) {
+                    // MYCAT CHANGE (I-DEBT-12 附带修正): 原分支未守 null，NULL 的 CLOB/NCLOB 列会落进 else 抛
+                    // "unsupport type:null"（与同文件 DATE/TIMESTAMP/BLOB 兄弟分支均有 value==null 守卫不一致）。
+                    // 补齐 null 归一，NULL 列返回 null。
+                    if (value == null) {
+                        value = null;
+                    } else if (value instanceof Clob) {
                         Clob value1 = (Clob) value;
                         try {
                             value = (value1.getSubString(1, (int) (value1.length())));
