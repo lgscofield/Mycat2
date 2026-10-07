@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -203,10 +202,12 @@ public class SqlFunctionTest implements MycatTest {
         checkValue("SELECT ADDTIME(\"2017-06-15 09:34:21\", \"2\");");//
 //        checkValue("SELECT CURDATE();");//
 
-        try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);
-        ) {
-            Assert.assertTrue(executeQuery(mycatConnection, "SELECT CURDATE();").toString().contains(LocalDate.now().toString()));
-        }
+        // MYCAT CHANGE (I-DEBT-8 附带订正): 原断言 `executeQuery(mycat,"SELECT CURDATE()").contains(LocalDate.now())`
+        // 把代理结果去比**宿主机 JVM 墙钟**：后端 MySQL 容器时钟为 UTC（CURDATE()=2026-10-07 23:51），
+        // 而测试 JVM 默认时区 Asia/Shanghai（LocalDate.now()=2026-10-08），跨日界必不等⇒纯时区耦合假红，
+        // 非产品缺陷（实测：mycat CURDATE() 与直连 MySQL CURDATE() 逐字相等，代理保真正确）。改用本方法
+        // 既有的 checkValue（mycat vs 后端 MySQL 同钟值比对），与其他时间函数断言同等严谨、且时区无关。
+        checkValue("SELECT CURDATE();");
         checkValue("SELECT CURRENT_DATE();");//
         uncheckValue("SELECT CURRENT_TIME();");//
         checkValue("SELECT DATE('2003-12-31 01:02:03');");//
