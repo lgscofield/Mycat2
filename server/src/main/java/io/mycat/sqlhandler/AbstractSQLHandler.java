@@ -14,6 +14,7 @@
  */
 package io.mycat.sqlhandler;
 
+import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLStatement;
@@ -101,7 +102,14 @@ public abstract class AbstractSQLHandler<Statement extends SQLStatement> impleme
         HashSet<String> set = new HashSet<>();
         for (Partition partition : partitions) {
             MycatSQLExprTableSourceUtil.setSqlExprTableSource(partition.getSchema(), partition.getTable(), tableSource);
-            String sql = sqlStatement.toString();
+            // MYCAT CHANGE (I-DEBT-16 同族): 原 sqlStatement.toString() 对**不带 dbType 的通用 AST**
+            // （如 SQLCreateIndexStatement/SQLDropIndexStatement，即便前端以 DbType.mysql 解析，druid 仍
+            // 返回通用语句类、其 getDbType()==null）走通用 ANSI 输出访视器，标识符被**双引号**包裹
+            // （"db1"."travelrecord2"），下发非 ANSI_QUOTES 的 MySQL/MariaDB 后端直接语法报错。此处是
+            // 所有 datanode DDL（CreateIndex/DropIndex/Truncate/DropTable/AlterTable）的公共下发点，目标
+            // 恒为 MySQL 系后端，显式按 DbType.mysql 序列化（反引号）。已是 MySql* 方言的语句其 .toString()
+            // 本就等价于按 mysql 序列化，故对其零行为变化，仅修正通用语句族——与 CreateViewSQLHandler 同源修法。
+            String sql = SQLUtils.toSQLString(sqlStatement, DbType.mysql);
             try (DefaultConnection connection = connectionManager.getConnection(partition.getTargetName())) {
                 DatasourceConfig config = connection.getDataSource().getConfig();
                 ConnectionUrlParser connectionUrlParser = ConnectionUrlParser.parseConnectionString(config.getUrl());
