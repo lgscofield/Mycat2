@@ -43,17 +43,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * I-DEBT-3 续 Task 4/5：参数化 LIMIT 的行数估算归位基线。
+ * I-DEBT-3 续 Task 4/5：参数化 LIMIT 的行数估算特征测试（保留影子，非归位）。
  *
  * <p>
- * 锁的是"影子在位时 Mycat 现在估出什么行数"。影子 {@code RelMdRowCount}/{@code RelMdMaxRowCount}
- * 删除、逻辑上提到 {@code MycatMdRowCount}/{@code MycatMdMaxRowCount} 前后各跑一次，逐条对比：
- * 归位必须与原影子逐值等价。
- *
- * <p>
- * 判别点：动态 offset（{@code LIMIT ?} 的偏移为参数）时，影子 {@code getRowCount(Sort)} 直接早返回
- * 输入行数（不解析参数、不减 offset），而 fork 版会经 {@code RexLiteral.intValue} 解析参数后相减。
- * 两者对 5 行 + offset=参数(2) 分别得 5.0 与 3.0 —— 这条差值即证明归位保住了 Mycat 语义、没退回 fork 行为。
+ * 影子 {@code RelMdRowCount}/{@code RelMdMaxRowCount} 与 PARK 的 {@code RelMdUtil} 影子强耦合：fork 版
+ * {@code getRowCount(Sort)} 会调 {@code RelMdUtil.literalValueApproximatedByDouble}，而 PARK 的旧版 RelMdUtil
+ * 影子缺该方法 → 删 RowCount 影子即 {@code NoSuchMethodError}（clean 全量实测复现，Task 4/5 回退）。
+ * 故这两影子属崩溃类家族，归位不可达、保留。本测试锁其现有行为（5.0/3.0），
+ * 并作为守卫：若将来误删两影子，本测试会因 fork 路径崩溃而变红。
  */
 public class SortParamRowCountTest {
 
