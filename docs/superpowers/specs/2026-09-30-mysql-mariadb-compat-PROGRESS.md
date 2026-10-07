@@ -131,20 +131,20 @@
 | util/RxBuiltInMethod | TODO | 迁 io.mycat.* |
 | util/RxBuiltInMethodImpl | TODO | 迁 io.mycat.* |
 
-**B. 真·遮蔽类（原 11，已减 2 剩 9：SqlValidatorImpl→I-DEBT-3、DataContext→I-DEBT-4）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
+**B. 真·遮蔽类（原 11 → 已删 4：SqlValidatorImpl→I-DEBT-3、DataContext→I-DEBT-4、RelMdCollation/RelMdUniqueKeys→all9 Task6/7；现存盘 7 个 PARK）——与上游同 FQCN，需三方合并（遮蔽版×fork×上游1.42），每类一次回归：**
 
 | 类 | 状态 | 备注 |
 |---|---|---|
 | DataContext | ✅ DONE（I-DEBT-4） | 副本已删（cb795bf5b）：ROOT 寄生归位 `io.mycat.calcite.MycatBindable`（21 处引用改写+合同测试 5 例），删除三重实证（ROOT=0/剩余消费者只用标准成员/fork↔副本全量 diff）；孪生对 11→10 |
-| adapter/enumerable/RexToLixTranslator | TODO | ~2924 行 |
-| rel/externalize/RelJson | TODO | |
-| rel/externalize/RelJsonWriter | TODO | |
-| rel/metadata/RelMdCollation | TODO | |
-| rel/metadata/RelMdMaxRowCount | TODO | |
-| rel/metadata/RelMdRowCount | TODO | |
-| rel/metadata/RelMdUniqueKeys | TODO | |
-| rel/metadata/RelMdUtil | TODO | |
-| rex/RexLiteral | TODO | |
+| adapter/enumerable/RexToLixTranslator | 🚫 PARK（all9） | 影子 `translateCast` 仅 **3 参** vs fork **5 参** → 非影子 fork 调用者 NoSuchMethodError（承重定制在别处，不能整删）；**待补签名/加钩子** |
+| rel/externalize/RelJson | 🚫 PARK（all9） | 序列化承重，逐值等价守卫测试已钉；fork 无钩子可归位 |
+| rel/externalize/RelJsonWriter | 🚫 PARK（all9） | 同上，与 RelJson 同族 |
+| rel/metadata/RelMdCollation | ✅ DONE（all9 Task6） | 影子已删（d852ce055）：fork `RelMdCollation` 加钩子 + hbt `MycatRelMetadataProvider` 委托 |
+| rel/metadata/RelMdMaxRowCount | 🚫 PARK（all9） | 强删回归已 revert（9dc709739），保留影子 |
+| rel/metadata/RelMdRowCount | 🚫 PARK（all9） | 同上 |
+| rel/metadata/RelMdUniqueKeys | ✅ DONE（all9 Task7） | 影子已删（be694d27d）：fork 加钩子 + hbt 供 uniqueKeys 委托 |
+| rel/metadata/RelMdUtil | 🚫 PARK（all9） | 影子**整个缺 `isRelDefinitelyEmpty(RelMetadataQuery,RelNode)`** → NoSuchMethodError；且曾现 collations() NPE（已 ac4007a5d 补 null 守卫）；**待补方法/加钩子** |
+| rex/RexLiteral | 🚫 PARK（all9） | 承重定制，逐值等价守卫已钉 |
 | sql/validate/SqlValidatorImpl | ✅ DONE（I-DEBT-3） | 副本已删（ae8a80b8b，6723 行），fork 1.42 归一胜出；`<=>` 定制上提算子 inference（8529638）+ Task 5 两处移植（df9856c14）；48 条基线零回归；旧 CCE `SqlToRelConverter:735` 实测消失。剩余 10 类中 DataContext/RexToLixTranslator 两族与 I-DEBT-4 codegen 契约相关，归 I-DEBT-4 一并裁定 |
 
 ---
@@ -173,3 +173,5 @@
 | 2026-10-02 | 对齐审计 + 一致性修复（用户指示） | 用户发起 spec/plan/看板全量对齐审计：结论=方向未发散（7C 是取证动作本身故无预写 plan，属设计使然）；九轮债项循环逐条映射 spec/plan 合规；唯一顺位绕路=I-DEBT-5（T-DEBT 非关键路径）已注记。修复 3 处引用断裂：①7A 证据改指持久化目录 ②I-DEBT-2 账本目录未留存订正（现存证据链明示）③spec 主文档状态 Draft→已批准。**新建 bounded 留痕簿** `2026-10-02-bounded-debt-records.md`（用户：“bounded 都补留痕防遗忘”）：记录规则+I-DEBT-5/7拆债/7A 已完成记录+7C 预授权口径；看板 5/7A 行已挂指针 | 磁盘核实：plans 实有 12 份、`.superpowers/sdd` 实有 7 个账本目录（example-module-deps/exec-bindable-contract/i7a-harness 不在其中，已订正引用）；审计只读未动产品码 |
 | 2026-10-06 | I-DEBT-7C 全量 sweep 取证 + 收编第 10 处 + 补全 bounded 留痕簿（用户“修+7C+补所有bounded留痕”指示） | **7C 取证已跑**（排除 xa/+SqlFunction+TableAnalyse，timeout 1800 harvest）：出报告 **58 类=21 绿/37 红**、CCE=0、selectList NPE=27；根因归类快照 `target/i7c_roots.txt`（池耗尽 XaBackend/PushDownSharding、selectList NPE 8 类、executeUpdate 残留仅 MycatServerStdStorageManagerTest）。**关键发现一：Root A 方向不完整**——Connector/J 静态分类两向（executeUpdate/executeQuery）都拒 hint 串，7A 只修了 execute 方向，`MycatTest.executeQuery:99-102` 未修，收编某类 execute 后 body 露镜像守卫 → **"37 红"暂不可信**，须先补 executeQuery helper（新立 I-DEBT-7A-2，越 bounded→独立回合+全量回归）+ 修 7B 才有干净基线。**关键发现二：本轮排序失误**——单类验证脚本含 `rm -rf surefire-reports` 覆写了全量逐类报告，归类快照系擦除前所抓，如实留痕。**顺位裁定**：Root B 经实证系统性（7B 先于干净基线）；7C 定位取证不宣称 Done。**收编第 10 处** MycatServerStdStorageManagerTest 5 处 `JdbcUtils.execute(hint)`→`execute()`，编译门 BUILD SUCCESS，单类实测 executeUpdate 残留=0。**留痕簿补全**：§5 回填取证、§6 收编9+1+UserCaseTest工具bug绕行裁定、§7 历史 bounded 裁定索引（含 3 个账本目录已空的诚实落盘状态）。看板 7A/7B/7C 行订正、新立 7A-2 行、下一步/最后更新/变更日志同步 | 证据持久化 `.superpowers/sdd/2026-10-02-i7c-baseline/`（i7c_passfail/roots/client/mycat + i7c_v_client.log + i7c_v_MycatServerStdStorageManagerTest.txt）；Docker m1-mysql-a/b 后端实跑；产品码零动（仅测试脚手架收编） |
 | 2026-10-06 | I-DEBT-7A-2（收口，✅ DONE） | 修 Root A 第二层：`MycatTest.executeQuery` helper 撞 Connector/J 发送前 `executeQuery` 镜像守卫（纯 hint 串拒"不产出结果集"，未走网络）。helper 改 `Statement.execute()+getResultSet()`，转换 `javap -c` 反编译 druid 1.2.28 实证逐字节复刻 `LinkedHashMap+getColumnLabel+getObject`；`executeQueryAsText` 委托 helper；收编 4 处 `JdbcUtils` 纯 hint 直调（StdStorageManager 38/49/52、Monitor 159/166）+ 1 处裸 `Statement.executeQuery(hint)`（`ManagerHintTest.testShowBufferUsage`，删无用 Statement/ResultSet import）。**全量回归 sweep（Docker m1-mysql-a/b，同 7C excludes）实测 58 类 21→27 绿、`i7a2_diff.txt` 回归(基线G→新R)=0、executeUpdate 残留=NONE；定向 ManagerHintTest 14/0/0、镜像守卫命中=0 → 全套件查询方向守卫关闭**。诚实口径：28 绿产品基线待 7B 后一次性重生成。定性订正为 bounded（留痕簿 §5/§7/§8）。看板 7A/7C/7A-2 行、下一步/最后更新/上一版同步 | 提交见本次 7A-2；证据 `.superpowers/sdd/2026-10-02-i7c-baseline/`（i7c_passfail.txt 新 27 绿 + i7c_passfail_baseline_before_7a2.txt + i7a2_diff.txt + i7a2_v_client.log/run.txt）；脚本 `target/i7c_sweep.sh`/`target/i7a2_diff.sh`/`target/i7a2_v_hint.sh`；产品码零动（纯测试脚手架） |
+| 2026-10-07 | I-DEBT-3 残留 NoSuchMethodError×8 → **✅ 清零**（承上行的后续收口） | 诊断后直接靶向修复 3 处（net +26/-3 行，未提交）：① `RexToLixTranslator` 影子补 5 参 `translateCast` 重载→委托影子自身 3 参 Mycat 转换矩阵（Mycat 无 SAFE_CAST，safe 恒 false）；② `RelMdUtil` 影子补 `isRelDefinitelyEmpty(RelMetadataQuery,RelNode)`（null-safe 委托 mq.isEmpty）；③ **订正上行 ③ 的“陈旧产物”推断——错**：服务端全栈证伪，真因=`com.alibaba.druid.support.calcite.CalciteSqlBasicCall`（官方 druid 1.2.28 自带、编译于上古 Calcite 的 5 参 super）被 `io.mycat.calcite.MycatCalciteMySqlNodeVisitor:720`(SQLCastExpr) 调用；修法=弃 druid 垫片改 fork 原生 `new SqlBasicCall(op,nodes,pos,functionQualifier)`（去 false=旧 expanded、语义等价）+删 import。**证据（Docker m1-mysql-a/b + JDK21 重打 jar）**：复跑 4 曾崩方法 NoSuchMethodError 计数=0；`caseSelectSessionValueInt`✓、`case20220407`✓（崩→过）；`testCastFunction`/`case1` 越过崩溃推进到**新层真 bug**（非回归，旧红新红同数）；回归门 `mvn -o test -pl hbt` 43/0/0。**新露时间类型错配族（归 I-DEBT-8）**：`testCastFunction`=`SqlFunctions.toInt("2018-01-01")` Cannot convert（CAST('2018-1-1' AS DATE)，DATE 内部=int-days）；`case1`=LocalDateTime→Long CCE（getTimestamp，TIMESTAMP 内部=long-millis）——同根：Mycat codegen/结果升箱 假设 Calcite 时间内部数值形态 vs 运行时 java.time 对象，横 CAST codegen↔结果物化。证据 `target/i3-targeted2.log`/`i3-mycat2.log`；待 commit 固化 | 未提交（待用户点头）；改动 3 hbt 源 + 本看板；账本同 all9 目录 |
+| 2026-10-07 | I-DEBT-3 影子残留（all9 工包，部分收口 + 诊断定性） | **hbt 剩余 9 个 org.apache.calcite 影子全量归位裁定**（逐类可行性闸门）：**已删 2**（RelMdCollation d852ce055 / RelMdUniqueKeys be694d27d——fork 加钩子 + hbt `MycatRelMetadataProvider` 委托）；**PARK 7**（RexToLixTranslator/RelJson/RelJsonWriter/RelMdRowCount/RelMdMaxRowCount/RelMdUtil/RexLiteral——各有承重 Mycat 定制、fork 无钩子可归位、强删必回归，已建逐值等价守卫测试钉死；RelMdRowCount/MaxRowCount 强删已 revert 9dc709739）；终审 Critical#1：RelMdUtil `collations()` null 守卫已修 ac4007a5d。三闸门：G-Unit router15/hbt43/executor 全绿、G-Delete fork 零 io.mycat、G-Join 479/7/88/30 逐集合差分零新增红。**【诊断】NoSuchMethodError×8 不是同一类问题**（本轮取证钉死）：① `RexToLixTranslator.translateCast` 影子 **3 参** vs fork **5 参**（`…,boolean safe,ConstantExpression format`）——陈旧影子签名漂移；② `RelMdUtil.isRelDefinitelyEmpty(RelMetadataQuery,RelNode)` 影子**整缺此方法**；③ `SqlBasicCall.<init>(…,boolean,SqlLiteral)`——**全仓 32 调用点无一按旧 5 参调用、源码无此构造器** → 非影子问题，指向运行时 classpath 陈旧产物。**⇒ 后续拆两个修复方向**：①②=补影子到 fork 签名/或删影子加钩子（本地可逆）；③=先干净重建+重打 jar 验证是否消解（不改源码追幽灵调用）。本工包未改此状态为 Done（NoSuchMethodError×8 仍在），只完成"该不该删影子"的裁定 | 提交 a4a29fac5..ac4007a5d；账本 `.superpowers/sdd/2026-10-07-calcite-shadow-removal-all9/`；证据 `example-sweep.log` NoSuchMethodError 栈行 37911/42739/42864；磁盘核验 hbt org/apache/calcite 现存 13 文件（含 A 组自研 6） |

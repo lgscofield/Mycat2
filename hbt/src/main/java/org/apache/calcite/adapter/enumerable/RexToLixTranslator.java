@@ -211,6 +211,19 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     return nullAs.handle(translated);
   }
 
+  // MYCAT CHANGE: fork 1.42 已将 translateCast 扩为 5 参 (..., boolean safe, ConstantExpression format)，
+  // 非影子的 fork 类 RexImpTable（CAST 内置算子下沉，RexImpTable:3722-3724）按此 5 参签名调用，
+  // 运行时命中本影子的 3 参版本而抛 NoSuchMethodError。补 5 参重载委托影子自身的 Mycat 转换矩阵：
+  // Mycat 走 MySQL 语义无 SAFE_CAST（safe 恒 false）；数值/日期时间转换已由下方 switch(MycatBuiltInMethod.X_TO_Y) 承担。
+  Expression translateCast(
+      RelDataType sourceType,
+      RelDataType targetType,
+      Expression operand,
+      boolean safe,
+      ConstantExpression format) {
+    return translateCast(sourceType, targetType, operand);
+  }
+
   Expression translateCast(
       RelDataType sourceType,
       RelDataType targetType,

@@ -211,6 +211,14 @@ public class RelMdUtil {
     return b != null && b;
   }
 
+  // MYCAT CHANGE: 陈旧影子拷贝缺失此方法，非影子 fork 调用方按 RelMdUtil.isRelDefinitelyEmpty(RelMetadataQuery,RelNode)
+  // 解析到本类抛 NoSuchMethodError。补入与 fork 1.42 等价实现（null-safe 委托 mq.isEmpty），保留影子其余承重定制。
+  public static boolean isRelDefinitelyEmpty(RelMetadataQuery mq,
+                                             RelNode rel) {
+    Boolean b = mq.isEmpty(rel);
+    return b != null && b;
+  }
+
   /**
    * Returns true if the columns represented in a bit mask are definitely
    * known to form a unique column set, when nulls have been filtered from

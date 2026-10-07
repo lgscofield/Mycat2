@@ -9,7 +9,6 @@ import com.alibaba.druid.sql.dialect.mysql.ast.MySqlForceIndexHint;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.parser.ParserException;
-import com.alibaba.druid.support.calcite.CalciteSqlBasicCall;
 import com.alibaba.druid.util.FnvHash;
 import com.google.common.collect.ImmutableList;
 import io.mycat.MycatException;
@@ -717,8 +716,11 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
 
         SqlOperator sqlOperator = new SqlCastFunction();
 
-        this.sqlNode = new CalciteSqlBasicCall(sqlOperator, new SqlNode[]{sqlNode, sqlDataTypeSpec}, SqlParserPos.ZERO,
-                false, functionQualifier);
+        // MYCAT CHANGE: 原用 druid 自带适配类 com.alibaba.druid.support.calcite.CalciteSqlBasicCall，
+        // 其 super 绑定上古 Calcite 的 SqlBasicCall(SqlOperator,SqlNode[],SqlParserPos,boolean,SqlLiteral) 5 参构造器，
+        // fork 1.42 已删除该构造器→ CAST 下推时抛 NoSuchMethodError。改用 fork 原生 4 参 SqlBasicCall（去掉的 false 即旧 expanded，默认不展开），语义等价。
+        this.sqlNode = new SqlBasicCall(sqlOperator, new SqlNode[]{sqlNode, sqlDataTypeSpec}, SqlParserPos.ZERO,
+                functionQualifier);
         return false;
     }
 
