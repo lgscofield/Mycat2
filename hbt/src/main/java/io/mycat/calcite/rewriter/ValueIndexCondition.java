@@ -146,6 +146,15 @@ public class ValueIndexCondition implements Comparable<ValueIndexCondition>, Ser
                         //queryByPrimaryKey
                         Map<String, RangeVariable> map = new LinkedHashMap<>();// need column order
 
+                        // MYCAT CHANGE (I-DEBT-14 修法 A): resolveParam 对无法折叠成字面量的 RHS（如
+                        // `traveldate = timestamp('...')` 这类非 CAST 的 RexCall）按设计 continue 跳过，
+                        // 使 pointQueryKey 合法为空。原代码假设 key≥1、直接 .get(0) 触发
+                        // IndexOutOfBoundsException。空 key 语义=路由期取不到确定分区值，无法裁剪，
+                        // 应跳过本条件的收窄（partitions 保持上文 calculate 得到的全集），交下游末端过滤。
+                        if (pointQueryKey.isEmpty()) {
+                            break;
+                        }
+
                         if (pointQueryKey.size() > 1) {
                             List<Partition> curPartitions = new LinkedList<>();
                             for (Object o1 : pointQueryKey) {
