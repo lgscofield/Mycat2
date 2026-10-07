@@ -64,6 +64,7 @@ import org.apache.calcite.rel.core.*;
 import org.apache.calcite.rel.hint.HintStrategyTable;
 import org.apache.calcite.rel.metadata.DefaultRelMetadataProvider;
 import org.apache.calcite.rel.metadata.RelMetadataProvider;
+import io.mycat.calcite.metadata.MycatRelMetadataProvider;
 import org.apache.calcite.rel.rules.AggregateExpandDistinctAggregatesRule;
 import org.apache.calcite.rel.rules.CoreRules;
 import org.apache.calcite.rel.rules.MultiJoin;
@@ -538,7 +539,7 @@ public class DrdsSqlCompiler {
         final HepPlanner hepPlanner = new HepPlanner(hep,
                 null, false, null, RelOptCostImpl.FACTORY);
         List<RelMetadataProvider> list = new ArrayList<>();
-        list.add(DefaultRelMetadataProvider.INSTANCE);
+        list.add(MycatRelMetadataProvider.WITH_DEFAULT);
         hepPlanner.registerMetadataProviders(list);
         hepPlanner.setRoot(logPlan);
         logPlan = hepPlanner.findBestExp();
@@ -647,7 +648,7 @@ public class DrdsSqlCompiler {
                     .addRuleInstance(CoreRules.JOIN_TO_MULTI_JOIN)
                     .build();
             final Program program1 =
-                    Programs.of(hep, false, DefaultRelMetadataProvider.INSTANCE);
+                    Programs.of(hep, false, MycatRelMetadataProvider.WITH_DEFAULT);
             return Optional.of(program1.run(null, logPlan, null, Collections.emptyList(), Collections.emptyList()));
         } else {
             return Optional.empty();
@@ -672,7 +673,7 @@ public class DrdsSqlCompiler {
                 ImmutableList.of(CoreRules.FILTER_SUB_QUERY_TO_CORRELATE,
                         CoreRules.PROJECT_SUB_QUERY_TO_CORRELATE,
                         CoreRules.JOIN_SUB_QUERY_TO_CORRELATE));
-        Program subQuery = Programs.of(builder.build(), true, DefaultRelMetadataProvider.INSTANCE);
+        Program subQuery = Programs.of(builder.build(), true, MycatRelMetadataProvider.WITH_DEFAULT);
         return subQuery;
     }
 
@@ -688,6 +689,8 @@ public class DrdsSqlCompiler {
             planner.addRelTraitDef(i);
         }
         RelOptCluster relOptCluster = RelOptCluster.create(planner, MycatCalciteSupport.RexBuilder);
+        // I-DEBT-3 续 Task 6：把 MycatView 元数据 provider 挂到默认链之前，替代原 RelMdCollation 影子的钩子
+        relOptCluster.setMetadataProvider(MycatRelMetadataProvider.WITH_DEFAULT);
         HintStrategyTable hintStrategies = HintTools.createHintStrategies();
         relOptCluster.setHintStrategies(hintStrategies);
         return relOptCluster;
