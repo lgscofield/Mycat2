@@ -17,6 +17,7 @@
 package org.apache.calcite.sql;
 
 import org.apache.calcite.linq4j.function.Functions;
+import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.sql.parser.SqlParserPos;
@@ -314,6 +315,18 @@ public class SqlFunction extends SqlOperator {
             if ((function.category == SqlFunctionCategory.USER_DEFINED_FUNCTION
                 || function.category == SqlFunctionCategory.USER_DEFINED_TABLE_FUNCTION)
                 && typeCoercion.userDefinedFunctionCoercion(scope, call, function)) {
+              break validCoercionType;
+            }
+            // MYCAT CHANGE (I-DEBT-23): Mycat 自定义函数（bin/CONV/…）多以 STRING/SYSTEM 类别注册，
+            // 严格 overload 查找失败、经 coerce=true 命中后原门只放行 USER_DEFINED_FUNCTION 族，
+            // 致这些函数落 handleUnresolvedFunction 抛 "No match found for function signature"。
+            // 且字面量入参已被 Mycat 参数化为动态参数，Calcite 拒对动态参数施加 CAST，
+            // userDefinedFunctionCoercion 必返 false。此处对 Mycat 函数直接采纳已命中的重载，
+            // 真正的 MySQL 式隐式跨族 CAST 下沉到 Mycat 自有基类
+            // org.apache.calcite.mycat.MycatSqlDefinedFunction#checkOperandTypes（覆盖严格/SPECIAL/coerce
+            // 全解析路径）。作用域严格限 Mycat 自有基类，不触碰 Calcite 内建函数；
+            // 且仅在 if(function==null) 块内（strict 未命中），单调不会把绿变红。
+            if (function instanceof MycatSqlDefinedFunction) {
               break validCoercionType;
             }
           }
