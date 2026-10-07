@@ -89,6 +89,20 @@ public class RelJson {
         this.jsonBuilder = jsonBuilder;
     }
 
+    /**
+     * MYCAT CHANGE (I-DEBT-18): 本影子类当初是对着更老的 Calcite API 写的——那时
+     * {@code RelJsonReader} 用 {@code new RelJson(...)} 构造 RelJson。升级到 Calcite 1.42
+     * fork 后，{@code org.apache.calcite.rel.externalize.RelJsonReader}（未影子化、复用 fork 版）
+     * 改调静态工厂 {@code RelJson.create()}，而本影子类缺该方法，导致运行时（影子 RelJson 在
+     * fat jar 中胜出）{@code SPM LOAD/PERSIST} 读回持久化计划时抛
+     * {@code NoSuchMethodError: RelJson.create()}，被 {@code MemPlanCache} 吞异常掩蔽成
+     * {@code codeExecuterContext is null} 的无关联 NPE。补上对齐 fork 的静态工厂即可
+     * （保留本影子的 RelHint/MycatView 序列化定制，不能直接删影子交给 fork 版）。
+     */
+    public static RelJson create() {
+        return new RelJson(null);
+    }
+
     public RelNode create(Map<String, Object> map) {
         String type = (String) map.get("type");
         Constructor constructor = getConstructor(type);

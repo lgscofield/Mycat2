@@ -14,6 +14,7 @@
  */
 package io.mycat.sqlhandler.ddl;
 
+import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.statement.SQLCreateViewStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSelect;
@@ -61,7 +62,12 @@ public class CreateViewSQLHandler extends AbstractSQLHandler<SQLCreateViewStatem
 
                 String viewName = SQLUtils.normalize(ast.getName().getSimpleName());
                 SQLSelect subQuery = ast.getSubQuery();
-                SQLSelectStatement sqlSelectStatement = new SQLSelectStatement();
+                // MYCAT CHANGE (I-DEBT-16): 原 new SQLSelectStatement() 未带 dbType，
+                // 于是 HackRouter.getPlan() 里 selectStatement.toString() 走通用 ANSI 输出访视器，
+                // 将标识符用**双引号**包裹（`"db1"."normal_table"`）；该串回灌子查询后下发到 MySQL
+                // 物理后端，非 ANSI_QUOTES 模式下直接语法报错。显式指定 DbType.mysql 使其按
+                // MySqlOutputVisitor 以反引号输出（与 LogicTable 等处 SQLUtils.toMySqlString 一致）。
+                SQLSelectStatement sqlSelectStatement = new SQLSelectStatement(DbType.mysql);
                 sqlSelectStatement.setSelect(subQuery);
 
                 List<String> aliasList = Optional.ofNullable(ast.getColumns()).orElse(Collections.emptyList()).stream().map(i -> SQLUtils.normalize(i.toString())).collect(Collectors.toList());

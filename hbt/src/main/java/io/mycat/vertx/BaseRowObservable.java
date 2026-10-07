@@ -230,13 +230,24 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                 case NCLOB:
                 case CLOB: {
                     value = row.getValue(columnIndex);
-                    if (value != null && value instanceof Clob) {
+                    // MYCAT CHANGE (I-DEBT-17): 原分支仅接受 Clob 实例，其它一律抛
+                    // "unsupport type:..."。但字符大对象列（如 information_schema 的长文本列）
+                    // 经 MySQL JDBC 常直接以 String 返回、元数据却标 CLOB/NCLOB，导致误抛；
+                    // NULL 也会落进 else 抛（与同文件 BLOB 兄弟分支已守 null/String/byte[] 不一致）。
+                    // 与 BLOB 分支对称：null 归一、String 原样、byte[] 解码、Clob 取子串。
+                    if (value == null) {
+                        value = null;
+                    } else if (value instanceof Clob) {
                         Clob value1 = (Clob) value;
                         try {
                             value = (value1.getSubString(1, (int) (value1.length())));
                         } finally {
                             value1.free();
                         }
+                    } else if (value instanceof String) {
+
+                    } else if (value instanceof byte[]) {
+                        value = new String((byte[]) value);
                     } else {
                         throw new UnsupportedOperationException("unsupport type:" + value);
                     }
@@ -425,6 +436,9 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                     // MYCAT CHANGE (I-DEBT-12 附带修正): 原分支未守 null，NULL 的 CLOB/NCLOB 列会落进 else 抛
                     // "unsupport type:null"（与同文件 DATE/TIMESTAMP/BLOB 兄弟分支均有 value==null 守卫不一致）。
                     // 补齐 null 归一，NULL 列返回 null。
+                    // MYCAT CHANGE (I-DEBT-17): 同理补 String/byte[] 分支——字符大对象列（如
+                    // information_schema 长文本列）经 JDBC 常直接以 String 返回、元数据却标 CLOB/NCLOB，
+                    // 原仅认 Clob 会误抛（如值 "bigint"）；与 BLOB 兄弟分支对称处理。
                     if (value == null) {
                         value = null;
                     } else if (value instanceof Clob) {
@@ -434,6 +448,10 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                         } finally {
                             value1.free();
                         }
+                    } else if (value instanceof String) {
+
+                    } else if (value instanceof byte[]) {
+                        value = new String((byte[]) value);
                     } else {
                         throw new UnsupportedOperationException("unsupport type:" + value);
                     }

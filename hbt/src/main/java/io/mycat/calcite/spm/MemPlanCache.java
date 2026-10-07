@@ -120,6 +120,13 @@ public class MemPlanCache implements QueryPlanCache {
         String rel = plan.getRel();
 
         synchronized (plan) {
+            // MYCAT CHANGE (I-DEBT-18): 原实现 catch(Throwable){log.error;}
+            // 吞掉真异常后一路 return 下面那行的 plan.attach（仍为 null），
+            // 空 context 冒泡到 DrdsRunnerHelper.getPlan 变成无关联的
+            // "codeExecuterContext is null" NPE，把真正的反序列化/codegen 失败
+            // 彻底掩蔽（与 I-DEBT-11 prepare 吞异常同一根模式）。
+            // 改为记录并原样传播，让真栈直接暴露；若 attach 仍为 null 亦显式抛出，
+            // 不再向下游泄漏静默 null。
             try {
                 ImmutableMap<RexNode, RexNode> constantMap = getConstantMap(baseline);
                 RelJsonReader relJsonReader = new RelJsonReader(DrdsSqlCompiler.newCluster(),   MetaClusterCurrent.wrapper(DrdsSqlCompiler.class).newCalciteCatalogReader(), null);
@@ -127,11 +134,16 @@ public class MemPlanCache implements QueryPlanCache {
                 CodeExecuterContext codeExecuterContext = DrdsExecutorCompiler.getCodeExecuterContext(constantMap, mycatRel, forUpdate);
                 plan.setAttach(codeExecuterContext);
             } catch (Throwable throwable) {
-                log.error("", throwable);
+                log.error("build CodeExecuterContext from persisted rel failed, sql=" + baseline.getSql(), throwable);
+                throw throwable;
             }
         }
 
-        return (CodeExecuterContext) plan.attach;
+        CodeExecuterContext attached = (CodeExecuterContext) plan.attach;
+        if (attached == null) {
+            throw new IllegalStateException("CodeExecuterContext is null after compiling persisted plan for sql: " + baseline.getSql());
+        }
+        return attached;
     }
 
     private ImmutableMap<RexNode, RexNode> getConstantMap(Baseline baseline) {
