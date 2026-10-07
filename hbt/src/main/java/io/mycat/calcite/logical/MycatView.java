@@ -771,11 +771,21 @@ public class MycatView extends AbstractRelNode implements MycatRel {
 //        }
 
         final BlockBuilder builder = new BlockBuilder();
+        // MYCAT CHANGE (I-DEBT-19): 强制不 optimize 的 ARRAY physType。
+        // Mycat 运行时契约：AsyncMycatDataContextImpl.getObservable(...) 恒产出 Observable<Object[]>，
+        // 即行永远是 Object[]。而 PhysTypeImpl.of(..., ARRAY) 默认 optimize=true，对单列 rowType 会把
+        // ARRAY 降级为 SCALAR（见 JavaRowFormat.optimize：getFieldCount()==1 → SCALAR），使
+        // javaRowClass=long。于是 generateCollationKey 生成的 identity/标量选择器把整个 Object[] 行
+        // 喂给 compare(Long,Long) 桥接 (Long)o0 → 运行时 ClassCastException，Rx orderedMerge 静默错形/挂死
+        // （无 ORDER BY 的 hasData/*+vector*/LIMIT 单列 BIGINT 查询）。改用 optimize=false 保持
+        // javaRowClass=Object[]：空 collation → identity 取 Object[]、比较器恒返回 0、桥接 (Object[])o0
+        // 合法；单列 ORDER BY → fieldReference(Object[] v,i)=v[i] 也正确。多列本就走 ARRAY，为 no-op。
         final PhysType physType =
                 PhysTypeImpl.of(
                         implementor.getTypeFactory(),
                         getRowType(),
-                        JavaRowFormat.ARRAY);
+                        JavaRowFormat.ARRAY,
+                        false);
         ParameterExpression root = implementor.getRootExpression();
         Expression mycatViewStash = Expressions.constant(relNode.getDigest());
 
