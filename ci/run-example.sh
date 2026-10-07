@@ -8,7 +8,9 @@ JAR="server/target/server-1.22-release-jar-with-dependencies.jar"
 [ -f "$JAR" ] || { echo "找不到构建产物 $JAR（先 mvn package）"; exit 1; }
 
 # 1) 启动 Mycat
-java -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
+# --add-opens=java.base/java.nio=ALL-UNNAMED: Apache Arrow 18 (vector() 算子用其堆外内存,
+# MemoryUtil 反射 java.nio.Buffer.address) 在 JDK17+ 必需,否则 VectorTest 挂死。
+java --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
 trap 'kill $MYCAT_PID 2>/dev/null || true' EXIT
 
 # 2) 轮询前端 8066 就绪（最多 60s），替代旧 CI 不稳定的 sleep 10s
