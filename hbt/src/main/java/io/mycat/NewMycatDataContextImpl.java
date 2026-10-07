@@ -23,13 +23,16 @@ import lombok.SneakyThrows;
 import okhttp3.Response;
 import okhttp3.*;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.avatica.util.ByteString;
 import org.apache.calcite.linq4j.QueryProvider;
 import org.apache.calcite.runtime.NewMycatDataContext;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +70,23 @@ public abstract class NewMycatDataContextImpl implements NewMycatDataContext {
     public Object get(String name) {
         if (name.startsWith("?")) {
             int index = Integer.parseInt(name.substring(1));
-            return drdsSqlWithParams.getParams().get(index);
+            Object value = drdsSqlWithParams.getParams().get(index);
+            // MYCAT CHANGE (I-DEBT-8): 参数化阶段 druid 把 X'..' 十六进制字面量抽为裸 byte[]，
+            // 而 DrdsRunnerHelper.getSqlTypeNames 将 byte[] 归为 SqlTypeName.BINARY；Calcite codegen
+            // 按 BINARY 的 Java 规范类型生成 (ByteString) root.get("?N") 强转，裸 byte[] 遂触发
+            // "[B cannot be cast to ByteString"（如 SELECT X'4D7953514C'）。在参数读边界按声明
+            // 类型把 BINARY/VARBINARY 家族的 byte[] 归一为 ByteString，与 BINARY
+            // 内部规范表示一致（同 I-DEBT-17 结果侧对称、与 BaseRowObservable 的 byte[] 补 wrap 同族）。
+            if (value instanceof byte[]) {
+                List<SqlTypeName> typeNames = drdsSqlWithParams.getTypeNames();
+                SqlTypeName typeName = (typeNames != null && index < typeNames.size())
+                        ? typeNames.get(index) : null;
+                if (typeName == null || typeName == SqlTypeName.BINARY
+                        || typeName == SqlTypeName.VARBINARY) {
+                    value = new ByteString((byte[]) value);
+                }
+            }
+            return value;
         }
         return codeExecuterContext.getVarContext().get(name);
     }

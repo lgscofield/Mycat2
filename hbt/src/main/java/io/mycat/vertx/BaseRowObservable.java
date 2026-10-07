@@ -272,7 +272,10 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                             value1.free();
                         }
                     } else if (value instanceof byte[]) {
-
+                        // MYCAT CHANGE (I-DEBT-8): 原空体→裸 byte[] 未归一，破坏“BINARY 内部规范表示=ByteString”
+                        // 不变式（同分支 String/Buffer/Blob 皆转 ByteString），下游 (ByteString) 强转即抛
+                        // [B cannot be cast to ByteString。与 I-DEBT-17 CLOB 补 byte[] 对称，补 wrap。
+                        value = new ByteString((byte[]) value);
                     } else {
                         throw new UnsupportedOperationException("unsupport type:" + value);
                     }
@@ -476,7 +479,9 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                             value1.free();
                         }
                     } else if (value instanceof byte[]) {
-
+                        // MYCAT CHANGE (I-DEBT-8): 同上，与兄弟分支对称补 wrap（裸 byte[]→ByteString），
+                        // 否则下游 (ByteString) 强转即 [B cannot be cast to ByteString。
+                        value = new ByteString((byte[]) value);
                     } else {
                         throw new UnsupportedOperationException("unsupport type:" + value);
                     }
