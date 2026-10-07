@@ -17,6 +17,7 @@
 package io.mycat.calcite.table;
 
 import io.mycat.calcite.*;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.calcite.adapter.enumerable.JavaRowFormat;
 import org.apache.calcite.adapter.enumerable.PhysType;
 import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
@@ -87,8 +88,10 @@ public class MycatTransientSQLTableScan extends AbstractRelNode implements Mycat
         Method getObservable = Types.lookupMethod(NewMycatDataContext.class, "getObservable", String.class);
         final Expression expression2 = (
                 Expressions.call(root, getObservable, mycatViewStash));
-        assert Types.isAssignableFrom(Enumerable.class, expression2.getType());
-        builder.add(toRows(physType, expression2,getRowType().getFieldCount()));
+        assert Types.isAssignableFrom(Observable.class, expression2.getType());
+        // I-DEBT-10/L1 seam：getObservable 返回 rxjava Observable，下游 fork Enumerable 算子消费前
+        // 须先经 toEnumerable 桥接为 Enumerable(原设计意图即要求最终形态为 Enumerable)。
+        builder.add(toEnumerable(toRows(physType, expression2, getRowType().getFieldCount())));
         return implementor.result(physType, builder.toBlock());
     }
 }

@@ -66,6 +66,7 @@ import org.apache.calcite.sql.util.SqlString;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.BuiltInMethod;
 import org.apache.calcite.util.Pair;
+import org.apache.calcite.util.RxBuiltInMethod;
 import org.apache.calcite.util.RxBuiltInMethodImpl;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -645,13 +646,21 @@ public class MycatView extends AbstractRelNode implements MycatRel {
         ParameterExpression root = implementor.getRootExpression();
         Expression mycatViewStash = Expressions.constant(getDigest());
         Method getObservable = Types.lookupMethod(NewMycatDataContext.class, "getObservable", String.class);
-        builder.add(Expressions.call(root, getObservable, mycatViewStash));
+        // I-DEBT-10/L1 seam：sync implement 路径把 rxjava Observable 漏给下游 fork 的 Enumerable
+        // 算子(如 EnumerableAggregate 的 .select/.aggregate)→janino "select not declared"。
+        // 经 toEnumerable 收敛为 Enumerable 后再返回(与 MycatCalc 的 OBSERVABLE_* 静态算子用法对称)。
+        builder.add(toEnumerable(Expressions.call(root, getObservable, mycatViewStash)));
         return implementor.result(physType, builder.toBlock());
     }
 
 
     public static Expression toEnumerable(Expression expression) {
         final Type type = expression.getType();
+        // I-DEBT-10/L1 seam 收敛：rxjava Observable 无 linq 实例算子；下游 fork Enumerable 算子
+        // 消费前须先经 RxBuiltInMethod.TO_ENUMERABLE 桥接为 Enumerable，否则 codegen 编译失败。
+        if (Types.isAssignableFrom(Observable.class, type)) {
+            return Expressions.call(RxBuiltInMethod.TO_ENUMERABLE.method, expression);
+        }
         if (Types.isArray(type)) {
             if (Types.toClass(type).getComponentType().isPrimitive()) {
                 expression =
@@ -683,10 +692,20 @@ public class MycatView extends AbstractRelNode implements MycatRel {
         for (int i = 0; i < fieldCount; i++) {
             expressionList.add(fieldExpression(row_, i, physType, oldFormat));
         }
+        final Expression lambda =
+                Expressions.lambda(Function1.class, physType.record(expressionList),
+                        row_);
+        // I-DEBT-10/L1 seam：stream 路径(implementViewStream→MycatHashAggregate.toEnumerate)会把
+        // 非 ARRAY(SCALAR)格式的 rxjava Observable 传入。Observable 无 linq 实例 .select(Enumerable 语义)
+        // →janino "select not declared"。须先经 TO_ENUMERABLE 把 Observable<Object[]> 桥接为
+        // Enumerable<Object[]>(此时 row 仍为 Object[]，row[0] 投影合法)，再用实例 .select 投影为 Enumerable<Long>，
+        // 交由下游 toEnumerate/aggregate 消费(与 MycatCalc 的 Observable 静态算子用法对称)。
+        if (Types.isAssignableFrom(Observable.class, expression.getType())) {
+            expression = Expressions.call(RxBuiltInMethod.TO_ENUMERABLE.method, expression);
+        }
         return Expressions.call(expression,
                 BuiltInMethod.SELECT.method,
-                Expressions.lambda(Function1.class, physType.record(expressionList),
-                        row_));
+                lambda);
     }
 
     public static Expression fieldExpression(ParameterExpression row_, int i,

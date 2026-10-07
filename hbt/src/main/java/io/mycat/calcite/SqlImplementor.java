@@ -442,7 +442,7 @@ public abstract class SqlImplementor {
 
             case SELECT:
                 final SqlNodeList selectList = ((SqlSelect) node).getSelectList();
-                if (selectList == null) {
+                if (selectList.equals(SqlNodeList.SINGLETON_STAR)) {
                     return rowType;
                 }
                 builder = rel.getCluster().getTypeFactory().builder();
@@ -555,7 +555,10 @@ public abstract class SqlImplementor {
         if (requiresAlias(node)) {
             node = as(node, "t");
         }
-        return new SqlSelect(POS, SqlNodeList.EMPTY, null, node, null, null, null,
+        // I-DEBT-10 L1 影子副本同步：上游 Calcite 已把「未投影占位」的 selectList=null
+        // 迁移为 SqlNodeList.SINGLETON_STAR（`SELECT *`），且 SqlSelect 构造 requireNonNull(selectList)。
+        // hbt 影子副本原此处传 null 会触发 fork 非空约束 NPE（与计划完整性无关，是潜伏的副本漂移 bug）。
+        return new SqlSelect(POS, SqlNodeList.EMPTY, SqlNodeList.SINGLETON_STAR, node, null, null, null,
                 SqlNodeList.EMPTY, null, null, null, null);
     }
 
@@ -1496,7 +1499,7 @@ public abstract class SqlImplementor {
             final Context newContext;
             Map<String, RelDataType> newAliases = null;
             final SqlNodeList selectList = select.getSelectList();
-            if (selectList != null) {
+            if (!selectList.equals(SqlNodeList.SINGLETON_STAR)) {
                 final boolean aliasRef = expectedClauses.contains(Clause.HAVING)
                         && dialect.getConformance().isHavingAlias();
                 newContext = new Context(dialect, selectList.size()) {
@@ -1621,7 +1624,7 @@ public abstract class SqlImplementor {
         private boolean hasNestedAggregations(Aggregate rel) {
             if (node instanceof SqlSelect) {
                 final SqlNodeList selectList = ((SqlSelect) node).getSelectList();
-                if (selectList != null) {
+                if (!selectList.equals(SqlNodeList.SINGLETON_STAR)) {
                     final Set<Integer> aggregatesArgs = new HashSet<>();
                     for (AggregateCall aggregateCall : rel.getAggCallList()) {
                         aggregatesArgs.addAll(aggregateCall.getArgList());

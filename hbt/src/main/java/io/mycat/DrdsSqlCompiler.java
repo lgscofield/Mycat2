@@ -443,39 +443,22 @@ public class DrdsSqlCompiler {
         } else {
             RelOptCluster cluster = logPlan.getCluster();
             RelOptPlanner planner = cluster.getPlanner();
+            // ===== I-DEBT-10 方向A·阶段一：确定性逻辑下推前置 pass =====
+            // 把「构建/并大 MycatView payload」的全部逻辑重写（算子交换 transposes + 视图下推 CBO_RULES
+            // 含 JoinViewRule 并表 + GSI 索引 MycatViewIndexViewRule + merge-sort 预排 MycatExtraSortRule
+            // + BKA 相关子查询表回 MycatTableLookup*）从 Volcano 的 Alternatives 探索中剥离，放进**有界
+            // HepPlanner**（matchLimit 兜底，必在有限步求不动点）。
+            // 根因：MycatView 在 Volcano 中是不透明叶子，其 payload 每次 changeTo/ofCondition 深拷贝并大，
+            // Volcano 保留所有 Alternative 反复再探索 → count/depth 双重失控（实测基线 call# 1268 万、
+            // 卸 ExtraSort 后仍 depth 爆栈）。HepPlanner 就地替换、不保留 Alternatives，同规则不再复合放大。
+            logPlan = runLogicalPushdownFixedPoint(logPlan);
+
+            // ===== I-DEBT-10 方向A·阶段二：Volcano 仅做物理选型/代价 =====
+            // 逻辑下推规则不再注册进 Volcano（已由阶段一确定性完成）；仅保留物理 ConverterRule
+            // （经 MycatConvention.register → MycatRules.rules()：MycatJoinRule/MycatMergeJoinRule/
+            // MycatProjectRule…）与外部注入规则 relOptRules。Volcano 不再持有「会生长不透明叶子 payload」
+            // 的规则 → 探索空间闭合 → 收敛。
             planner.clear();
-            MycatConvention.INSTANCE.register(planner);
-            ImmutableList.Builder<RelOptRule> listBuilder = ImmutableList.builder();
-            listBuilder.addAll(MycatExtraSortRule.RULES);
-            listBuilder.addAll(LocalRules.CBO_RULES);
-
-            //算子交换
-            // Filter/Join, TopN/Join, Agg/Join, Filter/Agg, Sort/Project, Join/TableLookup
-            listBuilder.add(CoreRules.JOIN_PUSH_EXPRESSIONS);
-            listBuilder.add(CoreRules.FILTER_INTO_JOIN);
-
-//          TopN/Join
-            listBuilder.add(CoreRules.SORT_JOIN_TRANSPOSE.config.withOperandFor(MycatTopN.class, Join.class).toRule());
-
-            listBuilder.add(CoreRules.FILTER_SET_OP_TRANSPOSE.config.toRule());
-            listBuilder.add(CoreRules.AGGREGATE_JOIN_TRANSPOSE.config.withOperandFor(Aggregate.class, Join.class, false).toRule());
-
-            //Sort/Project
-            listBuilder.add(CoreRules.SORT_PROJECT_TRANSPOSE.config.withOperandFor(Sort.class, Project.class).toRule());
-
-            //index
-            listBuilder.add(MycatViewIndexViewRule.DEFAULT_CONFIG.toRule());
-            if (DrdsSqlCompiler.RBO_BKA_JOIN) {
-                //TABLELOOKUP
-                listBuilder.add(MycatTableLookupSemiJoinRule.INSTANCE);
-                listBuilder.add(MycatTableLookupCombineRule.INSTANCE);
-                listBuilder.add(MycatJoinTableLookupTransposeRule.LEFT_INSTANCE);
-                listBuilder.add(MycatJoinTableLookupTransposeRule.RIGHT_INSTANCE);
-                listBuilder.add(MycatValuesJoinRule.INSTANCE);
-            }
-
-
-            listBuilder.build().forEach(c -> planner.addRule(c));
             MycatConvention.INSTANCE.register(planner);
 
             if (relOptRules != null) {
@@ -495,6 +478,54 @@ public class DrdsSqlCompiler {
             RelNode accept = bestExp.accept(new MatierialRewriter());
             return (MycatRel) accept;
         }
+    }
+
+    /**
+     * I-DEBT-10 方向A·阶段一：将全部确定性逻辑下推重写放入有界 HepPlanner，就地求不动点。
+     * HepPlanner 会就地替换匹配节点、不保留 Alternatives，故不会像 Volcano 那样在不透明的
+     * MycatView 叶子上反复深拷贝并大 payload 导致 count/depth 失控。每组设 matchLimit 兑底：
+     * 命中即停止继续匹配（返回当前态，非抛异常）；正常查询远不及此限，命中限说明计划异常需排查。
+     */
+    private RelNode runLogicalPushdownFixedPoint(RelNode logPlan) {
+        HepProgramBuilder builder = new HepProgramBuilder();
+        // 算子交换：Filter/Join, Sort/Join, Agg/Join, Filter/SetOp, Sort/Project
+        // matchOrder 须在 addGroupBegin 之前设置，方对本组生效（置于 addGroupEnd 之后只影响下一组）。
+        // SORT_JOIN_TRANSPOSE 用 Sort 作 operand：本 pass 处于 changeTraits(MycatConvention) 之前，树内只有
+        // LogicalSort，MycatTopN 是阶段二物理规则才产，故旧代码的 MycatTopN operand 在此恒不命中。
+        builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
+        builder.addGroupBegin().addRuleCollection(ImmutableList.of(
+                CoreRules.JOIN_PUSH_EXPRESSIONS,
+                CoreRules.FILTER_INTO_JOIN,
+                CoreRules.SORT_JOIN_TRANSPOSE.config.withOperandFor(Sort.class, Join.class).toRule(),
+                CoreRules.FILTER_SET_OP_TRANSPOSE.config.toRule(),
+                CoreRules.AGGREGATE_JOIN_TRANSPOSE.config.withOperandFor(Aggregate.class, Join.class, false).toRule(),
+                CoreRules.SORT_PROJECT_TRANSPOSE.config.withOperandFor(Sort.class, Project.class).toRule()
+        )).addGroupEnd();
+        // merge-sort 预排须**先于** JoinViewRule 并表：ExtraSort 要给 join 两侧下推排序需 join 仍可见，
+        // 一旦 JoinViewRule 把 Join(2 view) 并入单视图，ExtraSort 无 join 可排 → 分布式 merge-sort 计划丢失。
+        // 同组内规则触发顺序是任意的（HepProgramBuilder.addGroupEnd 语义），故拆为独立的前置组以保证次序。
+        builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
+        builder.addGroupBegin().addRuleCollection(MycatExtraSortRule.RULES).addGroupEnd();
+        // 视图下推 + GSI 索引选择（含 JoinViewRule 并表）
+        builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
+        builder.addGroupBegin()
+                .addRuleCollection(LocalRules.CBO_RULES)
+                .addRuleInstance(MycatViewIndexViewRule.DEFAULT_CONFIG.toRule())
+                .addGroupEnd();
+        if (DrdsSqlCompiler.RBO_BKA_JOIN) {
+            // TABLELOOKUP 相关子查询回表
+            builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
+            builder.addGroupBegin()
+                    .addRuleInstance(MycatTableLookupSemiJoinRule.INSTANCE)
+                    .addRuleInstance(MycatTableLookupCombineRule.INSTANCE)
+                    .addRuleInstance(MycatJoinTableLookupTransposeRule.LEFT_INSTANCE)
+                    .addRuleInstance(MycatJoinTableLookupTransposeRule.RIGHT_INSTANCE)
+                    .addRuleInstance(MycatValuesJoinRule.INSTANCE)
+                    .addGroupEnd();
+        }
+        HepPlanner hepPlanner = new HepPlanner(builder.build());
+        hepPlanner.setRoot(logPlan);
+        return hepPlanner.findBestExp();
     }
 
     public static RelNode preJoinReorder(RelNode logPlan) {

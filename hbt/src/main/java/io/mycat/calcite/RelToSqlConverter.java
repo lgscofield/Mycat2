@@ -735,7 +735,8 @@ public class RelToSqlConverter extends SqlImplementor
     final Result x = visitInput(e, 0, Clause.ORDER_BY, Clause.OFFSET,
         Clause.FETCH);
     final Builder builder = x.builder(e);
-    if (stack.size() != 1 && builder.select.getSelectList() == null) {
+    // I-DEBT-10 L1 影子副本同步：fork 已用 SqlNodeList.SINGLETON_STAR 代替 selectList==null 哨兵。
+    if (stack.size() != 1 && builder.select.getSelectList().equals(SqlNodeList.SINGLETON_STAR)) {
       // Generates explicit column names instead of start(*) for
       // non-root order by to avoid ambiguity.
       final List<SqlNode> selectList = Expressions.list();

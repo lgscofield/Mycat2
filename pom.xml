@@ -97,7 +97,7 @@
     <commons-io.version>2.15.0</commons-io.version>
     <hppc.version>0.9.0</hppc.version>
     <reflections.version>0.10</reflections.version>
-    <rxjava3-extensions.version>3.0.1</rxjava3-extensions.version>
+    <rxjava3-extensions.version>3.1.1</rxjava3-extensions.version>
 
     <!-- NoSQL 驱动 -->
     <mongo-driver.version>3.12.10</mongo-driver.version>

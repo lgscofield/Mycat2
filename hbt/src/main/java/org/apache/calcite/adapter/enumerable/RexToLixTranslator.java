@@ -2977,6 +2977,26 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
       this.inputs = inputs;
     }
 
+    // I-DEBT-10/L1 影子副本同步：fork 现 Calcite 1.42 的 InputGetterImpl 有 (Expression,PhysType) 与
+    // (Map) 两个构造，fork 自身的 EnumerableCalc/EnumUtils/JaninoRexCompiler 会以这些签名调用
+    // 本类（运行时本 hbt 影子类因同 FQCN 胜出），旧影子缺之 → NoSuchMethodError。补齐并委托到既有
+    // List<Pair> 表示（保持插入序，与 fork ImmutableMap 语义一致），不改既有 field() 行为。
+    public InputGetterImpl(Expression e, PhysType physType) {
+      this(ImmutableList.of(Pair.of(e, physType)));
+    }
+
+    public InputGetterImpl(Map<Expression, PhysType> inputs) {
+      this(toPairList(inputs));
+    }
+
+    private static List<Pair<Expression, PhysType>> toPairList(Map<Expression, PhysType> inputs) {
+      final List<Pair<Expression, PhysType>> list = new ArrayList<>(inputs.size());
+      for (Map.Entry<Expression, PhysType> entry : inputs.entrySet()) {
+        list.add(Pair.of(entry.getKey(), entry.getValue()));
+      }
+      return list;
+    }
+
     public Expression field(BlockBuilder list, int index, Type storageType) {
       int offset = 0;
       for (Pair<Expression, PhysType> input : inputs) {

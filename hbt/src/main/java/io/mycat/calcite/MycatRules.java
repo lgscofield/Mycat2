@@ -195,7 +195,10 @@ public class MycatRules {
                 MycatMergeJoinRule.INSTANCE
 //                MycatBottomTableScanViewRule.Config.DEFAULT.toRule()
         )
-                .addAll(MycatExtraSortRule.RULES)
+                // I-DEBT-10 方向A：MycatExtraSortRule 语义是逻辑 payload 生长（下推预排序），
+                // 不应作为物理约定规则在 Volcano 反复探索不透明 MycatView 叶子（实测是 count 指数失控主燃料）。
+                // 已从本物理规则集卸除，改由 DrdsSqlCompiler.runLogicalPushdownFixedPoint 的有界 HepPlanner 前置 pass 跑一次。
+                // .addAll(MycatExtraSortRule.RULES)
 //                .addAll(MycatSingleViewRule.RULES)
 //                .addAll(MycatBiRelViewRule.RULES)
 //                .add(MycatBottomTableScanViewRule.Config.DEFAULT.toRule())

@@ -32,6 +32,7 @@ import org.apache.calcite.rel.core.CorrelationId;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.hint.RelHint;
+import org.apache.calcite.util.Util;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
@@ -189,7 +190,12 @@ public class MycatSortMergeJoin extends Join implements MycatRel {
                                                 ImmutableList.of(
                                                         leftResult.physType, rightResult.physType)),
                                         Expressions.constant(EnumUtils.toLinq4jJoinType(joinType)),
-                                        comparator))).toBlock());
+                                        comparator,
+                                        // I-DEBT-10/L1 影子副本同步：fork 1.42 BuiltInMethod.MERGE_JOIN 为 9 参
+                                        // (末位 EqualityComparer)，hbt 旧影子仅传 8 参→janino "no applicable method"。
+                                        // 对齐 fork EnumerableMergeJoin:544-546 补末位 comparer 参数。
+                                        Util.first(leftKeyPhysType.comparer(),
+                                                Expressions.constant(null))))).toBlock());
     }
     @Override
     public boolean isSupportStream() {
