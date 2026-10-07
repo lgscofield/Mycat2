@@ -44,10 +44,15 @@
             <artifactId>gson</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-test-autoconfigure -->
+        <!-- MYCAT CHANGE (I-DEBT-22): Spring Boot 2.4.1 → 2.7.18。2.4.1 携带的 Spring 5.3.2 内置 ASM
+             无法解析 JDK21 字节码（Unsupported class file major version 65），且引用 slf4j 1.7 的
+             StaticLoggerBinder（本仓已统一到 slf4j 2.0.16/logback 1.5.18）。升到最后一个 2.7.x（Spring
+             5.3.31，ASM 支持 JDK21），保留 javax/Hibernate 5.x/Spring Data 2.x API——零业务代码改动、
+             对 Mycat 生成的 SQL 行为不变。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
-            <version>2.4.1</version>
+            <version>2.7.18</version>
         </dependency>
         <!-- MYCAT CHANGE: 此处曾硬码 junit-jupiter-api/engine 5.7.0，与根 pom 全局注入的
              5.12.2（pom.xml:174-192，配套 vintage）冲突：nearest-wins 把 platform 压到 1.7，
@@ -59,20 +64,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>2.4.1</version>
+            <version>2.7.18</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.4.1</version>
+            <version>2.7.18</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>5.4.25.Final</version>
-        </dependency>
+        <!-- MYCAT CHANGE (I-DEBT-22): 删显式 hibernate-core 5.4.25，由 spring-boot-starter-data-jpa 2.7.18
+             传递带来 Hibernate 5.6.15（JDK21 兼容，API 同 5.x 线）；否则旧版会被 nearest-wins 钉住。 -->
 
         <dependency>
             <groupId>junit</groupId>
@@ -97,12 +98,8 @@
             <artifactId>jcip-annotations</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.3.2</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- MYCAT CHANGE (I-DEBT-22): 删显式 spring-context 5.3.2，由 spring-boot 2.7.18 starter 传递
+             带来 Spring 5.3.31（ASM 支持 JDK21）；显式旧版会把 Spring 钉回不支持 JDK21 字节码的版本。 -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-junit5</artifactId>
@@ -145,4 +142,28 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- MYCAT CHANGE (I-DEBT-22): springdata 的 JPA 测试用 Spring Boot 2.4.1，其
+                         LogbackLoggingSystem.getLoggerContext 直调 org.slf4j.impl.StaticLoggerBinder
+                         （slf4j 1.7 机制）。但本仓已刻意统一到 slf4j-api 2.0.16 + logback 1.5.18
+                         （root pom 标"安全关键项"，logback 1.5 已改 ServiceLoader、无 StaticLoggerBinder）
+                         → Spring Boot 启动阶段抛 NoClassDefFoundError，7 方×3 类全红，且尚未触及 Mycat。
+                         这些测试作为 JDBC 客户端连外部 8066、不需要 Spring Boot 自管日志：置
+                         org.springframework.boot.logging.LoggingSystem=none 使 LoggingSystem.get() 返回
+                         null、跳过 logback 初始化，绕开该静态引用。纯测试侧、零产品码；战略修法为升级
+                         Spring Boot 至支持 slf4j 2.x 的 3.x（触发 javax→jakarta + Spring Data API 改名，
+                         面大），另记。 -->
+                    <systemPropertyVariables>
+                        <org.springframework.boot.logging.LoggingSystem>none</org.springframework.boot.logging.LoggingSystem>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
