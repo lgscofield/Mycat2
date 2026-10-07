@@ -17,6 +17,7 @@ package io.mycat.calcite.metadata;
 import com.google.common.collect.ImmutableList;
 import io.mycat.calcite.logical.MycatView;
 import org.apache.calcite.rel.RelCollation;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Sort;
 import org.apache.calcite.rel.metadata.BuiltInMetadata;
 import org.apache.calcite.rel.metadata.ChainedRelMetadataProvider;
@@ -25,8 +26,10 @@ import org.apache.calcite.rel.metadata.MetadataHandler;
 import org.apache.calcite.rel.metadata.ReflectiveRelMetadataProvider;
 import org.apache.calcite.rel.metadata.RelMetadataProvider;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
+import org.apache.calcite.util.ImmutableBitSet;
 
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * I-DEBT-3 续：把原 hbt 影子 {@code RelMdCollation} 里对 {@link MycatView} 的 collation 供出规则，
@@ -57,9 +60,15 @@ public final class MycatRelMetadataProvider {
             ReflectiveRelMetadataProvider.reflectiveSource(
                     new MycatViewCollationHandler(), BuiltInMetadata.Collation.Handler.class);
 
-    /** 本包所有 Mycat 自有元数据源的链（Task 7 会继续追加 UniqueKeys 源）。 */
+    /** MycatView 的 uniqueKeys 透传 handler（Task 7）。 */
+    public static final RelMetadataProvider UNIQUEKEYS_SOURCE =
+            ReflectiveRelMetadataProvider.reflectiveSource(
+                    new MycatViewUniqueKeysHandler(), BuiltInMetadata.UniqueKeys.Handler.class);
+
+    /** 本包所有 Mycat 自有元数据源的链。 */
     public static final RelMetadataProvider INSTANCE =
-            ChainedRelMetadataProvider.of(ImmutableList.of(COLLATION_SOURCE));
+            ChainedRelMetadataProvider.of(
+                    Arrays.asList(COLLATION_SOURCE, UNIQUEKEYS_SOURCE));
 
     /**
      * Mycat 源置于 fork 默认链之前的完整 provider。接线处（{@code DrdsSqlCompiler} 的 newCluster /
@@ -97,6 +106,25 @@ public final class MycatRelMetadataProvider {
                 return ImmutableList.of(collation);
             }
             return ImmutableList.of();
+        }
+    }
+
+    /**
+     * {@link MycatView} uniqueKeys 透传规则的执行体：视图自身的唯一键即其底层 {@code getRelNode()} 的唯一键。
+     * 复刻影子 {@code RelMdUniqueKeys.getUniqueKeys(MycatView, mq, ignoreNulls)}。
+     */
+    public static class MycatViewUniqueKeysHandler
+            implements MetadataHandler<BuiltInMetadata.UniqueKeys> {
+
+        @Override
+        public org.apache.calcite.rel.metadata.MetadataDef<BuiltInMetadata.UniqueKeys> getDef() {
+            return BuiltInMetadata.UniqueKeys.DEF;
+        }
+
+        public Set<ImmutableBitSet> getUniqueKeys(MycatView rel, RelMetadataQuery mq,
+                boolean ignoreNulls) {
+            RelNode relNode = rel.getRelNode();
+            return mq.getUniqueKeys(relNode, ignoreNulls);
         }
     }
 }
