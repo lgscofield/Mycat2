@@ -280,6 +280,15 @@ public class SqlTypeAssignmentRule implements SqlTypeMappingRule {
     rule.add(SqlTypeName.VARIANT);
     rules.add(SqlTypeName.ANY, rule);
 
+    // MYCAT CHANGE (I-DEBT-13): 上游本表未登记 SqlTypeName.OTHER，导致凡 OTHER 作为指派/转换目标
+    // 时 SqlTypeMappingRule.canApplyFrom 踩 assert 抛 "No assign rules for OTHER defined"。
+    // 触发点：SqlFunction.deriveType → SqlUtil.filterRoutinesByParameterTypeAndName →
+    // canCastFrom(paramType=OTHER, argType, boolean) —— 该 boolean 重载固定走本表的静态默认实例
+    // （SqlTypeAssignmentRule.instance() / 由它派生的 SqlTypeCoercionRule.instance()），不读校验器配置。
+    // Mycat 侧 java.time 入参经 JavaToSqlType 落到 OTHER，任何带此参数的函数重载查找即崩。
+    // 补 OTHER（仅自身可指派）：把"崩溃"降为"不匹配"，重载查找得以继续命中正确签名。NULL 已由 canApplyFrom 短路。
+    rules.add(SqlTypeName.OTHER, EnumSet.of(SqlTypeName.OTHER));
+
     INSTANCE = new SqlTypeAssignmentRule(rules.map);
   }
 

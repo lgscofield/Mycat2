@@ -171,6 +171,15 @@ public enum MycatCalciteSupport implements Context {
                             .addAll(SqlTypeName.BOOLEAN_TYPES).build());
         }
 
+        // MYCAT CHANGE (I-DEBT-13): 赋值/coercion 规则表承自上游未登记 SqlTypeName.OTHER 键，
+        // 导致 SqlUtil.filterRoutinesByParameterTypeAndName → SqlTypeUtil.canCastFrom(paramType=OTHER, argType)
+        // 在 SqlTypeMappingRule.canApplyFrom 踩 assert 抛 "No assign rules for OTHER defined"
+        // （java.time 入参经 JavaToSqlType 转换落到 OTHER，凡带此参数的函数重载查找即崩）。
+        // 补 OTHER 键（仅自身可指派，NULL 已由 canApplyFrom 短路），使 OTHER 参数候选被优雅判为不匹配淘汰、
+        // 而非崩栈——重载查找得以继续命中正确签名。校验器级硬化，Mycat 侧一处。
+        map.put(SqlTypeName.OTHER,
+                ImmutableSet.<SqlTypeName>builder().add(SqlTypeName.OTHER).build());
+
         SqlTypeCoercionRule instance1 = SqlTypeCoercionRule.instance(map);
         return SqlValidator.Config.DEFAULT.withSqlConformance(calciteConnectionConfig.conformance())
                 .withTypeCoercionEnabled(true)
