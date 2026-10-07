@@ -866,10 +866,15 @@ public class RelMdUtil {
                                                        RelNode input, RelCollation collation, RexNode offset, RexNode fetch) {
     // Check if the input is already sorted
     boolean alreadySorted = collation.getFieldCollations().isEmpty();
-    for (RelCollation inputCollation : mq.collations(input)) {
-      if (inputCollation.satisfies(collation)) {
-        alreadySorted = true;
-        break;
+    // fork 1.42 RelMdCollation catch-all 对未专门处理的逻辑节点返回 null（"未知"），
+    // 旧影子返回空列表；两者对本循环逐值等价（[] 与 null 均不进入循环），故加 null 防护。
+    final List<RelCollation> inputCollations = mq.collations(input);
+    if (inputCollations != null) {
+      for (RelCollation inputCollation : inputCollations) {
+        if (inputCollation.satisfies(collation)) {
+          alreadySorted = true;
+          break;
+        }
       }
     }
     // Check if we are not reducing the number of tuples

@@ -538,9 +538,9 @@ public class DrdsSqlCompiler {
                 .build();
         final HepPlanner hepPlanner = new HepPlanner(hep,
                 null, false, null, RelOptCostImpl.FACTORY);
-        List<RelMetadataProvider> list = new ArrayList<>();
-        list.add(MycatRelMetadataProvider.WITH_DEFAULT);
-        hepPlanner.registerMetadataProviders(list);
+        // 元数据 provider 的真实接线在 cluster 级（newCluster 的 setMetadataProvider + Programs.of），
+        // fork 1.42 的 HepPlanner.registerMetadataProviders 已被 @Deprecated 且仅对入参 list 追加
+        // HepRelMetadataProvider、无人消费——在此调用是 no-op，故不接线。
         hepPlanner.setRoot(logPlan);
         logPlan = hepPlanner.findBestExp();
         return logPlan;

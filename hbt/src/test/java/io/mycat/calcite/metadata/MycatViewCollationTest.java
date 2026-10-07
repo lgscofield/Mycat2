@@ -99,4 +99,29 @@ public class MycatViewCollationTest {
         Assertions.assertEquals(collation, result.get(0),
                 "供出的 collation 必须与底层 Sort 逐字段一致");
     }
+
+    /**
+     * 非 merge-sort 视图（底层非 Sort）：MycatView 的 collation 必须供出"确定无序"——非 null
+     * 的空列表（或仅含空 collation），以区别于 fork RelMdCollation catch-all 对未知节点的
+     * {@code null}（"未知"）。判别子：摘掉 COLLATION_SOURCE 后 MycatView 落 fork catch-all 即 null，本用例转红。
+     */
+    @Test
+    public void nonMergeSortView_ReturnsDefinitelyUnordered_NotNull() {
+        RelOptCluster cluster = DrdsSqlCompiler.newCluster();
+        RelNode input = fiveRowValues(cluster);
+        // 底层为 values（非 Sort）+ SHARDING distribution → isMergeSort() 为 false，走非 merge-sort 分支。
+        MycatView view = new MycatView(cluster.traitSet(), input, shardingDistribution());
+        Assertions.assertFalse(view.isMergeSort(), "底层非 Sort，构造应为非 merge-sort 视图");
+
+        RelMetadataQuery mq = cluster.getMetadataQuery();
+        List<RelCollation> result = mq.collations(view);
+
+        // 核心契约差：Mycat 供出确定无序（非 null），而非 fork catch-all 的 null（未知）。
+        Assertions.assertNotNull(result,
+                "Mycat 语义：非 merge-sort MycatView 的 collation 应为确定无序（非 null），区别于 fork catch-all 的 null");
+        // 且“无序”：空列表，或仅含无字段排序项的 collation。
+        Assertions.assertTrue(result.isEmpty()
+                        || result.stream().allMatch(c -> c.getFieldCollations().isEmpty()),
+                "确定无序：供出列表应为空，或其元素的字段排序项均为空");
+    }
 }
