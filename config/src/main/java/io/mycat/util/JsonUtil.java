@@ -1,6 +1,7 @@
 package io.mycat.util;
 
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,8 +19,14 @@ public class JsonUtil {
     // UnrecognizedPropertyException（MIGRATE hint 报 Unrecognized field "cmd"）。cmd 实际由 hint 头部
     // ("/*+ mycat:{CMD}{json}" 中 { 前缀) 提取、body 里的 cmd 仅冗余。改为容错读端（忽略未知属性），
     // 单点覆盖整个 hint 族，契合"跨版本宽容兼容"主旨；hint body 均为自选字段解析，无需靠"未知即报错"保正确。
+    //
+    // MYCAT CHANGE (I-DEBT-24): manager hint 常由人手写、非严格 JSON——如 setSqlTimeFilter 的 body
+    // "{value:30000}" 字段名未加双引号，默认 ObjectMapper 抛 JsonParseException("was expecting double-quote
+    // to start field name")。再开 ALLOW_UNQUOTED_FIELD_NAMES（纯放宽接受、对既有合法 JSON 逐字解析无影响），
+    // 与上面容错读端同属"hint 宽容兼容"主旨，单点覆盖 HintHandler 全部 JsonUtil.from(body, Map.class) 解析口。
     private static final ObjectMapper MAPPER = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 
     public static Map<String, String> urlSplit(String s) {
         Map<String, String> mapRequest = new HashMap<>(2);
