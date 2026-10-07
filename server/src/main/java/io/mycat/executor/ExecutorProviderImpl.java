@@ -77,10 +77,15 @@ public class ExecutorProviderImpl implements ExecutorProvider {
                     },
                     getArrayBindable(codeExecuterContext));
         } catch (Exception exception) {
-            LOGGER.error("", exception);
-
+            // MYCAT CHANGE (I-DEBT-11): 不再吞异常返回 null——曾致下游 prepare.getArrayBindable()/asRowBaseIterator()
+            // 踩 NullPointerException，把真正的 codegen 成因（如 janino "Not a boolean expression"）掩盖成
+            // "prepare is null"。改为向上传播原始异常，保留可诊断的根因链。
+            LOGGER.error("prepare failed for plan: " + plan, exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            }
+            throw new RuntimeException("Failed to build PrepareExecutor: " + exception.getMessage(), exception);
         }
-        return null;
     }
 
     private PhysicalPlan fixCast(PhysicalPlan factory) {
@@ -125,7 +130,14 @@ public class ExecutorProviderImpl implements ExecutorProvider {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(code);
         }
-        return (MycatBindable) cbe.createInstance(new StringReader(code));
+        try {
+            return (MycatBindable) cbe.createInstance(new StringReader(code));
+        } catch (Exception e) {
+            // MYCAT CHANGE (I-DEBT-11): janino 编译失败时输出实际生成的源码（方法已 @SneakyThrows，异常原样透传），
+            // 便于按报错行列号定位生成码缺陷（如 "Not a boolean expression"）。
+            LOGGER.error("janino compile failed, generated code follows:\n" + code, e);
+            throw e;
+        }
     }
 
 }

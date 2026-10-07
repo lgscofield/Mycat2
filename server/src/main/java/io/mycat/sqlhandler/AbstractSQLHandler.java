@@ -161,14 +161,25 @@ public abstract class AbstractSQLHandler<Statement extends SQLStatement> impleme
     }
 
     public static String generateSimpleSQL(List<String[]> projects, String schema, String table, String where0, String where, String like) {
-        String s = Optional.ofNullable(where0).orElse(" true ");
-        if (like != null) {
-            s +=" and "+ like;
+        // MYCAT CHANGE (I-DEBT-11): 之前对缺省的 where0/like/where 填充字面量 " true "，
+        // 生成 "... where true" / "... ) tbl where true" 形态。MyCAT 的字面量参数化会把
+        // 布尔字面量 true 变成一个裸的动态参数（其 RelDataType 推断为 UNKNOWN），
+        // codegen 发射为 Object，谓词里于是出现 (boolean && Object)，
+        // janino 编译报 "Not a boolean expression"（影响整族 SHOW TABLES/COLUMNS/... 语句）。
+        // 语义上 "where true" 等价于无 where，故仅在实际存在条件时才拼接 WHERE 子句。
+        List<String> innerConditions = new ArrayList<>();
+        if (where0 != null) {
+            innerConditions.add(where0);
         }
+        if (like != null) {
+            innerConditions.add(like);
+        }
+        String innerWhere = innerConditions.isEmpty() ? "" : (" where " + String.join(" and ", innerConditions));
+        String outerWhere = where == null ? "" : (" where " + where);
+
         String sql = "select *" + " from (select " +
-                projects.stream().map(i -> "" + i[0] + "" + " as " + i[1] + "").collect(Collectors.joining(",")) + "  from `" + schema + "`.`" + table + "` where " +s
-                +") " +table+
-                " where " + Optional.ofNullable(where).orElse(" true ");
+                projects.stream().map(i -> "" + i[0] + "" + " as " + i[1] + "").collect(Collectors.joining(",")) + "  from `" + schema + "`.`" + table + "`" + innerWhere
+                +") " +table+ outerWhere;
         return sql;
     }
 
