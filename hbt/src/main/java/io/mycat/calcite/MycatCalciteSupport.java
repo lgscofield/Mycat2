@@ -270,6 +270,15 @@ public enum MycatCalciteSupport implements Context {
                                     if (org.apache.calcite.rel.type.RelDataTypeFactoryImpl.isJavaType(tt)) {
                                         tt = ((org.apache.calcite.adapter.java.JavaTypeFactory) factory).toSql(tt);
                                     }
+                                    // MYCAT CHANGE (I-DEBT-31/32, 终审 Important-2): super 对动态参在 AbstractTypeCoercion:108 早退，
+                                    // 从不执行 needToCast，故 needToCast 末尾 L309 的 `assert canCastFrom(to,from,lenient)` 对动态参是死支。
+                                    // 放行后该断言变活：若命中 Mycat 自补映射(lenient 表未含，如 BIT/BOOLEAN→DOUBLE 兜底)，
+                                    // -ea 下抛 AssertionError 取代原友好的 Cannot apply、生产无 -ea 静默生成非法 CAST。
+                                    // 前置 canCastFrom 守卫：不可 cast 则保守 return false(退回原不 coerce 语义)，使该 assert 对动态参永不触发。
+                                    if (!SqlTypeUtil.canCastFrom(tt, operandType,
+                                            SqlTypeCoercionRule.lenientInstance())) {
+                                        return false;
+                                    }
                                     if (!needToCast(scope, operand, tt, SqlTypeCoercionRule.lenientInstance())) {
                                         return false;
                                     }
