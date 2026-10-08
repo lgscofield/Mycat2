@@ -85,6 +85,17 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
 
     @Override
     public RelDataType createJavaType(Class aClass) {
+        // MYCAT CHANGE (I-DEBT-23e): 与 getJavaClass 的 TIME->Duration 反向映射（I-DEBT-12 方向 A）对称补全
+        // Java->SQL 正向映射。本 fork 以 java.time.Duration 作为 TIME 的内部表示，但 Calcite 默认的
+        // JavaTypeFactoryImpl.createJavaType 不识别 Duration -> 落到 OTHER，而 OTHER 的 getJavaClass=String
+        // 不可被 coerercible，导致 `SELECT CURTIME() + 0` 校验期抛 `Cannot apply '+' to '<OTHER> + <INTEGER>'`。
+        // Duration.class -> TIME 后，TIME + NUMERIC 命中 MycatCalciteSupport.getValidatorConfig 的
+        // implicitCast(TIME,NUMERIC)=DOUBLE，`+0` 得以通过。作用域精确限 Duration.class；当前所有返回
+        // Duration 的自定义函数（CURTIME/UTC_TIME/MAKETIME/SEC_TO_TIME/TIMEDIFF/TIME）语义均为 TIME 值，
+        // 无一为 INTERVAL，故无区间误类型风险（零回归）。
+        if (Duration.class == aClass) {
+            return this.javaTypeFactory.createSqlType(SqlTypeName.TIME);
+        }
         return this.javaTypeFactory.createJavaType(aClass);
     }
 

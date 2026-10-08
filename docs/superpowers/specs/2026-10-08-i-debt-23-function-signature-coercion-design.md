@@ -1,6 +1,6 @@
 # I-DEBT-23 函数签名族（bin / CONV / DATE_ADD）MySQL 宽松跨族 coercion
 
-> 状态：**23a+23b 已实现并验证 Evidenced-Done（bin/CONV/CRC32 转绿、hbt47/router15 零回归）；23c DATE_ADD/ADDDATE/DATE_SUB INTERVAL 区间构造+codegen 已收口 Evidenced-Done（回归锁 `MycatIntervalLiteralCoercionTest` 3/0/0、hbt50/router15 零回归）；新开 23e `CURTIME()+0` 时间数值化续办**。源自 I-DEBT-7C 第二轮全量重基线 sweep（2026-10-07）根族分诊 ⑥
+> 状态：**23a+23b 已实现并验证 Evidenced-Done（bin/CONV/CRC32 转绿、hbt47/router15 零回归）；23c DATE_ADD/ADDDATE/DATE_SUB INTERVAL 区间构造+codegen 已收口 Evidenced-Done（回归锁 `MycatIntervalLiteralCoercionTest` 3/0/0、hbt50/router15 零回归）；**23e `CURTIME()+0` Duration→TIME 已收口 Evidenced-Done（`MycatRelDataTypeFactory.createJavaType` 对称补 `Duration.class→TIME`、回归锁 `MycatDurationTimeMappingTest` 3/0/0、hbt58/router15 零回归）**。新开 **23f `DAYOFWEEK(<VARCHAR>)`**（testTimeFunction 修好 23e 后新暴露的异根族：内置日期函数 STRING→DATETIME 校验 coercion）。（源自 I-DEBT-7C 第二轮全量重基线 sweep（2026-10-07）根族分诊 ⑥
 > `sql.PushDownFunctionShardingTableTest ×3E`。本 spec 逐行坐实根因并给出最小 blast 正解。
 
 ## 1. 现象（凭 surefire + 服务端实测签名）
@@ -86,6 +86,8 @@ YEAR-MONTH 因影子要 `instanceof Number`（BigDecimal 是其子类）**已可
 **证据**：新增回归锁 `hbt/src/test/java/io/mycat/calcite/MycatIntervalLiteralCoercionTest.java` **3/0/0**（DAY→10 天 / HOUR→2 时 / YEAR→P12M）；重编 hbt→server fat jar + JDK21 8066 实跑 `PushDownFunctionShardingTableTest`：`ADDDATE(...INTERVAL 10 DAY)` checkValue 转绿（testChar/testMath 保持）；护栏 hbt **50/0/0**、router **15/0/0** 零回归。⇒ **23c Evidenced-Done**。
 
 **新开 23e（`testTimeFunction` 现红靶，异根）**：修好后测试推进至 `SELECT (CURTIME() + 0)` → `Cannot apply '+' to '<OTHER> + '<INTEGER>'`。Mycat 已配 `TIME/DATE/TIMESTAMP→NUMERIC` 隐式转（`MycatCalciteSupport.getValidatorConfig` 的 `implicitCast:206-211`），但 `CurTimeFunction.curTime()` 返 `java.time.Duration`，其 java→SQL 反查（`MycatRelDataTypeFactory` 缺 `Duration→TIME` 逆向映射）落到 `OTHER`（`getJavaClass(OTHER)=String`，不可 coerercible）→命中不到 TIME 分支。正解=补 `Duration→TIME` java 映射（需与 I-DEBT-13 `OTHER` coercion 登记交互、blast radius 专轮评估，非 crisp 单点，不冒进）。265/266（DATE_ADD DAY / DATE_SUB YEAR）当前被 262 阻断，探针已证语义正确，待 23e 后一并端到端复绿。
+
+**23e 收口实施（2026-10-08，凭实测推翻“非 crisp”初判）**：实测确认失败为**校验期类型派生**（非 codegen）：`SELECT CURTIME()+0` → `Cannot apply '+' to '<OTHER> + <INTEGER>'`。根因坐实为 `MycatRelDataTypeFactory` 仅覆写了 SQL→Java 方向（`getJavaClass(TIME)=Duration`，I-DEBT-12 方向 A），**Java→SQL 正向 `createJavaType(Duration.class)` 未接** → Calcite 默认落 `OTHER`。**blast radius 实测收敛（非初判的“专轮评估”）**：枚举全部 9 个 `static Duration` 返回函数（`curTime`/`utcTime`/`makeTime`/`secToTime`/`timeDiff`×3/`time`）**语义均为 TIME 值、无一为 INTERVAL** → 对称补 `Duration.class→TIME` 零误类型风险。**修法（单调、零回归）**：`createJavaType` 仅拦截 `Duration.class == aClass` 返回 `createSqlType(TIME)`，其余原样委派；与 `getJavaClass` 构成双向对称。`Duration→TIME` 后 `TIME + NUMERIC` 命中已有 `implicitCast(TIME,NUMERIC)=DOUBLE`，`+0` 通过。**证据**：新回归锁 `hbt/src/test/java/io/mycat/calcite/MycatDurationTimeMappingTest.java` **3/0/0**（正向 Duration→TIME / 双向对称 / DATE·TIMESTAMP·OTHER·Integer 不受波及）；重编 hbt→server fat jar + JDK21 8066 实跑 `PushDownFunctionShardingTableTest#testTimeFunction`：`<OTHER> + <INTEGER>` 错误消失、推进至 line 272 新暴露的 **23f `DAYOFWEEK(<VARCHAR>)`** 异根族（内置日期函数 STRING→DATETIME 校验 coercion，独立挂账、非 23e 面）；护栏 hbt **58/0/0**（+3 新锁；`MycatTemporalJavaClassTest` SQL→Java 向不回归）、router **15/0/0**。⇒ **23e Evidenced-Done**（`CURTIME()+0` 面）；testTimeFunction 整体仍红于 23f。
 
 
 
