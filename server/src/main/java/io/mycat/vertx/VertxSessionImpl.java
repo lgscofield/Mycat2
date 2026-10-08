@@ -175,6 +175,9 @@ public class VertxSessionImpl implements VertxSession {
 
     @Override
     public Future<Void> close(boolean normal, String quit) {
+        // 置写守卫：关闭后 writeBytes/writeErrorEndPacketBySyncInProcessError 对 socket 变 no-op，
+        // 兑现面① 前提"关连接后顶层 recover 补发的裸 ERR 不再写进读行态连接"（对齐 proxy NIO 侧 isConnected 守卫）。
+        this.close = true;
         Future<Void> future;
         if (normal) {
             mycatDataContext.close();
