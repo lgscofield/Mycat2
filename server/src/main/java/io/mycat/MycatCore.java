@@ -93,6 +93,9 @@ public class MycatCore {
     public MycatCore() {
         // I-DEBT-30 面①：运行时最早期注册全局 RxJava 兜底，确保任何 Undeliverable 只记日志不抛回 worker。
         io.mycat.rx.MycatRxJavaErrorHandler.install();
+        // I-DEBT-3 面③ Phase A：codegen 触发前装配 Mycat Calcite 中立 seam（root/动态参/ <=> 严格相等），
+        // 使删旧影子后 fork 1.42 单版本仍保留 Mycat 定制。
+        io.mycat.calcite.MycatCalciteRuntimeHooks.install();
         RxBuiltInMethod[] values = RxBuiltInMethod.values();
         // TimeZone.setDefault(ZoneInfo.getTimeZone("UTC"));
         String path = findMycatHome();
