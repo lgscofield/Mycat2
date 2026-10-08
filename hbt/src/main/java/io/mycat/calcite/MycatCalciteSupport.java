@@ -78,6 +78,7 @@ import org.apache.calcite.sql.validate.SqlConformance;
 import org.apache.calcite.sql.validate.SqlConformanceEnum;
 import org.apache.calcite.sql.validate.SqlNameMatcher;
 import org.apache.calcite.sql.validate.SqlValidator;
+import org.apache.calcite.sql.validate.SqlValidatorScope;
 import org.apache.calcite.sql.validate.implicit.TypeCoercion;
 import org.apache.calcite.sql.validate.implicit.TypeCoercionFactory;
 import org.apache.calcite.sql.validate.implicit.TypeCoercionImpl;
@@ -245,6 +246,43 @@ public enum MycatCalciteSupport implements Context {
                                     return typeFactory.createSqlType(SqlTypeName.DOUBLE);
                                 }
                                 return typeFactory.createSqlType(SqlTypeName.DOUBLE);
+                            }
+
+                            /**
+                             * MYCAT CHANGE (I-DEBT-31/32): 上游 AbstractTypeCoercion.coerceOperandType 对 SqlDynamicParam
+                             * 一刀切早退"永不 cast 动态参"（calcite-core AbstractTypeCoercion:108），但 Mycat 校验期
+                             * 已由 DrdsRunnerHelper.resolveDynamicParam 派生出每个 ? 的实际 SQL 类型，该约定在 Mycat 不成立。
+                             * 此处对"已知型(非 ANY)动态参"复刻 super 主体（仅去掉见动态参即早退那条）就地包 CAST，
+                             * 使比较运算符(VARBINARY=VARCHAR) 与内置函数(builtinFunctionCoercion→DAYOFWEEK 等) 的跨族 coercion 走通；
+                             * 未知型(ANY) 仍保守拒 cast（不扩面）。castTo/syncAttributes 跨包不可见，故用 public/protected API 内联。
+                             */
+                            @Override
+                            protected boolean coerceOperandType(SqlValidatorScope scope, SqlCall call,
+                                    int index, RelDataType targetType) {
+                                final SqlNode operand = call.getOperandList().get(index);
+                                if (operand instanceof SqlDynamicParam && scope != null) {
+                                    final RelDataType operandType = validator.deriveType(scope, operand);
+                                    if (operandType == null
+                                            || operandType.getSqlTypeName() == SqlTypeName.ANY) {
+                                        return false;
+                                    }
+                                    RelDataType tt = targetType;
+                                    if (org.apache.calcite.rel.type.RelDataTypeFactoryImpl.isJavaType(tt)) {
+                                        tt = ((org.apache.calcite.adapter.java.JavaTypeFactory) factory).toSql(tt);
+                                    }
+                                    if (!needToCast(scope, operand, tt, SqlTypeCoercionRule.lenientInstance())) {
+                                        return false;
+                                    }
+                                    final RelDataType synced =
+                                            factory.createTypeWithNullability(tt, operandType.isNullable());
+                                    final SqlNode desired = SqlStdOperatorTable.CAST.createCall(
+                                            operand.getParserPosition(), operand,
+                                            SqlTypeUtil.convertTypeToSpec(synced).withNullable(synced.isNullable()));
+                                    call.setOperand(index, desired);
+                                    updateInferredType(desired, synced);
+                                    return true;
+                                }
+                                return super.coerceOperandType(scope, call, index, targetType);
                             }
                         };
                     }
