@@ -136,7 +136,11 @@ public class SqlFunctionTest implements MycatTest {
             stmt = conn.createStatement();
             System.out.println(s);
 
-            rs = stmt.executeQuery(s);
+            // I-DEBT-30 面②：镜像 I-DEBT-7A-2 客户端守卫绕过。BASELINE ADD/JOIN 等 hint 串
+            // 直调 stmt.executeQuery 会撞 Connector/J 客户端"不产结果集"守卫，掩蔽掉服务端真链路；
+            // 改 execute()+getResultSet() 让 SQL 真正打到服务端，暴露运行期 JOIN codegen。
+            stmt.execute(s);
+            rs = stmt.getResultSet();
 
             ResultSetMetaData rsMeta = rs.getMetaData();
 

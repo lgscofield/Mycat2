@@ -2429,6 +2429,27 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     return translate;
   }
 
+  // I-DEBT-30 面②：fork EnumUtils JOIN codegen（生成 sort-merge/hash JOIN 谓词）按此 7 参
+  // 描述符调用；运行期本 PARK 影子与 fork 同 FQCN 且胜出，缺此重载即链接期 NoSuchMethodError。
+  // 体复刻上方 6 参版（MycatBindable.ROOT + 影子 8 参构造器 + setCorrelates），
+  // 唯一差别：condition 依 nullable 选 NullAs.NULL/FALSE（对齐 fork:1248）。单调新增，不动 6 参版。
+  public static Expression translateCondition(RexProgram program,
+      JavaTypeFactory typeFactory, BlockBuilder list, InputGetter inputGetter,
+      Function1<String, InputGetter> correlates, SqlConformance conformance, boolean nullable) {
+    if (program.getCondition() == null) {
+      return RexImpTable.TRUE_EXPR;
+    }
+    final ParameterExpression root = MycatBindable.ROOT;
+    RexToLixTranslator translator =
+        new RexToLixTranslator(program, typeFactory, root, inputGetter, list,
+            new RexBuilder(typeFactory), conformance, null);
+    translator = translator.setCorrelates(correlates);
+    Expression translate = translator.translate(
+            program.getCondition(),
+            nullable ? RexImpTable.NullAs.NULL : RexImpTable.NullAs.FALSE);
+    return translate;
+  }
+
   /** Returns whether an expression is nullable.
    * @param e Expression
    * @return Whether expression is nullable
