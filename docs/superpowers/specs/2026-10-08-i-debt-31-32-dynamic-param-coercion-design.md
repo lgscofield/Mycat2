@@ -3,6 +3,10 @@
 > 状态：**设计已获用户批准（方案 A·同轮），待 writing-plans 拆解实施**。
 > 来源：Phase3 逐族分诊挂账的 I-DEBT-31（`VARBINARY=VARCHAR` 比较，提交 9a753fc67）与 I-DEBT-32（`DAYOFWEEK(<VARCHAR>)` 函数 operand，提交 fb56a172d）。本轮经用户拍板，将两族（+泛化 23a 认知）合并为一个"动态参 defeat coercion"系统性根 spec 轮，一次收口、共享回归门。
 
+> **实施订正（2026-10-08，凭 TDD RED 实测栈，覆盖本 spec 下文“两修点”叙述）**：下文 §3 原设“两处分修点”，实施时实测证伪——`DAYOFWEEK(<VARCHAR>)` 校验期解析为 Calcite **内置** `SqlDatePartFunction`→`FamilyOperandTypeChecker:168`→`TypeCoercionImpl.builtinFunctionCoercion:777`→`AbstractTypeCoercion.coerceOperandType`，**并非**走 Mycat 自定义函数的 `mycatCoerceOperands`（修点② 打偏）。故 I-DEBT-31（比较面经 `binaryComparisonCoercion`）与 I-DEBT-32（内置函数面经 `builtinFunctionCoercion`）**汇同一闸门** `coerceOperandType:108`⇒**归一为单修点①**（覆写 `coerceOperandType`），修点② `mycatCoerceOperands` 收窄已 git 回退（无效且带 23a 承重守卫 blast）。详见账本 `Ruling` 与看板变更日志。
+>
+> **残留正交挂账**：收口后 `testComplexQuery` :391 blob 比较转绿，但方法整体推进至 :403 `EXISTS` 子查询崩 `NoSuchMethodError RelMdUtil.isRelDefinitelyNotEmpty`——系 I-DEBT-3 hbt PARK 影子签名漂移（非本 spec coercion 面），不扩面修。
+
 ## 0. 一句话结论
 
 Mycat 把 SQL 字面量参数化成 `?`（`SqlDynamicParam`），而上游 Calcite 校验器**一刀切地"永不对动态参施加隐式 CAST"**；这个约定在 Calcite 原生场景成立（校验期动态参类型未知），但在 Mycat 里**不成立**——Mycat 校验器已能派生出每个 `?` 的实际 SQL 类型。二者错位导致所有"跨族比较 / 跨族函数入参"在真正需要包 CAST 时被静默拒绝，抛出 `Cannot apply '=' to '<VARBINARY> = <VARCHAR>'`、`Cannot apply 'DAYOFWEEK' to '<VARCHAR>'` 之类错误。正解是**让"类型可知的动态参"重新参与 coercion**，且只在 Mycat 侧改、不动上游逻辑文件。
