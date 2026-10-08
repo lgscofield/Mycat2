@@ -66,6 +66,12 @@ Mycat2 通过 vendored fork `calcite-core`（目标 Calcite 1.42）承载定制 
 ### 4.3 注册点
 单一 hbt 启动安装例程（复用面① `MycatCore()` 构造器顶部 `install()` 模式），集中 `set` S1/S2/S3 默认→Mycat 实现。依赖方向合法：hbt 依赖 calcite-core，可 import 并写其静态 seam。
 
+### 4.4 单一版本护栏（回应"包冲突"风险，Phase A 交付项）
+现状实测：fork 为 `io.mycat:calcite-core:1.42.0-mycat`，server/hbt 依赖树**均无**上游 `org.apache.calcite:calcite-core`；linq4j/avatica 靠上游各单份、与 fork 不重叠（fork 不含 linq4j 源码）。故**当前无"fork+上游双份"**。但 fork 用独立 groupId，Maven 调解**不自动阻止**未来某模块/传递依赖把上游 `org.apache.calcite:calcite-core` 拽回，一旦引入即两 groupId 同 FQCN **静默并存**，比现状更糟。⇒ 加一道构建期护栏保 fork 永远唯一：
+- 首选 `maven-enforcer` `banned-dependencies` 禁 `org.apache.calcite:calcite-core`（**前提：离线 `.m2` 已缓存该插件**，否则退下一步）。
+- 备选：构建期哨兵断言（扫描运行期 classpath，若出现仅存于上游完整 calcite-core、而 fork 未含的哨兵类则构建失败），或 CI 阶段 `dependency:tree` 断言无上游 calcite-core。
+- 具体载体由 writing-plans 依离线可用性裁定。
+
 ## 5. 分阶段范围
 
 **Phase A（参考类，本轮验收）**：`RexLiteral`（S2，1 触点）+ `RexToLixTranslator`（S1+S3，实测其 io.mycat 触点仅 `MycatBindable.ROOT` 与 `StrictEqualFunction`，不含 S2）。
@@ -83,6 +89,7 @@ Mycat2 通过 vendored fork `calcite-core`（目标 Calcite 1.42）承载定制 
 2. **e2e**：`testOptimizationProcedure`（面② JOIN，须仍 1/0/0）、`testComplexQuery`（`:403` `isRelDefinitelyNotEmpty` 崩点须消）、`case1`/`testCastFunction` 等既有 codegen 相关用例不退化。
 3. **护栏**：`mvn -o test -pl hbt,router` 全量零回归；重打 fat jar + 8066 活体复跑。
 4. **闸门校验**：`grep "^import io.mycat" calcite-core/.../mycat/*` 保持 0；`grep -R "io.mycat" calcite-core/src/main/java/org/apache/calcite` 命中数不增（seam 全用 plain Calcite 类型）。
+5. **单一版本校验**（§4.4）：依赖树断言无上游 `org.apache.calcite:calcite-core`；护栏插件/哨兵生效，确保 fat jar 中 calcite-core 仅 fork 一份。
 
 ## 7. 关键风险与处置（经验证伪，不梭哈）
 
