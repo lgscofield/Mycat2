@@ -180,6 +180,14 @@
             <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- I-DEBT-30: unit tests mock NewMycatConnection to drive streaming producer.
+             离线仓无 root 管理的 5.16.1，模块级钉已缓存的 5.17.0（不动 root、不影响 va）。 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.17.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>scott-data-hsqldb</artifactId>

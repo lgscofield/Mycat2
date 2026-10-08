@@ -822,35 +822,52 @@ public class VertxExecuter {
                                                                                     String sql,
                                                                                     List<Object> values) {
         return Observable.create(emitter -> {
+            // 单次终态门：onComplete/onError 只放行一次，防 double-terminal → Undeliverable。
+            final AtomicBoolean terminated = new AtomicBoolean(false);
             // 连接到达
             connectionFuture.onSuccess(connection -> {
-                // 预编译到达
-                connection.prepareQuery(sql, values, new MysqlCollector() {
+                // 预编译到达。prepareQuery 的同步抛错此刻已逃逸出 Observable.create 的兜底窗口
+                // （连接多为异步到达），须就近兜住并路由成 onError，否则 promise 永不 settle、裸异常抛回 worker。
+                try {
+                    connection.prepareQuery(sql, values, new MysqlCollector() {
 
-                    MycatRowMetaData mycatRowMetaData;
+                        MycatRowMetaData mycatRowMetaData;
 
-                    @Override
-                    public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                        emitter.onNext(new MySQLColumnDef(this.mycatRowMetaData = mycatRowMetaData));
+                        @Override
+                        public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
+                            emitter.onNext(new MySQLColumnDef(this.mycatRowMetaData = mycatRowMetaData));
+                        }
+
+                        @Override
+                        public void onRow(Object[] row) {
+                            emitter.onNext(new MysqlObjectArrayRow(BaseRowObservable.getObjects(row, this.mycatRowMetaData)));
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            if (terminated.compareAndSet(false, true)) {
+                                emitter.onComplete();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            if (terminated.compareAndSet(false, true)) {
+                                emitter.onError(e);
+                            }
+                        }
+                    });
+                } catch (Throwable t) {
+                    if (terminated.compareAndSet(false, true)) {
+                        emitter.onError(t);
                     }
-
-                    @Override
-                    public void onRow(Object[] row) {
-                        emitter.onNext(new MysqlObjectArrayRow(BaseRowObservable.getObjects(row, this.mycatRowMetaData)));
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        emitter.onComplete();
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        emitter.onError(e);
-                    }
-                });
+                }
             });
-            connectionFuture.onFailure(i -> emitter.onError(i));
+            connectionFuture.onFailure(i -> {
+                if (terminated.compareAndSet(false, true)) {
+                    emitter.onError(i);
+                }
+            });
         });
     }
 
@@ -867,40 +884,56 @@ public class VertxExecuter {
                                                 List<Object> values,
                                                 MycatRowMetaData rowMetaDataArg) {
         return Observable.create(emitter -> {
+            // 单次终态门：与 runQueryOutputAsMysqlPayloadObject 同构，防 double-terminal → Undeliverable。
+            final AtomicBoolean terminated = new AtomicBoolean(false);
             // 连接到达
             connectionFuture.onSuccess(connection -> {
-                // 预编译到达
-                connection.prepareQuery(sql, values, new MysqlCollector() {
+                // 预编译到达（同构兜逃逸异常，见上）。
+                try {
+                    connection.prepareQuery(sql, values, new MysqlCollector() {
 
-                    MycatRowMetaData mycatRowMetaData;
+                        MycatRowMetaData mycatRowMetaData;
 
-                    @Override
-                    public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                        this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
-                    }
-
-                    @Override
-                    public void onRow(Object[] row) {
-                        try {
-                            emitter.onNext(BaseRowObservable.getObjects(row, this.mycatRowMetaData));
-                        } catch (Exception e) {
-                            LOGGER.error("", e);
-                            throw e;
+                        @Override
+                        public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
+                            this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
                         }
-                    }
 
-                    @Override
-                    public void onComplete() {
-                        emitter.onComplete();
-                    }
+                        @Override
+                        public void onRow(Object[] row) {
+                            try {
+                                emitter.onNext(BaseRowObservable.getObjects(row, this.mycatRowMetaData));
+                            } catch (Exception e) {
+                                LOGGER.error("", e);
+                                throw e;
+                            }
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        emitter.onError(e);
+                        @Override
+                        public void onComplete() {
+                            if (terminated.compareAndSet(false, true)) {
+                                emitter.onComplete();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            if (terminated.compareAndSet(false, true)) {
+                                emitter.onError(e);
+                            }
+                        }
+                    });
+                } catch (Throwable t) {
+                    if (terminated.compareAndSet(false, true)) {
+                        emitter.onError(t);
                     }
-                });
+                }
             });
-            connectionFuture.onFailure(i -> emitter.onError(i));
+            connectionFuture.onFailure(i -> {
+                if (terminated.compareAndSet(false, true)) {
+                    emitter.onError(i);
+                }
+            });
         });
     }
 
