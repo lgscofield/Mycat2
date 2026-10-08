@@ -242,6 +242,14 @@
             <groupId>org.apache.calcite.avatica</groupId>
             <artifactId>avatica-core</artifactId>
         </dependency>
+        <!-- I-DEBT-30: unit tests drive observer with a mocked front-end session.
+             离线仓无 root 管理的 5.16.1，模块级钉已缓存的 5.17.0（不动 root、不影响 va）。 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.17.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -296,6 +296,8 @@ public class ReceiverImpl implements Response {
         private Disposable disposable;
         Function<Object[], byte[]> convertor;
         private final AtomicLong rowCount = new AtomicLong(0);
+        /** 列头是否已刷给客户端：一旦刷出，连接进入读行态，后续错误不能再补合法 ERR 包，只能关连接。 */
+        private boolean resultStarted = false;
 
         public MysqlPayloadObjectObserver(Promise<Void> promise,
                                           boolean moreResultSet, boolean binary, MySQLServerSession session) {
@@ -321,6 +323,8 @@ public class ReceiverImpl implements Response {
                     session.writeBytes(((MysqlByteArrayPayloadRow) next).getBytes(), false);
                 } else if (next instanceof MySQLColumnDef) {
                     MycatRowMetaData rowMetaData = ((MySQLColumnDef) next).getMetaData();
+                    // 列数包即客户端进入读行态的提交点：先置位，此后任何错误都只能关连接而非补 ERR。
+                    this.resultStarted = true;
                     session.writeColumnCount(rowMetaData.getColumnCount());
                     if (!binary) {
                         convertor = ResultSetMapping.concertToDirectTextResultSet(rowMetaData);
@@ -341,6 +345,13 @@ public class ReceiverImpl implements Response {
         @Override
         public void onError(@NonNull Throwable throwable) {
             disposable.dispose();
+            if (resultStarted) {
+                // 列头已上线：连接进入读行态，此时补发裸 0xFF ERR 包属协议非法（该状态只认 行/EOF/OK），
+                // 客户端会把错误包当数据行继续等终结包而永久挂死。对齐真 MySQL，强制关闭前端连接，
+                // 客户端得 "Lost connection during query"；顶层 recover 因 channel 已断自动变 no-op。
+                String msg = throwable.getMessage() != null ? throwable.getMessage() : throwable.toString();
+                session.close(false, msg);
+            }
             promise.tryFail(throwable);
         }
 
