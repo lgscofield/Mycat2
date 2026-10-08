@@ -91,6 +91,8 @@ public class MycatCore {
 
     @SneakyThrows
     public MycatCore() {
+        // I-DEBT-30 面①：运行时最早期注册全局 RxJava 兜底，确保任何 Undeliverable 只记日志不抛回 worker。
+        io.mycat.rx.MycatRxJavaErrorHandler.install();
         RxBuiltInMethod[] values = RxBuiltInMethod.values();
         // TimeZone.setDefault(ZoneInfo.getTimeZone("UTC"));
         String path = findMycatHome();
