@@ -34,6 +34,7 @@ import org.apache.calcite.rel.RelFieldCollation;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinInfo;
+import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.core.Sort;
 import org.apache.calcite.rel.hint.RelHint;
@@ -74,6 +75,15 @@ public class MycatMergeJoinRule extends MycatConverterRule {
     @Nullable
     public MycatSortMergeJoin tryMycatSortMergeJoin(Join rel, boolean rbo) {
         if (!DrdsSqlCompiler.RBO_MERGE_JOIN) {
+            return null;
+        }
+        // I-DEBT-30 面③：ANTI 不得走排序归并连接。运行期 EnumerableDefaults.mergeJoin
+        // 对连接键为 NULL 的左行会整批丢弃（仅 LEFT 豁免 null-key），与 NOT EXISTS
+        // “左键 NULL 时无匹配→应输出该行”的三值语义冲突；去相关前的 LEFT Correlate+IS NULL
+        // 指示列路径是正确的。返回 null 交 MycatJoinRule 的 hash/nested-loop 半连接（ANTI 走
+        // implementHashSemiJoin→ANTI_JOIN，null 语义经源码核对正确）。活体 explain 证实 ANTI
+        // （isSemiJoin()==false）本会落到 MycatSortMergeJoin(joinType=anti)。
+        if (rel.getJoinType() == JoinRelType.ANTI) {
             return null;
         }
         RelHint lastJoinHint = HintTools.getLastJoinHint(rel.getHints());

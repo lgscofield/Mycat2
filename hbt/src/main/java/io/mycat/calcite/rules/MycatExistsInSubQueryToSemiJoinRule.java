@@ -158,6 +158,14 @@ public class MycatExistsInSubQueryToSemiJoinRule extends RelOptRule {
         if (leftKeys.isEmpty()) {
             return; // 无相关等值键（非等值/复杂相关）→ 不改写
         }
+        // 残差里若仍引用被移除的相关变量（等值键之外的非等值/复合相关谓词），把它下放到
+        // 右子树会得到无任何 Correlate 绑定的悬空 $cor（非法计划）。按 Review Focus ④
+        // 「非等值/复合相关不改写」，此处 bail 保持原 Correlate。
+        for (RexNode r : residual) {
+            if (RexUtil.containsCorrelation(r)) {
+                return;
+            }
+        }
 
         RelNode rightRel = base;
         if (!residual.isEmpty()) {

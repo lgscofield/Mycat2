@@ -146,4 +146,41 @@ public class MycatExistsInSubQueryToSemiJoinRuleTest {
         Assertions.assertEquals(JoinRelType.ANTI, ((Join) joinInput).getJoinType(),
                 "NOT EXISTS 应重写为 ANTI Join");
     }
+
+    /**
+     * 相关子查询含“等值键 + 另一个非等值相关谓词”的混合形状：
+     * {@code where c.id = t.id and t.id > c.id}。只有等值项能升为 join key，
+     * 非等值相关谓词仍引用被移除的相关变量（$cor），无法安全下放到右子树。
+     * 按 Review Focus ④（非等值/复合相关必须**不改写**），本规则应 bail，保持原 Correlate。
+     */
+    @Test
+    void mixedCorrelatedPredicateIsNotRewritten() {
+        RelBuilder rb = createRelBuilder();
+        RelNode left = idScan(rb, "T");
+        RelNode right = idScan(rb, "C");
+
+        final Holder<RexCorrelVariable> v = Holder.of(null);
+        RelNode tree = rb
+                .push(left)
+                .variable(v)
+                .push(right)
+                // 合取：等值相关键 + 一个非等值相关谓词（两者均引用 $cor）
+                .filter(rb.call(org.apache.calcite.sql.fun.SqlStdOperatorTable.EQUALS,
+                                rb.field(v.get(), "id"), rb.field(0)),
+                        rb.call(org.apache.calcite.sql.fun.SqlStdOperatorTable.GREATER_THAN,
+                                rb.field(v.get(), "id"), rb.field(0)))
+                .project(rb.literal(true))
+                .aggregate(rb.groupKey(0))
+                .correlate(JoinRelType.INNER, v.get().id)
+                .project(rb.field(0))
+                .build();
+
+        RelNode out = applyRule(tree);
+
+        // 不应被改写：Project 的输入仍为 Correlate（非 SEMI Join），避免产生悬空相关变量的非法计划
+        RelNode joinInput = ((Project) out).getInput();
+        Assertions.assertFalse(joinInput instanceof Join,
+                "含非等值相关谓词的混合形状不应被改写为 Join，实际="
+                        + joinInput.getClass().getSimpleName() + "\n" + RelOptUtil.toString(out));
+    }
 }
