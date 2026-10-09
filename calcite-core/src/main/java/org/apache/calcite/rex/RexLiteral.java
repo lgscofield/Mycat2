@@ -21,6 +21,7 @@ import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.avatica.util.TimeUnit;
 import org.apache.calcite.config.CalciteSystemProperty;
 import org.apache.calcite.linq4j.function.Functions;
+import org.apache.calcite.mycat.MycatCalciteRuntime;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
@@ -56,12 +57,16 @@ import org.locationtech.jts.geom.Geometry;
 
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -231,7 +236,9 @@ public class RexLiteral extends RexNode {
   /**
    * Creates a <code>RexLiteral</code>.
    */
-  RexLiteral(
+  // MYCAT CHANGE (I-DEBT-30 面③): 放宽为 public，供 hbt RelJson 序列化路径直接构造
+  // （旧影子 RexLiteral 此构造器为 public，删影子后保持可见性；Phase B 删 RelJson 后可回收）。
+  public RexLiteral(
       @Nullable Comparable value,
       RelDataType type,
       SqlTypeName typeName) {
@@ -1215,8 +1222,25 @@ public class RexLiteral extends RexNode {
       }
       break;
     case INTERVAL_YEAR:
+      // MYCAT CHANGE (I-DEBT-30 面③ / I-DEBT-23c): fork 将 YEAR-MONTH 区间归一化为“总月数”
+      // （'1' YEAR => 12），需按月的 Period 还原，故收编旧影子的 java.time 收口逻辑。
+      if (clazz == Period.class) {
+        return clazz.cast(Period.ofMonths(((Number) value).intValue()));
+      } else if (clazz == Boolean.class) {
+        return clazz.cast(Boolean.valueOf(((Number) value).intValue() > 0));
+      } else if (clazz == String.class) {
+        return clazz.cast(Objects.toString(value));
+      } else {
+        throw new UnsupportedOperationException("unsupport " + typeName);
+      }
     case INTERVAL_YEAR_MONTH:
+      throw new UnsupportedOperationException("unsupport " + typeName);
     case INTERVAL_MONTH:
+      if (clazz == Period.class) {
+        return clazz.cast(Period.ofMonths(((Number) value).intValue()));
+      } else {
+        throw new UnsupportedOperationException("unsupport " + typeName);
+      }
     case INTERVAL_DAY:
     case INTERVAL_DAY_HOUR:
     case INTERVAL_DAY_MINUTE:
@@ -1227,12 +1251,86 @@ public class RexLiteral extends RexNode {
     case INTERVAL_MINUTE:
     case INTERVAL_MINUTE_SECOND:
     case INTERVAL_SECOND:
+      // MYCAT CHANGE (I-DEBT-30 面③ / I-DEBT-23c): DAY-TIME value 是毫秒数（BigDecimal）；
+      // 归一化为 Duration 供代码生成层（RexToLixTranslator/DateAdd 等）消费，兼容旧 Duration 直传形态。
+      Duration duration = (value instanceof Duration)
+          ? (Duration) value
+          : Duration.ofMillis(((Number) value).longValue());
+      if (clazz == Duration.class) {
+        return clazz.cast(duration);
+      }
+      Long i = 0L;
+      switch (typeName) {
+        case INTERVAL_DAY:
+          i = duration.toDays();
+          break;
+        case INTERVAL_DAY_HOUR:
+          i = duration.toHours();
+          break;
+        case INTERVAL_DAY_MINUTE:
+          i = duration.toMinutes();
+          break;
+        case INTERVAL_DAY_SECOND:
+          i = duration.getSeconds();
+          break;
+        case INTERVAL_HOUR:
+          i = duration.toHours();
+          break;
+        case INTERVAL_HOUR_MINUTE:
+          i = duration.toMinutes();
+          break;
+        case INTERVAL_HOUR_SECOND:
+          i = duration.getSeconds();
+          break;
+        case INTERVAL_MINUTE:
+          i = duration.toMinutes();
+          break;
+        case INTERVAL_MINUTE_SECOND:
+          i = duration.getSeconds();
+          break;
+        case INTERVAL_SECOND:
+          i = duration.getSeconds();
+          break;
+      }
       if (clazz == Integer.class) {
-        return clazz.cast(((BigDecimal) value).intValue());
+        return clazz.cast(new BigInteger(i.toString()).intValue());
       } else if (clazz == Long.class) {
-        return clazz.cast(((BigDecimal) value).longValue());
+        return clazz.cast(new BigInteger(i.toString()).longValue());
       } else if (clazz == String.class) {
+        SqlTypeName sqlTypeName = getType().getSqlTypeName();
+        if (this.value != null && this.value instanceof Duration) {
+          Duration durationValue = (Duration) this.value;
+          LocalTime localTime = LocalTime.of(0, 0).plus(durationValue);
+          switch (sqlTypeName) {
+            case INTERVAL_DAY:
+              return clazz.cast((durationValue.toDays()) + "");
+            case INTERVAL_DAY_HOUR:
+              return clazz.cast((localTime.getHour()) + "");
+            case INTERVAL_DAY_MINUTE:
+              return clazz.cast((localTime.toSecondOfDay() / 60) + "");
+            case INTERVAL_DAY_SECOND:
+              return clazz.cast((localTime.toSecondOfDay()) + "");
+            case INTERVAL_HOUR:
+              return clazz.cast((localTime.getHour()) + "");
+            case INTERVAL_HOUR_MINUTE:
+              return clazz.cast((localTime.getMinute()) + "");
+            case INTERVAL_HOUR_SECOND:
+              return clazz.cast((localTime.getSecond()) + "");
+            case INTERVAL_MINUTE:
+              return clazz.cast((durationValue.toMinutes()) + "");
+            case INTERVAL_MINUTE_SECOND:
+              return clazz.cast((localTime.getMinute()) + "");
+            case INTERVAL_SECOND:
+              return clazz.cast((durationValue.getSeconds()) + "");
+            case INTERVAL_MICROSECOND:
+              return clazz.cast((durationValue.toMillis()) + "");
+            default:
+              break;
+          }
+        }
         return clazz.cast(intervalString(castNonNull(getValueAs(BigDecimal.class)).abs()));
+      } else if (clazz == BigDecimal.class) {
+        return clazz.cast(new BigDecimal(i.toString()));
       } else if (clazz == Boolean.class) {
         // return whether negative
         return clazz.cast(castNonNull(getValueAs(BigDecimal.class)).signum() < 0);
@@ -1318,6 +1416,11 @@ public class RexLiteral extends RexNode {
   }
 
   private static @Nullable Comparable findValue(RexNode node) {
+    // MYCAT CHANGE (I-DEBT-30 面③): 动态参 ?N 经中立 seam 取值（默认上游行为=抛，
+    // Mycat 侧 MycatCalciteRuntimeHooks 装配后走 ParamHolder），替代旧影子的 io.mycat 直连。
+    if (node instanceof RexDynamicParam) {
+      return MycatCalciteRuntime.get().dynamicParamValue(((RexDynamicParam) node).getIndex());
+    }
     if (node instanceof RexLiteral) {
       return ((RexLiteral) node).value;
     }
