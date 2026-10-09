@@ -673,6 +673,9 @@ public class DrdsSqlCompiler {
                 ImmutableList.of(CoreRules.FILTER_SUB_QUERY_TO_CORRELATE,
                         CoreRules.PROJECT_SUB_QUERY_TO_CORRELATE,
                         CoreRules.JOIN_SUB_QUERY_TO_CORRELATE));
+        // EXISTS/IN 相关子查询去相关为 SEMI/ANTI Join：紧接三条 *_SUB_QUERY_TO_CORRELATE 之后，
+        // 把刚生成的 correlate+Aggregate(distinct) 坏形状就地重写为 Mycat 已有半连接算子可执行的 LogicalJoin(SEMI)。
+        builder.addRuleInstance(MycatExistsInSubQueryToSemiJoinRule.INSTANCE);
         Program subQuery = Programs.of(builder.build(), true, MycatRelMetadataProvider.WITH_DEFAULT);
         return subQuery;
     }
