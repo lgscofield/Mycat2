@@ -113,6 +113,11 @@ public class MycatSortMergeSemiJoin extends MycatSortMergeJoin implements MycatR
 
     @Override
     public boolean isSupportStream() {
-        return true;
+        // I-DEBT-30 面③：本类是全仓唯一声称 stream 支持却未覆盖 implementStream 的 join——
+        // implementHybridRoot/visitChild 命中 MycatRel.implementStream 默认实现会抛
+        // UnsupportedOperationException（表现为 "Unable to implement MycatSortMergeSemiJoin"）。
+        // 与父类 MycatSortMergeJoin 及兄弟 MycatSemiHashJoin/MycatNestedLoopSemiJoin 一致返回 false，
+        // 回落继承父类已验证的 implement()（EnumerableMergeJoin codegen，isMergeJoinSupported(SEMI/ANTI) 已由路由规则放行）。
+        return false;
     }
 }
