@@ -23,18 +23,26 @@ import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
 import org.junit.Test;
 
 /**
- * I-DEBT-30 面② 结构断言锁：hbt PARK 影子 {@link RexToLixTranslator} 必须声明与 fork
- * 一致的 7 参 {@code translateCondition(..., boolean nullable)} 重载。
+ * I-DEBT-30 面③ 结构断言锁：删 hbt {@link RexToLixTranslator} 影子、归一到 fork 单版本后，
+ * 同 FQCN 的唯一来源必须是 calcite-core fork（而非 hbt 影子 target），且 fork 原生声明与
+ * {@code EnumUtils}/{@code MycatCalc} JOIN codegen 所调的 7 参
+ * {@code translateCondition(..., boolean nullable)} 重载。
  *
- * <p>运行期影子胜出（与 fork 同 FQCN），而 fork 的 {@code EnumUtils} JOIN codegen 生成
- * sort-merge/hash JOIN 谓词时按 7 参描述符调用；影子仅有 6 参 → 链接期
- * {@code NoSuchMethodError}，炸全部 JOIN。此锁把"运行期载入类的 ABI 契约"钉死：
- * 缺该签名即红。（对齐 I-DEBT-18 影子补 {@code RelJson.create()} 同类先例。）
+ * <p>影子未删时胜出类来自 {@code hbt/target/classes}，本锁 codeSource 断言即红；删影子后
+ * 来源为 fork jar，转绿。同时把 ABI 契约（缺 7 参重载→运行期 {@code NoSuchMethodError}）钉死。
+ * （面② 先例：影子曾补此重载以免炸全部 JOIN；归一后由 fork 原生提供。）
  */
 public class ShadowRexToLixTranslatorJoinConditionTest {
 
   @Test
-  public void shadowDeclaresSevenArgTranslateCondition() throws Exception {
+  public void unifiedForkIsWinnerAndDeclaresSevenArg() throws Exception {
+    // 归一正向断言：胜出类不得来自 hbt 影子 target/classes。
+    String loc = RexToLixTranslator.class.getProtectionDomain().getCodeSource()
+        .getLocation().toString();
+    assertTrue("RexToLixTranslator 应来自 calcite-core fork，而非 hbt 影子 target/classes（影子未删？）",
+        !loc.contains("hbt" + java.io.File.separator + "target")
+            && !loc.contains("hbt/target/classes"));
+
     ClassLoader cl = RexToLixTranslator.class.getClassLoader();
     Class<?>[] params = {
         Class.forName("org.apache.calcite.rex.RexProgram", false, cl),
@@ -52,7 +60,7 @@ public class ShadowRexToLixTranslatorJoinConditionTest {
       m = RexToLixTranslator.class.getMethod("translateCondition", params);
     } catch (NoSuchMethodException e) {
       throw new AssertionError(
-          "影子 RexToLixTranslator 缺 fork EnumUtils JOIN codegen 所调的 7 参 "
+          "归一到 fork 后 RexToLixTranslator 缺 EnumUtils/MycatCalc JOIN codegen 所调的 7 参 "
               + "translateCondition(..., boolean nullable) 重载 → 运行期 NoSuchMethodError", e);
     }
     assertNotNull(m);

@@ -16,7 +16,6 @@
  */
 package org.apache.calcite.adapter.enumerable;
 
-import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.util.ByteString;
 import org.apache.calcite.avatica.util.DateTimeUtils;
@@ -32,6 +31,7 @@ import org.apache.calcite.linq4j.tree.ParameterExpression;
 import org.apache.calcite.linq4j.tree.Primitive;
 import org.apache.calcite.linq4j.tree.Statement;
 import org.apache.calcite.linq4j.tree.Types;
+import org.apache.calcite.mycat.MycatCalciteRuntime;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
@@ -117,7 +117,9 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
           .put(BuiltInMethod.TRANSLATE3.method, TRANSLATE3)
           .build();
 
-  final JavaTypeFactory typeFactory;
+  // MYCAT CHANGE (I-DEBT-30 面③): typeFactory 放宽为 public，供 Mycat 跨包 codegen
+  // （MycatWindow 等）访问，替代旧影子的 public 字段。仅改可见性，不动语义。
+  public final JavaTypeFactory typeFactory;
   final RexBuilder builder;
   private final @Nullable RexProgram program;
   final SqlConformance conformance;
@@ -235,12 +237,15 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
   public static RexToLixTranslator forAggregation(JavaTypeFactory typeFactory,
       BlockBuilder list, @Nullable InputGetter inputGetter,
       SqlConformance conformance) {
-    final ParameterExpression root = DataContext.ROOT;
+    // MYCAT CHANGE (I-DEBT-30 面③): root 走中立 seam（默认 DataContext.ROOT；Mycat 装钩后 =
+    // MycatBindable.ROOT，类型 NewMycatDataContext，供代码生成层按富类型访问）。
+    final ParameterExpression root = MycatCalciteRuntime.get().root();
     return new RexToLixTranslator(null, typeFactory, root, inputGetter, list,
         null, new RexBuilder(typeFactory), conformance, null);
   }
 
-  Expression translate(RexNode expr) {
+  // MYCAT CHANGE (I-DEBT-30 面③): 放宽为 public，供 Mycat 跨包 codegen（MycatWindow）调用。
+  public Expression translate(RexNode expr) {
     final RexImpTable.NullAs nullAs =
         RexImpTable.NullAs.of(isNullable(expr));
     return translate(expr, nullAs);
@@ -250,7 +255,8 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     return translate(expr, nullAs, null);
   }
 
-  Expression translate(RexNode expr, @Nullable Type storageType) {
+  // MYCAT CHANGE (I-DEBT-30 面③): 放宽为 public，供 Mycat 跨包 codegen（MycatWindow）调用。
+  public Expression translate(RexNode expr, @Nullable Type storageType) {
     final RexImpTable.NullAs nullAs =
         RexImpTable.NullAs.of(isNullable(expr));
     return translate(expr, nullAs, storageType);
@@ -1238,7 +1244,8 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     if (condition == null) {
       return RexImpTable.TRUE_EXPR;
     }
-    final ParameterExpression root = DataContext.ROOT;
+    // MYCAT CHANGE (I-DEBT-30 面③): root 走中立 seam（同上，替代 DataContext.ROOT）。
+    final ParameterExpression root = MycatCalciteRuntime.get().root();
     RexToLixTranslator translator =
         new RexToLixTranslator(program, typeFactory, root, inputGetter, list,
             null, new RexBuilder(typeFactory), conformance, null);
@@ -1491,8 +1498,11 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
     if (operator == SEARCH) {
       return RexUtil.expandSearch(builder, program, call).accept(this);
     }
+    // MYCAT CHANGE (I-DEBT-30 面③): 算子经中立 seam 重映射后再查表（默认恒等=不改上游行为；
+    // Mycat 侧 MycatCalciteRuntimeHooks 装钩后 <=> → StrictEqualFunction）。implementor.implement
+    // 仍以原 call 为参（与原影子一致：仅改查表用的 operator，不改算子本身）。
     final RexImpTable.RexCallImplementor implementor =
-        RexImpTable.INSTANCE.get(operator);
+        RexImpTable.INSTANCE.get(MycatCalciteRuntime.get().remapOperator(operator));
     if (implementor == null) {
       throw new RuntimeException("cannot translate call " + call);
     }
@@ -1859,7 +1869,8 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
   }
 
   /** Returns the value of a literal. */
-  @Nullable Object getLiteralValue(@Nullable Expression expr) {
+  // MYCAT CHANGE (I-DEBT-30 面③): 放宽为 public，供 Mycat 跨包函数实现（ExtractFunction）调用。
+  public @Nullable Object getLiteralValue(@Nullable Expression expr) {
     if (expr instanceof ParameterExpression) {
       final Expression constantExpr = literalMap.get(expr);
       return getLiteralValue(constantExpr);
@@ -1923,7 +1934,8 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
                       : Expressions.constant(null)));
       final Expression context =
           Expressions.call(BuiltInMethod.FUNCTION_CONTEXTS_OF.method,
-              DataContext.ROOT,
+              // MYCAT CHANGE (I-DEBT-30 面③): root 走中立 seam（同上）。
+              MycatCalciteRuntime.get().root(),
               Expressions.newArrayInit(Object.class, constantArgs));
       return Expressions.new_(constructor, context);
     } catch (NoSuchMethodException e) {
