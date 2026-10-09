@@ -310,7 +310,14 @@ public class RexToLixTranslator implements RexVisitor<RexToLixTranslator.Result>
       Expression operand,
       boolean safe,
       ConstantExpression format) {
-    Expression convert = getConvertExpression(sourceType, targetType, operand, format);
+    // MYCAT CHANGE (I-DEBT-30 面③): Mycat 走 MySQL 宽松 CAST 语义——旧整类影子在 translateCast 内以
+    // X_TO_Y 全矩阵（MycatBuiltInMethod，驻留本 fork 的 org.apache.calcite.mycat）分派类型转换。归一到 fork
+    // 单一版本后，该分派经中立 seam 回填：命中则用作 convert，pad/truncate/scale/safe 后处理仍走 fork 原生
+    // （与影子尾部内联逻辑等价）；未命中（含 VARIANT/ROW/ARRAY 等复杂类型）返回 null → 完全交回 fork 上游路径。
+    Expression mycatConvert =
+        MycatCalciteRuntime.get().translateCastOverride(sourceType, targetType, operand);
+    Expression convert = mycatConvert != null ? mycatConvert
+        : getConvertExpression(sourceType, targetType, operand, format);
     Expression convert2 = checkExpressionPadTruncate(convert, sourceType, targetType);
     Expression convert3 = scaleValue(sourceType, targetType, convert2);
     return expressionHandlingSafe(convert3, safe, targetType);

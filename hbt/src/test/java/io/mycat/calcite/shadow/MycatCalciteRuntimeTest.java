@@ -56,6 +56,13 @@ class MycatCalciteRuntimeTest {
       @Override public SqlOperator remapOperator(SqlOperator op) {
         return SqlStdOperatorTable.NOT;
       }
+
+      @Override public org.apache.calcite.linq4j.tree.Expression translateCastOverride(
+          org.apache.calcite.rel.type.RelDataType sourceType,
+          org.apache.calcite.rel.type.RelDataType targetType,
+          org.apache.calcite.linq4j.tree.Expression operand) {
+        return null;
+      }
     });
     assertTrue(MycatCalciteRuntime.isInstalled());
     assertSame(SqlStdOperatorTable.NOT,

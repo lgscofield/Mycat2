@@ -2,8 +2,10 @@ package io.mycat.calcite;
 
 import io.mycat.calcite.spm.ParamHolder;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
+import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.ParameterExpression;
 import org.apache.calcite.mycat.MycatCalciteRuntime;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlOperator;
 
 /**
@@ -35,6 +37,13 @@ public final class MycatCalciteRuntimeHooks implements MycatCalciteRuntime.Hooks
   @Override
   public SqlOperator remapOperator(SqlOperator op) {
     return "<=>".equalsIgnoreCase(op.getName()) ? StrictEqualFunction.INSTANCE : op;
+  }
+
+  @Override
+  public Expression translateCastOverride(RelDataType sourceType, RelDataType targetType,
+      Expression operand) {
+    // Mycat 宽松（MySQL 语义）CAST 分派：命中则回 X_TO_Y 调用，未命中回 null 交 fork 原生。
+    return MycatCastOverride.translate(sourceType, targetType, operand);
   }
 
   /** 装配本实现到中立 seam（幂等：重复调用只是再次 set 同一语义）。 */

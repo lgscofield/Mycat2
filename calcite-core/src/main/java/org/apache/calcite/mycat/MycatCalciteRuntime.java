@@ -1,7 +1,9 @@
 package org.apache.calcite.mycat;
 
 import org.apache.calcite.DataContext;
+import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.ParameterExpression;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlOperator;
 
 /**
@@ -26,6 +28,16 @@ public final class MycatCalciteRuntime {
 
     /** RexCall 翻译前的算子替换（默认恒等；Mycat 侧把 {@code <=>} 映射为严格相等实现）。 */
     SqlOperator remapOperator(SqlOperator op);
+
+    /**
+     * CAST 的 sourceType→targetType 转换分派覆盖（默认 {@code null}＝交回 fork 原生严格转换）。
+     *
+     * <p>Mycat 侧回填 MySQL 宽松 CAST 语义（旧整类影子 {@code RexToLixTranslator.translateCast} 内的
+     * {@code MycatBuiltInMethod.X_TO_Y} 分派矩阵）。返回非 {@code null} 时，fork 以其作 convert，
+     * pad/truncate/scale/safe 等后处理仍走 fork 原生；返回 {@code null}（含复杂/未覆盖类型）则完全交回 fork。
+     */
+    Expression translateCastOverride(RelDataType sourceType, RelDataType targetType,
+        Expression operand);
   }
 
   private static final Hooks DEFAULT = new Hooks() {
@@ -39,6 +51,11 @@ public final class MycatCalciteRuntime {
 
     @Override public SqlOperator remapOperator(SqlOperator op) {
       return op;
+    }
+
+    @Override public Expression translateCastOverride(RelDataType sourceType,
+        RelDataType targetType, Expression operand) {
+      return null;
     }
   };
 
