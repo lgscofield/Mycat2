@@ -108,4 +108,42 @@ public class MycatExistsInSubQueryToSemiJoinRuleTest {
         Assertions.assertEquals(JoinRelType.SEMI, ((Join) joinInput).getJoinType(),
                 "EXISTS 应重写为 SEMI Join");
     }
+
+    /** NOT EXISTS 的 LEFT correlate + IS NULL(指示列) 形状 → 应重写为 ANTI Join。 */
+    @Test
+    void notExistsBecomesAntiJoin() {
+        RelBuilder rb = createRelBuilder();
+        RelNode left = idScan(rb, "T");
+        RelNode right = idScan(rb, "C");
+
+        final Holder<RexCorrelVariable> v = Holder.of(null);
+        RelNode tree = rb
+                .push(left)
+                .variable(v)
+                .push(right)
+                .filter(rb.equals(rb.field(v.get(), "id"), rb.field(0)))
+                .project(rb.literal(true))
+                .aggregate(rb.groupKey(0))
+                // NOT EXISTS：LEFT correlate（保留全左行，指示列 $1 无匹配时为 NULL）
+                .correlate(JoinRelType.LEFT, v.get().id)
+                // 上层 Filter(IS NULL 指示列 $1) = 取无匹配者
+                .filter(rb.isNull(rb.field(1)))
+                // 再 Project 只留左列（等价 select t.*）
+                .project(rb.field(0))
+                .build();
+
+        Assertions.assertTrue(tree instanceof Project,
+                "根应为 correlate 之上的 Project，实际=" + tree.getClass().getSimpleName());
+
+        RelNode out = applyRule(tree);
+
+        Assertions.assertTrue(out instanceof Project,
+                "改写后根仍为 Project，实际=" + out.getClass().getSimpleName() + "\n" + RelOptUtil.toString(out));
+        RelNode joinInput = ((Project) out).getInput();
+        Assertions.assertTrue(joinInput instanceof Join,
+                "Project 输入应重写为 LogicalJoin，实际=" + joinInput.getClass().getSimpleName()
+                        + "\n" + RelOptUtil.toString(out));
+        Assertions.assertEquals(JoinRelType.ANTI, ((Join) joinInput).getJoinType(),
+                "NOT EXISTS 应重写为 ANTI Join");
+    }
 }

@@ -64,24 +64,47 @@ public class MycatExistsInSubQueryToSemiJoinRule extends RelOptRule {
             new MycatExistsInSubQueryToSemiJoinRule();
 
     private MycatExistsInSubQueryToSemiJoinRule() {
-        // 匹配 EXISTS 坏形状：correlate 之上「只投影左列、丢弃 EXISTS 指示列」的 Project → Correlate。
-        // 改写落点选在这个 Project（而非裸 Correlate）：裸 Correlate(INNER) 的 rowType=左+右指示列，
-        // 而 SEMI join 只出左列，直接 transformTo 会被 HepPlanner 判类型不符；此 Project 的 rowType
-        // 恰等左列（它丢弃了指示列），故保留 Project、仅把输入换成 SEMI join 即类型自洽。
-        // any() = ANY_CHILDREN，匹配 Correlate 任意子节点数。
-        super(operand(Project.class, operand(Correlate.class, any())),
-                "MycatExistsInSubQueryToSemiJoinRule");
+        // 匹配 EXISTS/NOT EXISTS 坏形状（落点选在 correlate 之上「只投影左列、丢弃 EXISTS 指示列」的
+        // Project，而非裸 Correlate）：裸 Correlate 的 rowType=左+右指示列，而 SEMI/ANTI join 只出左列，
+        // 直接 transformTo 会被 HepPlanner 判类型不符；此 Project 的 rowType 恰等左列（丢弃了指示列），
+        // 故保留 Project、仅把输入换成 SEMI/ANTI join 即类型自洽。
+        // operand 放宽到任意 Project，内部按子节点区分：INNER Correlate → EXISTS(SEMI)；
+        // Filter(IS NULL 指示列) over LEFT Correlate → NOT EXISTS(ANTI)。any() = ANY_CHILDREN。
+        super(operand(Project.class, any()), "MycatExistsInSubQueryToSemiJoinRule");
     }
 
     @Override
     public void onMatch(RelOptRuleCall call) {
         Project project = call.rel(0);
-        RelNode input = unwrap(project.getInput());
-        if (!(input instanceof Correlate)) {
-            return;
-        }
-        Correlate correlate = (Correlate) input;
-        if (correlate.getJoinType() != JoinRelType.INNER) {
+        RelNode child = unwrap(project.getInput());
+        Correlate correlate;
+        final JoinRelType joinType;
+        if (child instanceof Correlate) {
+            // EXISTS：Project(左列) over INNER Correlate —— INNER 已滤掉无匹配的左行，等价 SEMI
+            correlate = (Correlate) child;
+            if (correlate.getJoinType() != JoinRelType.INNER) {
+                return;
+            }
+            joinType = JoinRelType.SEMI;
+        } else if (child instanceof Filter) {
+            // NOT EXISTS：Project(左列) over Filter(IS NULL 指示列) over LEFT Correlate，等价 ANTI
+            Filter nf = (Filter) child;
+            RelNode fc = unwrap(nf.getInput());
+            if (!(fc instanceof Correlate)) {
+                return;
+            }
+            correlate = (Correlate) fc;
+            if (correlate.getJoinType() != JoinRelType.LEFT) {
+                return;
+            }
+            final int indicatorFloor = unwrap(correlate.getLeft()).getRowType().getFieldCount();
+            for (RexNode c : RelOptUtil.conjunctions(nf.getCondition())) {
+                if (!isIndicatorIsNull(c, indicatorFloor)) {
+                    return; // 含其它谓词则不改写（保安全）
+                }
+            }
+            joinType = JoinRelType.ANTI;
+        } else {
             return;
         }
         if (correlate.getVariablesSet().size() != 1) {
@@ -156,9 +179,9 @@ public class MycatExistsInSubQueryToSemiJoinRule extends RelOptRule {
         RexNode joinCond = RexUtil.composeConjunction(rexBuilder, conds, false);
 
         Join join = LogicalJoin.create(left, rightRel, ImmutableList.of(), joinCond,
-                ImmutableSet.of(), JoinRelType.SEMI);
-        // 保留原 Project（其表达式只引用左列，索引在 SEMI join 输出 [0,leftCount) 内保持不变），
-        // 仅把输入从 Correlate 换成 SEMI join → 行类型与原 Project 一致，HepPlanner 接受。
+                ImmutableSet.of(), joinType);
+        // 保留原 Project（其表达式只引用左列，索引在 SEMI/ANTI join 输出 [0,leftCount) 内不变），
+        // 仅把输入换成 join → 行类型与原 Project 一致，HepPlanner 接受。
         RelNode newProject = ((LogicalProject) project)
                 .copy(correlate.getCluster().traitSet(), join, project.getProjects(),
                         project.getRowType());
@@ -210,6 +233,18 @@ public class MycatExistsInSubQueryToSemiJoinRule extends RelOptRule {
             }
         }
         return null;
+    }
+
+    /** 判别 {@code IS NULL($k)}，其中 $k 指向 correlate 右侧（EXISTS 指示列，索引 >= leftCount）。 */
+    private static boolean isIndicatorIsNull(RexNode node, int leftCount) {
+        if (node instanceof RexCall) {
+            RexCall call = (RexCall) node;
+            if (call.getOperator() == SqlStdOperatorTable.IS_NULL && call.getOperands().size() == 1) {
+                RexNode op = call.getOperands().get(0);
+                return op instanceof RexInputRef && ((RexInputRef) op).getIndex() >= leftCount;
+            }
+        }
+        return false;
     }
 
     private static RelNode stripProjects(RelNode node) {
