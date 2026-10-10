@@ -1536,6 +1536,46 @@ public class UserCaseTest implements MycatTest {
         }
     }
 
+
+    /**
+     * 类型表征统一 · Review Focus #5 邻域形状补验（final review #4 追认）：
+     * ORDER BY float 列（靶 1 override 后裸列跨分片归并排序）、GROUP BY date 列 +
+     * ANY_VALUE(datetime)（靶 2 修后的分组+聚合组合）、MAX(datetime 裸列)（同一
+     * MinMaxImplementor 全链）。注：Review Focus #5 原设想形状 MAX(TIMESTAMPDIFF(SECOND,...))
+     * 实测触解析层正交债——unit 关键字被 MycatCalciteMySqlNodeVisitor 转
+     * SqlCharStringLiteral 后强转 SqlIntervalQualifier CCE（与本轮 codegen 三路径面无关，
+     * ledger Final Ruling 另记），故形状 3 以裸列 MAX 覆盖同 implementor。
+     */
+    @Test
+    public void caseTypeReprNeighborhood() throws Exception {
+        try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
+            execute(mycatConnection, RESET_CONFIG);
+            addC0(mycatConnection);
+            execute(mycatConnection, "create database db1");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "CREATE TABLE `repr_test` ("
+                    + "  `id` bigint NOT NULL,"
+                    + "  `f` float DEFAULT NULL,"
+                    + "  `dt` datetime DEFAULT NULL,"
+                    + "  `d` date DEFAULT NULL,"
+                    + "  PRIMARY KEY (`id`)"
+                    + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) dbpartitions 2;");
+            deleteData(mycatConnection, "db1", "repr_test");
+            execute(mycatConnection, "INSERT INTO `db1`.`repr_test`(`id`,`f`,`dt`,`d`) VALUES (1,500,'2020-01-02 03:04:05','2020-01-02'),(2,20.2,'2020-01-03 04:05:06','2020-01-02'),(3,3.5,'2020-02-01 00:00:00','2020-02-01')");
+            // 形状 1：ORDER BY float 列（跨分片归并排序）
+            List<Map<String, Object>> ordered = executeQuery(mycatConnection, "select f from db1.repr_test order by f");
+            System.out.println("neighborhood-orderByFloat: " + ordered);
+            // 形状 2：GROUP BY date 列 + ANY_VALUE(datetime)（acc/arg 两路径同型）
+            List<Map<String, Object>> grouped = executeQuery(mycatConnection, "select d, any_value(dt) from db1.repr_test group by d");
+            System.out.println("neighborhood-groupByDateAnyValue: " + grouped);
+            // 形状 3：MAX(datetime 裸列)（MinMaxImplementor 全链）
+            List<Map<String, Object>> maxdiff = executeQuery(mycatConnection, "select max(dt) from db1.repr_test");
+            System.out.println("neighborhood-maxDatetime: " + maxdiff);
+            Assert.assertEquals("[{f=3.5}, {f=20.2}, {f=500.0}]", ordered.toString());
+            Assert.assertTrue(grouped.toString().contains("d=2020-01-02") && grouped.toString().contains("d=2020-02-01"));
+            Assert.assertTrue(maxdiff.toString().contains("2020-02-01 00:00:00"));
+        }
+    }
     @Test
     public void case611() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {

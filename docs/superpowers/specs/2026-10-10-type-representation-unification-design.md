@@ -101,8 +101,9 @@ case FLOAT:
 
 | Mycat 列类型 | SqlTypeName | `getJavaClass`（真相源） | 投影 | 聚合 accumulator | 聚合 arg | 排序 | 状态 |
 |---|---|---|---|---|---|---|---|
-| BIT/TINYINT/SHORT/INT | BOOLEAN/TINYINT/SMALLINT/INTEGER | boolean/Byte/Short/Integer | 一致 | 一致（=getJavaClass） | 一致（toInternal→null 回退） | 一致 | 对账通过（矩阵守卫 14 例） |
-| UNSIGNED_* / LONG | 同名 | Long/BigInteger/Long | 不适用（Calcite SqlTypeName 层不区分符号，signed/unsigned 在 MycatRelDataType 直接给 Class，属值域族 I-DEBT-27） | — | — | — | 边界外，不扩 |
+| BOOLEAN/TINYINT/SHORT/INT/LONG | BOOLEAN/TINYINT/SMALLINT/INTEGER/BIGINT | boolean/Byte/Short/Integer/Long（含 nullable 包装分支） | 一致 | 一致（=getJavaClass） | 一致（toInternal→null 回退） | 一致 | 对账通过（矩阵守卫 14 类 × 空/非空两分支 = 28 例） |
+| **BIT(n>1)** | **BOOLEAN（fork 无 SqlTypeName.BIT，`Types.BIT` 归 BOOLEAN）** | boolean/Boolean ≠ 运行时 **Long**（`MycatDataType.BIT.getJavaClass=Long.TYPE`） | 声明/运行时错配 | — | — | — | **挂账**（final review 追认）：与靶 1 FLOAT 同型的声明/运行时错配；无 e2e 基线覆盖 BIT 列形状，修复方向（声明面扳 Long vs 行面扳 Boolean）需先定表征归属，另轮立债；现状由 `knownGapBitColumnIsRepresentedAsBooleanNotLong` 钉住。BIT(1) 行值即 Boolean，与表征一致不受影响 |
+| UNSIGNED_* | 不适用（Calcite SqlTypeName 层不区分符号，signed/unsigned 在 MycatRelDataType 直接给 Class，属值域族 I-DEBT-27） | — | — | — | — | — | 边界外，不扩 |
 | DECIMAL | DECIMAL | BigDecimal | 一致 | 一致 | 一致 | 一致 | 对账通过 |
 | **FLOAT** | FLOAT | **Float（本轮加 override）** | **不一致→本轮修** | 一致（本轮修后） | 一致 | 一致 | **本轮修**（提交 9c89c8c） |
 | DOUBLE | DOUBLE | Double | 一致 | 一致 | 一致 | 一致 | 对账通过 |
@@ -115,7 +116,9 @@ case FLOAT:
 
 对账完成 → 表格填"一致"或标"本轮修/挂账"。任何"不一致"若不影响 case6052/case7 但属于同类问题，加 override；若影响范围超出三路径（如二进制协议），挂账到 I-DEBT-* 不夹带。
 
-**Task 4 实测结论**（守卫 `TypeRepresentationThreePathConsistencyTest` 14 例参数化 + 1 挂账钉）：除本轮已修 FLOAT/TIMESTAMP 族外，唯一新发现漏格 = BINARY→ByteString vs byte[]，按 Q4 边界裁定挂账；其余全格一致。
+**列式/Arrow 表示边界**（Review Focus #4，final review 后按实测改写）：Mycat 存在第二套表征——Arrow 列式（`MycatDataType.convertToVector` 把结果集 JDBC 值装 FieldVector：TimeStampMilliVector/DurationVector/Float4Vector…；`getFieldVector`/`getPerformanceJavaClass` 为其配套）。实测消费面：`ShardingSQLHandler` L84 `ResultWriterUtil.convertToVector(...)` → 列式 batch 作**结果写出支路**（写协议行）；vector→Object 行的反向通道 `ResultWriterUtil.vectorRowBatchToJdbcRowObject` 与 `getPerformanceJavaClass` 当前**全仓零消费**（休眠 API）。故 codegen 的 Object 行源（前端 `BaseRowObservable.getObjects`）不经列式表征回流，两面在今日代码中**不会合流**，本轮三路径不变式作用域 = codegen Object 行面，结论不受列式面影响；INV-TRU-2"唯一真相源"的适用范围据此限定于 codegen 面。若日后续通列式执行链（激活反向通道），须先为列式面立独立对账基线再扩矩阵。
+
+**Task 4 实测结论**（守卫 `TypeRepresentationThreePathConsistencyTest` 14 类 × 空/非空 28 例参数化 + 2 挂账钉 + 聚合共享 implementor 钉）：除本轮已修 FLOAT/TIMESTAMP 族外，新发现漏格两处——BINARY→ByteString vs byte[]、BIT(n>1)→BOOLEAN 表征 vs Long 运行时——均按 Q4 边界裁定挂账；其余全格一致。
 
 ---
 
