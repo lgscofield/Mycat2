@@ -406,12 +406,23 @@ public class EnumUtils {
   }
 
   static @Nullable Type toInternal(RelDataType type, boolean forceNotNull) {
+    // MYCAT CHANGE (类型表征统一·靶 2): Mycat 全栈以 java.time 作为时间列的运行时表征
+    // (物理行 Object[] 装 LocalDate/LocalDateTime/Duration，见 MycatRelDataTypeFactory.getJavaClass
+    // override, I-DEBT-12 方向 A)。上游此处按 SqlTypeName 硬编码反推 DATE/TIME→int、
+    // TIMESTAMP/TIMESTAMP_WITH_LOCAL_TIME_ZONE→long 作 storage type, 绕开 typeFactory 真相源
+    // → aggregate argument 表达式被 codegen 成 (long) 强转, 与 accumulator 侧 (getJavaClass
+    // 得 LocalDateTime) 错配, SqlFunctions.greater(LocalDateTime, long) NoSuchMethod (case7)。
+    // 统一返回 null 命中本方法既有契约语义 "use the default storage type" —— 上层一律回退
+    // typeFactory.getJavaClass (Mycat 真相源), acc/arg 两路径扳齐 (INV-TRU-1/INV-TRU-2)。
+    // 时间类以外的分支上游本就 null, 行为不变。见 spec
+    // docs/superpowers/specs/2026-10-10-type-representation-unification-design.md。
     switch (type.getSqlTypeName()) {
     case DATE:
     case TIME:
-      return type.isNullable() && !forceNotNull ? Integer.class : int.class;
+    case TIME_WITH_LOCAL_TIME_ZONE:
     case TIMESTAMP:
-      return type.isNullable() && !forceNotNull ? Long.class : long.class;
+    case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+      return null;
     default:
       return null; // we don't care; use the default storage type
     }
