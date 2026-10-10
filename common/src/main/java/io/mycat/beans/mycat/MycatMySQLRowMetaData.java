@@ -76,8 +76,11 @@ public class MycatMySQLRowMetaData implements MycatRowMetaData {
     @Override
     public int getColumnType(int column) {
         ColumnDefPacket columnDefPacket = columnDefPackets.get(column);
+        // I-DEBT-33 Bug B：vertx 真实签名是 parseDataType(short type, int charsetIndex, int flags)，
+        // 原代码把 flags 与 charset 传反，数字列的 charset(63) 被当 flags 其 0x20 位误判为无符号，
+        // jdbc 型被加宽一档（BIGINT→NUMERIC 等），致二进制结果集值编码宽度≠列定义声明宽度。
         return DataType.parseDataType((short) columnDefPacket.getColumnType(),
-                columnDefPacket.getColumnFlags(), columnDefPacket.getColumnCharsetSet())
+                columnDefPacket.getColumnCharsetSet(), columnDefPacket.getColumnFlags())
                 .getJdbcType().getVendorTypeNumber();
     }
 
