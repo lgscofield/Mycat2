@@ -132,6 +132,55 @@ public interface MycatTest {
         return executeQuery(mySQLConnection, sql).toString();
     }
 
+    // 带参版与无参版同族：druid JdbcUtils.execute/executeQuery 内部强制 PreparedStatement
+    // 的 executeUpdate()/executeQuery()，二者都对 SQL 做 Connector/J 发送前纯客户端静态分类，
+    // 对 hint/多语句串误判即抛（同 execute()/executeQuery() 无参版根因）。此处改用
+    // PreparedStatement.execute()（不做该预分类，返回 boolean）并逐位 setObject 绑定，
+    // 参数绑定语义与 druid setParameters 逐字一致；结果转换复刻 druid ResultSetToMap
+    // （LinkedHashMap + getColumnLabel + getObject），保证既有断言形态不变。
+    public default void execute(Connection mySQLConnection, String sql, List<Object> parameters) throws Exception {
+        LOGGER.info(sql);
+        try (PreparedStatement statement = mySQLConnection.prepareStatement(sql)) {
+            setParameters(statement, parameters);
+            statement.execute();
+        }
+    }
+
+    public default List<Map<String, Object>> executeQuery(Connection mySQLConnection, String sql,
+                                                          List<Object> parameters) throws Exception {
+        LOGGER.info(sql);
+        try (PreparedStatement statement = mySQLConnection.prepareStatement(sql)) {
+            setParameters(statement, parameters);
+            boolean hasResultSet = statement.execute();
+            List<Map<String, Object>> list = new ArrayList<>();
+            if (!hasResultSet) {
+                return list;
+            }
+            try (ResultSet rs = statement.getResultSet()) {
+                collectRows(rs, list);
+            }
+            return list;
+        }
+    }
+
+    static void setParameters(PreparedStatement statement, List<Object> parameters) throws SQLException {
+        for (int i = 0, size = parameters.size(); i < size; ++i) {
+            statement.setObject(i + 1, parameters.get(i));
+        }
+    }
+
+    static void collectRows(ResultSet rs, List<Map<String, Object>> rows) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columns = metaData.getColumnCount();
+        while (rs.next()) {
+            Map<String, Object> row = new LinkedHashMap<>(columns);
+            for (int i = 1; i <= columns; ++i) {
+                row.put(metaData.getColumnLabel(i), rs.getObject(i));
+            }
+            rows.add(row);
+        }
+    }
+
     public default String explain(Connection mySQLConnection, String sql) throws Exception {
         List<Map<String, Object>> maps = JdbcUtils.executeQuery(mySQLConnection, "explain "+sql, Collections.emptyList());
         return maps.stream().flatMap(i -> i.values().stream()).map(i -> (String) i).collect(Collectors.joining("\n"));

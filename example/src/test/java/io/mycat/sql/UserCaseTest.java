@@ -1,6 +1,5 @@
 package io.mycat.sql;
 
-import com.alibaba.druid.util.JdbcUtils;
 import io.mycat.assemble.MycatTest;
 import io.mycat.config.*;
 import io.mycat.hbt.SchemaConvertor;
@@ -392,9 +391,9 @@ public class UserCaseTest implements MycatTest {
             count(mycatConnection, "`1cloud`", "`1log`");
             execute(mycatConnection, "insert `1cloud`.`1log` (id) values (1)");
             execute(mycatConnection, "insert `1cloud`.`1service`  values (1,1,'2')");
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from `1cloud`.`1log` where id = ?", Arrays.asList(1L));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from `1cloud`.`1log` where id = ?", Arrays.asList(1L));
             Assert.assertEquals(1, maps.size());
-            List<Map<String, Object>> maps2 = JdbcUtils.executeQuery(mycatConnection, "select * from `1cloud`.`1service`", Collections.emptyList());
+            List<Map<String, Object>> maps2 = executeQuery(mycatConnection, "select * from `1cloud`.`1service`", Collections.emptyList());
             Assert.assertEquals(3, maps2.get(0).size());
             Assert.assertEquals("[{b=true, tiny=1, s=2}]", maps2.toString());
             System.out.println();
@@ -815,10 +814,10 @@ public class UserCaseTest implements MycatTest {
     public void case13() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
-            JdbcUtils.execute(mycatConnection, CreateDataSourceHint.create("ds0", DB2));
-            JdbcUtils.execute(mycatConnection, CreateSchemaHint.create("mysql",
+            execute(mycatConnection, CreateDataSourceHint.create("ds0", DB2));
+            execute(mycatConnection, CreateSchemaHint.create("mysql",
                     "prototype"));
-            JdbcUtils.execute(mycatConnection, CreateTableHint.createNormal("mysql",
+            execute(mycatConnection, CreateTableHint.createNormal("mysql",
                     "testblob", "CREATE TABLE `testblob` (\n" +
                             "  `id` bigint(20) DEFAULT NULL,\n" +
                             "  `data` blob\n" +
@@ -833,19 +832,19 @@ public class UserCaseTest implements MycatTest {
     public void case14() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
-            JdbcUtils.execute(mycatConnection, CreateSchemaHint.create("mysql",
+            execute(mycatConnection, CreateSchemaHint.create("mysql",
                     "prototype"));
-            JdbcUtils.execute(mycatConnection, "CREATE TABLE mysql.`testblob` (\n" +
+            execute(mycatConnection, "CREATE TABLE mysql.`testblob` (\n" +
                     "  `id` bigint(20) DEFAULT NULL,\n" +
                     "  `data` blob\n" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             deleteData(mycatConnection, "mysql", "testblob");
             byte[] data = ByteBuffer.allocate(8).putLong(Long.MAX_VALUE).array();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO mysql.testblob \n" +
+            execute(mycatConnection, "INSERT INTO mysql.testblob \n" +
                     "(id,data)\n" +
                     "VALUES\n" +
                     " (1,?);", Arrays.asList(data));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from mysql.testblob where id = 1", Collections.emptyList());
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from mysql.testblob where id = 1", Collections.emptyList());
             byte[] data1 = (byte[]) maps.get(0).get("data");
             Assert.assertTrue(Arrays.equals(data, data1));
             System.out.println();
@@ -859,7 +858,7 @@ public class UserCaseTest implements MycatTest {
 
         String text = "一二三四五六七八";
         byte[] testData = ByteUtil.getBytes(text, "UTF8");
-        JdbcUtils.execute(mycatConnection, " INSERT INTO `db1`.`travelrecord` (`id`, `blob`) VALUES ('1', ?)", Arrays.asList(testData));
+        execute(mycatConnection, " INSERT INTO `db1`.`travelrecord` (`id`, `blob`) VALUES ('1', ?)", Arrays.asList(testData));
         Statement statement = mycatConnection.createStatement();
         ResultSet resultSet = statement.executeQuery("select `blob` from `db1`.`travelrecord` where id = 1");
         ResultSetMetaData metaData = resultSet.getMetaData();
@@ -875,7 +874,7 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
 
             execute(mycatConnection, RESET_CONFIG);
-            JdbcUtils.execute(mycatConnection, CreateSchemaHint.create("mysql",
+            execute(mycatConnection, CreateSchemaHint.create("mysql",
                     "prototype"));
             ShardingTableConfig shardingTableConfig = Json.decodeValue("{\n" +
                     "\t\t\t\"createTableSQL\":\"CREATE TABLE mysql.`cm_component_value` (`C_ID` varchar(32) NOT NULL,`C_REF_ID` varchar(32) DEFAULT NULL,`C_ORG_ID` bigint(20) DEFAULT NULL,`C_PATROL_ID` varchar(32) DEFAULT NULL,`C_CAMERA_ID` varchar(32) DEFAULT NULL,`C_DISTINGUISH_TYPE_ID` varchar(32) DEFAULT NULL ,`C_VALUE` varchar(64) DEFAULT NULL ,`C_STATE` varchar(32) DEFAULT '0' ,`C_TV_IMAGE_PATH` varchar(128) DEFAULT NULL ,`C_JSON_VALUE` varchar(512) DEFAULT NULL ,`C_IR_HOT_IMAGE_PATH` varchar(128) DEFAULT NULL ,`C_IR_VIDEO_IMAGE_PATH` varchar(128) DEFAULT NULL,`D_CREATE_TIME` datetime DEFAULT NULL ,`C_FAULT_LEVEL` varchar(32) DEFAULT 'UNKNOW',`C_COMPONENT_ID` varchar(32) NOT NULL ,`C_CONTENT` varchar(255) DEFAULT NULL ,`C_ERROR` varchar(32) DEFAULT NULL ,`C_PENDING_STATE` varchar(32) DEFAULT NULL ,`C_VALUE_SHOW` varchar(64) DEFAULT NULL ,`C_FILE_PATH` varchar(256) DEFAULT NULL ,`C_FTP_PATH` varchar(256) DEFAULT NULL ,`C_FILE_NAME_PATH` varchar(256) DEFAULT NULL,`FAULT_CONTENT` varchar(256) DEFAULT NULL ,`REVIEW_STATE` varchar(32) DEFAULT NULL ,`RECOGN_STATE` varchar(32) DEFAULT NULL ,`REVIEW_VALUE` varchar(32) DEFAULT NULL ,`CHECK_LEVEL` varchar(32) DEFAULT NULL ,`CHECK_TYPE` varchar(32) DEFAULT NULL ,`REVIEW_TIME` datetime DEFAULT NULL ,`PARAMETER_JSON` text ,`ALARM_NUM` varchar(8) DEFAULT NULL,`C_IS_UPLOAD` varchar(1) DEFAULT NULL,`C_VALUE_JSON` varchar(1024) DEFAULT NULL,`C_ORDER_ID` varchar(32) DEFAULT NULL,`D_UPLOAD_TIME` datetime DEFAULT NULL,PRIMARY KEY (`C_ID`),UNIQUE KEY `unique_index` (`c_ref_id`,`c_org_id`) USING BTREE,KEY `FK_cm_component_value_id` (`c_patrol_id`),KEY `FK_cm_com_value_distinguish_type_id` (`c_distinguish_type_id`),KEY `cm_component_value_ibfk_1` (`c_camera_id`),KEY `fk_0` (`c_patrol_id`),KEY `fk_1` (`c_org_id`),KEY `fk_2` (`c_camera_id`),KEY `fk_3` (`d_create_time`,`c_fault_level`,`c_state`,`c_org_id`),KEY `fk_4` (`c_patrol_id`,`c_state`),KEY `fk_5` (`c_patrol_id`,`c_state`,`c_fault_level`),KEY `fk_6` (`c_org_id`,`c_state`,`c_fault_level`),KEY `fk_8` (`c_org_id`,`c_component_id`),KEY `fk_9` (`c_org_id`,`d_create_time`),KEY `fk_10` (`d_create_time`,`c_fault_level`,`c_state`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;\",\n" +
@@ -895,9 +894,9 @@ public class UserCaseTest implements MycatTest {
                     "\t\t\t\t\"targetNames\":\"prototype\"\n" +
                     "\t\t\t}\n" +
                     "\t\t}\n", ShardingTableConfig.class);
-            JdbcUtils.execute(mycatConnection, CreateTableHint.createSharding("mysql", "cm_component_value", shardingTableConfig));
-            JdbcUtils.execute(mycatConnection, "use mysql");
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "SELECT\n" +
+            execute(mycatConnection, CreateTableHint.createSharding("mysql", "cm_component_value", shardingTableConfig));
+            execute(mycatConnection, "use mysql");
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "SELECT\n" +
                     "componentv0_.c_id AS c_id1_3_,\n" +
                     "componentv0_.alarm_num AS alarm_nu2_3_,\n" +
                     "componentv0_.c_camera_id AS c_camer32_3_,\n" +
@@ -998,7 +997,7 @@ public class UserCaseTest implements MycatTest {
                             Arrays.asList("ds0"), Collections.emptyList()));
 
 
-            JdbcUtils.execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
+            execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
                     "  `id` bigint(20) NOT NULL KEY,\n" +
                     "  `user_id` varchar(100) CHARACTER SET utf8 DEFAULT NULL,\n" +
                     "  `traveldate` datetime(6) DEFAULT NULL,\n" +
@@ -1041,7 +1040,7 @@ public class UserCaseTest implements MycatTest {
                             Arrays.asList("ds0"), Collections.emptyList()));
 
 
-            JdbcUtils.execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
+            execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
                     "  `id` bigint(20) NOT NULL KEY,\n" +
                     "  `user_id` varchar(100) CHARACTER SET utf8 DEFAULT NULL,\n" +
                     "  `traveldate` datetime(6) DEFAULT NULL,\n" +
@@ -1066,10 +1065,10 @@ public class UserCaseTest implements MycatTest {
     @Test
     public void case17() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT)) {
-            JdbcUtils.execute(mycatConnection, "use mysql");
-            JdbcUtils.executeQuery(mycatConnection, "desc role_edges", Collections.emptyList());
-            JdbcUtils.execute(mycatConnection, "use information_schema");
-            JdbcUtils.executeQuery(mycatConnection, "desc `tables`", Collections.emptyList());
+            execute(mycatConnection, "use mysql");
+            executeQuery(mycatConnection, "desc role_edges", Collections.emptyList());
+            execute(mycatConnection, "use information_schema");
+            executeQuery(mycatConnection, "desc `tables`", Collections.emptyList());
         }
     }
 
@@ -1194,8 +1193,8 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);
              Connection mysqlConnection = getMySQLConnection(DB1)) {
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "create table if not exists char_test(c char(1));");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "create table if not exists char_test(c char(1));");
 
             Statement mycatStatement = mycatConnection.createStatement();
             Statement mysqlStatement = mysqlConnection.createStatement();
@@ -1217,10 +1216,10 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "create table if not exists tinyint_test(`state` tinyint(1) DEFAULT '1');");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "create table if not exists tinyint_test(`state` tinyint(1) DEFAULT '1');");
             deleteData(mycatConnection, "db1", "tinyint_test");
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `tinyint_test` ( `state`) VALUES (?)", Arrays.asList("1"));
+            execute(mycatConnection, "INSERT INTO `tinyint_test` ( `state`) VALUES (?)", Arrays.asList("1"));
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from tinyint_test");
             resultSet.next();
@@ -1236,12 +1235,12 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists int_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists int_test(`state` int(11)) AUTO_INCREMENT=14132 DEFAULT ;");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists int_test");
+            execute(mycatConnection, "create table if not exists int_test(`state` int(11)) AUTO_INCREMENT=14132 DEFAULT ;");
             deleteData(mycatConnection, "db1", "int_test");
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `int_test` ( `state`) VALUES (?)", Arrays.asList("14130"));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from int_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `int_test` ( `state`) VALUES (?)", Arrays.asList("14130"));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from int_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from int_test");
             resultSet.next();
@@ -1255,18 +1254,18 @@ public class UserCaseTest implements MycatTest {
     @Test
     public void case21() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
-            List<Map<String, Object>> res0 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(0.01d));
-            List<Map<String, Object>> res1 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(0.01f));
-            List<Map<String, Object>> res2 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(1));
-            List<Map<String, Object>> res3 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(1l));
-            List<Map<String, Object>> res4 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList((byte) 1));
-            List<Map<String, Object>> res5 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList((short) 1));
+            List<Map<String, Object>> res0 = executeQuery(mycatConnection, "select ?", Arrays.asList(0.01d));
+            List<Map<String, Object>> res1 = executeQuery(mycatConnection, "select ?", Arrays.asList(0.01f));
+            List<Map<String, Object>> res2 = executeQuery(mycatConnection, "select ?", Arrays.asList(1));
+            List<Map<String, Object>> res3 = executeQuery(mycatConnection, "select ?", Arrays.asList(1l));
+            List<Map<String, Object>> res4 = executeQuery(mycatConnection, "select ?", Arrays.asList((byte) 1));
+            List<Map<String, Object>> res5 = executeQuery(mycatConnection, "select ?", Arrays.asList((short) 1));
 
             String stringBlob = "{{";
             byte[] bytes = stringBlob.getBytes();
-            List<Map<String, Object>> res6 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(bytes));//not char ,char会被java序列化成数组
-            List<Map<String, Object>> res7 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(BigDecimal.valueOf(1)));
-            List<Map<String, Object>> res8 = JdbcUtils.executeQuery(mycatConnection, "select ?", Arrays.asList(BigInteger.valueOf(1)));
+            List<Map<String, Object>> res6 = executeQuery(mycatConnection, "select ?", Arrays.asList(bytes));//not char ,char会被java序列化成数组
+            List<Map<String, Object>> res7 = executeQuery(mycatConnection, "select ?", Arrays.asList(BigDecimal.valueOf(1)));
+            List<Map<String, Object>> res8 = executeQuery(mycatConnection, "select ?", Arrays.asList(BigInteger.valueOf(1)));
 
 
             Assert.assertEquals("[{0.01=0.01}]", res0.toString());
@@ -1287,7 +1286,7 @@ public class UserCaseTest implements MycatTest {
     @Test
     public void case596() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select REPLACE(UUID(),'-','')", Collections.emptyList());
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select REPLACE(UUID(),'-','')", Collections.emptyList());
             System.out.println();
         }
 
@@ -1298,13 +1297,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists time_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists time_test(`state` TIME) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists time_test");
+            execute(mycatConnection, "create table if not exists time_test(`state` TIME) ");
             deleteData(mycatConnection, "db1", "time_test");
             LocalTime time = LocalTime.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `time_test` ( `state`) VALUES (?)", Arrays.asList(time));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from time_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `time_test` ( `state`) VALUES (?)", Arrays.asList(time));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from time_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from time_test");
             resultSet.next();
@@ -1320,13 +1319,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists time_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists time_test(`state` TIME) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists time_test");
+            execute(mycatConnection, "create table if not exists time_test(`state` TIME) ");
             deleteData(mycatConnection, "db1", "time_test");
             LocalTime time = LocalTime.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `time_test` ( `state`) VALUES (?)", Arrays.asList(time));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from time_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `time_test` ( `state`) VALUES (?)", Arrays.asList(time));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from time_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from time_test");
             resultSet.next();
@@ -1341,13 +1340,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists date_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists date_test(`state` date) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists date_test");
+            execute(mycatConnection, "create table if not exists date_test(`state` date) ");
             deleteData(mycatConnection, "db1", "date_test");
             LocalDate date = LocalDate.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `date_test` ( `state`) VALUES (?)", Arrays.asList(date));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from date_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `date_test` ( `state`) VALUES (?)", Arrays.asList(date));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from date_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from date_test");
             resultSet.next();
@@ -1362,13 +1361,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists date_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists date_test(`state` date) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists date_test");
+            execute(mycatConnection, "create table if not exists date_test(`state` date) ");
             deleteData(mycatConnection, "db1", "date_test");
             LocalDate date = LocalDate.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `date_test` ( `state`) VALUES (?)", Arrays.asList(date));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from date_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `date_test` ( `state`) VALUES (?)", Arrays.asList(date));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from date_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from date_test");
             resultSet.next();
@@ -1383,13 +1382,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists datetime_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists datetime_test(`state` DATETIME) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists datetime_test");
+            execute(mycatConnection, "create table if not exists datetime_test(`state` DATETIME) ");
             deleteData(mycatConnection, "db1", "datetime_test");
             LocalDateTime dateTime = LocalDateTime.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `datetime_test` ( `state`) VALUES (?)", Arrays.asList(dateTime));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from datetime_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `datetime_test` ( `state`) VALUES (?)", Arrays.asList(dateTime));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from datetime_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from datetime_test");
             resultSet.next();
@@ -1404,13 +1403,13 @@ public class UserCaseTest implements MycatTest {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT_PSTMT);) {
             execute(mycatConnection, RESET_CONFIG);
             execute(mycatConnection, "CREATE DATABASE db1");
-            JdbcUtils.execute(mycatConnection, "use db1");
-            JdbcUtils.execute(mycatConnection, "drop table if  exists datetime_test");
-            JdbcUtils.execute(mycatConnection, "create table if not exists datetime_test(`state` DATETIME) ");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "drop table if  exists datetime_test");
+            execute(mycatConnection, "create table if not exists datetime_test(`state` DATETIME) ");
             deleteData(mycatConnection, "db1", "datetime_test");
             LocalDateTime dateTime = LocalDateTime.now();
-            JdbcUtils.execute(mycatConnection, "INSERT INTO `datetime_test` ( `state`) VALUES (?)", Arrays.asList(dateTime));
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(mycatConnection, "select * from datetime_test", Collections.emptyList());
+            execute(mycatConnection, "INSERT INTO `datetime_test` ( `state`) VALUES (?)", Arrays.asList(dateTime));
+            List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from datetime_test", Collections.emptyList());
             Statement statement = mycatConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from datetime_test");
             resultSet.next();
@@ -1588,7 +1587,7 @@ public class UserCaseTest implements MycatTest {
 
             deleteData(mycatConnection, "db1", "travelrecord");
             byte[] bytes = "<?xml version='1.0' encoding='UTF-8'?>\n<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:activiti=\"http://activiti.org/bpmn\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:omgdc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:omgdi=\"http://www.omg.org/spec/DD/20100524/DI\" typeLanguage=\"http://www.w3.org/2001/XMLSchema\" expressionLanguage=\"http://www.w3.org/1999/XPath\" targetNamespace=\"http://www.activiti.org/processdef\">".getBytes();
-            JdbcUtils.execute(mycatConnection,
+            execute(mycatConnection,
                     "INSERT INTO `db1`.`travelrecord`(`id`,`blob`) VALUES (20,?)", Arrays.asList(bytes));
             List<Map<String, Object>> maps = executeQuery(mycatConnection, "SELECT `blob` from db1.travelrecord");
             Object next = maps.get(0).values().iterator().next();
@@ -1691,7 +1690,7 @@ public class UserCaseTest implements MycatTest {
                     CreateClusterHint.create("c0",
                             Arrays.asList("ds0"), Collections.emptyList()));
 
-            JdbcUtils.execute(mycatConnection, "CREATE TABLE db1.`company` (\n" +
+            execute(mycatConnection, "CREATE TABLE db1.`company` (\n" +
                     "  `id` bigint(20) NOT NULL KEY,\n" +
                     "  `user_id` varchar(100) CHARACTER SET utf8 DEFAULT NULL,\n" +
                     "  `traveldate` datetime(6) DEFAULT NULL,\n" +
@@ -1700,7 +1699,7 @@ public class UserCaseTest implements MycatTest {
                     "  `blob` longblob DEFAULT NULL\n" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4\n");
 
-            JdbcUtils.execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
+            execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
                     "  `id` bigint(20) NOT NULL KEY,\n" +
                     "  `user_id` varchar(100) CHARACTER SET utf8 DEFAULT NULL,\n" +
                     "  `traveldate` datetime(6) DEFAULT NULL,\n" +
