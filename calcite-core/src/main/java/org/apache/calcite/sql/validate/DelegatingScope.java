@@ -25,12 +25,14 @@ import org.apache.calcite.schema.CustomColumnResolvingTable;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlLambda;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlSelect;
 import org.apache.calcite.sql.SqlWindow;
 import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.util.Litmus;
 import org.apache.calcite.util.Pair;
 import org.apache.calcite.util.Util;
 
@@ -676,10 +678,59 @@ public abstract class DelegatingScope implements SqlValidatorScope {
           validator.getNamespaceOrThrow(select);
       return SqlQualified.create(this, 1, selectNs, identifier);
     default:
-      // More than one column has this alias.
+      // MySQL semantics (verified against MySQL 8.0.46): a repeated ORDER BY
+      // name is ambiguous only when the matching select items are genuinely
+      // different expressions (e.g. "SELECT a AS x, b AS x ... ORDER BY x",
+      // or "SELECT t1.id, t2.id ... ORDER BY id" across a join). When the SAME
+      // column is selected more than once (e.g. "SELECT a, a ... ORDER BY a"),
+      // MySQL resolves it against the source column and does not error. Fold
+      // identical underlying expressions to one before deciding, so a column
+      // repeated in the select list still resolves like case 1.
+      if (distinctMatchingExprCount(select, nameMatcher, name) <= 1) {
+        final SqlValidatorNamespace selectNs2 =
+            validator.getNamespaceOrThrow(select);
+        return SqlQualified.create(this, 1, selectNs2, identifier);
+      }
+      // More than one distinct column has this alias.
       throw validator.newValidationError(identifier,
           RESOURCE.columnAmbiguous(name));
     }
+  }
+
+  /** Returns the number of <b>distinct</b> select-list expressions whose
+   * implicit or explicit alias matches {@code name}. Duplicated references to
+   * the same column (identical after stripping an alias) collapse to one. */
+  private static int distinctMatchingExprCount(SqlSelect select,
+      SqlNameMatcher nameMatcher, String name) {
+    final List<SqlNode> distinct = new ArrayList<>();
+    for (SqlNode s : getSelectList(select)) {
+      final @Nullable String alias = SqlValidatorUtil.alias(s);
+      if (alias != null && nameMatcher.matches(alias, name)) {
+        final SqlNode expr = unwrapAs(s);
+        // SqlNode does not override equals() (identity only); compare structurally
+        // via equalsDeep so that two references to the same column collapse.
+        boolean seen = false;
+        for (SqlNode prev : distinct) {
+          if (prev.equalsDeep(expr, Litmus.IGNORE)) {
+            seen = true;
+            break;
+          }
+        }
+        if (!seen) {
+          distinct.add(expr);
+        }
+      }
+    }
+    return distinct.size();
+  }
+
+  /** Strips an {@code AS} wrapper, returning the underlying expression. */
+  private static SqlNode unwrapAs(SqlNode node) {
+    if (node.getKind() == SqlKind.AS) {
+      // AS(expr, alias): operand(0) is the underlying expression.
+      return ((SqlCall) node).operand(0);
+    }
+    return node;
   }
 
   /** Returns the number of columns in the SELECT clause that have {@code name}
