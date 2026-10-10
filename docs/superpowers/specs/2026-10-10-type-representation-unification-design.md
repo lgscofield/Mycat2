@@ -265,8 +265,8 @@ ANY_VALUE(LocalDateTime 列)
 
 | 编号 | 关闭日期 | 关闭证据 | 决策 |
 |---|---|---|---|
-| Q1 | 待填 | 待填（Janino 源码或 typeFactory 归属结论） | 待填 |
-| Q2 | 待填 | 待填 | 待填（候选 A 或 B） |
+| Q1 | 2026-10-10 | 服务端 `target/e2e-server2.out` Suppressed 栈：`greater[class java.time.LocalDateTime, long]` @ `RexImpTable$MinMaxImplementor.implementNotNullAdd:1863`；acc=LocalDateTime（Mycat 真相源正确），arg=long（走了 `toInternal` 或 typeFactory 归属错）；详见 [Q1 关闭证据](./2026-10-10-q1-evidence.md) | **候选 B**（arg 侧根在 `EnumUtils.toInternal`/typeFactory 归属，非 `SqlFunctions.greater` 缺重载） |
+| Q2 | 2026-10-10 | 由 Q1 自动锁定 | **候选 B**：`EnumUtils.toInternal`/aggregate 全链 typeFactory 归属校正（Task 3B 起手第一步先收窄 B1/B2） |
 | Q3 | 待填 | 待填 | 待填（漏格清单） |
 | Q4 | 待填 | 待填 | 待填（范围裁定） |
 | Q5 | 2026-10-10 | 设计阶段裁定 | 否，正交缺口，各自债务行挂账 |
