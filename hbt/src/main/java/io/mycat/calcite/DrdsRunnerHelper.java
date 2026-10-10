@@ -212,6 +212,11 @@ public class DrdsRunnerHelper {
     public static SqlValidator getSqlValidator(DrdsSql drdsSql, CalciteCatalogReader catalogReader) {
         boolean usePrototype = false;
         List<SqlTypeName> suggestedParamTypes = drdsSql.getTypeNames();
+        // MYCAT CHANGE (I-DEBT-8 真·残面): 参数化二进制字面量(如 X'4D7953514C')的字节长度只存在于绑定值中，
+        // suggestedParamTypes 仅携带裸 SqlTypeName.BINARY（precision 缺省=1，下游 codegen 即 truncate(...,1) 截断）。
+        // 捕获绑定参数值列表，供 resolveDynamicParam 依实际字节长度还原 precision（新鲜查询路径含值；SPM baseline 无值则回退原行为）。
+        final List<Object> boundParams = (drdsSql instanceof io.mycat.DrdsSqlWithParams)
+                ? ((io.mycat.DrdsSqlWithParams) drdsSql).getParams() : Collections.emptyList();
 
         return new SqlValidatorImpl(SqlOperatorTables.chain(catalogReader, MycatCalciteSupport.config.getOperatorTable()), catalogReader, MycatCalciteSupport.TypeFactory,
                 MycatCalciteSupport.INSTANCE.getValidatorConfig()) {
@@ -278,6 +283,16 @@ public class DrdsRunnerHelper {
                         }
                     }
                     if (sqlTypeName != null) {
+                        // MYCAT CHANGE (I-DEBT-8 真·残面): BINARY/VARBINARY 依绑定 byte[] 实际长度带上 precision，
+                        // 否则 createSqlType(name) 走默认 precision=1，codegen 按此发 truncate(...,1) 静默截断值。
+                        if ((sqlTypeName == SqlTypeName.BINARY || sqlTypeName == SqlTypeName.VARBINARY)
+                                && boundParams != null && index >= 0 && index < boundParams.size()
+                                && boundParams.get(index) instanceof byte[]) {
+                            int byteLen = ((byte[]) boundParams.get(index)).length;
+                            if (byteLen > 0) {
+                                return super.typeFactory.createSqlType(sqlTypeName, byteLen);
+                            }
+                        }
                         return super.typeFactory.createSqlType(Objects.requireNonNull(sqlTypeName));
                     }
                     return typeFactory.createSqlType(SqlTypeName.ANY);
