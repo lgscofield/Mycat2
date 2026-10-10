@@ -18,11 +18,17 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.stream.Stream;
 
 /**
  * 类型表征统一 · 靶 2 / INV-TRU-1 结构守卫：aggregate accumulator 路径与 argument 路径
@@ -94,5 +100,68 @@ public class TypeRepresentationThreePathConsistencyTest {
         Assertions.assertNull(rawToInternal(dec), "非时间类维持 null（默认 storage type）");
         Assertions.assertEquals(java.math.BigDecimal.class,
                 MycatCalciteSupport.TypeFactory.getJavaClass(dec));
+    }
+
+    /**
+     * 全列对账矩阵（spec 附录 A · INV-TRU-1）：每个 SqlTypeName 的 accumulator 路径
+     * （{@code getJavaClass} 真相源）与 aggregate argument 路径（{@code toInternal}→回退）
+     * 必须都等于 Mycat 运行时真实 java 类。投影/排序路径同样以 {@code getJavaClass} 为
+     * storage type 来源（{@code PhysTypeImpl}），故本矩阵即锁死三路径一致的单点真相源。
+     *
+     * <p>
+     * unsigned 变体不在此列：Calcite {@code SqlTypeName} 层不区分符号（Mycat 的 signed/unsigned
+     * 在 {@code MycatRelDataType} 直接给 Class，非经 SqlTypeName→getJavaClass），属值域/精度
+     * 问题，与 BLOB 值域同类（spec 标 I-DEBT-27 不扩）。
+     */
+    static Stream<Arguments> columnTypeMatrix() {
+        return Stream.of(
+                // 布尔/整数（fork primitive 默认，Mycat 不接管）
+                Arguments.of(SqlTypeName.BOOLEAN, boolean.class),
+                Arguments.of(SqlTypeName.TINYINT, byte.class),
+                Arguments.of(SqlTypeName.SMALLINT, short.class),
+                Arguments.of(SqlTypeName.INTEGER, int.class),
+                Arguments.of(SqlTypeName.BIGINT, long.class),
+                // 浮点：FLOAT=本轮靶 1 override；REAL/DOUBLE 保持 fork 默认
+                Arguments.of(SqlTypeName.FLOAT, float.class),
+                Arguments.of(SqlTypeName.REAL, float.class),
+                Arguments.of(SqlTypeName.DOUBLE, double.class),
+                Arguments.of(SqlTypeName.DECIMAL, BigDecimal.class),
+                // 时间：I-DEBT-12 方向 A java.time override
+                Arguments.of(SqlTypeName.DATE, LocalDate.class),
+                Arguments.of(SqlTypeName.TIME, Duration.class),
+                Arguments.of(SqlTypeName.TIMESTAMP, LocalDateTime.class),
+                // 字符/二进制
+                Arguments.of(SqlTypeName.CHAR, String.class),
+                Arguments.of(SqlTypeName.VARCHAR, String.class));
+        // BINARY/VARBINARY 不入矩阵：fork getJavaClass 返回 ByteString，与 Mycat 运行时
+        // byte[]（MycatDataType.BINARY）不一致——真实漏格，但修复须联动 translateLiteral
+        // 的 new_(ByteString) 字面量路径与结果端 getBytes，超本轮 override 边界，挂账
+        // （关联 I-DEBT-27 case14 BLOB 值域族）。由下方 knownGap 测试钉住现状防静默漂移。
+    }
+
+    @Test
+    public void knownGapBinaryColumnMapsToByteStringNotByteArray() throws Exception {
+        // 记录已发现漏格（Task 4 全列对账实测）：现状 ByteString，非 Mycat 运行时 byte[]。
+        // 挂账修复后本测试改为断言 byte[].class。
+        RelDataType binary = sqlType(SqlTypeName.BINARY, false);
+        Assertions.assertEquals(org.apache.calcite.avatica.util.ByteString.class,
+                MycatCalciteSupport.TypeFactory.getJavaClass(binary),
+                "BINARY 漏格现状钉住（挂账：与 MycatDataType.BINARY=byte[] 不一致，"
+                        + "修复需联动字面量/结果端，见 ledger Task 4 Ruling）");
+    }
+
+    @ParameterizedTest
+    @MethodSource("columnTypeMatrix")
+    public void allColumnTypesAgreeAcrossAccumulatorAndArgumentPaths(
+            SqlTypeName typeName, Class<?> expectedJavaClass) throws Exception {
+        RelDataType type = sqlType(typeName, false);
+        // 真相源：aggregate accumulator / projection / sort 都取此值
+        Type acc = MycatCalciteSupport.TypeFactory.getJavaClass(type);
+        Assertions.assertEquals(expectedJavaClass, acc,
+                typeName + " 的 getJavaClass 真相源必须是 Mycat 运行时类 " + expectedJavaClass);
+        // arg 路径：toInternal→(null 回退)getJavaClass，须与真相源一致
+        Type arg = effectiveArgType(type);
+        Assertions.assertEquals(acc, arg,
+                typeName + " 的 aggregate arg 路径必须与 accumulator 一致 (INV-TRU-1)");
     }
 }

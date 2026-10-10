@@ -101,19 +101,21 @@ case FLOAT:
 
 | Mycat 列类型 | SqlTypeName | `getJavaClass`（真相源） | 投影 | 聚合 accumulator | 聚合 arg | 排序 | 状态 |
 |---|---|---|---|---|---|---|---|
-| BIT/TINYINT/SHORT/INT | BOOLEAN/TINYINT/SMALLINT/INTEGER | boolean/Byte/Short/Integer | 一致 | 待对账 | 待对账 | 待对账 | 待对账 |
-| UNSIGNED_* / LONG | 同名 | Long/BigInteger/Long | 一致 | 待对账 | 待对账 | 待对账 | 待对账 |
-| DECIMAL | DECIMAL | BigDecimal | 一致 | 待对账 | 待对账 | 待对账 | 待对账 |
-| **FLOAT** | FLOAT | **Float（本轮加 override）** | **不一致→本轮修** | 待对账 | 待对账 | 待对账 | **本轮修** |
-| DOUBLE | DOUBLE | Double | 一致 | 待对账 | 待对账 | 待对账 | 待对账 |
-| DATE | DATE | LocalDate | 一致（I-DEBT-12） | 待对账 | 待对账 | 待对账 | 待对账 |
-| DATETIME/TIMESTAMP | TIMESTAMP | LocalDateTime | 一致 | **待对账→case7 即此靶** | 待对账 | 待对账 | **本轮修** |
-| TIME | TIME | Duration | 一致 | 待对账 | 待对账 | 待对账 | 待对账 |
-| YEAR | SMALLINT | Short/Integer | 待对账 | 待对账 | 待对账 | 待对账 | 待对账 |
-| CHAR/VARCHAR | CHAR/VARCHAR | String | 一致 | 一致 | 一致 | 一致 | 一致 |
-| BINARY/BLOB | BINARY | byte[] | 一致（case14 挂 I-DEBT-27，值域另论） | 一致 | 一致 | 一致 | 本轮不扩 |
+| BIT/TINYINT/SHORT/INT | BOOLEAN/TINYINT/SMALLINT/INTEGER | boolean/Byte/Short/Integer | 一致 | 一致（=getJavaClass） | 一致（toInternal→null 回退） | 一致 | 对账通过（矩阵守卫 14 例） |
+| UNSIGNED_* / LONG | 同名 | Long/BigInteger/Long | 不适用（Calcite SqlTypeName 层不区分符号，signed/unsigned 在 MycatRelDataType 直接给 Class，属值域族 I-DEBT-27） | — | — | — | 边界外，不扩 |
+| DECIMAL | DECIMAL | BigDecimal | 一致 | 一致 | 一致 | 一致 | 对账通过 |
+| **FLOAT** | FLOAT | **Float（本轮加 override）** | **不一致→本轮修** | 一致（本轮修后） | 一致 | 一致 | **本轮修**（提交 9c89c8c） |
+| DOUBLE | DOUBLE | Double | 一致 | 一致 | 一致 | 一致 | 对账通过 |
+| DATE | DATE | LocalDate | 一致（I-DEBT-12） | 一致 | 一致（本轮修后） | 一致 | 对账通过 |
+| DATETIME/TIMESTAMP | TIMESTAMP | LocalDateTime | 一致 | **一致（本轮修·case7）** | 一致（本轮修） | 一致 | **本轮修**（提交 e4afd18） |
+| TIME | TIME | Duration | 一致 | 一致 | 一致（本轮修后） | 一致 | 对账通过 |
+| YEAR | SMALLINT | Short | 一致（经 SMALLINT 承载，与 SHORT 同格对账通过） | 一致 | 一致 | 一致 | 对账通过 |
+| CHAR/VARCHAR | CHAR/VARCHAR | String | 一致 | 一致 | 一致 | 一致 | 对账通过 |
+| BINARY/BLOB | BINARY | **ByteString（实测）≠ byte[]（Mycat 运行时）** | **不一致→挂账** | 一致（同源） | 一致（同源） | 一致（同源） | **挂账**：修复须联动 `translateLiteral` new_(ByteString) 与结果端，超三路径 override 边界，关联 I-DEBT-27 值域族；现状由 `knownGapBinaryColumnMapsToByteStringNotByteArray` 钉住 |
 
 对账完成 → 表格填"一致"或标"本轮修/挂账"。任何"不一致"若不影响 case6052/case7 但属于同类问题，加 override；若影响范围超出三路径（如二进制协议），挂账到 I-DEBT-* 不夹带。
+
+**Task 4 实测结论**（守卫 `TypeRepresentationThreePathConsistencyTest` 14 例参数化 + 1 挂账钉）：除本轮已修 FLOAT/TIMESTAMP 族外，唯一新发现漏格 = BINARY→ByteString vs byte[]，按 Q4 边界裁定挂账；其余全格一致。
 
 ---
 
@@ -259,14 +261,14 @@ ANY_VALUE(LocalDateTime 列)
 
 ## 附录 A：全列对账表（实现阶段填）
 
-见「解法方向 · 全列对账表」小节，实现阶段 Q3 关闭后回填实际一致状态。
+见「解法方向 · 全列对账表」小节，**已于 2026-10-10 Task 4 回填实际一致状态**（守卫 `TypeRepresentationThreePathConsistencyTest` 14 例参数化 + BINARY 挂账钉；hbt 全量 112/0/0）。
 
 ## 附录 B：Q1-Q5 关闭记录（实现阶段填）
 
 | 编号 | 关闭日期 | 关闭证据 | 决策 |
 |---|---|---|---|
 | Q1 | 2026-10-10 | 服务端 `target/e2e-server2.out` Suppressed 栈：`greater[class java.time.LocalDateTime, long]` @ `RexImpTable$MinMaxImplementor.implementNotNullAdd:1863`；acc=LocalDateTime（Mycat 真相源正确），arg=long（走了 `toInternal` 或 typeFactory 归属错）；详见 [Q1 关闭证据](./2026-10-10-q1-evidence.md) | **候选 B**（arg 侧根在 `EnumUtils.toInternal`/typeFactory 归属，非 `SqlFunctions.greater` 缺重载） |
-| Q2 | 2026-10-10 | 由 Q1 自动锁定 | **候选 B**：`EnumUtils.toInternal`/aggregate 全链 typeFactory 归属校正（Task 3B 起手第一步先收窄 B1/B2） |
-| Q3 | 待填 | 待填 | 待填（漏格清单） |
-| Q4 | 待填 | 待填 | 待填（范围裁定） |
+| Q2 | 2026-10-10 | 由 Q1 自动锁定；Task 3B 起手进一步收窄 = **B1**（`EnumUtils.toInternal(RelDataType, boolean)` 时间类返 null 回退真相源，无需改签名；B2 typeFactory 归属经静态核查排除——`MycatHashAggregate.implement` 已是 Mycat 版 typeFactory） | **候选 B/B1**：`toInternal` 时间类返回 null，acc/arg 扳齐（提交 e4afd18，case7 e2e 1/0/0） |
+| Q3 | 2026-10-10 | Task 4 参数化矩阵 14 例实跑：FLOAT/TIMESTAMP 族本轮修已生效；**唯一新漏格 = BINARY/VARBINARY：`getJavaClass`→ByteString vs Mycat 运行时 byte[]**（RED 抓出 `expected:<byte[]> but was:<ByteString>`）；其余 DECIMAL/DOUBLE/CHAR/YEAR/int 族全格一致 | 漏格清单：{FLOAT（已修）, TIMESTAMP/DATE/TIME arg 侧（已修）, BINARY（挂账）} |
+| Q4 | 2026-10-10 | BINARY 漏格修复评估：须联动 `RexToLixTranslator.translateLiteral` 的 `new_(ByteString)` 字面量路径 + 结果端 `getBytes`，改动超出"getJavaClass 加 case"模式且牵连面未经 e2e 基线证据支撑 | 范围裁定：三路径 override 模式内（FLOAT/时间族）本轮修；BINARY 跨字面量/协议层 → **挂账**（关联 I-DEBT-27 值域族），现状由 knownGap 测试钉住防静默漂移；unsigned 变体属 SqlTypeName 不区分符号的边界外项，不扩 |
 | Q5 | 2026-10-10 | 设计阶段裁定 | 否，正交缺口，各自债务行挂账 |
