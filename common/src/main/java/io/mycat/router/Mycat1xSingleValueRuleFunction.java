@@ -165,7 +165,9 @@ public abstract class Mycat1xSingleValueRuleFunction extends CustomRuleFunction 
         if (0 <= i && i < size) {
             return shardingBackends.get(i);
         } else {
-            String message = MessageFormat.format("{0}.{1} 分片算法越界 分片值:{4}",
+            // MYCAT CHANGE (I-DEBT-28): 原占位符误写 {4}，而本 format 仅传 3 个实参(0=schema,1=table,2=columnValue)，
+            // MessageFormat 遇不存在的 {4} 原样输出 "{4}"，导致越界信息从不回显真实分片值。纠正为 {2}。
+            String message = MessageFormat.format("{0}.{1} 分片算法越界 分片值:{2}",
                     table.getSchemaName(), table.getTableName(), columnValue);
             throw new MycatException(message);
         }

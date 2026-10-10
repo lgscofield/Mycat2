@@ -126,9 +126,14 @@ public class RwTest implements MycatTest {
                                             .properties(Maps.of(
                                                     "defaultNode", -1,
                                                     "columnName", "id"))
+                                            // MYCAT CHANGE (I-DEBT-28): ranges 的 value 是"该值区间跨越的节点数
+                                            // (groupSize)"非节点下标(经典 MyCat PartRangeMod 契约)。targetNames
+                                            // 仅 dw0,dw1 两节点，故 ΣgroupSize 必须 ≤2；原写 "1-300"->2 使
+                                            // Σ=1+2=3 需第三节点，id=3 算得 node2 越界。改 "1-300"->1 后
+                                            // id1→dw0、id2/id3→dw1，两节点自洽且真实打散。
                                             .ranges(Maps.of(
                                                     "0-1", 1,
-                                                    "1-300", 2)).build())
+                                                    "1-300", 1)).build())
             );
             execute(mycat,
                     "/*+ mycat:setSequence{\"name\":\"" + db + "_" + tableName + "\",\"clazz\":\"io.mycat.plug.sequence.SequenceMySQLGenerator\",\"schemaName\":\"mysql\"} */;");
@@ -145,7 +150,8 @@ public class RwTest implements MycatTest {
                 }
             }
             Assert.assertTrue(res);
-
+            // I-DEBT-28: 修正 range 配置后不再越界，3 行按 groupSize 打散到 dw0/dw1，跨片聚合应读回 3 行。
+            Assert.assertEquals(3L, count(mycat, db, tableName));
 //            execute(mycat, "drop database " + db);
         }
     }
