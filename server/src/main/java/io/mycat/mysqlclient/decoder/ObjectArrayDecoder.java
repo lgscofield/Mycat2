@@ -49,7 +49,11 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
         ColumnDefPacketImpl columnDefPacket = decodeColumnDefinitionPacketPayload(buffer);
         this.columnDefPackets[index] = columnDefPacket;
         // MYCAT CHANGE: Vert.x 4.5.14 DataType.valueOf(int) removed, use parseDataType(short, int, int)
-        this.dataTypes[index] = DataType.parseDataType((short) columnDefPacket.getColumnType(), columnDefPacket.getColumnFlags(), columnDefPacket.getColumnCharsetSet());
+        // I-DEBT-38 (root, same family as I-DEBT-33 Bug B): the real signature is
+        // parseDataType(short type, int charsetIndex, int flags) -- the 3rd arg is flags. Passing
+        // (type, flags, charset) puts the numeric column's charset(63) into the flags slot, whose 0x20
+        // bit is misread as UNSIGNED, so e.g. signed bigint id resolves to U_INT64. Correct the order.
+        this.dataTypes[index] = DataType.parseDataType((short) columnDefPacket.getColumnType(), columnDefPacket.getColumnCharsetSet(), columnDefPacket.getColumnFlags());
         this.signeds[index] = columnDefPacket.isSigned();
     }
 
@@ -151,6 +155,34 @@ public class ObjectArrayDecoder implements Decoder<Object[]> {
                                     break;
                                 }
                             }
+                            break;
+                        }
+                        // MYCAT CHANGE (I-DEBT-38): Vert.x 4.5.14 DataType exposes separate UNSIGNED integer
+                        // constants U_INT8/U_INT16/U_INT24/U_INT32/U_INT64. parseDataType returns these for
+                        // unsigned / AUTO_INCREMENT+PRI columns (e.g. bigint id -> U_INT64). They were missing
+                        // from the switch (no default), so such columns silently decoded to null, which crashed
+                        // cross-shard ORDER BY merge (SqlFunctions.toLong(null)) and returned NULL ids elsewhere.
+                        case U_INT8: {
+                            value = (int) PacketUtil.decodeDecStringToLong(pos, length, payload);
+                            break;
+                        }
+                        case U_INT16: {
+                            value = (int) PacketUtil.decodeDecStringToLong(pos, length, payload);
+                            break;
+                        }
+                        case U_INT24: {
+                            value = (int) PacketUtil.decodeDecStringToLong(pos, length, payload);
+                            break;
+                        }
+                        case U_INT32: {
+                            // unsigned int up to 4294967295 > Integer.MAX_VALUE, keep as long
+                            value = PacketUtil.decodeDecStringToLong(pos, length, payload);
+                            break;
+                        }
+                        case U_INT64: {
+                            // unsigned bigint up to 2^64-1 > Long.MAX_VALUE, keep as BigInteger
+                            String string = payload.getString(pos, pos + length);
+                            value = new BigInteger(string);
                             break;
                         }
                         case DOUBLE: {
