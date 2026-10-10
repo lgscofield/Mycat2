@@ -160,7 +160,9 @@ public class DrdsRunnerHelper {
                         break;
                     }
                     if (Byte.class == aClass) {
-                        sqlTypeName = SqlTypeName.BINARY;
+                        // I-DEBT-33 Bug D：单个 java.lang.Byte 是 1 字节有符号整数（MySQL TINYINT 域），
+                        // 原误判 BINARY 致 codegen 生成 (ByteString) 强转、而 get() 只归一 byte[] 不含 Byte⇒CCE。
+                        sqlTypeName = SqlTypeName.TINYINT;
                         break;
                     }
                     if (Short.class == aClass) {
