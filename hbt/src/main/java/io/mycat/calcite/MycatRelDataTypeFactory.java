@@ -69,6 +69,15 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
                 case TIME:
                 case TIME_WITH_LOCAL_TIME_ZONE:
                     return Duration.class;
+                // MYCAT CHANGE (类型表征统一·靶 1): MySQL FLOAT 列运行时是 java.lang.Float
+                // (MycatDataType.FLOAT.getJavaClass=Float.class, JDBC ResultSet.getFloat→Float)，
+                // 但 fork JavaTypeFactoryImpl.getJavaClass(SqlTypeName.FLOAT) 返回 Double.class
+                // (`// sic` 注释: SQL 标准 FLOAT≡DOUBLE)。裸列投影 codegen 按 Double 强转 Object[] 槽位
+                // 撞 Float → ClassCastException (case6052)。与 java.time 同策略——扳齐 getJavaClass
+                // 到 Mycat 运行时真实类型。见 spec
+                // docs/superpowers/specs/2026-10-10-type-representation-unification-design.md。
+                case FLOAT:
+                    return type.isNullable() ? Float.class : float.class;
                 default:
                     break;
                 }
