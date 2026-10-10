@@ -95,8 +95,8 @@ public class BinaryResultSetResponse extends AbstractMycatResultSetResponse {
             case BOOLEAN://MysqlDefs.FIELD_TYPE_TINY 1
                 value = convertToTiny(object);
                 break;
-            case Types.NUMERIC://MysqlDefs.FIELD_TYPE_DECIMAL n
-                value = convertToInt16((Number) object);
+            case Types.NUMERIC://MysqlDefs.FIELD_TYPE_NEWDECIMAL：二进制协议为 lenenc ASCII 十进制串，与 DECIMAL 同布局（非定长裸整数）
+                value = convertString(object);
                 break;
             case Types.FLOAT:
             case Types.REAL://MysqlDefs.FIELD_TYPE_FLOAT 4
