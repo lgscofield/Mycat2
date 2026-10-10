@@ -42,8 +42,10 @@ import io.vertx.mysqlclient.impl.protocol.CapabilitiesFlag;
 import io.vertx.mysqlclient.impl.util.BufferUtils;
 import io.vertx.mysqlclient.impl.util.CachingSha2Authenticator;
 import io.vertx.mysqlclient.impl.util.Native41Authenticator;
+import io.vertx.mysqlclient.impl.util.RsaPublicKeyEncryptor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,12 +57,24 @@ import static io.vertx.mysqlclient.impl.protocol.Packets.*;
  * io.vertx.mysqlclient.impl.MySQLConnectionFactory
  */
 public class ConnectHandler extends VertxMySQLPacketClientResolver {
+    static final int NONCE_LENGTH = 20;
+    static final int AUTH_PLUGIN_DATA_PART1_LENGTH = 8;
+    static final int AUTH_SWITCH_REQUEST_STATUS_FLAG = 0xFE;
+    static final int AUTH_MORE_DATA_STATUS_FLAG = 0x01;
+    static final int AUTH_PUBLIC_KEY_REQUEST_FLAG = 0x02;
+    static final int FAST_AUTH_STATUS_FLAG = 0x03;
+    static final int FULL_AUTHENTICATION_STATUS_FLAG = 0x04;
+
     State state = State.INIT;
     Promise<VertxConnection> promise;
     VertxPoolConnectionImpl.Config config;
     private final VertxConnectionPool pool;
     int serverCapabilitiesFlags;
     long connectionId;
+    // Scramble used for the most recent auth response; needed to encrypt the password for caching_sha2 full-auth.
+    private byte[] authPluginData;
+    // Set while waiting for the server RSA public key during caching_sha2 full-auth over a non-secure connection.
+    private boolean isWaitingForRsaPublicKey = false;
 
     public ConnectHandler(NetSocket socket, VertxPoolConnectionImpl.Config config, VertxConnectionPool pool) {
         super(socket, 0);
@@ -100,16 +114,6 @@ public class ConnectHandler extends VertxMySQLPacketClientResolver {
         ByteBuf payload = buffer.getByteBuf();
         switch (state) {
             case INIT: {
-                final int NONCE_LENGTH = 20;
-                final int AUTH_SWITCH_REQUEST_STATUS_FLAG = 0xFE;
-
-                final int AUTH_MORE_DATA_STATUS_FLAG = 0x01;
-                final int AUTH_PUBLIC_KEY_REQUEST_FLAG = 0x02;
-                final int FAST_AUTH_STATUS_FLAG = 0x03;
-                final int FULL_AUTHENTICATION_STATUS_FLAG = 0x04;
-                final int AUTH_PLUGIN_DATA_PART1_LENGTH = 8;
-
-
                 short protocolVersion = payload.readUnsignedByte();
                 String serverVersion = BufferUtils.readNullTerminatedString(payload, StandardCharsets.US_ASCII);
                 MySQLDatabaseMetadata md = MySQLDatabaseMetadata.parse(serverVersion);
@@ -169,6 +173,7 @@ public class ConnectHandler extends VertxMySQLPacketClientResolver {
 
                 boolean upgradeToSsl;
 
+                this.authPluginData = authPluginData;
                 sendHandshakeResponseMessage(config.getUsername(), config.getPassword(), config.getDatabase(), authPluginData, serverAuthPluginName,
                         (initCapabilitiesFlags(config.getDatabase(), false)),
                         33, Collections.emptyMap());
@@ -185,6 +190,15 @@ public class ConnectHandler extends VertxMySQLPacketClientResolver {
                     case ERROR_PACKET_HEADER:
                         promise.tryFail(buffer.toString());
                         break;
+                    case AUTH_SWITCH_REQUEST_STATUS_FLAG:
+                        handleAuthSwitchRequest(payload);
+                        break;
+                    case AUTH_MORE_DATA_STATUS_FLAG:
+                        handleAuthMoreData(payload);
+                        break;
+                    default:
+                        promise.tryFail(new IllegalStateException("Unhandled auth packet with header: " + header));
+                        break;
                 }
             }
             break;
@@ -195,6 +209,76 @@ public class ConnectHandler extends VertxMySQLPacketClientResolver {
     @Override
     public void onException(Throwable throwable) {
         promise.tryFail(throwable);
+    }
+
+    /**
+     * Server asked the client to switch authentication plugin (Protocol::AuthSwitchRequest, header 0xFE). Recompute
+     * the auth response with the requested plugin and the fresh scramble the server supplied, then send it back.
+     */
+    private void handleAuthSwitchRequest(ByteBuf payload) {
+        payload.skipBytes(1); // status flag, always 0xFE
+        String pluginName = BufferUtils.readNullTerminatedString(payload, StandardCharsets.UTF_8);
+        byte[] nonce = new byte[NONCE_LENGTH];
+        int readable = payload.readableBytes();
+        payload.readBytes(nonce, 0, Math.min(NONCE_LENGTH, readable));
+        this.authPluginData = nonce;
+        byte[] password = config.getPassword().getBytes(StandardCharsets.UTF_8);
+        byte[] authResponse;
+        switch (pluginName) {
+            case "mysql_native_password":
+                authResponse = Native41Authenticator.encode(password, nonce);
+                break;
+            case "caching_sha2_password":
+                authResponse = CachingSha2Authenticator.encode(password, nonce);
+                break;
+            case "mysql_clear_password":
+                authResponse = password;
+                break;
+            default:
+                promise.tryFail(new UnsupportedOperationException("Unsupported authentication method: " + pluginName));
+                return;
+        }
+        sendBytesAsPacket(authResponse);
+    }
+
+    /**
+     * Server sent extra authentication data (Protocol::AuthMoreData, header 0x01). For caching_sha2_password this is
+     * either a fast-auth result (0x03, wait for the following OK/ERR) or a full-auth request (0x04). Since this
+     * client never upgrades to TLS, full-auth requires fetching the server RSA public key (0x02) and sending the
+     * password encrypted with that key over the scramble.
+     */
+    private void handleAuthMoreData(ByteBuf payload) {
+        payload.skipBytes(1); // status flag, always 0x01
+        if (isWaitingForRsaPublicKey) {
+            byte[] rest = new byte[payload.readableBytes()];
+            payload.readBytes(rest);
+            String serverRsaPublicKey = new String(rest, StandardCharsets.UTF_8);
+            byte[] password = config.getPassword().getBytes(StandardCharsets.UTF_8);
+            byte[] encrypted;
+            try {
+                byte[] passwordInput = Arrays.copyOf(password, password.length + 1); // append 0x00 (NULL) terminator
+                encrypted = RsaPublicKeyEncryptor.encrypt(passwordInput, authPluginData, serverRsaPublicKey);
+            } catch (Exception e) {
+                promise.tryFail(e);
+                return;
+            }
+            sendBytesAsPacket(encrypted);
+        } else {
+            byte flag = payload.readByte();
+            if (flag == FULL_AUTHENTICATION_STATUS_FLAG) {
+                // Non-secure connection: request the server RSA public key to encrypt the password.
+                isWaitingForRsaPublicKey = true;
+                sendBytesAsPacket(new byte[]{(byte) AUTH_PUBLIC_KEY_REQUEST_FLAG});
+            } else if (flag == FAST_AUTH_STATUS_FLAG) {
+                // Fast-auth succeeded, the server will follow with an OK packet.
+            } else {
+                promise.tryFail(new UnsupportedOperationException("Unsupported flag for AuthMoreData : " + flag));
+            }
+        }
+    }
+
+    private void sendBytesAsPacket(byte[] payload) {
+        socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId + 1, payload)));
     }
 
     private void sendHandshakeResponseMessage(String username,
