@@ -62,6 +62,8 @@ public class ServerConfig {
     private int mergeUnionSize = 5;
     private boolean joinClustering = true;
     private String serverVersion = "5.7.33-mycat-2.0";
+    // I-VE-1: 版本画像 persona，缺省 MYSQL_5_7 保证零回归；serverVersion 作为可选覆盖串（非空则优先）
+    private ServerPersona persona = ServerPersona.MYSQL_5_7;
     private boolean ignoreCast = false;
     private int fullTableScanLimit = 1024;
     private boolean fullTableScanException = false;

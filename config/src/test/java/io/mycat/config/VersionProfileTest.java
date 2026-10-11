@@ -26,4 +26,16 @@ public class VersionProfileTest {
         VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, "8.0.40-mycat");
         assertEquals("8.0.40-mycat", p.serverVersionString());
     }
+
+    @Test
+    public void fromServerConfigUsesOverrideThenPersona() {
+        ServerConfig cfg = new ServerConfig();
+        // 默认：persona=MYSQL_5_7、serverVersion 仍为其字段默认 "5.7.33-mycat-2.0"
+        assertEquals("5.7.33-mycat-2.0", VersionProfileFactory.from(cfg).serverVersionString());
+        cfg.setPersona(ServerPersona.MYSQL_8_0);
+        cfg.setServerVersion(null); // 清掉覆盖串 -> 走 persona 默认
+        assertEquals("8.0.34", VersionProfileFactory.from(cfg).serverVersionString());
+        cfg.setServerVersion("9.9.9-custom"); // 覆盖串优先
+        assertEquals("9.9.9-custom", VersionProfileFactory.from(cfg).serverVersionString());
+    }
 }

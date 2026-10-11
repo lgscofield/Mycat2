@@ -36,4 +36,9 @@ public final class VersionProfileFactory {
     public static VersionProfile defaultProfile() {
         return of(ServerPersona.MYSQL_5_7, null);
     }
+
+    /** 由 ServerConfig 构造画像：显式 serverVersion 覆盖串优先，否则回落 persona 默认串。 */
+    public static VersionProfile from(ServerConfig serverConfig) {
+        return of(serverConfig.getPersona(), serverConfig.getServerVersion());
+    }
 }
