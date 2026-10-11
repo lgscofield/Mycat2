@@ -28,6 +28,19 @@
 
 ---
 
+## 实现状态（2026-10-11 · Native 执行 + 整分支独立 CodeReview）
+
+全部 4 任务已交付并本地提交（**未 push**）：T1 `d24542286` / T2 `a85c0ec55` / T3 `534b423f8` / T4 `8ca4690e3`；评审修复 `b7294f94d`。全套 reactor `BUILD SUCCESS`，0 failures / 0 errors（实测 config 3 / common 15 / proxy 2 / router 18 / va 12 / hbt 130 / executor 0）。
+
+**偏离计划之处**（正文对应步骤保留原文 + 就地 `⚠️ 订正`）：
+- **Critical#1**：Task2 Step4 / Task4 Step5 的"把画像加进 `Maps.of`（:107）注册"是错的——`MetaClusterCurrent.register(Map)` 整表替换会抹掉它，启动即 NPE（已 boot 实测：修复前致命 NPE @ `VertxMycatServer:147`）。修复=画像 `context.put` 进持久 context（`MycatCore.java` L143 前）。
+- **Important#4**：Task3 追加正向测试 `profileVersionStringDrivesHandshakeBytes`（补 golden 同值参照的"退化写死"盲区）。
+- **Rulings**：persona 首版为"声明未坐实"旋钮（`serverVersion` 非空且驱动 DEPRECATE_EOF，不改）；`VERSION()` 保留 `defaultProfile()` 回落（spec 明确不可 NPE）。
+- **Deferred minors（记档，未进修复轮）**：握手 caps 仍走形参非 `profile.capabilityMask()`；`VersionProfileFactory.of` 无 persona null 防护；消费点用全限定名而非 import；persona 热更不重建画像快照。
+- **e2e 门**：Task4 Step7 的 `ConnectionSmokeTest`/`FrontAuthMatrixTest` 需 Docker+8066，仍未跑，属交付前必跑。
+
+---
+
 ### Task 1: VersionProfile 画像三件套（config 新增，纯加法）
 
 **Files:**
@@ -45,7 +58,7 @@
   - `static VersionProfile VersionProfileFactory.from(io.mycat.config.ServerConfig serverConfig)`（Task 2 用到 persona 字段后完善）。
   - `static VersionProfile VersionProfileFactory.defaultProfile()`（= MYSQL_5_7 零回归画像）。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```java
 // config/src/test/java/io/mycat/config/VersionProfileTest.java
@@ -72,12 +85,12 @@ public class VersionProfileTest {
 }
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `$env:JAVA_HOME='D:\Program Files\BellSoft\LibericaJDK-21-Full'; mvn -o -q -pl config test -Dtest=VersionProfileTest`
 Expected: 编译失败（类不存在）。
 
-- [ ] **Step 3: 实现三件套**
+- [x] **Step 3: 实现三件套**
 
 `ServerPersona` 枚举：每个常量存一个 `defaultVersionString`，仅 `MYSQL_5_7 = "5.7.33-mycat-2.0"` 坐实；其余常量给占位版本串（如 `MYSQL_8_0 = "8.0.34"`、`MARIADB_10_6 = "10.6.14-MariaDB"` 等），但**能力位/字符集对非 5.7 暂不特殊化**——`of()` 对所有 persona 统一返回 `capabilityMask=getDefaultServerCapabilities()`、`characterSet=8`、`statusFlags=2`、`authPlugin="mysql_native_password"`（spec §1 决策：非 5.7 的能力位差异留 T-AUTH，不投机）。
 
@@ -92,12 +105,12 @@ Expected: 编译失败（类不存在）。
 </dependency>
 ```
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `mvn -o -q -pl config test -Dtest=VersionProfileTest`
 Expected: PASS（2 方法）。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add config/src/main/java/io/mycat/config/ServerPersona.java config/src/main/java/io/mycat/config/VersionProfile.java config/src/main/java/io/mycat/config/VersionProfileFactory.java config/pom.xml config/src/test/java/io/mycat/config/VersionProfileTest.java
@@ -118,7 +131,7 @@ git commit -m "feat(I-VE-1): 新增 VersionProfile 画像三件套（config）�
 - Consumes: `ServerConfig.getServerVersion()`（Lombok `@Data` 生成）、`ServerPersona`。
 - Produces: `ServerConfig.getPersona()`（Lombok 生成）、`static VersionProfile VersionProfileFactory.from(ServerConfig)`。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```java
 @Test
@@ -134,26 +147,28 @@ public void fromServerConfigUsesOverrideThenPersona() {
 }
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `mvn -o -q -pl config test -Dtest=VersionProfileTest`
 Expected: 编译失败（`getPersona`/`from` 不存在）。
 
-- [ ] **Step 3: 加字段与工厂方法**
+- [x] **Step 3: 加字段与工厂方法**
 
 `ServerConfig` 在 `serverVersion` 字段附近加：`private ServerPersona persona = ServerPersona.MYSQL_5_7;`（`@Data` 自动出 getter/setter）。
 `VersionProfileFactory.from(ServerConfig cfg)` = `of(cfg.getPersona(), cfg.getServerVersion())`（覆盖串空/ null 时回落 persona，已由 `of` 处理）。
 
-- [ ] **Step 4: MycatCore 注册画像**
+- [x] **Step 4: MycatCore 注册画像**
 
 在 `MycatCore.java:107` 的 `Maps.of(...)` 追加一对：`, VersionProfile.class, VersionProfileFactory.from(serverConfig.getServer())`。保留 :108 `setServerVersion`（Task 4 删）。此时新旧并存，树可编译。
 
-- [ ] **Step 5: 跑测试确认通过 + 编译 server**
+> ⚠️ **订正（评审 Critical#1，已 boot 实测）**：本步的注册落点是错的——`Maps.of(...)` 走 `register(Map)` 整表替换，而 MycatCore 构造在 L143/L172 会用新建 `context` 再 `register` 一次，把这里早注册的画像**抹除**，运行期 `VertxMycatServer:147`/`VertxMySQLAuthHandler:58` 的 `wrapper()` → NPE，启动即崩（单测不穿装配序列故当时全绿）。**最终修复（commit `b7294f94d`）= 画像改 `context.put(VersionProfile.class, VersionProfileFactory.from(serverConfig.getServer()))` 进持久 context（L143 前）**，并从 L106 的 `Maps.of` 移除。
+
+- [x] **Step 5: 跑测试确认通过 + 编译 server**
 
 Run: `mvn -o -q -pl config test -Dtest=VersionProfileTest && mvn -o -q -pl server -am test-compile`
 Expected: 测试 PASS；server test-compile BUILD SUCCESS。
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add config/src/main/java/io/mycat/config/ServerConfig.java config/src/main/java/io/mycat/config/VersionProfileFactory.java config/src/test/java/io/mycat/config/VersionProfileTest.java server/src/main/java/io/mycat/MycatCore.java
@@ -174,7 +189,7 @@ git commit -m "feat(I-VE-1): ServerConfig.persona + 工厂入口，MycatCore 注
 - Consumes: `VersionProfile`（`serverVersionString/characterSet/statusFlags/authPlugin`）、`MySQLVersion.PROTOCOL_VERSION`（保留）。
 - Produces: `static byte[] MySQLClientAuthHandler.createHandshakePayload(long sessionId, int serverCapabilities, byte[][] seedParts, io.mycat.config.VersionProfile profile)`。
 
-- [ ] **Step 1: 写 golden 回归测试（先失败——签名不含 profile）**
+- [x] **Step 1: 写 golden 回归测试（先失败——签名不含 profile）**
 
 测试用固定 seedParts 输入，断言改后方法产出字节 == 用**当前硬编码值**手工序列化的 `HandshakePacket` 字节（零回归证明）：
 
@@ -222,17 +237,17 @@ public class HandshakePayloadRegressionTest {
 
 > 包路径已核实：`MySQLPayloadWriter`= `io.mycat.protocol.mysql.type`（L22）、`HandshakePacket` = `io.mycat.beans.mysql.packet`（L26）。测试顶部 `HandshakePacket` import 用后者。
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `mvn -o -q -pl proxy test -Dtest=HandshakePayloadRegressionTest`
 Expected: 编译失败（4 参重载不存在）。若 proxy 无 junit 依赖，先给 `proxy/pom.xml` 加 junit-jupiter(test)。
 
-- [ ] **Step 3: 改 `createHandshakePayload` 读画像**
+- [x] **Step 3: 改 `createHandshakePayload` 读画像**
 
 签名加 `VersionProfile profile`；方法体把 L251 `new String(MySQLVersion.SERVER_VERSION)` → `profile.serverVersionString()`；L256 `setCharacterSet(8)` → `profile.characterSet()`；L257 `setStatusFlags(2)` → `profile.statusFlags()`；L260 `MysqlNativePasswordPluginUtil.PROTOCOL_PLUGIN_NAME` → `profile.authPlugin()`。`setCapabilities(new MySQLServerCapabilityFlags(serverCapabilities))`、`PROTOCOL_VERSION`、seed 相关、`setAuthPluginDataLen(21)` 保持不变。
 同文件 `sendAuthPackge`(L234，死码路径) 若仍引用旧签名：改为 `createHandshakePayload(sessionId, serverCapabilities, seedParts, MetaClusterCurrent.wrapper(VersionProfile.class))`（proxy→common 已有依赖）。
 
-- [ ] **Step 4: 改活调用方 VertxMySQLAuthHandler:58**
+- [x] **Step 4: 改活调用方 VertxMySQLAuthHandler:58**
 
 在构造器内取画像并传入：
 ```java
@@ -241,12 +256,12 @@ byte[] handshakePacket = MySQLClientAuthHandler.createHandshakePayload(
         mycatDataContext.getSessionId(), defaultServerCapabilities, seedParts, profile);
 ```
 
-- [ ] **Step 5: 跑测试确认通过 + server 编译**
+- [x] **Step 5: 跑测试确认通过 + server 编译**
 
 Run: `mvn -o -q -pl proxy test -Dtest=HandshakePayloadRegressionTest && mvn -o -q -pl server -am test-compile`
 Expected: golden 测试 PASS；server test-compile SUCCESS。
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add proxy/src/main/java/io/mycat/proxy/handler/front/MySQLClientAuthHandler.java server/src/main/java/io/mycat/vertx/VertxMySQLAuthHandler.java proxy/pom.xml proxy/src/test/java/io/mycat/proxy/handler/front/HandshakePayloadRegressionTest.java
@@ -268,7 +283,7 @@ git commit -m "feat(I-VE-1): 握手字节改读 VersionProfile，加零回归 go
 - Consumes: `VersionProfile.serverVersionString()`、`VersionProfile.capabilityMask()`、`MetaClusterCurrent.wrapper/exist`。
 - Produces: 无新对外接口（内部改读）。
 
-- [ ] **Step 1: 写 `VERSION()` 回退 + DI 用例（先失败）**
+- [x] **Step 1: 写 `VERSION()` 回退 + DI 用例（先失败）**
 
 ```java
 // hbt/src/test/java/io/mycat/calcite/sqlfunction/infofunction/MycatVersionFunctionTest.java
@@ -300,12 +315,12 @@ public class MycatVersionFunctionTest {
 }
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `mvn -o -q -pl hbt test -Dtest=MycatVersionFunctionTest`
 Expected: FAIL（version() 仍读静态串，两断言不符/未回落）。
 
-- [ ] **Step 3: 改 `MycatVersionFunction.version()`**
+- [x] **Step 3: 改 `MycatVersionFunction.version()`**
 
 ```java
 public static String version(){
@@ -316,31 +331,34 @@ public static String version(){
 ```
 删去对 `io.mycat.protocol.mysql.type.MySQLVersion` 的 import，加 `io.mycat.MetaClusterCurrent`、`io.mycat.config.VersionProfile`、`io.mycat.config.VersionProfileFactory`（hbt→common/config 已有依赖）。
 
-- [ ] **Step 4: 改 `VertxMycatServer:147` 能力位来源**
+- [x] **Step 4: 改 `VertxMycatServer:147` 能力位来源**
 
 `int defaultServerCapabilities = MySQLServerCapabilityFlags.getDefaultServerCapabilities();` →
 `int defaultServerCapabilities = MetaClusterCurrent.wrapper(VersionProfile.class).capabilityMask();`
 保留紧随其后的 `CLIENT_DEPRECATE_EOF` 叠加逻辑（L148-152）不动。加 `io.mycat.config.VersionProfile` import。
 
-- [ ] **Step 5: 移除可变静态 + 悬挂引用归零**
+- [x] **Step 5: 移除可变静态 + 悬挂引用归零**
 
 `MySQLVersion.java`：删 `SERVER_VERSION_STRING`、`SERVER_VERSION`、`setServerVersion(...)`，保留 `PROTOCOL_VERSION`。
 `MycatCore.java:108`：删 `MySQLVersion.setServerVersion(...)` 整行（画像已在 :107 注册）。
+
+> ⚠️ **订正（承接 Task2 Step4）**：删 `setServerVersion` 正确，但"画像已在 :107 注册"不再成立——评审修复后画像落点在**持久 context（L143 前 `context.put`）**，非 :107 的 `Maps.of`（那会被整表替换抹除，见 Critical#1）。
 Run: `Select-String -Path (Get-ChildItem -Recurse -Filter *.java) -Pattern 'SERVER_VERSION_STRING|setServerVersion|MySQLVersion\.SERVER_VERSION\b'`
 Expected: 仅剩 `MySQLVersion.java` 内 `setServerVersion` 若保留则无；期望命中为 0（握手/VERSION 已改读画像；`HandshakePacket.setServerVersion` 是包内不同方法，不算）。
 
-- [ ] **Step 6: 跑测试确认通过 + 编译面全绿**
+- [x] **Step 6: 跑测试确认通过 + 编译面全绿**
 
 Run: `mvn -o -q -pl hbt test -Dtest=MycatVersionFunctionTest && mvn -o -q -pl protocol,config,proxy,server -am test-compile`
 Expected: 测试 PASS；各模块 test-compile BUILD SUCCESS（证明静态移除无悬挂引用）。
 
-- [ ] **Step 7: 活路径零回归 e2e + 全单测基线**
+- [x] **Step 7: 活路径零回归 e2e + 全单测基线**
 
 Run: `mvn -o -q -pl config,common,router,va,hbt,executor test -Dmaven.test.failure.ignore=true`
 Expected: config/common/router/va/hbt/executor 无新增红（对齐既有基线：common 15/0/0、router 18/0/0、va 12/0/0、hbt 128/0/0、executor 0）。
+> ⚠️ **交付实况**：实测 hbt 基线升至 **130/0/0**（128 + `MycatVersionFunctionTest` 2）、config 3/0/0、proxy 2/0/0；全套 reactor `BUILD SUCCESS` 0/0。下方 e2e（`ConnectionSmokeTest`/`FrontAuthMatrixTest`）**仍待 Docker+8066，属交付前必跑门，本首版尚未实跑**。
 （活路径握手/`SELECT VERSION()` 端到端由 `example` 的 `ConnectionSmokeTest`/`FrontAuthMatrixTest` 覆盖，需 Docker m1-mysql + 8066 实跑，属验收环节，若环境具备则跑，否则记为交付前必跑门。）
 
-- [ ] **Step 8: 提交**
+- [x] **Step 8: 提交**
 
 ```bash
 git add hbt/src/main/java/io/mycat/calcite/sqlfunction/infofunction/MycatVersionFunction.java server/src/main/java/io/mycat/vertx/VertxMycatServer.java protocol/src/main/java/io/mycat/protocol/mysql/type/MySQLVersion.java server/src/main/java/io/mycat/MycatCore.java hbt/src/test/java/io/mycat/calcite/sqlfunction/infofunction/MycatVersionFunctionTest.java

@@ -53,10 +53,10 @@ Mycat2 的头条目标是：在客户端眼中**无缝替代** MySQL 5.7/8.0/8.4
 ServerPersona (enum)          ── 定义"有哪些画像" + 每个画像的默认版本串
    │
 VersionProfile (immutable)    ── 一个画像的具体 bundle：
-   • serverVersionString         版本串（握手 serverVersion、SELECT VERSION()、@@version 同源）
+   • serverVersionString         版本串（握手 serverVersion、SELECT VERSION()；@@version 走后端透传、不接线，见 §1.1）
    • capabilityMask              能力位掩码（握手 caps；5.7 persona = 现掩码）
-   • declaredAuthPlugin          宣称的认证插件名（握手 authPluginName；首版恒 native）
-   • defaultCharacterSet         字符集 id（握手 charset；首版 5.7 = 8）
+   • authPlugin                  宣称的认证插件名（握手 authPluginName；首版恒 native）
+   • characterSet                字符集 id（握手 charset；首版 5.7 = 8）
    • statusFlags                 状态位（首版 = 2）
    （versionComment/license 不纳入本画像：@@ 变量走后端透传、本版不接线，见 §1.1，YAGNI）
    │
@@ -77,6 +77,7 @@ VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串)
 - 新增 `ServerPersona persona`（枚举），缺省 `MYSQL_5_7`。
 - 保留 `String serverVersion`（:64，语义不变 = 自由串覆盖）。
 - 解析优先级：**显式 `serverVersion` 覆盖串 > `persona` 内置默认串**。两者都给时以覆盖串为准，persona 只决定 bundle 中"串以外"的能力位/字符集默认（首版这些仅 5.7 坐实）。
+- **首版生效边界（评审 Important#2 裁定，凭当前代码核实）**：`serverVersion` 默认值**非空**（`"5.7.33-mycat-2.0"`），且它同时是 `computeClientDeprecateEof()`（`ServerConfig.java:129`）的输入——把默认改成 `null` 会破坏 DEPRECATE_EOF 解析（反造回归），故本版保留非空默认。后果：覆盖串恒优先，**单改 `persona` 不改变版本串**——persona 首版是"声明但未坐实"的旋钮（实施计划 Task2 测试须显式 `setServerVersion(null)` 才走 persona 默认）。persona→bundle 的全套联动（能力位/插件/字符集差异）随 T-AUTH 落地再坐实。
 - `VersionProfileFactory.from(serverConfig)` 产画像；`computeClientDeprecateEof()`(:126) 改为画像 capabilityMask 的一个派生位（或保持等价），确保现有 DEPRECATE_EOF 联动零漂移。
 
 ### 2.3 消费点接线（改动清单）
@@ -86,9 +87,9 @@ VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串)
 | `protocol/.../type/MySQLVersion.java` | **移除**可变静态 `SERVER_VERSION_STRING`/`SERVER_VERSION`/`setServerVersion()`；`PROTOCOL_VERSION` 常量可保留或并入画像 |
 | `config/.../ServerConfig.java` | 新增 `persona` 字段；`serverVersion` 保留 |
 | `config`（新增类） | `ServerPersona` 枚举 + `VersionProfile` 不可变类 + `VersionProfileFactory`（画像归属 config 模块，与 `MySQLServerCapabilityFlags`/`MySQLDatabaseMetadata` 同域，避免 protocol→config 反向依赖） |
-| `server/.../MycatCore.java:108` | 由 `setServerVersion(...)` 改为构造画像单例并 `MetaClusterCurrent.register(VersionProfile.class, profile)` |
+| `server/.../MycatCore.java:108` | 由 `setServerVersion(...)` 改为构造画像单例并注册进 DI。**关键陷阱（评审 Critical#1，已本地 boot 实测）**：`MetaClusterCurrent.register(Map)` 是 `AtomicReference.set` = **整表替换、非合并**（`MetaClusterCurrent.java:17-19`）；MycatCore 构造在 L143/L172 会用新建的 `context` 再 `register` 一次，早先注册进 L106 临时 `Maps.of` 的画像会被**抹除**，导致 `VertxMycatServer:147`/`VertxMySQLAuthHandler:58` 的 `wrapper()` 取不到→启动即 NPE。正确落点：画像须 `context.put` 进那份**持久 context**（L143 前），或改用合并式重载 `register(Class,Object)`（:29 走 `copyContext`）。 |
 | `server/.../vertx/VertxMycatServer.java:147` | 从画像取 `capabilityMask`（替代 `getDefaultServerCapabilities()` 直调），仍叠加 DEPRECATE_EOF |
-| `proxy/.../front/MySQLClientAuthHandler.java:248` `createHandshakePayload` | 改为接收画像参数（或在方法内取 DI 画像），version/charset/statusFlags/plugin/caps 全读画像；`VertxMySQLAuthHandler:58` 调用点传入 |
+| `proxy/.../front/MySQLClientAuthHandler.java:248` `createHandshakePayload` | 改为接收画像参数（或在方法内取 DI 画像），version/charset/statusFlags/plugin 读画像；`VertxMySQLAuthHandler:58` 调用点传入。**注**：caps 仍走 `serverCapabilities` 形参（其值由 `VertxMycatServer:147` 从画像 `capabilityMask` 供给，故传递等价）；直接改读 `profile.capabilityMask()` 留 T-AUTH 坐实能力位差异后处理（记为 deferred minor，见 §5） |
 | `hbt/.../MycatVersionFunction.java:40` | `version()` 从画像取 versionString（DI 或静态 holder）替代可变静态 |
 | `MySQLVariablesEnum` / `MysqlVariableServiceImpl` | **本刀不改**：@@version 族走后端真实探测透传，不读 `MySQLVersion` 静态，移出接线范围（理由见 §1.1） |
 
@@ -106,12 +107,18 @@ VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串)
 2. **握手字节回归锁**：同一 sessionId/capabilities/seed 输入下，改动前后 `createHandshakePayload` 产出字节完全相同。
 3. **版本自述一致性**：默认 persona 下 `SELECT VERSION()` 值不变（= `"5.7.33-mycat-2.0"`）；`@@version` 族维持后端透传行为不变（本刀不接线，作 no-change 断言）。
 4. **活路径 e2e 零回归**：`ConnectionSmokeTest`、`FrontAuthMatrixTest` 连跑绿；全单测基线（config/common/router/va/hbt/executor）无新增红。
+5. **正向握手锁（评审 Important#4 补）**：`profileVersionStringDrivesHandshakeBytes`——探针版本串驱动的握手字节其 serverVersion 段解码 == 探针且异于默认画像字节，钉死 `createHandshakePayload` 真读画像（补 #2 golden 同值参照无法暴露"退化写死"的盲区）。
+
+**交付实况（2026-10-11）**：
+- 单测基线实测 config 3 / common 15 / proxy 2 / router 18 / va 12 / **hbt 130**（原 128 + `MycatVersionFunctionTest` 2）/ executor 0，全套 reactor `BUILD SUCCESS`、0 failures / 0 errors。
+- Critical#1（启动 NPE）已本地 `java -cp <模块 target/classes;runtime cp> -DMYCAT_HOME=.mycat-home-e2e io.mycat.MycatCore` 做**红→绿 boot 实证**：修复前 `main` 线程致命 NPE @ `VertxMycatServer.java:147`；修复后越过 caps 计算、抵达 verticle `listen`，仅报 `Address already in use: bind`（既有 8066 服务占用）。
+- **e2e 矩阵（#4）仍待 Docker + 8066，属交付前必跑门**，本首版尚未实跑。
 
 **DoD（出口判据）**
-- 默认 persona 零回归（上述 1–4 实证通过）；
-- 画像可配置（persona + 覆盖串两条路径均可构造出自洽 bundle）；
+- 默认 persona 零回归：单测项 #1/#2/#3/#5 + Critical#1 boot 实证均通过；**活路径 e2e #4 待 Docker 实跑**（交付前必跑门）。
+- 画像可配置（persona + 覆盖串两条路径均可构造出自洽 bundle；注：首版 persona 为声明未坐实旋钮，见 §2.2 生效边界）；
 - 可变静态 `MySQLVersion` 已移除（I-VE-3 就此收口）；
-- 全单测基线绿。
+- 全单测基线绿（config/common/proxy/router/va/hbt/executor 0/0）。
 
 ## 5. 明确不做（推给后续里程碑）
 
