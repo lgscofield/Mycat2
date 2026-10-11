@@ -72,6 +72,13 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- I-VE-1: config 此前无测试根，补 junit-jupiter（版本走根 pom 管理）以承载 VersionProfile 单测 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>
