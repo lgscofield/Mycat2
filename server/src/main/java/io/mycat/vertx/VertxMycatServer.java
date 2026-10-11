@@ -144,7 +144,7 @@ public class VertxMycatServer implements MycatServer {
             DeploymentOptions deploymentOptions = new DeploymentOptions();
             deploymentOptions.setWorker(false);
             boolean supportClientDeprecateEof = NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF;
-            int defaultServerCapabilities = MySQLServerCapabilityFlags.getDefaultServerCapabilities();
+            int defaultServerCapabilities = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class).capabilityMask();
             if (supportClientDeprecateEof) {
                 defaultServerCapabilities |= MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF;
             } else {

@@ -27,14 +27,6 @@ public class MySQLVersion {
     /** 协议版本 **/
     public static final byte PROTOCOL_VERSION = 10;
 
-    /** 服务器版本 **/
-    public static String SERVER_VERSION_STRING = "5.7.33-mycat-2.0";
-   // public static String SERVER_VERSION_STRING = "5.6.39-mycat-2.0";
-
-    public static byte[] SERVER_VERSION = SERVER_VERSION_STRING.getBytes();
-
-    public static void setServerVersion(String version) {
-        SERVER_VERSION_STRING = version;
-        SERVER_VERSION = version.getBytes();
-    }
+    // I-VE-1: 服务器版本串/能力位/插件/字符集已收敛到 config 模块的不可变 VersionProfile 画像，
+    // 原可变静态量 SERVER_VERSION_STRING / SERVER_VERSION / setServerVersion 已移除（坐实 I-VE-3 消除启动期全局可变量）。
 }

@@ -14,7 +14,6 @@
  */
 package io.mycat;
 
-import io.mycat.protocol.mysql.type.MySQLVersion;
 import io.mycat.calcite.ExecutorProvider;
 import io.mycat.config.*;
 import io.mycat.executor.ExecutorProviderImpl;
@@ -106,7 +105,6 @@ public class MycatCore {
         MycatServerConfig serverConfig = serverConfiguration.serverConfig();
         MetaClusterCurrent.register(Maps.of(MycatServerConfig.class, serverConfig, serverConfig.getServer().getClass(), serverConfig.getServer(),
                 VersionProfile.class, VersionProfileFactory.from(serverConfig.getServer())));
-        MySQLVersion.setServerVersion(serverConfig.getServer().getServerVersion());
         String datasourceProvider = Optional.ofNullable(serverConfig.getDatasourceProvider()).orElse(io.mycat.datasource.jdbc.DruidDatasourceProvider.class.getCanonicalName());
         ThreadPoolExecutorConfig workerPool = serverConfig.getServer().getWorkerPool();
 

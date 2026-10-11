@@ -16,7 +16,9 @@
  */
 package io.mycat.calcite.sqlfunction.infofunction;
 
-import io.mycat.protocol.mysql.type.MySQLVersion;
+import io.mycat.MetaClusterCurrent;
+import io.mycat.config.VersionProfile;
+import io.mycat.config.VersionProfileFactory;
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 import org.apache.calcite.sql.SqlFunctionCategory;
@@ -37,6 +39,9 @@ public class MycatVersionFunction extends MycatSqlDefinedFunction {
     }
 
     public static String version(){
-        return MySQLVersion.SERVER_VERSION_STRING;
+        // I-VE-1: SELECT VERSION() 从 VersionProfile 画像取宣称串；DI 未注册（引导早期/单测）回落 MYSQL_5_7 默认，不 NPE
+        return MetaClusterCurrent.exist(VersionProfile.class)
+                ? MetaClusterCurrent.wrapper(VersionProfile.class).serverVersionString()
+                : VersionProfileFactory.defaultProfile().serverVersionString();
     }
 }
