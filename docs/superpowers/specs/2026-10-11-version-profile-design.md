@@ -14,7 +14,7 @@ Mycat2 的头条目标是：在客户端眼中**无缝替代** MySQL 5.7/8.0/8.4
 | 握手包认证插件名 | 同上 `:260` `MysqlNativePasswordPluginUtil.PROTOCOL_PLUGIN_NAME` | 写死 native |
 | 能力位掩码 | `config/.../MySQLServerCapabilityFlags.java:178` `getDefaultServerCapabilities()` | 固定掩码；`CLIENT_SSL`(:195)、`CLIENT_COMPRESS`(:188)、`CLIENT_CONNECT_ATTRS`(:201)、`CLIENT_SESSION_TRACK`(:203) 全被注释掉 |
 | 版本函数 | `hbt/.../infofunction/MycatVersionFunction.java:40` `return MySQLVersion.SERVER_VERSION_STRING` | `SELECT VERSION()` 读可变静态 |
-| @@ 变量族 | `protocol/.../type/MySQLVariablesEnum.java` 声明 `version`/`version_comment`/`license` = GLOBAL | 值需与版本自述一致，当前无统一来源 |
+| @@ 变量族 | `protocol/.../type/MySQLVariablesEnum.java` 声明 `version`/`version_comment`/`license` = GLOBAL；值实际来源 = `hbt/.../MysqlVariableServiceImpl.java:34-52` 对后端真实 `SHOW GLOBAL VARIABLES` 探测（fallback 分支 :53-96 **不 seed 这三项**） | **非读 `MySQLVersion` 静态量**，走后端透传；与 `VERSION()` 存在已知不一致（见 §1.1） |
 | 可变静态量 | `protocol/.../type/MySQLVersion.java:31/34/36` `SERVER_VERSION_STRING`/`SERVER_VERSION`/`setServerVersion()` | 全局可变量，反模式（对应 I-VE-3） |
 | 唯一配置口 | `config/.../ServerConfig.java:64` `private String serverVersion = "5.7.33-mycat-2.0"` → `server/.../MycatCore.java:108` `MySQLVersion.setServerVersion(...)` | 只有一根串可配，能力位/插件/字符集不受它管 |
 
@@ -38,6 +38,13 @@ Mycat2 的头条目标是：在客户端眼中**无缝替代** MySQL 5.7/8.0/8.4
 1. **persona 首版范围**：`ServerPersona` 枚举**定义全部 7 个**（MYSQL_5_7/8_0/8_4/9_X、MARIADB_10_6/10_11/11_4），但 **bundle 值只坐实 `MYSQL_5_7`**（逐字节等于当前硬编码 = 零回归锚点）；其余 persona 的版本串可由 `MySQLDatabaseMetadata.parse()` 派生，但**能力位/插件差异（如 8.0 的 caching_sha2 默认、CLIENT_SESSION_TRACK）暂不填充**——现在填等于往 T-AUTH 领域投机，等有真实认证实现再坐实。
 2. **可变静态移除**：本轮一并做，接受略微扩大的 blast radius，用零回归验收锁兜底。
 
+### 1.1 接线范围收敛 + 已知不一致（凭当前代码复核订正）
+
+写实施计划时核实：真正读 `MySQLVersion` 可变静态的**只有两处**——握手 `createHandshakePayload`（`SERVER_VERSION`）与 `SELECT VERSION()`（`MycatVersionFunction` → `SERVER_VERSION_STRING`）；能力位在 `VertxMycatServer:147`/`getDefaultServerCapabilities`；配置注入在 `MycatCore:108`。而 `@@version`/`@@version_comment`/`@@license` **不读该静态**，是 `MysqlVariableServiceImpl` 对后端真实 `SHOW GLOBAL VARIABLES` 的透传。
+
+- **本首版接线范围**（4 个真实落点）：握手字节、`VERSION()`、启动能力位、配置注入。`@@` 变量透传路径**不动**（改动它 = 破坏零回归，且透传后端版本本身属"无缝"正确行为）。
+- **已知不一致（显式记录，非本刀修）**：当 persona 宣称版本 ≠ 后端真实版本时，`SELECT VERSION()`（回宣称串）与 `SELECT @@version`（回后端真版本）会不一致。统一二者属"版本自述一致性"的特性级工作，推给后续（与 T-AUTH/T-META 对齐），本版不投机。
+
 ## 2. 架构设计
 
 ### 2.1 组件划分
@@ -51,14 +58,14 @@ VersionProfile (immutable)    ── 一个画像的具体 bundle：
    • declaredAuthPlugin          宣称的认证插件名（握手 authPluginName；首版恒 native）
    • defaultCharacterSet         字符集 id（握手 charset；首版 5.7 = 8）
    • statusFlags                 状态位（首版 = 2）
-   • versionComment / license    @@version_comment / @@license 值
+   （versionComment/license 不纳入本画像：@@ 变量走后端透传、本版不接线，见 §1.1，YAGNI）
    │
 VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串) 构造画像单例
    │
    ├── VertxMycatServer:147        启动期算 capabilityMask → 传入每个 handler
    ├── createHandshakePayload      读画像各字段生成握手字节
-   ├── MycatVersionFunction.version()   读画像 versionString
-   └── MySQLVariablesEnum 值来源        读画像 versionComment/license
+   └── MycatVersionFunction.version()   读画像 versionString
+   （MySQLVariablesEnum 的 @@version 族不在接线范围：走后端透传，见 §1.1）
 ```
 
 画像单例经 `MetaClusterCurrent`（DI 缝合点，`MycatCore.java:107` 已有 `MycatServerConfig` 注册先例）注册，消费点从 DI 取，替代直接读静态。
@@ -83,7 +90,7 @@ VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串)
 | `server/.../vertx/VertxMycatServer.java:147` | 从画像取 `capabilityMask`（替代 `getDefaultServerCapabilities()` 直调），仍叠加 DEPRECATE_EOF |
 | `proxy/.../front/MySQLClientAuthHandler.java:248` `createHandshakePayload` | 改为接收画像参数（或在方法内取 DI 画像），version/charset/statusFlags/plugin/caps 全读画像；`VertxMySQLAuthHandler:58` 调用点传入 |
 | `hbt/.../MycatVersionFunction.java:40` | `version()` 从画像取 versionString（DI 或静态 holder）替代可变静态 |
-| `MySQLVariablesEnum` 值来源 | version/version_comment/license 取画像对应字段 |
+| `MySQLVariablesEnum` / `MysqlVariableServiceImpl` | **本刀不改**：@@version 族走后端真实探测透传，不读 `MySQLVersion` 静态，移出接线范围（理由见 §1.1） |
 
 > **模块归属（已 file:line 核实，无环）**：读取各模块 pom 内部依赖边——`config` 无任何 io.mycat 内部依赖（最上游叶子），而 `protocol`→config、`hbt`→config、`proxy`→config 均直接依赖，`server`→proxy/hbt→config 传递依赖。故 `ServerPersona`/`VersionProfile`/`VersionProfileFactory` 三个新类**确定落 `config` 模块**（与 `MySQLServerCapabilityFlags`、`MySQLDatabaseMetadata` 同域），全部消费方可直达且零循环依赖。`MySQLVersion` 的可变静态成员从 `protocol` 移除；`PROTOCOL_VERSION=10` 常量可留在 protocol 或并入画像（实施期就近选择，不影响依赖方向）。
 
@@ -97,7 +104,7 @@ VersionProfileFactory         ── 由 ServerConfig(persona + 可选覆盖串)
 **测试**
 1. **persona→bundle 映射单测**：`MYSQL_5_7` 逐字段等于当前硬编码常量（断言数值，防漂移）。
 2. **握手字节回归锁**：同一 sessionId/capabilities/seed 输入下，改动前后 `createHandshakePayload` 产出字节完全相同。
-3. **版本自述一致性**：默认 persona 下 `SELECT VERSION()`、`@@version`、`@@version_comment` 值不变。
+3. **版本自述一致性**：默认 persona 下 `SELECT VERSION()` 值不变（= `"5.7.33-mycat-2.0"`）；`@@version` 族维持后端透传行为不变（本刀不接线，作 no-change 断言）。
 4. **活路径 e2e 零回归**：`ConnectionSmokeTest`、`FrontAuthMatrixTest` 连跑绿；全单测基线（config/common/router/va/hbt/executor）无新增红。
 
 **DoD（出口判据）**
