@@ -103,8 +103,7 @@ public class MycatCore {
         System.out.println("path:" + this.baseDirectory);
         ServerConfiguration serverConfiguration = new ServerConfigurationImpl(MycatCore.class, path);
         MycatServerConfig serverConfig = serverConfiguration.serverConfig();
-        MetaClusterCurrent.register(Maps.of(MycatServerConfig.class, serverConfig, serverConfig.getServer().getClass(), serverConfig.getServer(),
-                VersionProfile.class, VersionProfileFactory.from(serverConfig.getServer())));
+        MetaClusterCurrent.register(Maps.of(MycatServerConfig.class, serverConfig, serverConfig.getServer().getClass(), serverConfig.getServer()));
         String datasourceProvider = Optional.ofNullable(serverConfig.getDatasourceProvider()).orElse(io.mycat.datasource.jdbc.DruidDatasourceProvider.class.getCanonicalName());
         ThreadPoolExecutorConfig workerPool = serverConfig.getServer().getWorkerPool();
 
@@ -139,6 +138,9 @@ public class MycatCore {
         context.put(LockService.class, new LocalLockServiceImpl());
         context.put(MycatSQLLogMonitor.class, new MycatSQLLogMonitorImpl(serverConfig.getServer().getMycatId(), serverConfig.getMonitor(), vertx));
         context.put(ExecutorProvider.class, ExecutorProviderImpl.INSTANCE);
+        // I-VE-1: 版本画像必须注册进这份“持久” context（后续 L172 复用同一对象再 register 一次），
+        // 否则启动装配序列里整表替换会抹掉它，导致握手/能力位/VERSION() 取用点 NPE。
+        context.put(VersionProfile.class, VersionProfileFactory.from(serverConfig.getServer()));
         ////////////////////////////////////////////tmp///////////////////////////////////
         MetaClusterCurrent.register(context);
 

@@ -2,13 +2,18 @@ package io.mycat.proxy.handler.front;
 
 import io.mycat.beans.mysql.packet.HandshakePacket;
 import io.mycat.config.MySQLServerCapabilityFlags;
+import io.mycat.config.ServerPersona;
 import io.mycat.config.VersionProfile;
 import io.mycat.config.VersionProfileFactory;
 import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.protocol.mysql.type.MySQLVersion;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * I-VE-1 握手字节零回归锁：默认 MYSQL_5_7 画像下 {@code createHandshakePayload} 产出的字节，
@@ -42,5 +47,36 @@ public class HandshakePayloadRegressionTest {
 
         byte[] actual = MySQLClientAuthHandler.createHandshakePayload(sid, caps, seed, p);
         assertArrayEquals(refWriter.toByteArray(), actual);
+    }
+
+    /**
+     * 正向锁：画像里的版本串必须真的驱动握手字节。若 createHandshakePayload 退化为写死
+     * "5.7.33-mycat-2.0"（即不读画像），下面两条断言都会失败——这正是零回归锁本身
+     * 因参照与画像同值而无法暴露的盲区。
+     */
+    @Test
+    public void profileVersionStringDrivesHandshakeBytes() {
+        long sid = 7L;
+        int caps = MySQLServerCapabilityFlags.getDefaultServerCapabilities();
+        byte[][] seed = {"12345678".getBytes(), "abcdefghijklmnopqrst".getBytes(), "u".getBytes()};
+        // 探针串与硬编码 5.7 值不同
+        VersionProfile probe = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, "8.8.8-probe");
+        byte[] bytes = MySQLClientAuthHandler.createHandshakePayload(sid, caps, seed, probe);
+
+        // 握手 payload 布局：[0]=协议版本(10)，随后 serverVersion 以 0x00 结尾
+        assertEquals("8.8.8-probe", readNulTerminated(bytes, 1));
+
+        // 探针画像产出的字节必须不同于默认 5.7 画像（证明确实读画像而非固定输出）
+        byte[] defBytes = MySQLClientAuthHandler.createHandshakePayload(sid, caps, seed,
+                VersionProfileFactory.defaultProfile());
+        assertFalse(java.util.Arrays.equals(bytes, defBytes));
+    }
+
+    private static String readNulTerminated(byte[] bytes, int start) {
+        int end = start;
+        while (end < bytes.length && bytes[end] != 0) {
+            end++;
+        }
+        return new String(bytes, start, end - start, StandardCharsets.UTF_8);
     }
 }
