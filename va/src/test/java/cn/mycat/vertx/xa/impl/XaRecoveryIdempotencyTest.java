@@ -90,6 +90,10 @@ public class XaRecoveryIdempotencyTest {
 
     @Test
     public void testLogAndGetCoordinator() {
+        // 本用例验证 log() 写入后能读回协调器的状态往返，须用真实内存仓储：
+        // @Before 的 mockRepository 对 put 是空操作、get 未打桩返 null，会让
+        // logCommitBeforeXaCommit 拿到 null 触发 NPE（早前该测试类因 va 缺 mockito 依赖从未编译、错误一直被掩盖）。
+        xaLog = new XaLogImpl(new MemoryRepositoryImpl(), 0, mockMySQLManager);
         String xid = xaLog.nextXid();
         ImmutableParticipantLog[] participants = new ImmutableParticipantLog[]{
                 new ImmutableParticipantLog("ds1", System.currentTimeMillis() + 60000, State.XA_PREPARED)
@@ -147,6 +151,8 @@ public class XaRecoveryIdempotencyTest {
 
     @Test
     public void testLogCommitBeforeAndCancel() {
+        // 同 testLogAndGetCoordinator：状态往返（log→logCommitBefore→cancel→commit）须用真实内存仓储，mock 不往返会 NPE。
+        xaLog = new XaLogImpl(new MemoryRepositoryImpl(), 0, mockMySQLManager);
         String xid = xaLog.nextXid();
         ImmutableParticipantLog[] participants = new ImmutableParticipantLog[]{
                 new ImmutableParticipantLog("ds1", System.currentTimeMillis() + 60000, State.XA_PREPARED)

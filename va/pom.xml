@@ -66,6 +66,14 @@
             <artifactId>jcip-annotations</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- XaRecoveryIdempotencyTest 使用 org.mockito（@Mock/MockitoAnnotations/Mockito.*）；
+             版本由根 pom dependencyManagement 统一管理（mockito.version），此处只声明 test 作用域依赖。
+             缺失会导致 va 测试源码编译中断、并使全 reactor `mvn test` 从 va 起 BUILD FAILURE。 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.mycat</groupId>
             <artifactId>common</artifactId>

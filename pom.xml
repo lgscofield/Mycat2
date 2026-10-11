@@ -74,7 +74,9 @@
     <junit.version>5.12.2</junit.version>
     <!-- junit-jupiter 5.12.2 对应的 junit-platform 版本 -->
     <junit.platform.version>1.12.2</junit.platform.version>
-    <mockito.version>5.16.1</mockito.version>
+        <!-- mockito 5.16.1 从未落入本地仓库、离线不可解析（此前 hbt/server 各自硬写 5.17.0 绕过该坏默认值）；
+             对齐到 siblings 实际在用、本地确有的 5.17.0，管理版本归一，后续模块无需再重复覆盖。 -->
+        <mockito.version>5.17.0</mockito.version>
     <assertj.version>3.27.3</assertj.version>
     <testcontainers.version>1.21.0</testcontainers.version>
 
