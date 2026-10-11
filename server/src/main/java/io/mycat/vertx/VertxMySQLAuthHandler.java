@@ -55,7 +55,8 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
         this.mycatSessionManager = mycatSessionManager;
         this.mycatDataContext = new MycatDataContextImpl();
         this.seedParts = MysqlNativePasswordPluginUtil.nextSeedBuild();
-        byte[] handshakePacket = MySQLClientAuthHandler.createHandshakePayload(mycatDataContext.getSessionId(), defaultServerCapabilities, seedParts);
+        io.mycat.config.VersionProfile versionProfile = io.mycat.MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class);
+        byte[] handshakePacket = MySQLClientAuthHandler.createHandshakePayload(mycatDataContext.getSessionId(), defaultServerCapabilities, seedParts, versionProfile);
         try {
             socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(0, handshakePacket)));
             socket.handler(this);

@@ -27,6 +27,7 @@ import io.mycat.beans.mysql.packet.HandshakePacket;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.UserConfig;
+import io.mycat.config.VersionProfile;
 import io.mycat.proxy.handler.MycatHandler;
 import io.mycat.proxy.handler.NIOHandler;
 import io.mycat.proxy.monitor.MycatMonitor;
@@ -237,7 +238,8 @@ public class MySQLClientAuthHandler implements NIOHandler<MycatSession> {
         int serverCapabilities = MySQLServerCapabilityFlags.getDefaultServerCapabilities();
 
         byte[][] seedParts = MysqlNativePasswordPluginUtil.nextSeedBuild();
-        byte[] bytes = createHandshakePayload(sessionId, serverCapabilities, seedParts);
+        byte[] bytes = createHandshakePayload(sessionId, serverCapabilities, seedParts,
+                MetaClusterCurrent.wrapper(VersionProfile.class));
 
         this.seed = seedParts[2];
         mycat.setServerCapabilities(serverCapabilities);
@@ -245,19 +247,20 @@ public class MySQLClientAuthHandler implements NIOHandler<MycatSession> {
         mycat.writeBytes(bytes, true);
     }
 
-    public static byte[] createHandshakePayload(long sessionId, int serverCapabilities, byte[][] seedParts) {
+    public static byte[] createHandshakePayload(long sessionId, int serverCapabilities, byte[][] seedParts,
+            VersionProfile profile) {
         HandshakePacket hs = new HandshakePacket();
         hs.setProtocolVersion(MySQLVersion.PROTOCOL_VERSION);
-        hs.setServerVersion(new String(MySQLVersion.SERVER_VERSION));
+        hs.setServerVersion(profile.serverVersionString());
         hs.setConnectionId(sessionId);
         hs.setAuthPluginDataPartOne(new String(seedParts[0]));
         hs.setCapabilities(new MySQLServerCapabilityFlags(serverCapabilities));
         hs.setHasPartTwo(true);
-        hs.setCharacterSet(8);
-        hs.setStatusFlags(2);
+        hs.setCharacterSet(profile.characterSet());
+        hs.setStatusFlags(profile.statusFlags());
         hs.setAuthPluginDataLen(21); // 有插件的话，总长度必是21, seed
         hs.setAuthPluginDataPartTwo(new String(seedParts[1]));
-        hs.setAuthPluginName(MysqlNativePasswordPluginUtil.PROTOCOL_PLUGIN_NAME);
+        hs.setAuthPluginName(profile.authPlugin());
         MySQLPayloadWriter mySQLPayloadWriter = new MySQLPayloadWriter();
         hs.writePayload(mySQLPayloadWriter);
         return mySQLPayloadWriter.toByteArray();

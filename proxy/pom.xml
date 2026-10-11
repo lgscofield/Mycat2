@@ -45,6 +45,13 @@
             <artifactId>va</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <!-- I-VE-1: proxy 此前无测试根，补 junit-jupiter（版本走根 pom 管理）承载握手字节回归锁 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
