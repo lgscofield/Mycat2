@@ -11,7 +11,8 @@ import io.mycat.util.MySQLDatabaseMetadata;
  */
 public final class VersionProfileFactory {
 
-    private static final String DEFAULT_AUTH_PLUGIN = "mysql_native_password";
+    private static final String AUTH_PLUGIN_NATIVE = "mysql_native_password";
+    private static final String AUTH_PLUGIN_CACHING_SHA2 = "caching_sha2_password";
     private static final int DEFAULT_CHARACTER_SET = 8;
     private static final int DEFAULT_STATUS_FLAGS = 2;
 
@@ -31,10 +32,16 @@ public final class VersionProfileFactory {
         if (MySQLDatabaseMetadata.parse(versionString).isClientDeprecateEof()) {
             capabilityMask |= MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF;
         }
+        // I-AU-5：握手宣称的默认认证插件按 persona 驱动——8.0/8.4/9.x → caching_sha2_password，
+        // 其余（5.7 / MariaDB 各档，后端无该插件）→ mysql_native_password。前端握手须同时支持两插件。
+        String authPlugin = switch (persona) {
+            case MYSQL_8_0, MYSQL_8_4, MYSQL_9_X -> AUTH_PLUGIN_CACHING_SHA2;
+            default -> AUTH_PLUGIN_NATIVE;
+        };
         return new VersionProfile(
                 versionString,
                 capabilityMask,
-                DEFAULT_AUTH_PLUGIN,
+                authPlugin,
                 DEFAULT_CHARACTER_SET,
                 DEFAULT_STATUS_FLAGS);
     }

@@ -64,4 +64,27 @@ public class VersionProfileTest {
         cfg.setServerVersion("9.9.9-custom"); // 覆盖串优先
         assertEquals("9.9.9-custom", VersionProfileFactory.from(cfg).serverVersionString());
     }
+
+    /**
+     * I-AU-5：握手宣称的认证插件按 persona 驱动——8.0/8.4/9.x 默认 caching_sha2_password。
+     * RED：当前工厂恒返 mysql_native_password，本断言应失败。
+     */
+    @Test
+    public void persona80AdvertisesCachingSha2() {
+        assertEquals("caching_sha2_password",
+                VersionProfileFactory.of(ServerPersona.MYSQL_8_0, null).authPlugin());
+        assertEquals("caching_sha2_password",
+                VersionProfileFactory.of(ServerPersona.MYSQL_8_4, null).authPlugin());
+        assertEquals("caching_sha2_password",
+                VersionProfileFactory.of(ServerPersona.MYSQL_9_X, null).authPlugin());
+    }
+
+    /** I-AU-5：5.7 与 MariaDB 各档无 caching_sha2，仍宣称 mysql_native_password（不回归）。 */
+    @Test
+    public void persona57AndMariadbAdvertiseNative() {
+        assertEquals("mysql_native_password",
+                VersionProfileFactory.of(ServerPersona.MYSQL_5_7, null).authPlugin());
+        assertEquals("mysql_native_password",
+                VersionProfileFactory.of(ServerPersona.MARIADB_11_4, null).authPlugin());
+    }
 }
