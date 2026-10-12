@@ -1577,6 +1577,34 @@ public class UserCaseTest implements MycatTest {
         }
     }
     @Test
+    /*
+     * I-DEBT-36 复现锁：TIMESTAMPDIFF(unit, t1, t2) 的 unit 关键字在 Mycat 解析层
+     * 此前被建成 SqlCharStringLiteral，下游 SqlTimestampDiffFunction.validateCall
+     * 无守卫强转 SqlIntervalQualifier 抛首层 CCE。MySQL 语义
+     * TIMESTAMPDIFF(SECOND, a, b) = b - a = 86400 秒。收割 f685ad60c 后首层 CCE 消，
+     * 阻塞后移至下推 deparse（Reinterpret/SPECIAL 无法反解析），本锁保持 RED 作 C2 验收面。
+     */
+    public void caseI36Timestampdiff() throws Exception {
+        try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
+            execute(mycatConnection, RESET_CONFIG);
+            addC0(mycatConnection);
+            execute(mycatConnection, "create database db1");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "CREATE TABLE `tsdiff` ("
+                    + "  `id` bigint NOT NULL,"
+                    + "  `a` datetime DEFAULT NULL,"
+                    + "  `b` datetime DEFAULT NULL,"
+                    + "  PRIMARY KEY (`id`)"
+                    + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) dbpartitions 2;");
+            deleteData(mycatConnection, "db1", "tsdiff");
+            execute(mycatConnection, "INSERT INTO `db1`.`tsdiff`(`id`,`a`,`b`) VALUES (1,'2020-01-01 00:00:00','2020-01-02 00:00:00')");
+            List<Map<String, Object>> r = executeQuery(mycatConnection, "select timestampdiff(SECOND, a, b) from db1.tsdiff");
+            System.out.println("i36-timestampdiff-SECOND: " + r);
+            long v = ((Number) r.get(0).values().iterator().next()).longValue();
+            Assert.assertEquals("TIMESTAMPDIFF(SECOND,a,b) 应=b-a=86400", 86400L, v);
+        }
+    }
+    @Test
     public void case611() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection, RESET_CONFIG);

@@ -1909,9 +1909,14 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
                 return false;
             }
             case "TIMESTAMPDIFF": {
+                // I-DEBT-36: unit 是关键字而非字符串字面量。此前建 SqlCharStringLiteral，
+                // 校验期按名解析命中 Calcite 标准 TIMESTAMP_DIFF，其
+                // SqlTimestampDiffFunction.validateCall 无守卫地把 operand(0) 强转
+                // SqlIntervalQualifier，抛 ClassCastException。这里建 SqlIntervalQualifier，
+                // 与 StandardConvertletTable 的 INTERVAL_QUALIFIER 分支对齐。
                 if (argNodes.size() > 0 && argNodes.get(0) instanceof SqlIdentifier) {
                     SqlIdentifier arg0 = (SqlIdentifier) argNodes.get(0);
-                    argNodes.set(0, SqlLiteral.createCharString(arg0.toString().toUpperCase(), SqlParserPos.ZERO));
+                    argNodes.set(0, timestampDiffUnitToQualifier(arg0.toString().toUpperCase()));
                 }
                 this.sqlNode = TimestampDiffFunction.INSTANCE.createCall(SqlParserPos.ZERO, argNodes);
                 return false;
@@ -2249,6 +2254,16 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
         SqlLiteral valueNode = (SqlLiteral) convertToSqlNode(x.getValue());
         sqlNode = SqlIntervalLiteral.createInterval(1, valueNode.toValue(), unitNode, SqlParserPos.ZERO);
         return false;
+    }
+
+    /**
+     * I-DEBT-36: 把 MySQL TIMESTAMPDIFF 的 unit 关键字（SECOND、DAY、MONTH ...）建成
+     * SqlIntervalQualifier，而不是字符串字面量。Calcite 标准 TIMESTAMP_DIFF 的校验与
+     * 折算（StandardConvertletTable）都要求首参是 INTERVAL_QUALIFIER，单时程 start == end。
+     */
+    public static SqlIntervalQualifier timestampDiffUnitToQualifier(String unit) {
+        TimeUnit timeUnit = TimeUnit.valueOf(unit);
+        return new SqlIntervalQualifier(timeUnit, timeUnit, SqlParserPos.ZERO);
     }
 
     public static TimeUnit[] getTimeUnit(SQLIntervalUnit unit) {
