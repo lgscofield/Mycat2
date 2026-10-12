@@ -244,10 +244,26 @@ public class CrudResultMatrixTest implements MycatTest {
                 "`id` bigint NOT NULL, `a` datetime, `b` datetime, PRIMARY KEY(`id`)");
         execute(mycat, "insert into " + t
                 + "(`id`,`a`,`b`) values (1, '2021-01-01 00:00:00', '2021-01-02 00:00:00')");
+        // 确定值断言（拓扑无关，同 C6 裁定）：b−a = 一天，各单位下后端原生求值的确定结果。
+        // 断言跨单位同时钉住 Review Focus #4——若 Mycat 本地错误求值（而非原生下推），
+        // MONTH/YEAR 会因旧本地实现的日/月差算法而得错值，此格即红。
+        assertEquals(86400L, tsDiff(t, "SECOND"), "C9：TIMESTAMPDIFF(SECOND) 跨天应得 86400");
+        assertEquals(1440L, tsDiff(t, "MINUTE"), "C9：TIMESTAMPDIFF(MINUTE) 跨天应得 1440");
+        assertEquals(24L, tsDiff(t, "HOUR"), "C9：TIMESTAMPDIFF(HOUR) 跨天应得 24");
+        assertEquals(1L, tsDiff(t, "DAY"), "C9：TIMESTAMPDIFF(DAY) 跨天应得 1");
+        assertEquals(0L, tsDiff(t, "MONTH"), "C9：TIMESTAMPDIFF(MONTH) 同月应得 0");
+        assertEquals(0L, tsDiff(t, "YEAR"), "C9：TIMESTAMPDIFF(YEAR) 同年应得 0");
+        // NULL 传播：任一入参 NULL → 结果为 NULL，不得崩会话。
+        List<Map<String, Object>> nullRow = executeQuery(mycat,
+                "select timestampdiff(SECOND, NULL, `b`) as d from " + t + " where `id`=1");
+        assertNull(nullRow.get(0).get("d"), "C9：TIMESTAMPDIFF(SECOND,NULL,b) 应得 NULL，实得 "
+                + nullRow.get(0).get("d"));
+    }
+
+    private long tsDiff(String t, String unit) throws Exception {
         List<Map<String, Object>> rows = executeQuery(mycat,
-                "select timestampdiff(SECOND, `a`, `b`) as d from " + t + " where `id`=1");
-        assertEquals(86400L, scalarValue(rows.get(0).get("d")),
-                "C9：TIMESTAMPDIFF(SECOND) 跨天应得 86400（探针 I-DEBT-36）");
+                "select timestampdiff(" + unit + ", `a`, `b`) as d from " + t + " where `id`=1");
+        return scalarValue(rows.get(0).get("d"));
     }
 
     /** C10 运行期错误须是干净 ERR 包，而非断连（探针：I-DEBT-39 select 1/0 → ERR 2013 终止会话）。
