@@ -1605,6 +1605,39 @@ public class UserCaseTest implements MycatTest {
         }
     }
     @Test
+    /*
+     * I-DEBT-34 跨片归并复现锁（终审 Important #1）：BIT(n>1) 列跨片归并/本地计划路径未闭合。
+     * 单片(where id=1)列头来自后端→byte[] 口径已通(CrudResultMatrixTest#bitColumnFidelity 绿)；本去过滤、
+     * 跨 2 分片归并→列头走 CalciteRowMetaData，BIT 经 fork 类型系统归一为数值、列头失 BIT 性，行值仍是后端
+     * 原生 byte[]→BaseRowObservable.getObjects 数值分支(:355) 抛 UnsupportedOperationException:[B@...（会话崩）。
+     * 与跨片 caseI36 同族，属"类型表征统一"专轮，本 R5 保持 RED、不强推、不 fabricate 绿。
+     */
+    public void caseCrossShardBitColumnFidelity() throws Exception {
+        try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
+            execute(mycatConnection, RESET_CONFIG);
+            addC0(mycatConnection);
+            execute(mycatConnection, "create database db1");
+            execute(mycatConnection, "use db1");
+            execute(mycatConnection, "CREATE TABLE `bitx` ("
+                    + "  `id` bigint NOT NULL,"
+                    + "  `c_bit8` bit(8) DEFAULT NULL,"
+                    + "  `c_bit16` bit(16) DEFAULT NULL,"
+                    + "  PRIMARY KEY (`id`)"
+                    + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) dbpartitions 2;");
+            deleteData(mycatConnection, "db1", "bitx");
+            execute(mycatConnection, "INSERT INTO `db1`.`bitx`(`id`,`c_bit8`,`c_bit16`) VALUES (1,b'10110011',b'1000000000000001')");
+            execute(mycatConnection, "INSERT INTO `db1`.`bitx`(`id`,`c_bit8`,`c_bit16`) VALUES (2,b'10110011',b'1000000000000001')");
+            List<Map<String, Object>> r = executeQuery(mycatConnection, "select c_bit8,c_bit16 from db1.bitx order by id");
+            System.out.println("crossShard-bit: " + r);
+            Assert.assertEquals("跨片归并应返回 2 行", 2, r.size());
+            for (Map<String, Object> row : r) {
+                Assert.assertArrayEquals("跨片归并 BIT(8) 应保真为 {0xB3}",
+                        new byte[]{(byte) 0xB3}, (byte[]) row.get("c_bit8"));
+            }
+        }
+    }
+
+    @Test
     public void case611() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
             execute(mycatConnection, RESET_CONFIG);

@@ -163,7 +163,11 @@ public class CrudResultMatrixTest implements MycatTest {
      * C6 BIT 列官方 byte[] wire 口径钉测（探针：I-DEBT-34 表征错配）。
      * 金标准＝ MySQL/MariaDB Connector/J 官方口径（已查档坐实）：BIT(1)→Boolean、BIT(n&gt;1)→byte[]（大端原始字节）。
      * bit 字面量→字节是完全确定的，故直接钉前端读回的类型/字节（拓扑无关，不依赖另起可直连的分片物理库）。
-     * 现网前端行解码遇后端原生 byte[] 崩会话，此格 RED。
+     * Root B 已修单片/下推直通列头路径（BaseRowObservable case BIT/BOOLEAN 接后端原生 byte[]），此格 GREEN。
+     * <b>边界（终审 Important #1）</b>：本口径仅对 **单片命中(`where id=1`)→列头来自后端** 路径成立；跨片归并/本地
+     * 计划列头走 CalciteRowMetaData，BIT 经 fork 类型系统归一为数值、列头失 BIT 性，而行值仍是后端原生 byte[]，
+     * 于 BaseRowObservable.getObjects 数值分支崩（实证）——属“类型表征统一”专轮，红锁移至
+     * {@code UserCaseTest#caseCrossShardBitColumnFidelity}（与跨片 caseI36 同族，本 R5 不强推、不 fabricate 绿）。
      */
     @Test
     public void bitColumnFidelity() throws Exception {
@@ -186,6 +190,11 @@ public class CrudResultMatrixTest implements MycatTest {
         assertNull(row.get("c_bitnull"),
                 "C6：BIT 列 NULL 读回应为 null，实得 " + row.get("c_bitnull"));
     }
+
+    // 终审 Important #1：跨片归并/本地计划的 BIT 列头路径未闭合——CalciteRowMetaData 把 BIT 归一为数值列头，
+    // 行值仍是后端原生 byte[]，BaseRowObservable.getObjects 数值分支(:355) 抛 UnsupportedOperationException。
+    // 修复须联动 fork 类型系统(无 BIT SqlTypeName)/归并列头来源，属“类型表征统一”专轮；复现红锁移至
+    // UserCaseTest#caseCrossShardBitColumnFidelity（与跨片 caseI36 同族），本格不占全绿 CRUD 矩阵。
 
     /** 归一 BIT(n>1) 前端读出为 byte[]：官方口径必为 byte[]；若退化为数值则按大端最小无符号字节归一。 */
     private static byte[] toBitBytes(Object o) throws Exception {
@@ -243,16 +252,17 @@ public class CrudResultMatrixTest implements MycatTest {
         String t = createCell("c9",
                 "`id` bigint NOT NULL, `a` datetime, `b` datetime, PRIMARY KEY(`id`)");
         execute(mycat, "insert into " + t
-                + "(`id`,`a`,`b`) values (1, '2021-01-01 00:00:00', '2021-01-02 00:00:00')");
-        // 确定值断言（拓扑无关，同 C6 裁定）：b−a = 一天，各单位下后端原生求值的确定结果。
-        // 断言跨单位同时钉住 Review Focus #4——若 Mycat 本地错误求值（而非原生下推），
-        // MONTH/YEAR 会因旧本地实现的日/月差算法而得错值，此格即红。
-        assertEquals(86400L, tsDiff(t, "SECOND"), "C9：TIMESTAMPDIFF(SECOND) 跨天应得 86400");
-        assertEquals(1440L, tsDiff(t, "MINUTE"), "C9：TIMESTAMPDIFF(MINUTE) 跨天应得 1440");
-        assertEquals(24L, tsDiff(t, "HOUR"), "C9：TIMESTAMPDIFF(HOUR) 跨天应得 24");
-        assertEquals(1L, tsDiff(t, "DAY"), "C9：TIMESTAMPDIFF(DAY) 跨天应得 1");
-        assertEquals(0L, tsDiff(t, "MONTH"), "C9：TIMESTAMPDIFF(MONTH) 同月应得 0");
-        assertEquals(0L, tsDiff(t, "YEAR"), "C9：TIMESTAMPDIFF(YEAR) 同年应得 0");
+                + "(`id`,`a`,`b`) values (1, '2021-03-01 00:00:00', '2022-02-28 00:00:00')");
+        // 确定值断言（拓扑无关，同 C6 裁定）：故意选**跨月跨年且不等间隔**的一对（2021-03-01 → 2022-02-28），
+        // 使 DAY/MONTH/YEAR 真具鉴别力——原生下推（后端 MySQL 求值）得 364/11/0；若 Mycat 误走本地实现
+        // 的“月/日/年字段直减”算法（见 TimestampDiffFunction），会得 27/-1/1 一类错值，此格即红。
+        // （旧数据 01-01→01-02 使三个历法单位恰得正确值，零鉴别力——终审 Important #2 修正。）
+        assertEquals(31449600L, tsDiff(t, "SECOND"), "C9：TIMESTAMPDIFF(SECOND) 364天应得 31449600");
+        assertEquals(524160L, tsDiff(t, "MINUTE"), "C9：TIMESTAMPDIFF(MINUTE) 364天应得 524160");
+        assertEquals(8736L, tsDiff(t, "HOUR"), "C9：TIMESTAMPDIFF(HOUR) 364天应得 8736");
+        assertEquals(364L, tsDiff(t, "DAY"), "C9：TIMESTAMPDIFF(DAY) 应得 364");
+        assertEquals(11L, tsDiff(t, "MONTH"), "C9：TIMESTAMPDIFF(MONTH) 跨月应得 11");
+        assertEquals(0L, tsDiff(t, "YEAR"), "C9：TIMESTAMPDIFF(YEAR) 未满一年应得 0");
         // NULL 传播：任一入参 NULL → 结果为 NULL，不得崩会话。
         List<Map<String, Object>> nullRow = executeQuery(mycat,
                 "select timestampdiff(SECOND, NULL, `b`) as d from " + t + " where `id`=1");
@@ -267,7 +277,10 @@ public class CrudResultMatrixTest implements MycatTest {
     }
 
     /** C10 运行期错误须是干净 ERR 包，而非断连（探针：I-DEBT-39 select 1/0 → ERR 2013 终止会话）。
-     *  用独立直连（非类共享连接）：本格会打挂会话，隔离开以免污染同池其他格子。 */
+     *  用独立直连（非类共享连接）：本格会打挂会话，隔离开以免污染同池其他格子。
+     *  <b>口径边界（终审 Important #3）</b>：本格钉的是**传输层契约**——运行期错误后连接不被打挂、会话可继续
+     *  (I-DEBT-39 修复意图)，**非值语义对拍**。MySQL 于 SELECT 期 `1/0` 语义=NULL+Warning 1365(仅 strict 模式
+     *  下 DML 才升 1365 错误)，Mycat 此处返回 SQLException 属**独立的除零对外语义债**，另计，不由本格宣称兼容。 */
     @Test
     public void divideByZeroIsCleanError() throws Exception {
         try (Connection probe = DriverManager.getConnection(
