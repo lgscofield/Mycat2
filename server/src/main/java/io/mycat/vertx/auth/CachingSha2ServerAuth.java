@@ -27,7 +27,11 @@ public final class CachingSha2ServerAuth {
      * @return 口令匹配则 true
      */
     public static boolean fastAuthOk(String rightPassword, byte[] seed, byte[] clientScramble) {
-        if (rightPassword == null || rightPassword.isEmpty()) {
+        if (rightPassword == null) {
+            // null 表不存在/被禁 IP 用户（Authenticator 无此口令），绝不与合法空口令("")混同，直接拒。
+            return false;
+        }
+        if (rightPassword.isEmpty()) {
             // 空口令：客户端应回送空 scramble
             return clientScramble == null || clientScramble.length == 0;
         }
@@ -57,6 +61,10 @@ public final class CachingSha2ServerAuth {
      */
     public static boolean fullAuthOk(String rightPassword, byte[] seed, byte[] clientCipher,
                               PrivateKey rsaPrivate, boolean oaep) {
+        if (rightPassword == null) {
+            // null 表不存在/被禁 IP 用户，不走“解密得空口令”旁路，直接拒。
+            return false;
+        }
         byte[] xored;
         try {
             Cipher de = Cipher.getInstance(
@@ -77,7 +85,7 @@ public final class CachingSha2ServerAuth {
             }
         }
         String decoded = new String(plain, 0, len, StandardCharsets.UTF_8);
-        String expected = rightPassword == null ? "" : rightPassword;
+        String expected = rightPassword;
         return MessageDigest.isEqual(
                 decoded.getBytes(StandardCharsets.UTF_8), expected.getBytes(StandardCharsets.UTF_8));
     }

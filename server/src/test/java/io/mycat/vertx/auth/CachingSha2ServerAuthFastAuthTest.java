@@ -24,8 +24,15 @@ public class CachingSha2ServerAuthFastAuthTest {
 
     @Test
     public void emptyPasswordMatchesEmptyScramble() {
+        // 合法空口令用户：rightPassword==""（非 null）才允许空 scramble
         assertTrue(CachingSha2ServerAuth.fastAuthOk("", "seed".getBytes(StandardCharsets.US_ASCII), new byte[0]));
-        assertTrue(CachingSha2ServerAuth.fastAuthOk(null, "seed".getBytes(StandardCharsets.US_ASCII), new byte[0]));
         assertFalse(CachingSha2ServerAuth.fastAuthOk("", "seed".getBytes(StandardCharsets.US_ASCII), new byte[]{1, 2, 3}));
+    }
+
+    /** 评审修复 #1：rightPassword==null 表不存在/被禁 IP 用户，须拒绝，不与“合法空口令”混同（否则握手挂起+污染 warmed 缓存）。 */
+    @Test
+    public void unknownUserNullRightPasswordRejected() {
+        assertFalse(CachingSha2ServerAuth.fastAuthOk(null, "seed".getBytes(StandardCharsets.US_ASCII), new byte[0]));
+        assertFalse(CachingSha2ServerAuth.fastAuthOk(null, "seed".getBytes(StandardCharsets.US_ASCII), new byte[]{1, 2, 3}));
     }
 }

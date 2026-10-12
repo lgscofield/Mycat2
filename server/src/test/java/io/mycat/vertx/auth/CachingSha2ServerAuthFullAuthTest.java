@@ -37,4 +37,15 @@ public class CachingSha2ServerAuthFullAuthTest {
         assertTrue(CachingSha2ServerAuth.fullAuthOk("s3cret", seed, cipher, kp.privateKey(), false));
         assertFalse(CachingSha2ServerAuth.fullAuthOk("nope", seed, cipher, kp.privateKey(), false));
     }
+
+    /** 评审修复 #1：不存在/被禁用户（rightPassword==null）在 full-auth 亦须拒绝，不走“解密空口令”旁路。 */
+    @Test
+    public void unknownUserNullRightPasswordRejectedFullAuth() throws Exception {
+        RsaKeyPairProvider kp = RsaKeyPairProvider.getInstance();
+        byte[] seed = "0123456789abcdefghij".getBytes(StandardCharsets.US_ASCII);
+        byte[] cipher = CachingSha2PasswordPlugin.encryptPassword(
+                "RSA/ECB/OAEPWithSHA-1AndMGF1Padding", kp.publicKeyPem(), "",
+                new String(seed, StandardCharsets.US_ASCII), "UTF-8");
+        assertFalse(CachingSha2ServerAuth.fullAuthOk(null, seed, cipher, kp.privateKey(), true));
+    }
 }

@@ -129,7 +129,15 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
                 this.seed = seedParts[2];
                 if (MetaClusterCurrent.exist(Authenticator.class)) {
                     this.authenticator = MetaClusterCurrent.wrapper(Authenticator.class);
-                    this.rightPassword = authenticator.getPassword(username, host).getRightPassword();
+                    Authenticator.AuthInfo info = authenticator.getPassword(username, host);
+                    if (!info.isOk()) {
+                        // 用户不存在 / IP 被禁：在任何插件校验前干净拒绝，避免 null 口令走 native 空口令放行
+                        // 或 caching_sha2 full-auth 旁路导致握手挂起（getUserInfo 为 null 的 NPE）与污染 warmed 缓存。
+                        writeAccessDenied(packetId,
+                                "Access denied for user '" + username + "'@'" + host + "'");
+                        return;
+                    }
+                    this.rightPassword = info.getRightPassword();
                 }
                 String plugin = authPacket.getAuthPluginName();
                 if (plugin == null || PLUGIN_NATIVE.equalsIgnoreCase(plugin)) {
@@ -213,6 +221,10 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
         if (authenticator != null) {
             userInfo = authenticator.getUserInfo(username);
         } else {
+            userInfo = new UserConfig();
+        }
+        if (userInfo == null) {
+            // 防御：即便上游校验放行，用户配置缺失也不让 orElse 实参急切求值触发 NPE。
             userInfo = new UserConfig();
         }
         InetSocketAddress remoteAddress = new InetSocketAddress(socket.remoteAddress().host(), socket.remoteAddress().port());
