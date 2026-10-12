@@ -51,9 +51,9 @@
 
 | ID | 一行说明 | 依赖（→是否已满足） | 分类 | 对齐 |
 |---|---|---|---|---|
-| **I-VE-2** | EOF 能力位连接级化，让 VersionProfile persona 在连接层真正生效（**🟡 2026-10-12 部分**：config/handshake 增量✅—`VersionProfileFactory` 按版本烘 `CLIENT_DEPRECATE_EOF`、`VertxMycatServer` 握手改读 profile 去全局 static；**剩**每连接协商 EOF 编码 `NewMycatConnectionImpl:305`(跨 common/config)+真连接级） | I-VE-1 ✅（已提交，见 §4）→ **本格已解锁，可直接开工** | 有界 | **A** |
+| **I-VE-2** | ✅ **EOF 能力位连接级化完成**（2026-10-12：config/handshake 段—`VersionProfileFactory` 按版本烘 `CLIENT_DEPRECATE_EOF`、`VertxMycatServer` 握手改读 profile 去全局 static；连接级编码段—活编码器 `MySQLServerSession.writeColumnEndPacket/writeRowEndPacket` 按 `isDeprecateEOF()`→`dataContext.getServerCapabilities()`(每连接实例字段，握手 `VertxMySQLAuthHandler:233` 存客户端上报 caps)分支，已架构正确。回归锁 `ConnectionEofDeprecationTest` 5/0/0 取证。债务点名的 `NewMycatConnectionImpl:305` 读全局 static 属**死码**（`ProxyReceiverImpl:32` 连同门控 `:27` 注释），不投机改动；该全局现仅喂后端 datasource 协商，非前端 persona） | I-VE-1 ✅ | 有界 | **A** |
 | I-AU-1 | ✅ **前端 caching_sha2 原生协商**（2026-10-12 R3 落地：删 0xFE 降级，`VertxMySQLAuthHandler` 状态机 fast-auth(warmed)+full-auth(RSA)；live 8.0/8.4/9.0 `FrontAuthMatrixTest` sha2 格全 PASS） | I-CI-3 本地✅ / I-VE-1 ✅ | 架构 | **A** |
-| **I-AU-2** | **前端 TLS 没实现**——云/托管 DB、`require_secure_transport=ON` 直接连不上；招牌最硬对外缺口 | I-CI-3 本地✅ / I-VE-2 ⬜（未做） | 架构 | **A** |
+| **I-AU-2** | **前端 TLS 没实现**——云/托管 DB、`require_secure_transport=ON` 直接连不上；招牌最硬对外缺口（R4 进行中：配置面/SSLRequest 解析/spike 已落，Task3 传输升级因 BC 装依赖红线待拍板） | I-CI-3 本地✅ / I-VE-2 ✅ | 架构 | **A** |
 | I-AU-3 | ✅ **非 TLS 下 RSA 公钥检索**（2026-10-12 R3：`RsaKeyPairProvider` 进程级 2048 RSA + PEM 下发、`fullAuthOk` OAEP/PKCS1 解密；live 冷态 full-auth 实测通过） | I-AU-1 ✅ | 架构 | **A** |
 | I-AU-5 | ✅ **persona 驱动握手宣称插件**（2026-10-12 R3-T1：`VersionProfileFactory` 按 persona 选 native/caching_sha2；T7 `-Dmycat.persona` 启动覆盖） | I-VE-1 ✅ | 有界偏中 | **A** |
 | I-AU-4 | 后端 ed25519（MariaDB `client_ed25519`） | I-VE-1 ✅ / M2 ⬜ | 架构·BLOCKED | **A**(M6) |
@@ -132,7 +132,7 @@
   网络恢复后 I-CI-2 push fork 跑 Actions → CI 背书（把 M1 从本地✅推到 spec 定义的 Evidenced-Done）
 
 第 1 步（招牌本体·A→M2）：前端连接达标，按依赖链
-  I-VE-2（已解锁·有界起手）→ I-AU-5 → I-AU-1（前端原生 caching_sha2）→ I-AU-3（RSA）→ I-AU-2（前端 TLS·对外最硬门）
+  I-VE-2 ✅（连接级 EOF 编码已架构完成+回归锁取证 2026-10-12；死码 `NewMycatConnectionImpl:305` 不改）→ I-AU-5 ✅ → I-AU-1 ✅（前端原生 caching_sha2）→ I-AU-3 ✅（RSA）→ I-AU-2（前端 TLS·对外最硬门，R4 进行中：配置/SSLRequest/spike 已落，Task3 传输升级因 BC 装依赖红线待拍板）
   并行评估：I-AU-6 / I-AU-4（后端 ed25519/多驱动，用户必做，独立于前端链，属 M6）
 
 第 2 步（招牌本体·A→M3/M4）：
