@@ -19,6 +19,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * I-DEBT-9 切片 9-A：后端认证矩阵（T-TEST 债 —— 项目头条目标是 MySQL/MariaDB 版本兼容，
@@ -83,17 +84,71 @@ public class BackendAuthMatrixTest implements MycatTest {
     /** 本轮建过的探针逻辑库，@AfterAll 统一回收。 */
     private final List<String> createdSchemas = new java.util.ArrayList<>();
 
+    /**
+     * 后端认证能力探测结果（I-CI 本地矩阵可信化）：账号能否在本后端被建出，取决于该后端是否存在对应认证插件。
+     * false ⇒ 依赖它的用例用 {@link org.junit.jupiter.api.Assumptions} 记为 N/A（skipped）而非红——
+     * 落实计划 Review Focus“合法的不支持 ≠ 网失败”：5.7/MariaDB 无 caching_sha2_password、9.0 移除 mysql_native_password
+     * 属后端客观能力，不是 Mycat 兼容失效。旧实现无条件用 MySQL 8.0 专有 {@code identified with <plugin> by} DDL，
+     * 在其余 6 档后端 @BeforeAll 即语法崩 → 整类 1 error 的<b>方法学假红</b>，掩盖真实信号。
+     */
+    private boolean nativeAccountOk;
+    private boolean sha2AccountOk;
+    private String backendVersion;
+
     @BeforeAll
     public void createBackendAccounts() throws Exception {
         adminBackend = getMySQLConnection(DB1);
+        backendVersion = String.valueOf(
+                executeQuery(adminBackend, "select version()").get(0).values().iterator().next());
+        boolean mariadb = backendVersion.toUpperCase().contains("MARIADB");
         execute(adminBackend, "drop user if exists '" + USER_NATIVE + "'@'%'");
         execute(adminBackend, "drop user if exists '" + USER_SHA2 + "'@'%'");
-        execute(adminBackend,
-                "create user '" + USER_NATIVE + "'@'%' identified with mysql_native_password by '" + PW + "'");
-        execute(adminBackend,
-                "create user '" + USER_SHA2 + "'@'%' identified with caching_sha2_password by '" + PW + "'");
-        execute(adminBackend, "grant all on *.* to '" + USER_NATIVE + "'@'%'");
-        execute(adminBackend, "grant all on *.* to '" + USER_SHA2 + "'@'%'");
+        nativeAccountOk = tryCreateUser(USER_NATIVE, nativeDdl(mariadb));
+        sha2AccountOk = tryCreateUser(USER_SHA2, sha2Ddl(mariadb));
+        System.out.println("[BackendAuthMatrix] 后端=" + backendVersion
+                + " native可用=" + nativeAccountOk + " sha2可用=" + sha2AccountOk);
+    }
+
+    /** native 建号：MySQL 用 {@code identified with mysql_native_password}；MariaDB 默认认证即 native，用 {@code identified by}。 */
+    private String nativeDdl(boolean mariadb) {
+        return mariadb
+                ? "create user '" + USER_NATIVE + "'@'%' identified by '" + PW + "'"
+                : "create user '" + USER_NATIVE + "'@'%' identified with mysql_native_password by '" + PW + "'";
+    }
+
+    /** sha2 建号：仅 MySQL≥8.0 有 caching_sha2_password；MariaDB/5.7 无此插件 → 返回 null 记 N/A。 */
+    private String sha2Ddl(boolean mariadb) {
+        if (mariadb || majorVersion(backendVersion) < 8) {
+            return null;
+        }
+        return "create user '" + USER_SHA2 + "'@'%' identified with caching_sha2_password by '" + PW + "'";
+    }
+
+    /**
+     * 尽力建号并授权；后端缺该插件/语法时捕获异常记为不可用（N/A），绝不让 @BeforeAll 抛崩整类。
+     * 这是把“网可信”和“产品红”分开的关键：setup 阶段的能力缺失属测试前置，不是被测对象失败。
+     */
+    private boolean tryCreateUser(String user, String ddl) {
+        if (ddl == null) {
+            return false;
+        }
+        try {
+            execute(adminBackend, ddl);
+            execute(adminBackend, "grant all on *.* to '" + user + "'@'%'");
+            return true;
+        } catch (Exception e) {
+            System.out.println("[BackendAuthMatrix] 后端不支持账号 " + user + "：" + e.getMessage() + " → 相关格子记 N/A");
+            return false;
+        }
+    }
+
+    private static int majorVersion(String version) {
+        String head = version.split("[.\\-]")[0];
+        try {
+            return Integer.parseInt(head);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     @AfterAll
@@ -115,6 +170,7 @@ public class BackendAuthMatrixTest implements MycatTest {
     /** J1：mysql_native_password + JDBC 后端。同账号在 NATIVE 用例里失败时，本用例即"非账号伪影"的对照。 */
     @Test
     public void nativePasswordUserOnJdbcBackend() throws Exception {
+        assumeTrue(nativeAccountOk, "后端无 mysql_native_password 账号能力（如 9.0 移除）→ N/A");
         roundTripThroughDatasource("j_native", USER_NATIVE,
                 DatasourceConfig.DatasourceType.JDBC, CLEAN_URL);
     }
@@ -122,6 +178,7 @@ public class BackendAuthMatrixTest implements MycatTest {
     /** J2：caching_sha2 冷缓存 + JDBC 后端 —— Connector/J 取服务器公钥完成 RSA full-auth。 */
     @Test
     public void cachingSha2ColdUserOnJdbcBackend() throws Exception {
+        assumeTrue(sha2AccountOk, "后端无 caching_sha2_password 插件（5.7/MariaDB）→ N/A");
         coolSha2Cache();
         roundTripThroughDatasource("j_sha2cold", USER_SHA2,
                 DatasourceConfig.DatasourceType.JDBC, CLEAN_URL);
@@ -130,6 +187,7 @@ public class BackendAuthMatrixTest implements MycatTest {
     /** J3：caching_sha2 热缓存 + JDBC 后端。 */
     @Test
     public void cachingSha2WarmUserOnJdbcBackend() throws Exception {
+        assumeTrue(sha2AccountOk, "后端无 caching_sha2_password 插件（5.7/MariaDB）→ N/A");
         warmSha2Cache();
         roundTripThroughDatasource("j_sha2warm", USER_SHA2,
                 DatasourceConfig.DatasourceType.JDBC, CLEAN_URL);
@@ -144,6 +202,7 @@ public class BackendAuthMatrixTest implements MycatTest {
      */
     @Test
     public void nativePasswordUserOnNativeBackend() throws Exception {
+        assumeTrue(nativeAccountOk, "后端无 mysql_native_password 账号能力（如 9.0 移除）→ N/A");
         authOnlyThroughNative("n_native", USER_NATIVE);
     }
 
@@ -154,6 +213,7 @@ public class BackendAuthMatrixTest implements MycatTest {
      */
     @Test
     public void cachingSha2ColdUserOnNativeBackend() throws Exception {
+        assumeTrue(sha2AccountOk, "后端无 caching_sha2_password 插件（5.7/MariaDB）→ N/A");
         coolSha2Cache();
         authOnlyThroughNative("n_sha2cold", USER_SHA2);
     }
@@ -164,6 +224,7 @@ public class BackendAuthMatrixTest implements MycatTest {
      */
     @Test
     public void cachingSha2WarmUserOnNativeBackend() throws Exception {
+        assumeTrue(sha2AccountOk, "后端无 caching_sha2_password 插件（5.7/MariaDB）→ N/A");
         warmSha2Cache();
         authOnlyThroughNative("n_sha2warm", USER_SHA2);
     }
@@ -177,6 +238,7 @@ public class BackendAuthMatrixTest implements MycatTest {
      */
     @Test
     public void poisonUrlKillsJdbcBackend() {
+        assumeTrue(nativeAccountOk, "后端无 mysql_native_password 账号能力（如 9.0 移除）→ N/A");
         assertThrows(SQLException.class, () ->
                 roundTripThroughDatasource("g_deadjdbc", USER_NATIVE,
                         DatasourceConfig.DatasourceType.JDBC, JDBC_DEAD_URL));
