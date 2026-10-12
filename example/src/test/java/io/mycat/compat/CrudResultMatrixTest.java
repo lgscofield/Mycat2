@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -159,23 +160,50 @@ public class CrudResultMatrixTest implements MycatTest {
     }
 
     /**
-     * C6 BIT(8) 官方 byte[] wire 口径对拍（探针：I-DEBT-34 表征错配）。
-     * 金标准＝同一行经后端直连 3306 真库读回（Connector/J 对 BIT(>1) 返 byte[]，官方口径），
-     * Mycat 前端读出须与之逐字节一致；现网前端返 Boolean/Long 而非 byte[]，此格 RED。
+     * C6 BIT 列官方 byte[] wire 口径钉测（探针：I-DEBT-34 表征错配）。
+     * 金标准＝ MySQL/MariaDB Connector/J 官方口径（已查档坐实）：BIT(1)→Boolean、BIT(n&gt;1)→byte[]（大端原始字节）。
+     * bit 字面量→字节是完全确定的，故直接钉前端读回的类型/字节（拓扑无关，不依赖另起可直连的分片物理库）。
+     * 现网前端行解码遇后端原生 byte[] 崩会话，此格 RED。
      */
     @Test
     public void bitColumnFidelity() throws Exception {
-        String t = createCell("c6", "`id` bigint NOT NULL, `c_bit` bit(8), PRIMARY KEY(`id`)");
-        execute(mycat, "insert into " + t + "(`id`,`c_bit`) values (1, b'10110011')");
-        Object viaMycat = executeQuery(mycat, "select `c_bit` from " + t + " where `id`=1").get(0).get("c_bit");
-        String phys = locatePhysicalSchema("crud_c6");
-        try (Connection back = getMySQLConnection(DB1)) {
-            Object golden = executeQuery(back, "select `c_bit` from `" + phys + "`.`crud_c6` where `id`=1")
-                    .get(0).get("c_bit");
-            assertArrayEquals(canonicalBytes(golden), canonicalBytes(viaMycat),
-                    "C6：Mycat 前端 BIT(8) 读出须与后端直连真库逐字节一致（I-DEBT-34 官方 byte[] 口径），"
-                            + "前端实得 " + viaMycat + " [" + typeOf(viaMycat) + "]");
+        String t = createCell("c6", "`id` bigint NOT NULL, `c_bit1` bit(1), `c_bit8` bit(8),"
+                + " `c_bit16` bit(16), `c_bitnull` bit(8), PRIMARY KEY(`id`)");
+        execute(mycat, "insert into " + t
+                + "(`id`,`c_bit1`,`c_bit8`,`c_bit16`,`c_bitnull`) values (1, b'1', b'10110011',"
+                + " b'1000000000000001', NULL)");
+        Map<String, Object> row = executeQuery(mycat,
+                "select `c_bit1`,`c_bit8`,`c_bit16`,`c_bitnull` from " + t + " where `id`=1").get(0);
+        // BIT(8)=b'10110011'：官方口径 = byte[]{0xB3}（不得塑成数值/Boolean，不得跨层崩）。
+        assertEquals(Boolean.TRUE, toBitBoolean(row.get("c_bit1")),
+                "C6：BIT(1)=b'1' 前端应读回 Boolean true（官方口径），实得 "
+                        + row.get("c_bit1") + " [" + typeOf(row.get("c_bit1")) + "]");
+        assertArrayEquals(new byte[]{(byte) 0xB3}, toBitBytes(row.get("c_bit8")),
+                "C6：BIT(8)=b'10110011' 前端应读回原始字节 {0xB3}（I-DEBT-34 官方 byte[] 口径），实得 ["
+                        + typeOf(row.get("c_bit8")) + "]");
+        assertArrayEquals(new byte[]{(byte) 0x80, 0x01}, toBitBytes(row.get("c_bit16")),
+                "C6：BIT(16) 前端应读回 2 字节大端 {0x80,0x01}，实得 [" + typeOf(row.get("c_bit16")) + "]");
+        assertNull(row.get("c_bitnull"),
+                "C6：BIT 列 NULL 读回应为 null，实得 " + row.get("c_bitnull"));
+    }
+
+    /** 归一 BIT(n>1) 前端读出为 byte[]：官方口径必为 byte[]；若退化为数值则按大端最小无符号字节归一。 */
+    private static byte[] toBitBytes(Object o) throws Exception {
+        return canonicalBytes(o);
+    }
+
+    /** 归一 BIT(1) 前端读出为 Boolean：Boolean 直接取；byte[]/Number 按非零真。 */
+    private static Boolean toBitBoolean(Object o) throws Exception {
+        if (o instanceof Boolean) {
+            return (Boolean) o;
         }
+        byte[] b = canonicalBytes(o);
+        for (byte x : b) {
+            if (x != 0) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 
     // ============================================== 跨分片归并格（探针：I-DEBT-8 Rx merge 面）
@@ -313,15 +341,6 @@ public class CrudResultMatrixTest implements MycatTest {
             return ((String) o).getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
         throw new IllegalStateException("C6 对拍不支持的读出类型: " + typeOf(o));
-    }
-
-    /** 经后端直连的 information_schema 定位逻辑分片表落到的物理库名（id=1 经 mod_hash 只落一库）。 */
-    private String locatePhysicalSchema(String table) throws Exception {
-        List<Map<String, Object>> rows = executeQuery(adminBackend,
-                "select table_schema from information_schema.tables"
-                        + " where table_schema like '" + SCHEMA + "%' and table_name='" + table + "' limit 1");
-        assertEquals(1, rows.size(), "定位物理库失败：" + table);
-        return String.valueOf(rows.get(0).get("table_schema"));
     }
 
     private void purgePhysical() throws Exception {

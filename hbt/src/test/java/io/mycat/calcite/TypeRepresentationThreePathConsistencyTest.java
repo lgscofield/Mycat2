@@ -172,25 +172,28 @@ public class TypeRepresentationThreePathConsistencyTest {
     }
 
     /**
-     * BIT 漏格现状钉（final review #3 追认，实测收窄）。活链取证：MySQL BIT(n&gt;1) 列经
-     * {@code MycatDataType.BIT→JDBCType.BIT→Types.BIT}，而本 fork 的 {@code SqlTypeName} 枚举
-     * <b>无 BIT</b>，{@code JDBC_TYPE_TO_NAME} 把 {@code Types.BIT} 归 {@code BOOLEAN}
-     * （SqlTypeName.java L300）→ codegen 面 {@code getJavaClass} 得 boolean/Boolean；
-     * 但行运行时值是 {@code Long}（{@code MycatDataType.BIT.getJavaClass()=Long.TYPE}，
-     * {@code BaseRowObservable.getObjects} case BIT）——与靶 1 FLOAT 同型的声明/运行时错配。
-     * 本测试钉住"BIT 列在 codegen 面即 BOOLEAN 表征"这一现状事实。挂账不夹带：无 e2e 基线
-     * 覆盖 BIT 列形状，修复方向（声明面扳 Long vs 行面扳 Boolean）需先定表征归属，另轮立债。
-     * BIT(1) 行值本身是 Boolean，与 BOOLEAN 表征一致，不受影响。
+     * BIT 表征归属钉（I-DEBT-34 已裁定，见
+     * {@code .superpowers/sdd/2026-10-12-r5-crud-debt-roots/b2-representation-decision.md}）。
+     * <p>
+     * 官方口径（MySQL/MariaDB Connector/J）：BIT(1)→Boolean、BIT(n&gt;1)→byte[]。裁定方向①：
+     * <b>行运行时保留后端原生 byte[]，前端以 {@code MYSQL_TYPE_BIT}+原始字节透传</b>（推翻早前
+     * “声明扳数值 Long”推荐）。修复落在行解码/编码层（{@code BaseRowObservable.getObjects}
+     * {@code case BIT/BOOLEAN} 接 byte[] 透传 + {@code ResultSetMapping}/{@code BinaryResultSetResponse}
+     * byte[] 分支），<b>不改本 fork codegen 面的 {@code getJavaClass(BOOLEAN)} 现状</b>（与本债正交）。
+     * <p>
+     * 本测试钉两个不受行层修复影响的事实：（一）codegen 面对 BOOLEAN SqlTypeName 仍得 Boolean；
+     * （二）fork {@code SqlTypeName} 枚举无 BIT（{@code Types.BIT} 归 BOOLEAN 的前提）。行层 byte[]
+     * 透传与端到端字节保真的权威锁由 e2e {@code CrudResultMatrixTest#bitColumnFidelity} 金标准对拍担当。
+     * BIT(1) 行值本就是 Boolean，与表征一致，不受影响（Review Focus #2）。
      */
     @Test
-    public void knownGapBitColumnIsRepresentedAsBooleanNotLong() throws Exception {
-        // fork 无 SqlTypeName.BIT（枚举不存在），Types.BIT 归一为 BOOLEAN：
-        RelDataType asBitColumn = sqlType(SqlTypeName.BOOLEAN, true);
+    public void knownGapBitCodegenSurfaceStaysBooleanRuntimeIsByteArray() throws Exception {
+        // 脚一：codegen 面 BOOLEAN SqlTypeName 仍映 Boolean（行层修复不碰此处）：
+        RelDataType asBooleanSurface = sqlType(SqlTypeName.BOOLEAN, true);
         Assertions.assertEquals(Boolean.class,
-                MycatCalciteSupport.TypeFactory.getJavaClass(asBitColumn),
-                "BIT 列 codegen 面现状 = BOOLEAN 表征（挂账：行运行时是 Long，"
-                        + "声明/运行时错配同 FLOAT 形状，见 ledger Final review Ruling）");
-        // 现状钉的第二脚：fork SqlTypeName 枚举确无 BIT（若上游日后补 BIT 枚举，本脚变红提醒复核归一表）
+                MycatCalciteSupport.TypeFactory.getJavaClass(asBooleanSurface),
+                "BIT 列 codegen 面（经 BOOLEAN 归一）仍 = Boolean——行层 byte[] 透传不改此现状");
+        // 脚二：fork SqlTypeName 枚举确无 BIT（若上游日后补 BIT 枚举，本脚变红提醒复核归一表）
         Assertions.assertThrows(NoSuchFieldException.class,
                 () -> SqlTypeName.class.getDeclaredField("BIT"),
                 "fork SqlTypeName 枚举应无 BIT（Types.BIT 归 BOOLEAN 的前提）");

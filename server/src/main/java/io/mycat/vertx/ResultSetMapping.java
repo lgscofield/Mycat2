@@ -98,6 +98,9 @@ public class ResultSetMapping {
                             Object o = objects[columnIndex];
                             if (o == null) {
                                 row[rowIndex] = null;
+                            } else if (o instanceof byte[]) {
+                                // I-DEBT-34：BIT(n>1) 官方口径——原始字节即 MYSQL_TYPE_BIT 的文本 wire，逐字节透传。
+                                row[rowIndex] = (byte[]) o;
                             } else if (o instanceof Boolean) {
                                 row[rowIndex] = ((Boolean) o).booleanValue() ? new byte[]{1} : new byte[]{0};
                             } else if (o instanceof Number) {
@@ -112,6 +115,9 @@ public class ResultSetMapping {
                             Object o = objects[columnIndex];
                             if (o == null) {
                                 row[rowIndex] = null;
+                            } else if (o instanceof byte[]) {
+                                // I-DEBT-34：经列归一拿不到 Types.BIT 时兜底，仍逐字节透传，不折成 Boolean。
+                                row[rowIndex] = (byte[]) o;
                             } else if (o instanceof Boolean) {
                                 row[rowIndex] = TextConvertorImpl.INSTANCE.convertBoolean((Boolean) o);
                             } else if (o instanceof Number) {

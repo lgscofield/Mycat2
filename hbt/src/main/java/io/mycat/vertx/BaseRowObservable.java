@@ -130,6 +130,11 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                     if (value instanceof Boolean) {
                         break;
                     }
+                    // I-DEBT-34：BIT(n>1) 后端 JDBC 原生返回 byte[]（官方口径），原样透传，
+                    // 绝不折成 Boolean/数值；前端以 MYSQL_TYPE_BIT+原始字节回写。
+                    if (value instanceof byte[]) {
+                        break;
+                    }
                     if (value instanceof Number) {
                         value = MycatValueFactory.BOOLEAN_VALUE_FACTORY.createFromLong(((Number) value).longValue());
                         break;
@@ -321,6 +326,11 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                         break;
                     }
                     if (value instanceof Boolean) {
+                        break;
+                    }
+                    // I-DEBT-34：BIT(n>1) 后端 JDBC 原生返回 byte[]（官方口径），原样透传，
+                    // 绝不折成 Boolean/数值；前端以 MYSQL_TYPE_BIT+原始字节回写。
+                    if (value instanceof byte[]) {
                         break;
                     }
                     if (value instanceof Number) {
