@@ -37,10 +37,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   <li>FA1 运行时新建 native 用户 → 新连接可完成认证并往返（证明 {@code createUser} hint 生效到活 Authenticator）。</li>
  *   <li>FA2 错误口令 → 被干净拒绝（ERR 包，而非挂起）。</li>
  *   <li>FA3 未知用户 → 被干净拒绝。</li>
+ *   <li>FA4/FA5（R3-T9 live）缓存 SHA-2 冷启动 full-auth（RSA 公钥往返）紧接热启动 fast-auth（warmed）。</li>
+ *   <li>FA6（R3-T9 live）SHA-2 错误口令 → 冷/热两路均干净拒绝。</li>
  * </ul>
- * <b>不覆盖（正交特性级缺口，见看板 I-DEBT-37 前端面）</b>：服务端原生 caching_sha2_password
- * fast/full-auth、RSA 公钥协商、client_ed25519、按用户可配认证插件（{@code UserConfig.encryptType}）
- * —— 这些需要专轮 spec，且非 0xFE 降级通路所能服务，只有拒绝降级的非主流客户端才暴露，故不在本回归网塞断言。
+ * FA4–FA6 用 {@code select version()} 探得生效画像：major≥8 才跑，否则 {@code assumeTrue} 记 N/A
+ * （5.7 / MariaDB 画像广告 native，不涉 caching_sha2）。
+ * <b>仍不覆盖</b>：client_ed25519、按用户可配认证插件（{@code UserConfig.encryptType}）——需专轮 spec。
  * <p>
  * 通过 hint 改写服务端全局用户配置，不可与其他配置型测试并发；探针用户用独立前缀 {@code i9bfe}，
  * {@code @AfterEach}/{@code @AfterAll} 一律 dropUser + RESET_CONFIG 回收。
@@ -50,6 +52,10 @@ public class FrontAuthMatrixTest implements MycatTest {
 
     private static final String FE_USER = "i9bfe_ok";
     private static final String FE_PW = "I9b_pass_1";
+    /** caching_sha2 探针用户：每矩阵 run 起新 mycat 进程 ⇒ 冷态；冷→热在同一方法内顺序触发。 */
+    private static final String SHA_USER = "i9bfe_sha";
+    private static final String SHA_BAD_USER = "i9bfe_sha_bad";
+    private static final String SHA_PW = "I9b_sha_1";
     /** 8066 前端 url（不含 username/password，由 DriverManager 显式传入被测凭据）。 */
     private static final String FRONT_URL = "jdbc:mysql://127.0.0.1:8066/mysql"
             + "?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai"
@@ -68,6 +74,8 @@ public class FrontAuthMatrixTest implements MycatTest {
     public void dropProbeUser() throws Exception {
         try {
             execute(admin, "/*+ mycat:dropUser{\"username\":\"" + FE_USER + "\"} */");
+            execute(admin, "/*+ mycat:dropUser{\"username\":\"" + SHA_USER + "\"} */");
+            execute(admin, "/*+ mycat:dropUser{\"username\":\"" + SHA_BAD_USER + "\"} */");
         } finally {
             execute(admin, RESET_CONFIG);
         }
@@ -130,5 +138,46 @@ public class FrontAuthMatrixTest implements MycatTest {
                 () -> selectOne("i9bfe_nobody", "whatever"),
                 "未知用户应被前端认证拒绝");
         assertTrue(ex.getMessage() != null);
+    }
+
+    /**
+     * 探测生效版本画像是否广告 caching_sha2：{@code select version()} 主版本号 ≥8。
+     * 由 {@code -Dmycat.persona} 驱动，run-matrix 按后端 mysql:8.x/9.x 起对应画像。
+     */
+    private boolean backendIsShaCapable() throws Exception {
+        List<Map<String, Object>> rows = executeQuery(admin, "select version()");
+        String v = String.valueOf(rows.get(0).values().iterator().next());
+        int dot = v.indexOf('.');
+        int major = dot > 0 ? Integer.parseInt(v.substring(0, dot)) : -1;
+        return major >= 8;
+    }
+
+    /**
+     * FA4+FA5：caching_sha2 冷连接走 RSA full-auth 成功，紧接重连走 fast-auth（warmed）成功。
+     * 合并为一个方法以保证时序确定（热依赖冷先置 warmed）。冷态由新 mycat 进程 + 全新用户名保证。
+     */
+    @Test
+    public void cachingSha2ColdFullAuthThenWarmFastAuth() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(backendIsShaCapable(),
+                "生效画像非 8.0+（native）→ caching_sha2 格 N/A");
+        createNativeUser(SHA_USER, SHA_PW);
+        // 冷：首连未 warmed → AuthMoreData(full-auth) → 客户端求公钥 → RSA 密文 → 成功 + 置 warmed
+        assertEquals(1, selectOne(SHA_USER, SHA_PW).size(), "冷态 caching_sha2 full-auth 应认证通过");
+        // 热：同用户重连已 warmed → fast-auth 直接通过
+        assertEquals(1, selectOne(SHA_USER, SHA_PW).size(), "热态 caching_sha2 fast-auth 应认证通过");
+    }
+
+    /**
+     * FA6：caching_sha2 错误口令应被干净拒绝（无论冷走 full-auth 失败还是热走 fast-auth 失败回落，均 ERR）。
+     */
+    @Test
+    public void cachingSha2WrongPasswordRejected() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(backendIsShaCapable(),
+                "生效画像非 8.0+（native）→ caching_sha2 格 N/A");
+        createNativeUser(SHA_BAD_USER, SHA_PW);
+        SQLException ex = assertThrows(SQLException.class,
+                () -> selectOne(SHA_BAD_USER, "definitely_wrong_sha_pw"),
+                "caching_sha2 错误口令应被前端认证拒绝");
+        assertNotNull(ex.getMessage());
     }
 }

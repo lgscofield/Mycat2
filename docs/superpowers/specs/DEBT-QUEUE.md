@@ -24,7 +24,7 @@
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
 | M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 只测 Connector/J（目标含 5 类） |
-| **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🔴 **<10%** | 前端 I-AU-1/2/3/5 全没动；仅 native 降级通路通 |
+| **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS/connector 未做** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；**仍缺** I-AU-2 前端 TLS + 多 connector 冒烟 |
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🔴 0% | I-ME-1..4 全 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
 | M5 / M6 | 生产就绪 / MariaDB ed25519 | ⚪ 0% | 关键路径外 |
@@ -52,10 +52,10 @@
 | ID | 一行说明 | 依赖（→是否已满足） | 分类 | 对齐 |
 |---|---|---|---|---|
 | **I-VE-2** | EOF 能力位连接级化，让 VersionProfile persona 在连接层真正生效（**🟡 2026-10-12 部分**：config/handshake 增量✅—`VersionProfileFactory` 按版本烘 `CLIENT_DEPRECATE_EOF`、`VertxMycatServer` 握手改读 profile 去全局 static；**剩**每连接协商 EOF 编码 `NewMycatConnectionImpl:305`(跨 common/config)+真连接级） | I-VE-1 ✅（已提交，见 §4）→ **本格已解锁，可直接开工** | 有界 | **A** |
-| I-AU-1 | 前端 caching_sha2 完整协商（现在靠 0xFE 强降 native 蒙混，非原生执行 fast/full-auth） | I-CI-3 本地✅ / I-VE-1 ✅ | 架构 | **A** |
+| I-AU-1 | ✅ **前端 caching_sha2 原生协商**（2026-10-12 R3 落地：删 0xFE 降级，`VertxMySQLAuthHandler` 状态机 fast-auth(warmed)+full-auth(RSA)；live 8.0/8.4/9.0 `FrontAuthMatrixTest` sha2 格全 PASS） | I-CI-3 本地✅ / I-VE-1 ✅ | 架构 | **A** |
 | **I-AU-2** | **前端 TLS 没实现**——云/托管 DB、`require_secure_transport=ON` 直接连不上；招牌最硬对外缺口 | I-CI-3 本地✅ / I-VE-2 ⬜（未做） | 架构 | **A** |
-| I-AU-3 | 非 TLS 下 RSA 公钥检索（配合前端 sha2 full-auth） | I-AU-1 ⬜ | 架构 | **A** |
-| I-AU-5 | 按版本画像切换宣称的认证插件（persona 驱动握手通告） | I-VE-1 ✅ | 有界偏中 | **A** |
+| I-AU-3 | ✅ **非 TLS 下 RSA 公钥检索**（2026-10-12 R3：`RsaKeyPairProvider` 进程级 2048 RSA + PEM 下发、`fullAuthOk` OAEP/PKCS1 解密；live 冷态 full-auth 实测通过） | I-AU-1 ✅ | 架构 | **A** |
+| I-AU-5 | ✅ **persona 驱动握手宣称插件**（2026-10-12 R3-T1：`VersionProfileFactory` 按 persona 选 native/caching_sha2；T7 `-Dmycat.persona` 启动覆盖） | I-VE-1 ✅ | 有界偏中 | **A** |
 | I-AU-4 | 后端 ed25519（MariaDB `client_ed25519`） | I-VE-1 ✅ / M2 ⬜ | 架构·BLOCKED | **A**(M6) |
 | **I-AU-6** | **后端 ed25519/多驱动**：mysql-connector-j 不支持 `client_ed25519`（实测 `Unable to load authentication plugin`），需引入 MariaDB Connector/J 或驱动 SPI 按后端类型选驱动。**用户明确"必做"** | I-AU-4 ⬜ | 架构 | **A**(M6) |
 
