@@ -26,7 +26,7 @@ public final class CachingSha2ServerAuth {
      * @param clientScramble 客户端回送的 scramble（caching_sha2 为 32 字节；空口令时为 0 字节）
      * @return 口令匹配则 true
      */
-    static boolean fastAuthOk(String rightPassword, byte[] seed, byte[] clientScramble) {
+    public static boolean fastAuthOk(String rightPassword, byte[] seed, byte[] clientScramble) {
         if (rightPassword == null || rightPassword.isEmpty()) {
             // 空口令：客户端应回送空 scramble
             return clientScramble == null || clientScramble.length == 0;
@@ -55,7 +55,7 @@ public final class CachingSha2ServerAuth {
      * @param oaep          true→OAEP（≥8.0.5），false→PKCS1
      * @return 口令匹配则 true；任何解密/还原异常一律 false（不把异常抛穿握手）
      */
-    static boolean fullAuthOk(String rightPassword, byte[] seed, byte[] clientCipher,
+    public static boolean fullAuthOk(String rightPassword, byte[] seed, byte[] clientCipher,
                               PrivateKey rsaPrivate, boolean oaep) {
         byte[] xored;
         try {

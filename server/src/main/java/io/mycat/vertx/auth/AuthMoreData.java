@@ -23,17 +23,17 @@ public final class AuthMoreData {
     }
 
     /** fast-auth 成功：{@code {0x01,0x03}}，随后由调用方写 OK。 */
-    static byte[] fastOk() {
+    public static byte[] fastOk() {
         return new byte[]{MORE_DATA_HEADER, FAST_AUTH_SUCCESS};
     }
 
     /** 需 full-auth：{@code {0x01,0x04}}，随后等待客户端求公钥（裸 {@code 0x02}）。 */
-    static byte[] fullAuth() {
+    public static byte[] fullAuth() {
         return new byte[]{MORE_DATA_HEADER, PERFORM_FULL_AUTHENTICATION};
     }
 
     /** 下发 RSA 公钥：{@code 0x01} + PEM 的 UTF-8 字节。 */
-    static byte[] publicKey(String pem) {
+    public static byte[] publicKey(String pem) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(MORE_DATA_HEADER);
         byte[] pemBytes = pem.getBytes(StandardCharsets.UTF_8);

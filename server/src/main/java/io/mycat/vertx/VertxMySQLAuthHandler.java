@@ -15,17 +15,21 @@
 package io.mycat.vertx;
 
 import io.mycat.*;
+import io.mycat.config.VersionProfile;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
-import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
 import io.mycat.beans.mysql.packet.AuthPacket;
-import io.mycat.beans.mysql.packet.AuthSwitchRequestPacket;
 import io.mycat.config.UserConfig;
 import io.mycat.mycatmysql.MycatVertxMySQLHandler;
 import io.mycat.mycatmysql.MycatVertxMysqlSession;
 import io.mycat.proxy.handler.front.MySQLClientAuthHandler;
 import io.mycat.proxy.handler.front.SocketAddressUtil;
+import io.mycat.protocol.mysql.type.ServerVersion;
 import io.mycat.runtime.MycatDataContextImpl;
 import io.mycat.protocol.mysql.auth.MysqlNativePasswordPluginUtil;
+import io.mycat.vertx.auth.AuthMoreData;
+import io.mycat.vertx.auth.CachingSha2AuthCache;
+import io.mycat.vertx.auth.CachingSha2ServerAuth;
+import io.mycat.vertx.auth.RsaKeyPairProvider;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
@@ -39,30 +43,65 @@ import java.util.Optional;
 import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
 import static io.mycat.vertx.VertxMySQLPacketResolver.readInt;
 
+/**
+ * 前端握手认证处理器。R3 起支持两套原生认证插件，按握手宣称的 {@link VersionProfile#authPlugin()}
+ * 由客户端选择回送：
+ * <ul>
+ *   <li>{@code mysql_native_password}（含插件名缺省）：{@code scramble411} 直校（既有行为）；</li>
+ *   <li>{@code caching_sha2_password}：warmed 命中走 fast-auth，未命中走 RSA full-auth 状态机。</li>
+ * </ul>
+ * 出站包序号严格按"收到的入站 packetId + 1"链式递增，交给会话后由 {@code getNextPacketId()} 续接。
+ */
 public class VertxMySQLAuthHandler implements Handler<Buffer> {
     private static final Logger LOGGER = LoggerFactory.getLogger(VertxMySQLAuthHandler.class);
+
+    private static final String PLUGIN_NATIVE = "mysql_native_password";
+    private static final String PLUGIN_CACHING_SHA2 = "caching_sha2_password";
+    private static final ServerVersion OAEP_MIN_VERSION = new ServerVersion(8, 0, 5);
+
+    /** caching_sha2 full-auth 子状态。 */
+    private enum AuthStage {
+        /** 等待首个 AuthResponse（native 或 caching_sha2 的初始 scramble）。 */
+        AUTH_RESPONSE,
+        /** 已下发 full-auth 请求，等客户端裸 {@code 0x02}（求公钥）。 */
+        SHA_FULL_ASK_PUBKEY,
+        /** 已下发公钥，等客户端 RSA 密文口令。 */
+        SHA_FULL_RECV_PW
+    }
 
     final NetSocket socket;
     final VertxMycatServer.MycatSessionManager mycatSessionManager;
     private final MycatDataContext mycatDataContext;
     private byte[][] seedParts;
     Buffer buffer = Buffer.buffer();
-    boolean authSwitchResponse = false;
     private AuthPacket authPacket;
+
+    private AuthStage stage = AuthStage.AUTH_RESPONSE;
+    private Authenticator authenticator;
+    private String username;
+    private String host;
+    private String rightPassword;
+    private byte[] seed;
+    /** 生效版本 ≥8.0.5 时 full-auth 用 OAEP 解密，否则 PKCS1。 */
+    private boolean oaep;
 
     public VertxMySQLAuthHandler(NetSocket socket, int defaultServerCapabilities, VertxMycatServer.MycatSessionManager mycatSessionManager) {
         this.socket = socket;
         this.mycatSessionManager = mycatSessionManager;
         this.mycatDataContext = new MycatDataContextImpl();
         this.seedParts = MysqlNativePasswordPluginUtil.nextSeedBuild();
-        io.mycat.config.VersionProfile versionProfile = io.mycat.MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class);
+        VersionProfile versionProfile = MetaClusterCurrent.wrapper(VersionProfile.class);
+        if (versionProfile != null) {
+            this.oaep = ServerVersion.parseVersion(versionProfile.serverVersionString())
+                    .compareTo(OAEP_MIN_VERSION) >= 0;
+        }
         byte[] handshakePacket = MySQLClientAuthHandler.createHandshakePayload(mycatDataContext.getSessionId(), defaultServerCapabilities, seedParts, versionProfile);
         try {
             socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(0, handshakePacket)));
             socket.handler(this);
-        }catch (Exception exception){
-            if(LOGGER.isDebugEnabled()){
-                LOGGER.debug("{} is closed",socket.remoteAddress(),exception);
+        } catch (Exception exception) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("{} is closed", socket.remoteAddress(), exception);
             }
             socket.close();
         }
@@ -71,92 +110,132 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
     @Override
     public void handle(Buffer event) {
         buffer.appendBuffer(event);
-        if (buffer.length() > 3) {
-            int length = readInt(buffer, 0, 3);
-            if (length == buffer.length() - 4) {
-                int packetId = buffer.getUnsignedByte(3);
-                Buffer payload = buffer.slice(4, buffer.length());
-                ReadView readView = new ReadView(payload);
-                if (!authSwitchResponse) {
-                    this.authPacket = new AuthPacket();
-                    authPacket.readPayload(readView);
-                    if ("mysql_native_password".equalsIgnoreCase(authPacket.getAuthPluginName())
-                            ||
-                            authPacket.getAuthPluginName() == null) {
-                        auth(packetId);
-                    } else {
-                        authSwitchResponse = true;
-                        buffer = Buffer.buffer();
-
-                        AuthSwitchRequestPacket authSwitchRequestPacket = new AuthSwitchRequestPacket();
-                        authSwitchRequestPacket.setStatus((byte) 0xfe);
-                        authSwitchRequestPacket.setAuthPluginName("mysql_native_password");
-                        authSwitchRequestPacket.setAuthPluginData(new String(seedParts[2]));
-                        MySQLPayloadWriter mySQLPayloadWriter = new MySQLPayloadWriter(1024);
-                        authSwitchRequestPacket.writePayload(mySQLPayloadWriter);
-
-                        socket.write(Buffer.buffer(
-                                MySQLPacketUtil.generateMySQLPacket(packetId + 1, mySQLPayloadWriter)));
-                        return;
-                    }
-                } else {
-                    byte[] bytes = readView.readEOFStringBytes();
-                    authPacket.setPassword(bytes);
-                    auth(packetId);
+        if (buffer.length() <= 3) {
+            return;
+        }
+        int length = readInt(buffer, 0, 3);
+        if (length != buffer.length() - 4) {
+            return;
+        }
+        int packetId = buffer.getUnsignedByte(3);
+        Buffer payload = buffer.slice(4, buffer.length());
+        ReadView readView = new ReadView(payload);
+        switch (stage) {
+            case AUTH_RESPONSE: {
+                this.authPacket = new AuthPacket();
+                authPacket.readPayload(readView);
+                this.username = authPacket.getUsername();
+                this.host = SocketAddressUtil.simplySocketAddress(socket.remoteAddress().toString());
+                this.seed = seedParts[2];
+                if (MetaClusterCurrent.exist(Authenticator.class)) {
+                    this.authenticator = MetaClusterCurrent.wrapper(Authenticator.class);
+                    this.rightPassword = authenticator.getPassword(username, host).getRightPassword();
                 }
-
+                String plugin = authPacket.getAuthPluginName();
+                if (plugin == null || PLUGIN_NATIVE.equalsIgnoreCase(plugin)) {
+                    authenticateNative(packetId);
+                } else if (PLUGIN_CACHING_SHA2.equalsIgnoreCase(plugin)) {
+                    onCachingSha2AuthResponse(packetId);
+                } else {
+                    writeAccessDenied(packetId, "Authentication plugin '" + plugin + "' is not supported");
+                }
+                buffer = Buffer.buffer();
+                break;
+            }
+            case SHA_FULL_ASK_PUBKEY: {
+                // 非加密连接下客户端回裸 0x02 求公钥；下发 AuthMoreData(0x01 + PEM)。
+                byte[] pk = AuthMoreData.publicKey(RsaKeyPairProvider.getInstance().publicKeyPem());
+                socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId + 1, pk)));
+                stage = AuthStage.SHA_FULL_RECV_PW;
+                buffer = Buffer.buffer();
+                break;
+            }
+            case SHA_FULL_RECV_PW: {
+                byte[] cipher = readView.readEOFStringBytes();
+                if (fullAuthVerify(cipher)) {
+                    CachingSha2AuthCache.getInstance().markWarmed(username);
+                    completeAuthentication(packetId); // OK 在 packetId+1
+                } else {
+                    writeAccessDenied(packetId,
+                            "Access denied for user '" + username + "'@'" + host + "' (using password: YES)");
+                }
+                buffer = Buffer.buffer();
+                break;
             }
         }
     }
 
-    private void auth(int packetId) {
-        String username = authPacket.getUsername();
-        String host = SocketAddressUtil.simplySocketAddress(socket.remoteAddress().toString());
-        Authenticator authenticator = null;
-        if (MetaClusterCurrent.exist(Authenticator.class)) {
-            authenticator = MetaClusterCurrent.wrapper(Authenticator.class);
+    /** caching_sha2 收到初始 scramble：warmed 且 fast-auth 通过→AuthMoreData(fast-ok)+OK；否则→AuthMoreData(full-auth) 进 RSA 流程。 */
+    private void onCachingSha2AuthResponse(int packetId) {
+        byte[] scramble = authPacket.getPassword();
+        if (authenticator != null
+                && CachingSha2AuthCache.getInstance().isWarmed(username)
+                && CachingSha2ServerAuth.fastAuthOk(rightPassword, seed, scramble)) {
+            socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId + 1, AuthMoreData.fastOk())));
+            completeAuthentication(packetId + 1); // AuthMoreData 占 packetId+1，OK 顺延 +2
+        } else if (authenticator == null) {
+            // 未配置用户存储（示例/嵌入式场景）：沿用 native 的放行语义，直接进入会话。
+            completeAuthentication(packetId);
+        } else {
+            socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId + 1, AuthMoreData.fullAuth())));
+            stage = AuthStage.SHA_FULL_ASK_PUBKEY;
         }
-        if (authenticator != null) {
-            Authenticator.AuthInfo authInfo = authenticator.getPassword(username,
-                    host);
-            String rightPassword = (
-                    authInfo.getRightPassword());
-            if (!checkPassword(rightPassword, authPacket.getPassword())) {
-                String message = "Access denied for user '" +
-                        username +
-                        "'@'" +
-                        host +
-                        "' (using password: YES)";
-                LOGGER.error(message);
-                socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId+1,
-                        MySQLPacketUtil.generateError(ER_ACCESS_DENIED_ERROR, message, 0))));
-                socket.end();
-                return;
-            }
+    }
+
+    /** native 直校：scramble411（既有行为），成功进会话，失败 ERR。 */
+    private void authenticateNative(int packetId) {
+        if (authenticator != null && !checkPassword(rightPassword, authPacket.getPassword())) {
+            writeAccessDenied(packetId,
+                    "Access denied for user '" + username + "'@'" + host + "' (using password: YES)");
+            return;
         }
+        completeAuthentication(packetId);
+    }
+
+    /** full-auth 口令校验；authenticator 缺省时按放行语义返回 true。 */
+    private boolean fullAuthVerify(byte[] cipher) {
+        if (authenticator == null) {
+            return true;
+        }
+        return CachingSha2ServerAuth.fullAuthOk(rightPassword, seed, cipher,
+                RsaKeyPairProvider.getInstance().privateKey(), oaep);
+    }
+
+    /**
+     * 认证成功：装配上下文、切换到查询处理器并写 OK。
+     *
+     * @param lastWrittenSeq 上一枚已出站包的序号（native/直接放行时为入站 packetId；
+     *                       fast-ok 时为 AuthMoreData 序号），OK 包取 {@code lastWrittenSeq + 1}。
+     */
+    private void completeAuthentication(int lastWrittenSeq) {
         buffer = null;
-        UserConfig userInfo = null;
+        UserConfig userInfo;
         if (authenticator != null) {
             userInfo = authenticator.getUserInfo(username);
-        }else {
+        } else {
             userInfo = new UserConfig();
         }
         InetSocketAddress remoteAddress = new InetSocketAddress(socket.remoteAddress().host(), socket.remoteAddress().port());
-        mycatDataContext.setUser(new MycatUser(username, null, null, host, remoteAddress,userInfo));
+        mycatDataContext.setUser(new MycatUser(username, null, null, host, remoteAddress, userInfo));
         mycatDataContext.useShcema(Optional.ofNullable(authPacket.getDatabase()).orElse(userInfo.getSchema()));
-        mycatDataContext.setServerCapabilities(
-                authPacket.getCapabilities()
-        );
+        mycatDataContext.setServerCapabilities(authPacket.getCapabilities());
         mycatDataContext.setAutoCommit(true);
         mycatDataContext.setIsolation(MySQLIsolation.REPEATED_READ);
         mycatDataContext.setCharsetIndex(authPacket.getCharacterSet());
-        MycatVertxMysqlSession vertxSession = new MycatVertxMysqlSession(mycatDataContext, socket,this.mycatSessionManager);
+        MycatVertxMysqlSession vertxSession = new MycatVertxMysqlSession(mycatDataContext, socket, this.mycatSessionManager);
         socket.handler(new VertxMySQLPacketResolver(socket, new MycatVertxMySQLHandler(vertxSession)));
-        vertxSession.setPacketId(packetId);
+        vertxSession.setPacketId(lastWrittenSeq);
 
         mycatSessionManager.addSession(vertxSession);
 
         vertxSession.writeOkEndPacket();
+    }
+
+    private void writeAccessDenied(int inboundPacketId, String message) {
+        LOGGER.error(message);
+        socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(inboundPacketId + 1,
+                MySQLPacketUtil.generateError(ER_ACCESS_DENIED_ERROR, message, 0))));
+        socket.end();
     }
 
     private boolean checkPassword(String rightPassword, byte[] password) {
