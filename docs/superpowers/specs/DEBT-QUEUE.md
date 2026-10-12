@@ -23,7 +23,7 @@
 
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
-| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 只测 Connector/J（目标含 5 类） |
+| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS/connector 未做** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；**仍缺** I-AU-2 前端 TLS + 多 connector 冒烟 |
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🔴 0% | I-ME-1..4 全 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
@@ -86,7 +86,7 @@
 | I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow 已**快进 push 到 fork**（`a29744e68`，R0 四件套上树）；**唯一没做 = 启用 fork 的 Actions**（历史 total_runs=0⇒默认关，需用户去 settings/actions 开）后跑公共背书 | 背书·BLOCKED | **B** |
 | I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
 | I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
-| I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 TLS / mysqldump 往返 / 多 connector 矩阵 0 覆盖 | 挂账 | **B** |
+| I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 TLS / mysqldump 往返 / 多 connector 矩阵 0 覆盖（**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
 
 **M3 元数据/mysqldump（L2）【A】**：I-ME-1 排序规则表补全 · I-ME-2 information_schema dump 面 · I-ME-3 performance_schema 完整 · I-ME-4 SHOW MASTER/SLAVE STATUS（均 TODO，多依赖 I-VE-1✅/I-AU-1）
 **M4 迁移/复制（L3）【A】**：I-RP-1 迁移流水线修复+CI · I-RP-2 binlog 客户端维护 · I-RP-3 文档化排除 N1（均 TODO）
