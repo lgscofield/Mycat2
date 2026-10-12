@@ -23,7 +23,7 @@
 
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
-| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟡 ~55% | 缺 CRUD 轴；CI 背书未 push；connector 只测了 Connector/J（目标含 5 类） |
+| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~80% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿**（2026-10-12）；剩 connector 只测 Connector/J（目标含 5 类）+ CI 背书未 push |
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🔴 **<10%** | 前端 I-AU-1/2/3/5 全没动；仅 native 降级通路通 |
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🔴 0% | I-ME-1..4 全 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
@@ -84,7 +84,7 @@
 | ID | 一行说明 | 分类 | 对齐 |
 |---|---|---|---|
 | I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；**唯一没做 = push fork 跑 Actions 公共背书**（卡 github.com 网络 + 用户凭据） | 背书·BLOCKED | **B** |
-| I-CI-3 | 兼容性 harness：认证轴 11 格本地跑绿；**缺"操作轴" = CRUD/结果集矩阵**（上一轮已呈 `CrudResultMatrixTest` 设计待批，就是补这一轴） | 有界 | **B** |
+| I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
 | I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
 | I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 TLS / mysqldump 往返 / 多 connector 矩阵 0 覆盖 | 挂账 | **B** |
 
@@ -115,7 +115,7 @@
 - **影子/编译/冒烟地基**：I-DEBT-1 / 2 / 3 / 4 / 5 / 6 / 7A / 7A-2 / 7B
 - **planner/执行器根治**：I-DEBT-10（GSI+JOIN 不收敛，两阶段执行模型，`1d47b9bee`）/ 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 / 21 / 22 / 23(23a/23b/23c) / 24
 - **认证矩阵**：I-DEBT-9 的 9-A（后端认证，`BackendAuthMatrixTest` 能力感知）+ 9-B（前端认证，`FrontAuthMatrixTest`）；I-DEBT-37 后端面（`ConnectHandler` auth-switch/caching_sha2 RSA full-auth，`08c35dcd2` 收口）；I-DEBT-38（NATIVE 跨分片 SELECT 合并，`ObjectArrayDecoder` 实参顺序根，双层修+锁测 5/0/0）
-- **M1 认证轴本地矩阵**：7 档全跑绿（5.7=7/0/4 · 8.0=11/0/0 · 8.4=8/0/3 · 9.0=8/0/3 · MariaDB×3=7/0/4，零 FAIL/ERROR/NO_DATA）
+- **M1 认证轴+操作轴本地矩阵**（2026-10-12 全 7 档重跑，四件套含 `CrudResultMatrixTest`）：5.7=14/3/4 · 8.0=18/3/0 · 8.4=15/3/3 · 9.0=15/3/3 · MariaDB×3=14/3/4。**每档 FAIL 恒=3 且跨全部后端版本完全一致**——即三格版本无关引擎深债 `bitColumnFidelity`(I-DEBT-34)/`timestampDiffFunctionCell`(I-DEBT-36)/`divideByZeroIsCleanError`(I-DEBT-39)，非版本兼容性缺口；其余 7 个 CRUD 格（int/varchar·update/delete·decimal·date/datetime·varbinary·跨片聚合·跨片 limit/offset）7 档全绿。认证轴 N/A 为版本相关（8.0 有 caching_sha2 插件故 NA=0，5.7/MariaDB 无插件→合法 N/A）
 - **误判撤回**：~~I-DEBT-40~~（多版本宽度"不落物理"= 假红，prototype DDL 写读错配方法学伪影，2026-10-11 撤回）
 
 ---
@@ -126,7 +126,7 @@
 
 ```
 第 0 步（前置·B）：让验证网四轴齐 + 出公共背书
-  I-CI-3 补 CRUD/结果集矩阵（设计已呈待批）→ 认证轴+操作轴齐
+  I-CI-3 补 CRUD/结果集矩阵 ✅ 已完成（`CrudResultMatrixTest` 双轴 7 档全跑，2026-10-12）→ 认证轴+操作轴齐；红地图已出（三格版本无关引擎深债 I-DEBT-34/36/39，喂第 3 步）
   I-CI-4 接 MigrateTest → 迁移轴
   网络恢复后 I-CI-2 push fork 跑 Actions → CI 背书（把 M1 从本地✅推到 spec 定义的 Evidenced-Done）
 

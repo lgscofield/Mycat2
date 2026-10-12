@@ -16,7 +16,7 @@
 
 | # | 里程碑 | 关掉哪些 ID | **可验证出口判据（跑什么算过）** | 依赖 | 状态 |
 |---|---|---|---|---|---|
-| **R0** | 验证网补全（认证+操作双轴） | I-CI-3(CRUD轴) · I-DEBT-9(TLS/dump/connector **先建格**) | `matrix-local.sh`/`ci/run-example.sh` 跑 compat **四件套**（+`CrudResultMatrixTest`）×7 档，CRUD 每格出 PASS/FAIL、零串档、零 NO_DATA；TLS/多connector 轴先建格记 NO_DATA（不假绿）；产出 CRUD×版本红地图进 `matrix-report.md` | — | 🔴 进行中 |
+| **R0** | 验证网补全（认证+操作双轴） | I-CI-3(CRUD轴)✅ · I-DEBT-9(TLS/dump/connector 建格 NO_DATA ⬜未做) | `matrix-local.sh`/`ci/run-example.sh` 跑 compat **四件套**（+`CrudResultMatrixTest`）×7 档，CRUD 每格出 PASS/FAIL、零串档、零 NO_DATA；TLS/多connector 轴先建格记 NO_DATA（不假绿）；产出 CRUD×版本红地图进 `matrix-report.md` | — | 🟡 **CRUD 轴✅**（2026-10-12 四件套×7 档全跑、红地图已出）；TLS/connector NO_DATA 建格—裁定归 R4/R5 随真格子一同建 |
 | **R1** | CI 背书落地（M1→真 Done） | I-CI-1 · I-CI-2 | fork 上 GitHub Actions 的 7 版 matrix job 跑完、出 pass/fail 徽标；看板记 run 链接 | R0 + 用户 push | ⚪ BLOCKED(网络) |
 | **R2** | 版本 persona 连接级生效 | I-VE-2 · I-AU-5 | 同进程分别以 5.7 / 8.4 画像应答，握手 capabilities/默认插件/EOF 位**按连接级 profile 正确**；harness 出差异锁格 | —(已解锁) | ⚪ |
 | **R3** | 前端 caching_sha2 原生协商 | I-AU-1 · I-AU-3 | 对 8.0/8.4/9.0，caching_sha2 客户端走 **fast-auth + full-auth(RSA) 原生认证**（非 0xFE 降级）；`FrontAuthMatrixTest` 新增 sha2 格 PASS | R2 | ⚪ |
