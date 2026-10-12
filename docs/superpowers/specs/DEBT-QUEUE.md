@@ -23,7 +23,7 @@
 
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
-| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~80% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿**（2026-10-12）；剩 connector 只测 Connector/J（目标含 5 类）+ CI 背书未 push |
+| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 只测 Connector/J（目标含 5 类） |
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🔴 **<10%** | 前端 I-AU-1/2/3/5 全没动；仅 native 降级通路通 |
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🔴 0% | I-ME-1..4 全 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
@@ -83,7 +83,7 @@
 **M1 尾巴（验证网）**
 | ID | 一行说明 | 分类 | 对齐 |
 |---|---|---|---|
-| I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；**唯一没做 = push fork 跑 Actions 公共背书**（卡 github.com 网络 + 用户凭据） | 背书·BLOCKED | **B** |
+| I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow 已**快进 push 到 fork**（`a29744e68`，R0 四件套上树）；**唯一没做 = 启用 fork 的 Actions**（历史 total_runs=0⇒默认关，需用户去 settings/actions 开）后跑公共背书 | 背书·BLOCKED | **B** |
 | I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
 | I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
 | I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 TLS / mysqldump 往返 / 多 connector 矩阵 0 覆盖 | 挂账 | **B** |
