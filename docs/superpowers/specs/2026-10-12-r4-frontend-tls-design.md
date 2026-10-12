@@ -59,41 +59,46 @@
 
 ---
 
-## 4. 核心技术闸口：Vert.x 服务端无公开"中途升级 TLS"API
+## 4. 核心技术闸口：Vert.x 服务端 STARTTLS 升级（spike 已证，前提修正）
 
-MySQL STARTTLS 要求**在同一条已建立明文 TCP 上、读完 SSLRequest 后把后续流切成 TLS**。Vert.x `NetServerOptions.setSsl(true)` 只做**接入即隐式 TLS**（整条连接从第一个字节就是 TLS），与协议不符，**不可直接用**。Vert.x **server 端 `NetSocket` 无公开 `upgradeToSsl`**（社区 issue #2104 佐证：Vert.x 不干净地处理 connect handler 内 startTLS）。
+> **修正记录（2026-10-12 · Task 0 spike）**：本节初稿假设"Vert.x server 端 `NetSocket` 无公开 `upgradeToSsl`、必须把 acceptor 迁裸 Netty"。该假设被 spike **实证证伪**——Vert.x 4.5.14 `NetSocket.upgradeToSsl` 于 server 端可完成同连接 STARTTLS 握手、通道确为加密（`mvn -o -B test -pl server -Dtest=StartTlsSpikeTest` 1/1 绿，`sslSession().getCipherSuite()` 返回 `TLS_*`；权威依据：Vert.x Core 手册"Upgrading connections to SSL/TLS"+ `NetSocket#upgradeToSsl` javadoc："server name…should be null on a server"、"SSL must be configured"）。故方案 A 改为**保留 Vert.x acceptor**，Netty 迁移降为后手。
 
-⇒ 必须在 Netty 层把 `SslHandler` 插进这条连接的 pipeline。三条路线：
+MySQL STARTTLS 要求**在同一条已建立明文 TCP 上、读完 SSLRequest 后把后续流切成 TLS**。Vert.x `NetServerOptions.setSsl(true)` 只做**接入即隐式 TLS**（整条连接从第一字节即 TLS），与协议不符，不可直接用；正确姿势是 server 端配好证书（不设 `setSsl(true)`），收到 SSLRequest 后对该连接调 `socket.upgradeToSsl(handler)`。
 
-### 方案 A（推荐 · 正确但体量中偏大）：前端 acceptor 用裸 Netty pipeline 承载 STARTTLS
-把 8066 前端接入改为 Netty `ChannelPipeline`：MySQL 包 `LengthFieldBasedFrameDecoder`（3 字节长 + 序号，按 MySQL packet header）+ 现有握手/认证处理器；收到 SSLRequest 时 `pipeline.addFirst(sslHandler)`（Netty `SslContextBuilder`），其后 HandshakeResponse/认证帧天然走解密流。
-- 优：**协议正确**、TLS 语义在 Netty 原生掌控（安全路径稳）、后续 HTTP/压缩等升级同受益、不耦合 Vert.x 内部。
-- 代价：需重接现有 Rx/`VertxSession`/背压与 `MetaClusterCurrent` 装配（前端 socket 抽象从 Vert.x `NetSocket` 迁到 Netty `ChannelHandlerContext`），blast 中等偏大。
+⇒ 三条路线（spike 后重排）：
 
-### 方案 B（最小但脆弱 · 次选）：探入 Vert.x 内部拿 channel 注 SslHandler
-`connectHandler` 里 `socket` 实为 `io.vertx.core.net.impl.NetSocketImpl`（内部类）；反射/强转取其 `Channel`，收到 SSLRequest 后 `channel.pipeline().addBefore(...)` 注入 `SslHandler`。
-- 优：改动面最小，acceptor 仍走 Vert.x。
-- 代价：**耦合 Vert.x 内部私有类**（升 Vert.x 即碎）；TLS 属安全敏感路径，内部时序若处理不当（如未先摘掉 Vert.x 明文解码 handler）可能**静默不加密或握手错乱**——风险不可接受地高。
+### 方案 A（推荐 · spike 证实可行 · blast 由"中偏大"降为"中"）：保留 Vert.x acceptor，就地 `upgradeToSsl`
+`VertxMycatServer` 的 `NetServer` 维持明文接入 + 配 `KeyCertOptions`（cert 由 `ServerConfig.tlsCertFile/tlsKeyFile` 提供）。前端握手中继收到并**按 MySQL 包长度边界吃满整个 SSLRequest 包**后，对该 `NetSocket` 调 `upgradeToSsl`；TLS 握手由客户端发起 ClientHello、服务端等入。升级成功后续 HandshakeResponse/认证帧天然走 Vert.x 解密流，既有 Rx/`VertxSession`/背压/装配不动。
+- 优：**协议正确**、改动集中在握手 handler、不耦合 Vert.x 内部类、不重接 socket 抽象层。
+- **两条硬约束（spike 挖出）**：
+  1. **按包边界升级**——MySQL 客户端发完 SSLRequest **不等服务端回复**即发 ClientHello（无往返，区别于 SMTP STARTTLS）。若两次写被 TCP 合并进同一次 `NetSocket` 读，而我们在 handler 内直接升级，会**丢弃同 buffer 里尾部的 ClientHello → 握手卡死**（spike 实测：452 字节合并读失败、6 字节干净读成功）。⇒ Task 3 必须借 `VertxMySQLPacketResolver` 的 3 字节长度分帧，确保只在"恰好消费完 SSLRequest 包、无残留字节"时才升级，不能靠时机侥幸。
+  2. **BouncyCastle 运行时依赖**——Vert.x 服务端经 Netty `SslContextBuilder` 装载 PKCS12/PEM key 需 `bcpkix`/`bcprov`（`BouncyCastlePemReader`），server 模块原缺（spike 期临时加 test-scope 验证后已还原）。生产落地须以 compile 域正式引入 ⇒ **属"装依赖须拍板"红线**，Task 3 前向用户确认。
+- 附注：JDK21 已封 `sun.security.x509`，Vert.x 内置 `SelfSignedCertificate` 生成器在 JDK21 失效（spike 期改用 `keytool` 造 PKCS12 绕开）——影响测试脚手架，非生产能力。
 
-### 方案 C（否决）：独立隐式 TLS 端口
-`setSsl(true)` 单开一个 TLS-only 端口。
-- 代价：客户端连 8066 期待的是内带 STARTTLS，独立端口**破坏"无缝替代"**（非 MySQL 协议行为）。**否决**。
+### 方案 A'（后手 · 仅当 upgradeToSsl 在真实 Connector/J 下暴露未探边界时才启用）：前端 acceptor 迁裸 Netty pipeline
+MySQL 包 `LengthFieldBasedFrameDecoder` + `pipeline.addFirst(sslHandler)`。blast 中偏大（前端 socket 抽象 Vert.x→Netty），当前证据**不需要**，列为回退后手。
 
-**裁定**：走 **方案 A**（Netty pipeline 承载 STARTTLS）。理由：TLS 是安全敏感 + 招牌对外硬门，B 的"静默不加密"风险与内部类耦合是持久负债，不值当为省改动把正确性押在脆弱反射上。A 体量虽中偏大，但一次做对、协议正确、可长期演进。
+### 方案 B（否决 · 脆弱）：反射/强转探 `NetSocketImpl` 内部 `Channel` 注 `SslHandler`
+耦合 Vert.x 私有内部类，安全路径"静默不加密"风险高，**否决**（既然 A 有公开 API 且实证可行，无理由走 B）。
 
-> **风险挂账**：A 需触碰前端 socket 抽象层（Vert.x→Netty），是本设计最大的不确定点。实施以 **spike 先行**（见 §5 Task 0）验证 Netty 下 MySQL STARTTLS 与 Connector/J `sslMode=REQUIRED` 往返可行，再全量迁移；spike 失败则回退并如实挂账，不硬推。
+### 方案 C（否决 · 破无缝）：独立隐式 TLS 端口
+违背"同端口无缝替代"招牌，**否决**。
+
+**裁定**：走 **方案 A**（保留 Vert.x acceptor，收到 SSLRequest 包后就地 `socket.upgradeToSsl`）。依据：Task 0 spike 实证 Vert.x 4.5.14 服务端 STARTTLS 可行且真加密；公开 API 路径比 B 的反射脆弱性、与 A' 的 Netty 重写都稳。B/C 否决，A' 仅作后手。
+
+> **风险挂账（spike 后更新）**：A 的净新增风险已从"前端 socket 抽象大迁移"收敛为两条明确约束：①按 MySQL 包长度边界"吃满 SSLRequest 再升级"以避免同读合并丢 ClientHello（可在 `VertxMySQLPacketResolver` 层保证）；②以 compile 域引入 BouncyCastle 作运行时依赖（装依赖红线，Task 3 前向用户拍板）。TLS 仍属安全敏感路径，故 Task 4 必含"真 Connector/J `sslMode=REQUIRED` e2e + `SHOW STATUS LIKE 'Ssl_cipher'` 非空防伪加密"的实跑验收，不以单元测代劳。
 
 ---
 
 ## 5. 里程碑任务分解（ bite-sized · TDD · 出口可跑 ）
 
-**Task 0（Spike·可行性，交付结论非产品码）**：最小 Netty server（自签证书 `SelfSignedCertificate`）实现：明文 handshake(CLIENT_SSL) → 读 SSLRequest(校验 32 字节) → addFirst SslHandler → 读 HandshakeResponse → 回 OK。Connector/J `sslMode=REQUIRED&verifyServer=false` 连上拿到 OK。证 A 路线可行；产出 `t0-netty-starttls-spike.md`。label throwaway。
+**Task 0（Spike·可行性，交付结论非产品码）✅ 已完成**：Vert.x NetServer+NetClient 回环（非 Netty 裸接）实证：明文 greeting(宣称 CLIENT_SSL) → 读 SSLRequest → server 端 `socket.upgradeToSsl` → TLS 握手 → 升级后 echo + `sslSession().getCipherSuite()` 为 `TLS_*`。**结论**：①Vert.x 4.5.14 原生支持服务端 STARTTLS（方案 A 无需迁 Netty）；②同读合并坑——必须按包边界升级；③需 BouncyCastle 运行时依赖（JDK21 下测试证书改 keytool）。label throwaway，已清理。
 
 **Task 1（配置面 · config 模块）**：`ServerConfig` 增 `tlsMode`（DISABLED/PREFERRED/REQUIRED，默认 DISABLED=零回归）+ 证书来源（`keystore`/`selfSigned`）；`MySQLServerCapabilityFlags`/profile 依 `tlsMode!=DISABLED` 置 `CLIENT_SSL`。TDD：`VersionProfileFactory`/`ServerConfig` 单测锁三档能力位与默认零回归。
 
 **Task 2（SSLRequest 解析 · protocol/common）**：按 §2 字节表实现 `SSLRequest` 包解析器 + 单测（golden bytes：client_flag|CLIENT_SSL、max_packet_size、charset、23×0 filler）；缺 CLIENT_SSL 位则拒绝。纯单元，transport-agnostic。
 
-**Task 3（前端 acceptor 迁 Netty + STARTTLS 升级）**：依 Task 0 结论，把 8066 接入改 Netty pipeline，收到 SSLRequest 后注入 SslHandler，其后 HandshakeResponse/认证走解密流；明文路径不变（PREFERRED 时两路并存）。RED→GREEN：起 TLS-on Mycat，Connector/J `sslMode=REQUIRED` 连上完成认证+`select 1`。
+**Task 3（Vert.x 握手中继内 `upgradeToSsl` 升级 · 不迁 Netty）**：依 Task 0 修正，`VertxMycatServer` NetServer 配 `KeyCertOptions`（cert 取 `ServerConfig.tlsCertFile/tlsKeyFile`）；`VertxMySQLAuthHandler`/`VertxMySQLPacketResolver` 按 MySQL 3 字节长度分帧**吃满整个 SSLRequest 包且无残留**后调 `socket.upgradeToSsl`；其后 HandshakeResponse/认证走 Vert.x 解密流，明文路径不变（PREFERRED 两路并存）。前置：以 compile 域引入 BouncyCastle（装依赖红线，先向用户拍板）。RED→GREEN：起 TLS-on Mycat，Connector/J `sslMode=REQUIRED` 连上完成认证+`select 1`。
 
 **Task 4（compat TLS 轴矩阵格）**：`example` compat 增 `TlsAxisMatrixTest`：`sslMode=REQUIRED`（on）与 `DISABLED`（off）× 逐版本 persona 断言连通+CRUD；把 R0 的 NO_DATA 占位点亮为 PASS/FAIL（不静默绿）。run-matrix ×7 重跑背书。
 
@@ -104,7 +109,7 @@ MySQL STARTTLS 要求**在同一条已建立明文 TCP 上、读完 SSLRequest �
 ## 6. 测试/验证策略
 
 - **单元（快回归）**：SSLRequest golden-bytes、capability 置位三档、tlsMode 默认零回归。
-- **e2e（真 TLS 往返）**：Netty `SelfSignedCertificate` 起 TLS-on Mycat（test scope，不引外部装依赖）；Connector/J `sslMode=REQUIRED&verifyServer=false`（自签免校验）、`sslMode=VERIFY_*` 用下发的 CA；断言：握手成功 + CRUD + `SHOW STATUS LIKE 'Ssl_cipher'` 非空（真加密，防"静默不加密"）。
+- **e2e（真 TLS 往返）**：JDK21 下 Vert.x 内置 `SelfSignedCertificate` 失效→用 keytool 造 PKCS12 作测试证书（test scope）；服务端 TLS 需 **BouncyCastle**（compile 域，装依赖红线待拍板）；Connector/J `sslMode=REQUIRED&verifyServer=false`（自签免校验）、`sslMode=VERIFY_*` 用下发的 CA；断言：握手成功 + CRUD + `SHOW STATUS LIKE 'Ssl_cipher'` 非空（真加密，防"静默不加密"）。
 - **矩阵**：on/off × {5.7,8.0,8.4,9.0,MariaDB×3}；明文全绿不得因 TLS 回退。
 - **附注（认证×TLS）**：`require_secure_transport` 语义下 TLS 建立后 caching_sha2 full-auth 可走明文口令（无需 RSA），与 I-AU-3 非 TLS 路径并存；本 R4 只保证 TLS 通道 + 既有认证在 TLS 上照常，full-auth-over-TLS 优化属后续细节，如触发即挂账不夹带。
 
