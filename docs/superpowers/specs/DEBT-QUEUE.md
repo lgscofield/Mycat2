@@ -51,7 +51,7 @@
 
 | ID | 一行说明 | 依赖（→是否已满足） | 分类 | 对齐 |
 |---|---|---|---|---|
-| **I-VE-2** | EOF 能力位连接级化，让 VersionProfile persona 在连接层真正生效 | I-VE-1 ✅（已提交，见 §4）→ **本格已解锁，可直接开工** | 有界 | **A** |
+| **I-VE-2** | EOF 能力位连接级化，让 VersionProfile persona 在连接层真正生效（**🟡 2026-10-12 部分**：config/handshake 增量✅—`VersionProfileFactory` 按版本烘 `CLIENT_DEPRECATE_EOF`、`VertxMycatServer` 握手改读 profile 去全局 static；**剩**每连接协商 EOF 编码 `NewMycatConnectionImpl:305`(跨 common/config)+真连接级） | I-VE-1 ✅（已提交，见 §4）→ **本格已解锁，可直接开工** | 有界 | **A** |
 | I-AU-1 | 前端 caching_sha2 完整协商（现在靠 0xFE 强降 native 蒙混，非原生执行 fast/full-auth） | I-CI-3 本地✅ / I-VE-1 ✅ | 架构 | **A** |
 | **I-AU-2** | **前端 TLS 没实现**——云/托管 DB、`require_secure_transport=ON` 直接连不上；招牌最硬对外缺口 | I-CI-3 本地✅ / I-VE-2 ⬜（未做） | 架构 | **A** |
 | I-AU-3 | 非 TLS 下 RSA 公钥检索（配合前端 sha2 full-auth） | I-AU-1 ⬜ | 架构 | **A** |

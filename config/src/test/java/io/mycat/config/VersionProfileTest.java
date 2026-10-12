@@ -3,6 +3,7 @@ package io.mycat.config;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * I-VE-1 VersionProfile 画像零回归锚点：缺省 MYSQL_5_7 的 bundle 必须逐字段等于
@@ -17,14 +18,39 @@ public class VersionProfileTest {
         assertEquals(8, p.characterSet());
         assertEquals(2, p.statusFlags());
         assertEquals("mysql_native_password", p.authPlugin());
-        // 能力位必须等于当前 getDefaultServerCapabilities() 返回值（零回归锚点）
-        assertEquals(MySQLServerCapabilityFlags.getDefaultServerCapabilities(), p.capabilityMask());
+        // 能力位 = 基础掩码 + 由档案推导的 CLIENT_DEPRECATE_EOF（5.7.33 ≥ 5.7.5 → 含该位）。
+        // 服务字节零回归：此前该位由启动期全局 static 在 VertxMycatServer 叠加，现改由档案自带，同字节。
+        assertEquals(MySQLServerCapabilityFlags.getDefaultServerCapabilities()
+                | MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF, p.capabilityMask());
     }
 
     @Test
     public void explicitVersionOverridesPersonaDefault() {
         VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, "8.0.40-mycat");
         assertEquals("8.0.40-mycat", p.serverVersionString());
+    }
+
+    /**
+     * I-VE-2：CLIENT_DEPRECATE_EOF 由版本档案推导，不再来自启动期全局可变 static。
+     * 5.7.33（persona 默认串）支持 deprecate-eof（≥​5.7.5），故 capabilityMask 必含该位。
+     * RED：当前工厂只回 getDefaultServerCapabilities()（不含 EOF 位），此断言应失败。
+     */
+    @Test
+    public void persona57CapabilityIncludesClientDeprecateEof() {
+        VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, null);
+        assertTrue((p.capabilityMask() & MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF) != 0,
+                "5.7 persona 应广告 CLIENT_DEPRECATE_EOF");
+    }
+
+    /**
+     * I-VE-2：EOF 位真“由档案推导”而非无条件置位——旧版本（<5.7.5）不应广告。
+     * 合成覆盖串 "5.1.0" → isClientDeprecateEof=false → 不应含该位。
+     */
+    @Test
+    public void oldVersionCapabilityOmitsClientDeprecateEof() {
+        VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, "5.1.0");
+        assertEquals(0, p.capabilityMask() & MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF,
+                "5.1.0 旧版本不应广告 CLIENT_DEPRECATE_EOF");
     }
 
     @Test

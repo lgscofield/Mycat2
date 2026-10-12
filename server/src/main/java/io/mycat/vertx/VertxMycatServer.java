@@ -17,10 +17,8 @@ package io.mycat.vertx;
 import io.mycat.*;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.ResultSetBuilder;
-import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.MycatServerConfig;
 import io.mycat.monitor.LogEntryHolder;
-import io.mycat.newquery.NewMycatConnectionConfig;
 import io.mycat.runtime.MycatXaTranscation;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.*;
@@ -143,14 +141,9 @@ public class VertxMycatServer implements MycatServer {
             netServerOptions.setReceiveBufferSize(serverConfig.getServer().getReceiveBufferSize());
             DeploymentOptions deploymentOptions = new DeploymentOptions();
             deploymentOptions.setWorker(false);
-            boolean supportClientDeprecateEof = NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF;
-            int defaultServerCapabilities = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class).capabilityMask();
-            if (supportClientDeprecateEof) {
-                defaultServerCapabilities |= MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF;
-            } else {
-                defaultServerCapabilities &= (~MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF);
-            }
-            int finalServerCapabilities = defaultServerCapabilities;
+            // I-VE-2：capabilityMask 已由版本档案自带 CLIENT_DEPRECATE_EOF（见 VersionProfileFactory），
+            // 握手直接采用画像能力位，不再读启动期全局可变 static NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF。
+            int finalServerCapabilities = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class).capabilityMask();
             for (int i = 0; i < serverConfig.getServer().getReactorNumber(); i++) {
                 vertx.deployVerticle(new AbstractVerticle() {
                     @Override
