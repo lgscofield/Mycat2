@@ -6,7 +6,7 @@
 >
 > **深度证据在哪**：本队列是**索引**，不是证据本体。逐格的红/绿判定、file:line、实跑日志一律回看权威看板 `2026-09-30-mysql-mariadb-compat-PROGRESS.md`（进度总表 L52–117）+ 对应 SDD 账本 `.superpowers/sdd/*/progress.md`。
 >
-> **校准**：2026-10-12（凭当前 `git log` + 总表逐行只读复核，非凭记忆）。**R5 CRUD 红族三根收口**（I-DEBT-39/34 完全关，I-DEBT-36 单片下推面关，跨片 caseI36 另立专项）已据 `run-matrix` ×7 全档实证回写（`matrix-report.md`：`CrudResultMatrixTest` 10 格 × 7 档全 PASS）。
+> **校准**：2026-10-12（凭当前 `git log` + 总表逐行只读复核，非凭记忆）。**R5 CRUD 红族三根收口**（I-DEBT-39/34 完全关，I-DEBT-36 单片下推面关，跨片 caseI36 另立专项）已据 `run-matrix` ×7 全档实证回写（`matrix-report.md`：`CrudResultMatrixTest` 10 格 × 7 档全 PASS）。**2026-10-12 整分支终审+修复 pass 后窄化**：I-DEBT-34 跨片归并/本地计划列头实证为真残口→闭合面窄化为单片/下推(见 §2 I-DEBT-34·残)，C10 除零语义口径窄化(见 §2 I-DEBT-39·残)，C9 数据换跨月跨年获真鉴别力；因生产码未变、C9 仅 test 数据变且值版本无关，已 `run-matrix` ×7 重跑全档 FAIL=0、数字不变（`matrix-report.md` 2026-10-12 20:27 重生）。
 
 ---
 
