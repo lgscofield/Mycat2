@@ -6,7 +6,7 @@
 >
 > **深度证据在哪**：本队列是**索引**，不是证据本体。逐格的红/绿判定、file:line、实跑日志一律回看权威看板 `2026-09-30-mysql-mariadb-compat-PROGRESS.md`（进度总表 L52–117）+ 对应 SDD 账本 `.superpowers/sdd/*/progress.md`。
 >
-> **校准**：2026-10-12（凭当前 `git log` + 总表逐行只读复核，非凭记忆）。
+> **校准**：2026-10-12（凭当前 `git log` + 总表逐行只读复核，非凭记忆）。**R5 CRUD 红族三根收口**（I-DEBT-39/34 完全关，I-DEBT-36 单片下推面关，跨片 caseI36 另立专项）已据 `run-matrix` ×7 全档实证回写（`matrix-report.md`：`CrudResultMatrixTest` 10 格 × 7 档全 PASS）。
 
 ---
 
@@ -69,10 +69,8 @@
 |---|---|---|---|
 | I-DEBT-7C | example 全量重基线（当前 479 tests / 7F / 63E / 30skip）——下面这几族的收口总账 | 挂账·WIP | C |
 | I-DEBT-8 | Rx 算子 `filter/topN/sort/toEnumerable/materialize` 仍声明 `Observable<Object[]>`、合成桥烘焙 `(Object[])` 输入强转（`[B`→ByteString CCE 面已收口，此面 TODO） | 有界偏中 | C |
-| I-DEBT-34 | BIT(n>1) 列 codegen 声明面 Boolean vs 运行时 Long 错配（`knownGap` 已钉现状，无 e2e 覆盖） | 挂账 | C |
-| I-DEBT-35 | BINARY/BLOB 列 codegen 声明面 ByteString vs 运行时 byte[] 错配（牵连 RexToLix 字面量 + 结果端字节保真，面大） | 挂账 | C |
-| I-DEBT-36 | `TIMESTAMPDIFF(unit,t1,t2)` 下推 deparse 不支持 Calcite interval/内部算子（`REINTERPRET` SPECIAL unparse 抛）；正解=建原生三参透传通路。特性分支 `fix/i-debt-36-timestampdiff` 未合主干 | 架构·特性级 | C |
-| I-DEBT-39 | 多语句运行期错误（如 `select 1/0`）以 ERR 2013 断连终止会话，而非干净 MySQL ERR 包（规划期错误则正常回 ERR，两条路径不一致） | 挂账 | C |
+| I-DEBT-35 | BINARY/BLOB 列 codegen 声明面 ByteString vs 运行时 byte[] 错配（牵连 RexToLix 字面量 + 结果端字节保真，面大）。Root B 的 BIT byte[] 样板已立（I-DEBT-34 收口），BINARY/BLOB 应用留另轮 | 挂账 | C |
+| I-DEBT-36·残 | `TIMESTAMPDIFF(unit,t1,t2)` **跨片全计划**去回环重解析后落标准算子→convertlet 展平成含 `REINTERPRET`(`SqlSyntax.SPECIAL`) 算术→Mycat dialect 无法 deparse（红锁 `UserCaseTest#caseI36`）。单片下推面已 R5 收口 ×7 绿（见 §5）；跨片正解=方向 A「原生三参整体下推」，2026-10-12 用户拍板**另立专项**、本里程碑不强推。根因图见 `.superpowers/sdd/2026-10-12-r5-crud-debt-roots/c2-pushdown.md` | 架构·特性级 | C |
 | I-DEBT-23e | `CURTIME()+0` TIME→NUMERIC：`Duration→TIME` java 反查映射缺，落 OTHER 不可 coerce | 有界 | C |
 | （7C 分诊·独立根） | `ClientTest.testDBeaver`=druid 相邻 `@@` 变量丢逗号（上游/或需裁定破"不 fork druid"）；函数签名族 BIN/CONV 严格 overload；`information_schema ORDER BY` 重复列名 ambiguous；`BlobTest` BOM/EFBFBD 字节保真；`RwTest` 分片越界；`HbtTest` 测试隔离(先 DROP)+PARK VARCHAR 影子 | 各独立·多为架构 | C |
 
@@ -115,7 +113,8 @@
 - **影子/编译/冒烟地基**：I-DEBT-1 / 2 / 3 / 4 / 5 / 6 / 7A / 7A-2 / 7B
 - **planner/执行器根治**：I-DEBT-10（GSI+JOIN 不收敛，两阶段执行模型，`1d47b9bee`）/ 11 / 12 / 13 / 14 / 15 / 16 / 17 / 18 / 19 / 20 / 21 / 22 / 23(23a/23b/23c) / 24
 - **认证矩阵**：I-DEBT-9 的 9-A（后端认证，`BackendAuthMatrixTest` 能力感知）+ 9-B（前端认证，`FrontAuthMatrixTest`）；I-DEBT-37 后端面（`ConnectHandler` auth-switch/caching_sha2 RSA full-auth，`08c35dcd2` 收口）；I-DEBT-38（NATIVE 跨分片 SELECT 合并，`ObjectArrayDecoder` 实参顺序根，双层修+锁测 5/0/0）
-- **M1 认证轴+操作轴本地矩阵**（2026-10-12 全 7 档重跑，四件套含 `CrudResultMatrixTest`）：5.7=14/3/4 · 8.0=18/3/0 · 8.4=15/3/3 · 9.0=15/3/3 · MariaDB×3=14/3/4。**每档 FAIL 恒=3 且跨全部后端版本完全一致**——即三格版本无关引擎深债 `bitColumnFidelity`(I-DEBT-34)/`timestampDiffFunctionCell`(I-DEBT-36)/`divideByZeroIsCleanError`(I-DEBT-39)，非版本兼容性缺口；其余 7 个 CRUD 格（int/varchar·update/delete·decimal·date/datetime·varbinary·跨片聚合·跨片 limit/offset）7 档全绿。认证轴 N/A 为版本相关（8.0 有 caching_sha2 插件故 NA=0，5.7/MariaDB 无插件→合法 N/A）
+- **M1 认证轴+操作轴本地矩阵**（2026-10-12 R5 收口后全 7 档重跑，四件套含 `CrudResultMatrixTest` 10 格）：**每档 FAIL=0** — 5.7=17/0/6 · 8.0=23/0/0 · 8.4=20/0/3 · 9.0=20/0/3 · MariaDB×3=17/0/6。三枚原红格 `bitColumnFidelity`(I-DEBT-34)/`timestampDiffFunctionCell`(I-DEBT-36 单片)/`divideByZeroIsCleanError`(I-DEBT-39) 经 R5 全绿，10 个 CRUD 格 × 7 档全 PASS。认证轴 N/A 为版本相关（8.0 有 caching_sha2 插件故 NA=0，5.7/MariaDB 无插件→合法 N/A）。权威报告 `.superpowers/sdd/2026-09-30-m1-verification-net/matrix-report.md`。
+- **R5 CRUD 红族三根收口（2026-10-12，Evidenced-Done）**：Root A I-DEBT-39 列头惰性化使流式首行错回干净 ERR 会话存活（`f61775a88`）；Root B I-DEBT-34 BIT 列对外官方 byte[] 口径 + 消行解码 byte[] 崩（`e35f44ba2`，对拍网 `94859304a`）；Root C I-DEBT-36 单片 TIMESTAMPDIFF 下推收割（`d94587d00`）+ C9 六单位/NULL 回归锁（`60016e3cc`）。**跨片全计划 caseI36 另立专项**（见 §2 I-DEBT-36·残 + `c2-pushdown.md`）。
 - **误判撤回**：~~I-DEBT-40~~（多版本宽度"不落物理"= 假红，prototype DDL 写读错配方法学伪影，2026-10-11 撤回）
 
 ---
@@ -139,7 +138,8 @@
   M4 I-RP-1（MigrateTest 接矩阵，随 I-CI-4）
 
 第 3 步（地基债·C，靠第 0 步的 CRUD 矩阵出红地图后逐个专轮，不占主线名额）：
-  I-DEBT-8 → I-DEBT-34/35 → I-DEBT-36 → I-DEBT-39 → 23e → 各独立根 → I-DB-1
+  ✅ **R5 已关**：I-DEBT-39（列头惰性化）/ I-DEBT-34（BIT byte[]）/ I-DEBT-36 单片下推面（×7 矩阵锤定）
+  ⏳ **待办**：I-DEBT-8 → I-DEBT-35（BINARY/BLOB 应用 BIT 样板）→ **I-DEBT-36 跨片全计划 caseI36 原生透传（已另立专项，方向 A）** → 23e → 各独立根 → I-DB-1
 
 主线外（D）：I-PR-1/2/3（生产稳健，与"无缝替代"正交，独立排期）
 ```
