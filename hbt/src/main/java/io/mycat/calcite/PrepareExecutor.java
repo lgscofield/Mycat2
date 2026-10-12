@@ -70,7 +70,12 @@ public class PrepareExecutor {
             AsyncMycatDataContextImpl newMycatDataContext,
             MycatRowMetaData rowMetaData) {
         Observable<MysqlPayloadObject> rowObservable = Observable.<MysqlPayloadObject>create(emitter -> {
-            emitter.onNext(new MySQLColumnDef(rowMetaData));
+            // I-DEBT-39：列头惰性化。原在首行求值前急切发列头，使首行才爆发的语句级运行期错误
+            // (如本地求值 select 1/0 的 ArithmeticException)落入 observer resultStarted=true 分支被迫关连接。
+            // 改为列头延到首行就绪(或空集正常终结)才发：首行前遇错则不发列头 → observer 走 resultStarted=false
+            // → 顶层 recover 发合法 ERR、会话存活，对齐真 MySQL「执行成功才发元数据」语义。
+            final MySQLColumnDef columnDef = new MySQLColumnDef(rowMetaData);
+            final boolean[] headerSent = {false};
             try {
 
                 Object bindObservable;
@@ -82,14 +87,26 @@ public class PrepareExecutor {
                     Enumerable<Object[]> enumerable = (Enumerable) bindObservable;
                     observable = toObservable(newMycatDataContext, enumerable);
                 }
-                observable.subscribe(objects -> emitter.onNext(new MysqlObjectArrayRow(objects)),
+                observable.subscribe(objects -> {
+                            if (!headerSent[0]) {
+                                emitter.onNext(columnDef);
+                                headerSent[0] = true;
+                            }
+                            emitter.onNext(new MysqlObjectArrayRow(objects));
+                        },
                         throwable -> {
                             log.error("result-set execution failed (streaming)", throwable);
                             newMycatDataContext.endFuture()
                                     .onComplete(event -> emitter.onError(throwable));
                         }, () -> {
                             CompositeFuture compositeFuture = newMycatDataContext.endFuture();
-                            compositeFuture.onSuccess(event -> emitter.onComplete());
+                            compositeFuture.onSuccess(event -> {
+                                if (!headerSent[0]) {   // 空结果集：正常终结时补发列头，保证客户端拿到合法 metadata+EOF
+                                    emitter.onNext(columnDef);
+                                    headerSent[0] = true;
+                                }
+                                emitter.onComplete();
+                            });
                             compositeFuture.onFailure(event -> emitter.onError(event));
                         });
             } catch (Throwable throwable) {

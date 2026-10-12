@@ -233,6 +233,13 @@ public class CrudResultMatrixTest implements MycatTest {
             List<Map<String, Object>> after = executeQuery(probe, "select 1");
             assertEquals(1, after.size(), "C10：出错后会话应保持存活、可继续查询（探针 I-DEBT-39 断连缺陷）");
             assertTrue(ex.getMessage() != null, "C10：错误应带消息");
+            // Review Focus #1 回归守卫：③类规划/校验期错误（未知列）本应干净 ERR + 会话存活，
+            // A2 修流式首行错(①类)时不得把连接关闭过度收窄而伤及此路径。派生表免建表，列解析期即失败。
+            assertThrows(SQLException.class,
+                    () -> executeQuery(probe, "select `no_such_col_zzz` from (select 1) t"),
+                    "C10+：未知列应报错");
+            List<Map<String, Object>> still = executeQuery(probe, "select 2");
+            assertEquals(1, still.size(), "C10+：多条语句级错误后会话仍存活");
         }
     }
 
