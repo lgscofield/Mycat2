@@ -9,6 +9,41 @@
 
 ---
 
+## ★ 验收标准（Definition of「支持某后端版本 V」）
+
+> **本节性质**：把 §1.1（目标范围）+ §3（里程碑出口判据）+ §5（Evidenced-Done 定义）合成**一页可勾检的验收尺**。它是导航、不是新事实源——**任何口径冲突以 §3 / §5 为准**。实时进度见 `DEBT-QUEUE.md` 顶部仪表盘。
+
+**一句话定义**：说 Mycat2「支持版本 V」，当且仅当——**spec 点名的验收面里，V 对应的每一格兼容性矩阵都在可重跑的 CI 上为绿**（M2 连接达标 + M3 工具达标 + M4 迁移达标；V 属 MariaDB 时再加 M6）。**验收单位 = 兼容性 harness 的逐格矩阵，不是全仓测试类总数。**
+
+### 逐格矩阵 = `connector × 认证插件 × TLS on/off × 操作`，按版本 V 展开
+- **connector 集**（§1.1）：Connector/J 5.1/8.x/9.x · Go `go-sql-driver` · Python `mysqlclient/PyMySQL` · C/.NET
+- **认证插件**：`mysql_native_password` + V 的默认插件（MySQL 8.x/9.x = `caching_sha2_password`；MariaDB = `client_ed25519`，属 M6）
+- **TLS**：on / off 两态（含非 TLS 下 caching_sha2 的 RSA 公钥检索）
+- **操作**：连接后完成**基本 CRUD**（增删改查 + 结果集保真），非穷举 SQL 特性
+
+### 三态判定（与 harness 图例一致）
+| 态 | 含义 |
+|---|---|
+| **PASS** | 该格达标 |
+| **N/A** | 后端客观无此能力（如 5.7 无 caching_sha2）——合法不支持，**≠ 失败** |
+| **FAIL / ERROR** | 真缺口，须专轮修 |
+| **NO_DATA** | 该格未跑出（驱动/构建异常）——**响，不得静默当绿** |
+
+### 每版本 V 的验收清单（勾满才算「支持 V」）
+- [ ] **M2 连接达标**：上述矩阵对 V 逐格 PASS（或合法 N/A），含 caching_sha2 + TLS on/off，**全 connector**（非只 Connector/J）。
+- [ ] **M3 工具达标**：`mysqldump <db>` 结构+数据产物能在**原生 V 回灌成功**（往返进 harness）；主流 GUI（DBeaver/Navicat）能列库列表。
+- [ ] **M4 迁移达标**：`MIGRATE_*`/`BINLOG_*` hint 链在 V 上矩阵绿。
+- [ ] **M6（仅 MariaDB）**：profile + `client_ed25519`（后端多驱动 I-AU-6）绿。**MySQL 各版本无此项。**
+
+### 三条铁则（防"测试总数全绿≈达标"的误解）
+1. **地基护栏 = 必要不充分**：全仓单测（hbt/router/server/common/config/executor）+ example 功能全量须保持绿，证明"没弄坏引擎"；**但它们绿 ≠ 支持 V**。任一由绿转红触发 §5 **Regressed** → 自动打回，进度不得假性前进。
+2. **缺格须补，但守最小必要面**：凡验收面点名却无对应用例（当前缺：**TLS 轴 / CRUD 操作轴 / 元数据-dump 往返轴 / 迁移轴 / 多 connector 轴**）= 网有洞，补之；**不追求穷尽 MySQL 特性全集**（§6 R5：以往返实际查询集界定）。
+3. **Evidenced-Done 硬门**：某格判 Done 必须有**一条可重跑的自动化检查当前为绿** + 记录最近绿的平台版本；**禁止仅凭 commit message 或口头判 Done**（§5）。
+
+> **多 connector 硬边界（须知道）**：兼容性 harness 住在 `example/.../compat/`（Java 模块，连 8066 打真实后端），**Java 测不了 Go/Python/.NET/C 原生客户端**。这一轴**超出 example 能力**，需另立 polyglot/docker 客户端冒烟网（I-DEBT-9「多 connector 矩阵」缺口）；在此之前，M2 的"全 connector"对非 Java connector 记 **NO_DATA（未覆盖）**，不得当 PASS。
+
+---
+
 ## 0. 事实校准（写文档前重新取证，推翻评审若干默认）
 
 | 项 | 评审默认 | 当前实证 | 对计划的影响 |
