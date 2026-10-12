@@ -159,18 +159,23 @@ public class CrudResultMatrixTest implements MycatTest {
     }
 
     /**
-     * C6 BIT(8) 数值保真（探针：I-DEBT-34 声明面 Boolean vs 运行时 Long 错配）。
-     * 写入 0x00-0xFF 一个多位 BIT 值，读回应为该数值；若 codegen 按 Boolean 强转实取 Long，跨分片归并时此格红/崩。
+     * C6 BIT(8) 官方 byte[] wire 口径对拍（探针：I-DEBT-34 表征错配）。
+     * 金标准＝同一行经后端直连 3306 真库读回（Connector/J 对 BIT(>1) 返 byte[]，官方口径），
+     * Mycat 前端读出须与之逐字节一致；现网前端返 Boolean/Long 而非 byte[]，此格 RED。
      */
     @Test
     public void bitColumnFidelity() throws Exception {
         String t = createCell("c6", "`id` bigint NOT NULL, `c_bit` bit(8), PRIMARY KEY(`id`)");
         execute(mycat, "insert into " + t + "(`id`,`c_bit`) values (1, b'10110011')");
-        List<Map<String, Object>> rows = executeQuery(mycat, "select `c_bit` from " + t + " where `id`=1");
-        Object got = rows.get(0).get("c_bit");
-        // b'10110011' = 0xB3 = 179；BIT(>1) 应以数值形态读出（I-DEBT-34 争议的正是这里）
-        long numeric = (got instanceof Boolean) ? (((Boolean) got) ? 1 : 0) : ((Number) got).longValue();
-        assertEquals(179L, numeric, "C6：bit(8) 数值保真（探针 I-DEBT-34），实得 " + got + " [" + typeOf(got) + "]");
+        Object viaMycat = executeQuery(mycat, "select `c_bit` from " + t + " where `id`=1").get(0).get("c_bit");
+        String phys = locatePhysicalSchema("crud_c6");
+        try (Connection back = getMySQLConnection(DB1)) {
+            Object golden = executeQuery(back, "select `c_bit` from `" + phys + "`.`crud_c6` where `id`=1")
+                    .get(0).get("c_bit");
+            assertArrayEquals(canonicalBytes(golden), canonicalBytes(viaMycat),
+                    "C6：Mycat 前端 BIT(8) 读出须与后端直连真库逐字节一致（I-DEBT-34 官方 byte[] 口径），"
+                            + "前端实得 " + viaMycat + " [" + typeOf(viaMycat) + "]");
+        }
     }
 
     // ============================================== 跨分片归并格（探针：I-DEBT-8 Rx merge 面）
@@ -280,6 +285,43 @@ public class CrudResultMatrixTest implements MycatTest {
         }
         // 非 byte[]（如 ByteString/String）说明结果端未保真为字节数组：转 UTF-8 字节使其与 payload 不等而红。
         return o.toString().getBytes("UTF-8");
+    }
+
+    /** C6 对拍归一：byte[] 原样；Number→大端最小无符号字节；Boolean→1 字节；String→UTF-8。 */
+    private static byte[] canonicalBytes(Object o) throws Exception {
+        if (o instanceof byte[]) {
+            return (byte[]) o;
+        }
+        if (o == null) {
+            return new byte[0];
+        }
+        if (o instanceof Number) {
+            java.math.BigInteger bi = new java.math.BigInteger(o.toString());
+            byte[] minimal = bi.toByteArray();
+            // BigInteger 补符号位的前导 0x00/0xFF 不属于最小无符号字节串，剔掉。
+            if (minimal.length > 1 && (minimal[0] == 0 || minimal[0] == (byte) 0xFF)) {
+                byte[] trimmed = new byte[minimal.length - 1];
+                System.arraycopy(minimal, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return minimal;
+        }
+        if (o instanceof Boolean) {
+            return new byte[]{(byte) (((Boolean) o) ? 1 : 0)};
+        }
+        if (o instanceof String) {
+            return ((String) o).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        throw new IllegalStateException("C6 对拍不支持的读出类型: " + typeOf(o));
+    }
+
+    /** 经后端直连的 information_schema 定位逻辑分片表落到的物理库名（id=1 经 mod_hash 只落一库）。 */
+    private String locatePhysicalSchema(String table) throws Exception {
+        List<Map<String, Object>> rows = executeQuery(adminBackend,
+                "select table_schema from information_schema.tables"
+                        + " where table_schema like '" + SCHEMA + "%' and table_name='" + table + "' limit 1");
+        assertEquals(1, rows.size(), "定位物理库失败：" + table);
+        return String.valueOf(rows.get(0).get("table_schema"));
     }
 
     private void purgePhysical() throws Exception {
