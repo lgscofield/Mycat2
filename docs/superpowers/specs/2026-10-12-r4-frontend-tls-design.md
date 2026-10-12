@@ -44,7 +44,13 @@
 
 **能力位**：`CLIENT_SSL = 2048`（0x800）。握手包必须宣称它，客户端才会发 SSLRequest。
 
-**MariaDB 线级兼容**：MariaDB 沿用同一 MySQL 连接期协议（SSLRequest 内带升级），Connector/J `useSsl` 与 mariadb-connector-c `tls_*` 走同一 STARTTLS。**计划内单列一步用 MariaDB Connector 文档复核确认**（落实"拿不准查官网"，不臆断）。
+**MariaDB 线级兼容（Task 5 协议复核 ✅ 2026-10-12 · 凭 MariaDB 官方文档实读）**：MariaDB 沿用同一 MySQL 连接期协议——同端口内带 STARTTLS、SSLRequest 置 `CLIENT_SSL` 后同连接升级 TLS，机制与 MySQL 一致（权威：`mariadb.com/docs/server/security/encryption/data-in-transit-encryption/securing-connections-for-client-and-server`）。复核要点：
+- **服务端证书模型同构**：MariaDB 用 `ssl_cert`/`ssl_key`/`ssl_ca`(`ssl_capath`)/`ssl_cipher` 系统变量配 TLS，与 MySQL `require_secure_transport`+`ssl_*` 一一对应（故 R4 证书配置面 `tlsCertFile/tlsKeyFile` 对 MariaDB persona 同样适用）；`SHOW VARIABLES LIKE 'have_ssl'`=YES 为服务端 TLS 已开的判据，客户端侧 `SHOW STATUS LIKE 'Ssl_cipher'` 非空=真加密（同 §6 防伪判据）。
+- **ssl 模式三态一致**：`disabled`/`preferred`/`required` 语义在 MariaDB 与 MySQL 通用（对应本设计 `TlsMode` DISABLED/PREFERRED/REQUIRED）；`require_secure_transport` 于两线均使非 TLS 接入被拒。
+- **MariaDB 11.4+（Connector/C 3.4）默认自动 TLS**：对**非本地连接自动启用 TLS 且强制校验服务端证书**防 MitM。⇒ 对 MariaDB persona，若 Mycat 前端不广告 `CLIENT_SSL`，11.4 客户端 `required` 会直接连不上（正是 R4 招牌硬门对 MariaDB 扩展位的意义）；`preferred` 则可回落明文（与 MySQL 同）。
+- **认证插件差异不影响 TLS 通道**：MitM-safe 插件含 `mysql_native_password`/`ed25519`/`parsec`（MariaDB 默认偏 ed25519），但 TLS 传输升级与插件无关，故 R4 只保证通道，ed25519 后端多驱动另属 I-AU-4/6（M6）。
+
+⇒ **结论**：R4 方案 A（Vert.x `upgradeToSsl` 同连接 STARTTLS）+ §2 SSLRequest 32 字节布局对 MariaDB 客户端**线级直接复用**，无需分叉。Connector/J `sslMode` / go-sql-driver `tls` / MariaDB Connector/C `MYSQL_OPT_SSL_*` 走同一 STARTTLS（见 connector provision runbook）。
 
 ---
 
@@ -102,7 +108,7 @@ MySQL 包 `LengthFieldBasedFrameDecoder` + `pipeline.addFirst(sslHandler)`。bla
 
 **Task 4（compat TLS 轴矩阵格）**：`example` compat 增 `TlsAxisMatrixTest`：`sslMode=REQUIRED`（on）与 `DISABLED`（off）× 逐版本 persona 断言连通+CRUD；把 R0 的 NO_DATA 占位点亮为 PASS/FAIL（不静默绿）。run-matrix ×7 重跑背书。
 
-**Task 5（MariaDB 协议复核 + 看板回写）**：查 MariaDB Connector 文档确认 STARTTLS 一致；回写 `DEBT-QUEUE` I-AU-2→关、`COMPAT-MILESTONE-PLAN` R4→✅、仪表盘 M2 完成度。
+**Task 5（MariaDB 协议复核 + 看板回写）**：①**协议复核 ✅**（2026-10-12 凭 MariaDB 官方文档实读，结论已回写 §2：MariaDB 与 MySQL 同端口内带 STARTTLS、SSLRequest 置 CLIENT_SSL、`ssl_*`/`require_secure_transport`/三态 ssl 模同构，方案 A 线级直接复用无需分叉）；②**看板回写（待 TLS 真落地）**：回写 `DEBT-QUEUE` I-AU-2→关、`COMPAT-MILESTONE-PLAN` R4→✅、仪表盘 M2 完成度——此部分依赖 Task 3/4 真跑绿，因 BC 装依赖红线尚未执行。
 
 ---
 
