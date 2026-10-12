@@ -103,6 +103,9 @@ public class MycatCore {
         System.out.println("path:" + this.baseDirectory);
         ServerConfiguration serverConfiguration = new ServerConfigurationImpl(MycatCore.class, path);
         MycatServerConfig serverConfig = serverConfiguration.serverConfig();
+        // R3-T7: 允许 -Dmycat.persona 启动覆盖生效画像（须在 L143 VersionProfile 烘画像之前）。
+        // 缺省无该属性则不改，零回归。
+        io.mycat.config.PersonaOverride.apply(System.getProperty("mycat.persona"), serverConfig.getServer());
         MetaClusterCurrent.register(Maps.of(MycatServerConfig.class, serverConfig, serverConfig.getServer().getClass(), serverConfig.getServer()));
         String datasourceProvider = Optional.ofNullable(serverConfig.getDatasourceProvider()).orElse(io.mycat.datasource.jdbc.DruidDatasourceProvider.class.getCanonicalName());
         ThreadPoolExecutorConfig workerPool = serverConfig.getServer().getWorkerPool();
