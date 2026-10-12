@@ -87,4 +87,30 @@ public class VersionProfileTest {
         assertEquals("mysql_native_password",
                 VersionProfileFactory.of(ServerPersona.MARIADB_11_4, null).authPlugin());
     }
+
+    /**
+     * R4：缺省 DISABLED 不广告 CLIENT_SSL（零回归）——现有 persona 画像能力位不得因 TLS 抽象而漂。
+     */
+    @Test
+    public void tlsDisabledDoesNotAdvertiseClientSsl() {
+        VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, null);
+        assertEquals(0, p.capabilityMask() & MySQLServerCapabilityFlags.CLIENT_SSL,
+                "DISABLED 不应广告 CLIENT_SSL");
+    }
+
+    /**
+     * R4：tlsMode 非 DISABLED（REQUIRED）时画像能力位应含 CLIENT_SSL，握手才会宣称 TLS 能力。
+     * RED：当前 of(...,tlsMode) 尚未依 tlsMode 置位，本断言应失败。
+     */
+    @Test
+    public void tlsRequiredAdvertisesClientSsl() {
+        VersionProfile p = VersionProfileFactory.of(ServerPersona.MYSQL_5_7, null, TlsMode.REQUIRED);
+        assertTrue((p.capabilityMask() & MySQLServerCapabilityFlags.CLIENT_SSL) != 0,
+                "REQUIRED 应广告 CLIENT_SSL");
+        // from(ServerConfig) 透传 tlsMode
+        ServerConfig cfg = new ServerConfig();
+        cfg.setTlsMode(TlsMode.PREFERRED);
+        assertTrue((VersionProfileFactory.from(cfg).capabilityMask()
+                & MySQLServerCapabilityFlags.CLIENT_SSL) != 0, "PREFERRED 亦应广告 CLIENT_SSL");
+    }
 }

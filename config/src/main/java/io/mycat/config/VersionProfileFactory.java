@@ -24,6 +24,15 @@ public final class VersionProfileFactory {
      * @param overrideVersionString 显式覆盖串；为 null/空则回落 persona 默认串
      */
     public static VersionProfile of(ServerPersona persona, String overrideVersionString) {
+        return of(persona, overrideVersionString, TlsMode.DISABLED);
+    }
+
+    /**
+     * @param persona               画像枚举，决定默认版本串
+     * @param overrideVersionString 显式覆盖串；为 null/空则回落 persona 默认串
+     * @param tlsMode               R4 前端 TLS 模式；非 DISABLED 时广告 CLIENT_SSL
+     */
+    public static VersionProfile of(ServerPersona persona, String overrideVersionString, TlsMode tlsMode) {
         String versionString = (overrideVersionString != null && !overrideVersionString.isEmpty())
                 ? overrideVersionString
                 : persona.defaultVersionString();
@@ -31,6 +40,11 @@ public final class VersionProfileFactory {
         int capabilityMask = MySQLServerCapabilityFlags.getDefaultServerCapabilities();
         if (MySQLDatabaseMetadata.parse(versionString).isClientDeprecateEof()) {
             capabilityMask |= MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF;
+        }
+        // R4：非 DISABLED 的 TLS 模式在握手广告 CLIENT_SSL（对齐 MySQL Connection Phase：
+        // 服务端 Handshake 先宣称 CLIENT_SSL=2048，客户端方可回 SSLRequest 走同端口 STARTTLS 升级）。
+        if (tlsMode != null && tlsMode.advertisesClientSsl()) {
+            capabilityMask |= MySQLServerCapabilityFlags.CLIENT_SSL;
         }
         // I-AU-5：握手宣称的默认认证插件按 persona 驱动——8.0/8.4/9.x → caching_sha2_password，
         // 其余（5.7 / MariaDB 各档，后端无该插件）→ mysql_native_password。前端握手须同时支持两插件。
@@ -53,6 +67,6 @@ public final class VersionProfileFactory {
 
     /** 由 ServerConfig 构造画像：显式 serverVersion 覆盖串优先，否则回落 persona 默认串。 */
     public static VersionProfile from(ServerConfig serverConfig) {
-        return of(serverConfig.getPersona(), serverConfig.getServerVersion());
+        return of(serverConfig.getPersona(), serverConfig.getServerVersion(), serverConfig.getTlsMode());
     }
 }

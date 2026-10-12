@@ -64,6 +64,11 @@ public class ServerConfig {
     private String serverVersion = "5.7.33-mycat-2.0";
     // I-VE-1: 版本画像 persona，缺省 MYSQL_5_7 保证零回归；serverVersion 作为可选覆盖串（非空则优先）
     private ServerPersona persona = ServerPersona.MYSQL_5_7;
+    // R4 前端 TLS：缺省 DISABLED 零回归（不广告 CLIENT_SSL）。tlsCertFile/tlsKeyFile 为 PEM 证书/私钥，
+    // 为空时运行期回落自签证书（仅测试/dev）。
+    private TlsMode tlsMode = TlsMode.DISABLED;
+    private String tlsCertFile;
+    private String tlsKeyFile;
     private boolean ignoreCast = false;
     private int fullTableScanLimit = 1024;
     private boolean fullTableScanException = false;
