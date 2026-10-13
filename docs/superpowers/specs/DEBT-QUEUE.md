@@ -68,7 +68,7 @@
 | ID | 一行说明 | 分类 | 对齐 |
 |---|---|---|---|
 | I-DEBT-7C | example 全量重基线（当前 479 tests / 7F / 63E / 30skip）——下面这几族的收口总账 | 挂账·WIP | C |
-| I-DEBT-8 | Rx 算子 `filter/topN/sort/toEnumerable/materialize` 仍声明 `Observable<Object[]>`、合成桥烘焙 `(Object[])` 输入强转（`[B`→ByteString CCE 面已收口，此面 TODO） | 有界偏中 | C |
+| I-DEBT-8 | ✅ **同族泛型化 Evidenced-Done**（本次）：`RxBuiltInMethodImpl` 对 `filter/topN/sort/limit/offset/unionAll/toEnumerable/toObservable/toObservableCache` 取 `<T>` 签名，同 `select`（`81f228c17` I-DEBT-6）一致；`RxBuiltInMethod` 枚举的 erased `Method` 命中不变，既有 ARRAY 行 codegen 零回归。新回归锁 `RxBuiltInMethodImplRxOperatorsTest` 8/0/0（包含标量 Observable<String>/Integer 经各算子 + Object[] 反向护栏）；hbt 170/0/0 + server 33/0/0。`matierial`/`batch`/`asObservable`/`asGather` 保留 `Object[]` 声明（内部 `OffHeapObjectList.addObjects(Object[])` 依赖行形态），上游须先经 `MycatBindable.asObjectArray` 升箱（已契约化）。`[B`→ByteString CCE 面先前已 `9fd7ac2cf` 收口。 | 已关·C | C |
 | I-DEBT-35 | BINARY/BLOB 列 codegen 声明面 ByteString vs 运行时 byte[] 错配（牵连 RexToLix 字面量 + 结果端字节保真，面大）。Root B 的 BIT byte[] 样板已立（I-DEBT-34 收口），BINARY/BLOB 应用留另轮 | 挂账 | C |
 | I-DEBT-36·残 | `TIMESTAMPDIFF(unit,t1,t2)` **跨片全计划**去回环重解析后落标准算子→convertlet 展平成含 `REINTERPRET`(`SqlSyntax.SPECIAL`) 算术→Mycat dialect 无法 deparse（红锁 `UserCaseTest#caseI36`）。单片下推面已 R5 收口 ×7 绿（见 §5）；跨片正解=方向 A「原生三参整体下推」，2026-10-12 用户拍板**另立专项**、本里程碑不强推。根因图见 `.superpowers/sdd/2026-10-12-r5-crud-debt-roots/c2-pushdown.md` | 架构·特性级 | C |
 | I-DEBT-34·残 | **终审 Important #1**：BIT 列对外官方 byte[] 口径**仅单片/下推直通列头闭合**（Root B，见 §5）。跨片归并/本地计划列头走 `CalciteRowMetaData.getColumnType`（取 Calcite RelDataType jdbcOrdinal），BIT 经 fork 类型系统（无 `BIT` SqlTypeName）归一为**数值**列头、失 BIT 性，而行值仍是后端原生 byte[]→`BaseRowObservable.getObjects:355` 数值分支崩（live 复现 `UnsupportedOperationException:[B@`）。即使只透传不崩，对外列头仍为数值而非 `FIELD_TYPE_BIT`、官方口径仍未守。修复须联动 fork 类型系统/归并列头来源 = **“类型表征统一”专轮**（与 I-DEBT-36 跨片 caseI36 同族）。红锁 `UserCaseTest#caseCrossShardBitColumnFidelity`（live RED） | 架构·特性级 | C |
@@ -141,7 +141,7 @@
 
 第 3 步（地基债·C，靠第 0 步的 CRUD 矩阵出红地图后逐个专轮，不占主线名额）：
   ✅ **R5 已关**：I-DEBT-39（列头惰性化）/ I-DEBT-34（BIT byte[]）/ I-DEBT-36 单片下推面（×7 矩阵锤定）
-  ⏳ **待办**：I-DEBT-8 → I-DEBT-35（BINARY/BLOB 应用 BIT 样板）→ **I-DEBT-36 跨片全计划 caseI36 原生透传（已另立专项，方向 A）** → 各独立根 → I-DB-1  （23e 已 `90ede2f86` 收口）
+  ⏳ **待办**：I-DEBT-35（BINARY/BLOB 应用 BIT 样板）→ **I-DEBT-36 跨片全计划 caseI36 原生透传（已另立专项，方向 A）** → 各独立根 → I-DB-1  （23e 已 `90ede2f86` 收口；I-DEBT-8 Rx 同族泛型化已关）
 
 主线外（D）：I-PR-1/2/3（生产稳健，与"无缝替代"正交，独立排期）
 ```

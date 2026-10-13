@@ -33,62 +33,69 @@ public class RxBuiltInMethodImpl {
      * 计划自述的 {@code getElementType()} 决定，再由 {@code MycatBindable.asObjectArray}
      * 统一升箱；此处不应假定行必为 {@code Object[]}。
      *
-     * <p><b>注意（同族未收口）</b>：本文件下游算子 {@code filter}/{@code topN}/{@code sort}/
-     * {@code toEnumerable}/{@code matierial} 仍声明 {@code Observable<Object[]>}/
-     * {@code Predicate1<Object[]>}/{@code Comparator<Object[]>}，其合成桥仍烘焙 {@code (Object[])}
-     * <em>输入</em>强转。select 泛型化后标量行才首次可能顺到这些算子，若规划器产出此类形态会
-     * 抛同名 CCE。收口（连同 {@code asObjectArray} 对基元数组列的守卫）已另立 I-DEBT-8，本轮按
-     * 止损棘轮不扩面。
+     * <p><b>同族已收口（I-DEBT-8）</b>：本文件 {@code filter}/{@code topN}/{@code sort}/
+     * {@code limit}/{@code offset}/{@code unionAll}/{@code toEnumerable}/{@code toObservable}/{@code toObservableCache}
+     * 均已同 select 一样泛型化为 {@code <T>} 签名，不再烘焙 {@code (Object[])} 输入强转；
+     * {@code RxBuiltInMethod} 枚举中 {@code Types.lookupMethod(..., Observable.class, ...)} 依旧命中
+     * （erased 方法签名未变），既有 ARRAY 行 codegen 路径零回归。{@code matierial}/{@code batch}/
+     * {@code asObservable}/{@code asGather} 保留 {@code Object[]} 声明（内部 {@code OffHeapObjectList.addObjects(Object[])}
+     * 依赖行形态），上游须先经 {@code MycatBindable.asObjectArray} 升箱。</p>
      */
     public static <T, R> Observable<R> select(Observable<T> input, org.apache.calcite.linq4j.function.Function1<T, R> map) {
         return input.map(objects -> map.apply(objects));
     }
 
-    public static Observable<Object[]> filter(Observable<Object[]> input, Predicate1<Object[]> filter) {
+    // MYCAT CHANGE (I-DEBT-8): 同 select 泛型化，避免 janino 烘焙 (Object[]) 输入强转。
+    public static <T> Observable<T> filter(Observable<T> input, Predicate1<T> filter) {
         return input.filter(objects -> filter.apply(objects));
     }
 
 
-    public static Observable<Object[]> unionAll(List<Observable<Object[]>> inputs) {
+    // MYCAT CHANGE (I-DEBT-8): 泛型化 unionAll，与 select/filter 同族。
+    public static <T> Observable<T> unionAll(List<Observable<T>> inputs) {
         return Observable.merge(inputs);
     }
 
-    public static Observable<Object[]> unionAll(Observable<Object[]> left, Observable<Object[]> right) {
+    public static <T> Observable<T> unionAll(Observable<T> left, Observable<T> right) {
         return Observable.merge(left, right);
     }
 
-    public static Observable<Object[]> topN(Observable<Object[]> input, Comparator<Object[]> sortFunction, long skip, long limit) {
+    public static <T> Observable<T> topN(Observable<T> input, Comparator<T> sortFunction, long skip, long limit) {
         return input.sorted(sortFunction).skip(skip).take(limit);
     }
 
-    public static Observable<Object[]> sort(Observable<Object[]> input, Comparator<Object[]> sortFunction) {
+    public static <T> Observable<T> sort(Observable<T> input, Comparator<T> sortFunction) {
         return input.sorted(sortFunction);
     }
 
-    public static Observable<Object[]> limit(Observable<Object[]> input, long limit) {
+    public static <T> Observable<T> limit(Observable<T> input, long limit) {
         return input.take(limit);
     }
 
-    public static Observable<Object[]> offset(Observable<Object[]> input, long offset) {
+    public static <T> Observable<T> offset(Observable<T> input, long offset) {
         return input.skip(offset);
     }
 
 
-    public static Enumerable<Object[]> toEnumerable(Object input) {
+    // MYCAT CHANGE (I-DEBT-8): toEnumerable 内部将 Observable cast 为原始型，
+    // erased 返回类型仍为 Enumerable，反射命中不变；无 unchecked 警告因为本行已
+    // 在 Observable 分支里对 Iterator<T> 作自然传递（iterable 元素类型由调用方推断）。
+    @SuppressWarnings("unchecked")
+    public static <T> Enumerable<T> toEnumerable(Object input) {
         if (input instanceof Observable) {
-            Observable<Object[]> observable = (Observable) input;
-            return new AbstractEnumerable<Object[]>() {
+            Observable<T> observable = (Observable<T>) input;
+            return new AbstractEnumerable<T>() {
                 @Override
-                public Enumerator<Object[]> enumerator() {
-                    return Linq4j.iterableEnumerator(new Iterable<Object[]>() {
+                public Enumerator<T> enumerator() {
+                    return Linq4j.iterableEnumerator(new Iterable<T>() {
                         @NotNull
                         @Override
-                        public Iterator<Object[]> iterator() {
-                            Iterator<Object[]> iterator = MycatRxJavaUtl.blockingIterable(observable).iterator();
-                            class Iter implements AutoCloseable, Iterator<Object[]> {
-                                Observable<Object[]> observable;
+                        public Iterator<T> iterator() {
+                            Iterator<T> iterator = MycatRxJavaUtl.blockingIterable(observable).iterator();
+                            class Iter implements AutoCloseable, Iterator<T> {
+                                Observable<T> observable;
 
-                                public Iter(Observable<Object[]> observable) {
+                                public Iter(Observable<T> observable) {
                                     this.observable = observable;
                                 }
 
@@ -107,7 +114,7 @@ public class RxBuiltInMethodImpl {
                                 }
 
                                 @Override
-                                public Object[] next() {
+                                public T next() {
                                     return iterator.next();
                                 }
                             }
@@ -117,19 +124,21 @@ public class RxBuiltInMethodImpl {
                 }
             };
         }
-        return (Enumerable<Object[]>) input;
+        return (Enumerable<T>) input;
     }
 
 
-    public static Observable<Object[]> toObservable(Object input) {
+    @SuppressWarnings("unchecked")
+    public static <T> Observable<T> toObservable(Object input) {
         if (input instanceof Observable) {
-            return (Observable) input;
+            return (Observable<T>) input;
         }
-        return Observable.fromIterable((Enumerable) input);
+        return Observable.fromIterable((Enumerable<T>) input);
     }
 
-    public static Observable<Object[]> toObservableCache(Object input) {
-        return toObservable(input).cache();
+    @SuppressWarnings("unchecked")
+    public static <T> Observable<T> toObservableCache(Object input) {
+        return ((Observable<T>) toObservable(input)).cache();
     }
 
     public static Enumerable<List<Object[]>> batch(Enumerable<Object[]> input) {
@@ -243,12 +252,13 @@ public class RxBuiltInMethodImpl {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Enumerable<Object[]> enumerableOrObservableConcat(Object left, Object right) {
 
         if (left instanceof Enumerable && right instanceof Enumerable) {
             Enumerable enumerable = ((Enumerable<?>) left).concat((Enumerable) right);
             return enumerable;
         }
-        return toEnumerable(left).concat(toEnumerable(right));
+        return ((Enumerable<Object[]>) (Enumerable<?>) toEnumerable(left)).concat((Enumerable<Object[]>) (Enumerable<?>) toEnumerable(right));
     }
 }
