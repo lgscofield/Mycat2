@@ -215,11 +215,12 @@ public class MycatJdbcMigrateService implements MycatMigrateService {
                 rowData.setColumnDatas(new ColumnData[columnCount]);
                 for (int i = 1; i <= columnCount; i++) {
                     Object columnValue = readResultSet.getObject(i);
+                    String columnName = readMetaData.getColumnName(i);
                     ColumnData columnData = new ColumnData();
-                    columnData.setPrimaryKey(pkColumnNameList.contains(columnData.getColumnName()));
+                    columnData.setColumnName(columnName);
+                    columnData.setPrimaryKey(pkColumnNameList.contains(columnName));
                     columnData.setColumnClassName(readMetaData.getColumnClassName(i));
                     columnData.setColumnTypeId(readMetaData.getColumnType(i));
-                    columnData.setColumnName(readMetaData.getColumnName(i));
                     columnData.setColumnValue(columnValue);
                     rowData.getColumnDatas()[i-1] = columnData;
                 }
@@ -359,12 +360,12 @@ public class MycatJdbcMigrateService implements MycatMigrateService {
         }
         String catalogName = rowData.getCatalogName();
         String tableName = rowData.getTableName();
-        String target = catalogName == null || catalogName.isEmpty()? tableName: catalogName+'.'+tableName;
+        String target = catalogName == null || catalogName.isEmpty()? "`"+tableName+"`": "`"+catalogName+"`.`"+tableName+"`";
 
         StringJoiner valuesJoiner = new StringJoiner(",", "values (",")");
         StringJoiner columnJoiner = new StringJoiner(",","insert into "+ target +" (",")");
         for (ColumnData columnData : columnDatas) {
-            columnJoiner.add(columnData.getColumnName());
+            columnJoiner.add("`"+columnData.getColumnName()+"`");
             valuesJoiner.add("?");
         }
         return columnJoiner.toString().concat(valuesJoiner.toString());
