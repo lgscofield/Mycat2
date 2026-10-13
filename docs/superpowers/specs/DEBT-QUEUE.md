@@ -26,7 +26,7 @@
 | M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS 传输实证+矩阵建格 · connector 真跑待 infra** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；I-AU-2 TLS：配置/解析/Connector/J 传输升级 Evidenced-Done（`e01368405`），e2e 矩阵与非 Java connector = NO_DATA 待 infra（`2026-10-13-tls-compat-matrix.md`）|
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🟡 ~60% | **I-ME-1 已落**（persona 驱动三张 i_s 表，锚官网，TDD 6/6）；**I-ME-2 双半区已落**（列覆盖锁 8/8 + FILES 补四列，e2e 矩阵格 NO_DATA 待 infra）；**I-ME-3 进程内已落**（p_s 列面+行面锁 8/8，锚 8.0.42 源码，rgm 补列+变量/状态同源行供应）；**I-ME-4 已落**（透传路径回归锁 10/10，`707c9a5bc`，锚官网 §15.7.7.23/36） |
-| M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~30% | 本地修绿+迁移轴矩阵格已建（`MigrateMatrixTest` NO_DATA 待 infra） |
+| M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~35% | 迁移轴矩阵格已建（`MigrateMatrixTest` NO_DATA）+ 流水线 bug修复（`dc22f5b92` PK检测时序+标识符反引号）；真跑待 infra |
 | M5 / M6 | 生产就绪 / MariaDB ed25519 | ⚪ 0% | 关键路径外 |
 
 **方向判词（诚实）**：已收口的一大批 I-DEBT 几乎全在 **C 层**（引擎地基），而招牌的 **A 层头条（前端 TLS / caching_sha2 原生协商 / 版本 persona 连接级 / mysqldump 往返）几乎原封未动**。⚠️ 别被嗓门大的 e2e 崩栈（C）拽着走——关闭序严格按下方 §6 的 `M1→M2→M3` 走。
