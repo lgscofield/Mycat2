@@ -25,7 +25,7 @@
 |---|---|---|---|
 | M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS 传输实证+矩阵建格 · connector 真跑待 infra** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；I-AU-2 TLS：配置/解析/Connector/J 传输升级 Evidenced-Done（`e01368405`），e2e 矩阵与非 Java connector = NO_DATA 待 infra（`2026-10-13-tls-compat-matrix.md`）|
-| M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🟡 ~15% | **I-ME-1 已落**（COLLATIONS/CCSA/CHARACTER_SETS 改 persona 驱动，行值逐字段锚官网 8.0/5.7/MariaDB，TDD 6/6+全量绿）；I-ME-2..4 TODO |
+| M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🟡 ~30% | **I-ME-1 已落**（persona 驱动三张 i_s 表，锚官网，TDD 6/6）；**I-ME-2 双半区已落**（进程内列覆盖锁 8/8 + FILES 补四列，e2e 矩阵格 NO_DATA 待 infra，真 dump 往返回灌留 Done 门）；I-ME-3/4 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
 | M5 / M6 | 生产就绪 / MariaDB ed25519 | ⚪ 0% | 关键路径外 |
 
@@ -88,7 +88,7 @@
 | I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
 | I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 mysqldump 往返矩阵 0 覆盖；**TLS 轴已建格**：`TlsAxisMatrixTest`（sslMode 严格性判据+三层诚实门控，编译过）+ `2026-10-13-tls-compat-matrix.md`（on/off×7 persona NO_DATA 矩阵+runbook）；**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
 
-**M3 元数据/mysqldump（L2）【A】**：I-ME-1 排序规则表补全 **Evidenced-Done**（persona 驱动三张 i_s 仿真表，`PersonaCollations`+回归锁 `PersonaCollationsTest` 6/6，行值锚官网；SHOW COLLATION 回退分支共用本表口径同源；MariaDB 11.4 默认仍 general_ci，uca1400 属 11.5+） · I-ME-2 information_schema dump 面 · I-ME-3 performance_schema 完整 · I-ME-4 SHOW MASTER/SLAVE STATUS（均 TODO，多依赖 I-VE-1✅/I-AU-1）
+**M3 元数据/mysqldump（L2）【A】**：I-ME-1 排序规则表补全 **Evidenced-Done**（persona 驱动三张 i_s 仿真表，`PersonaCollations`+回归锁 `PersonaCollationsTest` 6/6，行值锚官网；SHOW COLLATION 回退分支共用本表口径同源；MariaDB 11.4 默认仍 general_ci，uca1400 属 11.5+） · I-ME-2 information_schema dump 面 **进程内 Evidenced-Done**（`3cc944dba`：官网 mysqldump.cc 8.0/8.4/MariaDB 11.4 逐行锚定查询面；回归锁 `DumpSurfaceRegressionTest` 8/8；FILES 仿表补 TOTAL_EXTENTS/INITIAL_SIZE/MAXIMUM_SIZE/AUTOEXTEND_SIZE；e2e 矩阵格 `DumpSurfaceMatrixTest` NO_DATA 待 infra；诚实结论：三引擎 dump 源码均不查 CHECK_CONSTRAINTS，不虚构缺口） · I-ME-3 performance_schema 完整 · I-ME-4 SHOW MASTER/SLAVE STATUS（均 TODO，多依赖 I-VE-1✅/I-AU-1）
 **M4 迁移/复制（L3）【A】**：I-RP-1 迁移流水线修复+CI · I-RP-2 binlog 客户端维护 · I-RP-3 文档化排除 N1（均 TODO）
 **M5 生产就绪【D】**：I-PR-1 线程池名实相符+背压 · I-PR-2 MycatCore 参数 bug · I-PR-3 虚拟线程 spike（均 TODO·与招牌正交，挂主线外）
 **横切长尾【C·不阻塞】**：I-DB-1 遮蔽类逐类归一（TODO，spec 明说"不阻塞兼容目标"）
