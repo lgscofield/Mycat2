@@ -280,7 +280,8 @@ public class MysqlMetadataManager extends MetadataManager {
             return Observable.fromIterable(resList);
         }
     });
-    public static final VisualTableHandler SESSION_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(SESSION_VARIABLES(), new Supplier<Observable<Object[]>>() {
+    // I-ME-3：i_s/p_s 同源行供应器（官方 table_session_variables.cc 列面，两侧表内容同源 SHOW VARIABLES）
+    private static final Supplier<Observable<Object[]>> SESSION_VARIABLES_ROWS = new Supplier<Observable<Object[]>>() {
         @Override
         public Observable<Object[]> get() {
             ArrayList<Object[]> resList = new ArrayList<>();
@@ -297,8 +298,12 @@ public class MysqlMetadataManager extends MetadataManager {
             resList.add(new Object[]{"max_allowed_packet", "16777216"});
             return Observable.fromIterable(resList);
         }
-    });
-    public static final VisualTableHandler GLOBAL_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(GLOBAL_VARIABLES(), new Supplier<Observable<Object[]>>() {
+    };
+    public static final VisualTableHandler SESSION_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(SESSION_VARIABLES(), SESSION_VARIABLES_ROWS);
+    // I-ME-3：p_s 工具面同源行供应（恒空 = 工具 SELECT 得空集，与官方行为不符）
+    public static final VisualTableHandler PS_SESSION_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(
+            PERFORMANCE_SCHEMA_INFO.get("session_variables"), SESSION_VARIABLES_ROWS);
+    private static final Supplier<Observable<Object[]>> GLOBAL_VARIABLES_ROWS = new Supplier<Observable<Object[]>>() {
         @Override
         public Observable<Object[]> get() {
             ArrayList<Object[]> resList = new ArrayList<>();
@@ -313,7 +318,29 @@ public class MysqlMetadataManager extends MetadataManager {
 
             return Observable.fromIterable(resList);
         }
-    });
+    };
+    public static final VisualTableHandler GLOBAL_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(GLOBAL_VARIABLES(), GLOBAL_VARIABLES_ROWS);
+    public static final VisualTableHandler PS_GLOBAL_VARIABLES_TABLE_HANDLER = VisualTableHandler.createByMySQL(
+            PERFORMANCE_SCHEMA_INFO.get("global_variables"), GLOBAL_VARIABLES_ROWS);
+    /** I-ME-3：官方 table_setup_consumers.cc（mysql-8.0.42 :43-110）静态行集 COUNT_SETUP_CONSUMERS=16，首 bool=ENABLED 默认值。 */
+    public static final VisualTableHandler PS_SETUP_CONSUMERS_TABLE_HANDLER = VisualTableHandler.createByMySQL(
+            PERFORMANCE_SCHEMA_INFO.get("setup_consumers"), () -> Observable.fromIterable(Arrays.asList(
+                    new Object[]{"events_stages_current", "NO"},
+                    new Object[]{"events_stages_history", "NO"},
+                    new Object[]{"events_stages_history_long", "NO"},
+                    new Object[]{"events_statements_cpu", "NO"},
+                    new Object[]{"events_statements_current", "NO"},
+                    new Object[]{"events_statements_history", "NO"},
+                    new Object[]{"events_statements_history_long", "NO"},
+                    new Object[]{"events_transactions_current", "NO"},
+                    new Object[]{"events_transactions_history", "NO"},
+                    new Object[]{"events_transactions_history_long", "NO"},
+                    new Object[]{"events_waits_current", "NO"},
+                    new Object[]{"events_waits_history", "NO"},
+                    new Object[]{"events_waits_history_long", "NO"},
+                    new Object[]{"global_instrumentation", "YES"},
+                    new Object[]{"thread_instrumentation", "NO"},
+                    new Object[]{"statements_digest", "NO"})));
 
     private static String SESSION_VARIABLES() {
         MySqlCreateTableStatement createEVENTSTableSQL = new MySqlCreateTableStatement();
@@ -684,6 +711,10 @@ public class MysqlMetadataManager extends MetadataManager {
         for (Map.Entry<String, String> stringStringEntry : PERFORMANCE_SCHEMA_INFO.entrySet()) {
             addVisualTableIfAbsent(tables, stringStringEntry);
         }
+
+        // I-ME-3：工具面表用行供应覆盖默认空表注册（session_variables/global_variables 与 i_s 同源；setup_consumers 官方静态 16 行）
+        Arrays.asList(PS_SESSION_VARIABLES_TABLE_HANDLER, PS_GLOBAL_VARIABLES_TABLE_HANDLER, PS_SETUP_CONSUMERS_TABLE_HANDLER)
+                .forEach(h -> tables.put(h.getTableName().toUpperCase(Locale.ROOT), h));
 
         return information_schema;
     }
