@@ -26,6 +26,9 @@ public final class RowMetaDataFidelity {
      * @return 归一后的有效 meta：忠实列类型 + 计划列名；不满足归一条件时返回 {@code planMeta}
      */
     public static MycatRowMetaData effective(MycatRowMetaData backendMeta, MycatRowMetaData planMeta) {
+        if (planMeta == null) {
+            return backendMeta;
+        }
         if (backendMeta instanceof MycatMySQLRowMetaData
                 && backendMeta.getColumnCount() == planMeta.getColumnCount()) {
             return new FaithfulTypeView(backendMeta, planMeta);

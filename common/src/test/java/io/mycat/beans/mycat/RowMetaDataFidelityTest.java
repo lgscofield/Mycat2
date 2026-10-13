@@ -79,4 +79,11 @@ public class RowMetaDataFidelityTest {
         MycatRowMetaData nonFaithful = twoColumnPlanMeta();
         Assert.assertSame(plan, RowMetaDataFidelity.effective(nonFaithful, plan));
     }
+
+    @Test
+    public void effectiveReturnsBackendWhenPlanNull() {
+        // 公共 API 护栏：planMeta 为 null（无计划视图）时不得 NPE，应回退后端忠实轨
+        MycatMySQLRowMetaData backend = faithfulBitMeta();
+        Assert.assertSame(backend, RowMetaDataFidelity.effective(backend, null));
+    }
 }

@@ -36,7 +36,6 @@ import io.mycat.api.collector.MysqlObjectArrayRow;
 import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
-import io.mycat.beans.mycat.RowMetaDataFidelity;
 import io.mycat.calcite.CodeExecuterContext;
 import io.mycat.calcite.DrdsRunnerHelper;
 import io.mycat.calcite.ExecutorProvider;
@@ -897,7 +896,14 @@ public class VertxExecuter {
 
                         @Override
                         public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                            this.mycatRowMetaData = resolveSplitRowMetaData(mycatRowMetaData, rowMetaDataArg);
+                            // I-DEBT-34（未闭合）：跨片 split 行解码与响应列头须“两缝同移”——若仅在此接
+                            // RowMetaDataFidelity.effective 以后端忠实轨为准，而 PrepareExecutor 发出的响应
+                            // columnDef 仍取有损 plan.getMetaData()（bit→数值），会致行值为 byte[] 却按数值
+                            // 列头 wire（ResultSetMapping 落 default 分支 toString）→ 沉默数据损坏，比原
+                            // 数值分支崩会话更坏。完整修复需将首分片 MycatMySQLRowMetaData 上抛至列头装配（异步
+                            // 契约，需 2 分片真库 e2e 验证），本轮 NO_DATA 不夹带，保留历史行为（计划轨优先
+                            // 时 bit(n>1) 跨片仍在行解码崩→响亮失败）。
+                            this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
                         }
 
                         @Override
@@ -936,20 +942,6 @@ public class VertxExecuter {
                 }
             });
         });
-    }
-
-    /**
-     * I-DEBT-34 跨片 split 行解码的列元数据选源：在“后端忠实轨 onColumnDef 参”与“计划派生
-     * {@code rowMetaDataArg}”之间归一。以后端物理列类型（{@code bit(n>1)}→{@code Types.BIT}）为准，
-     * 列名/label 仍以计划逻辑视图为准，使 {@link BaseRowObservable#getObjects} 走 {@code case BIT:}
-     * byte[] 透传分支而非落数值分支抛 {@code UnsupportedOperationException} 崩会话。不满足归一条件时
-     * 原样返回计划 meta（纯本地计算列兜底）。
-     */
-    public static MycatRowMetaData resolveSplitRowMetaData(MycatRowMetaData backendMeta, MycatRowMetaData rowMetaDataArg) {
-        if (rowMetaDataArg == null) {
-            return backendMeta;
-        }
-        return RowMetaDataFidelity.effective(backendMeta, rowMetaDataArg);
     }
 
     public static Future<long[]> runUpdate(Future<NewMycatConnection> sqlConnectionFuture, String sql) {
