@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Getter
@@ -57,6 +58,20 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
     final Map<String, LimitQueue> connectionlimitMap = new HashMap<>();//not int transaction
     final List<NewMycatConnection> connectionlList = Collections.synchronizedList(new ArrayList<>());//not int transaction
     final Map<String, List<Observable<Object[]>>> shareObservable = new HashMap<>();
+
+    /**
+     * I-DEBT-34 两缝同移侧信道：跨片首分片后端忠实轨 {@code MycatMySQLRowMetaData}（{@code onColumnDef} 于
+     * 首行之前回包）经此上抛至列头装配点 {@code PrepareExecutor}，供其用 {@code RowMetaDataFidelity.effective}
+     * 以后端物理类型为准重建列头。identity 结果集各片同构，取首写者胜即可（{@code @Getter} 暴露供列头缝惰性读）。
+     */
+    private final AtomicReference<MycatRowMetaData> backendRowMeta = new AtomicReference<>();
+
+    /** 首写者胜发布后端忠实轨 meta；null 忽略（非分片源无回包列头轨）。 */
+    public void publishBackendRowMeta(MycatRowMetaData meta) {
+        if (meta != null) {
+            backendRowMeta.compareAndSet(null, meta);
+        }
+    }
 
 
     public AsyncMycatDataContextImpl(MycatDataContext dataContext,
@@ -202,7 +217,7 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             MycatTransientSQLTableScan relNode = (MycatTransientSQLTableScan) mycatRelDatasourceSourceInfo.getRelNode();
             ImmutableMultimap<String, SqlString> multimap = ImmutableMultimap.of(relNode.getTargetName(), new SqlString(MycatSqlDialect.DEFAULT, relNode.getSql()));
             return getObservables(multimap, mycatRelDatasourceSourceInfo.getColumnInfo(),
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData)
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta)
             );
         }
 
@@ -243,7 +258,7 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             boolean share = mycatRelDatasourceSourceInfo.refCount > 0;
             List<Observable<Object[]>> observables = getObservables((view
                             .apply(dataContext.getMergeUnionSize(), mycatRelDatasourceSourceInfo.getSqlTemplate(), sqlMap, drdsSqlWithParams.getParams())), mycatRelDatasourceSourceInfo.getColumnInfo(),
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData)
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta)
             );
             if (share) {
                 observables = observables.stream().map(i -> i.share()).collect(Collectors.toList());

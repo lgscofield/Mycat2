@@ -8,6 +8,7 @@ import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
+import io.mycat.beans.mycat.RowMetaDataFidelity;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -74,7 +75,14 @@ public class PrepareExecutor {
             // (如本地求值 select 1/0 的 ArithmeticException)落入 observer resultStarted=true 分支被迫关连接。
             // 改为列头延到首行就绪(或空集正常终结)才发：首行前遇错则不发列头 → observer 走 resultStarted=false
             // → 顶层 recover 发合法 ERR、会话存活，对齐真 MySQL「执行成功才发元数据」语义。
-            final MySQLColumnDef columnDef = new MySQLColumnDef(rowMetaData);
+            //
+            // I-DEBT-34 两缝同移·缝一（列头缝）：列头以 per-query carrier 里的后端忠实轨为准<em>惰性</em>重建——
+            // effective(后端忠实轨, 计划有损轨)。延迟到发送点(首行/空集补发)才构造，确保后端 onColumnDef
+            // 已把首分片 MycatMySQLRowMetaData 发布进 carrier。carrier 为空(非分片源/本地聚合)时 effective
+            // 原样回计划轨 → 行为与改动前一致(零回归)。行解码缝(缝二)由 Task 2 一并切忠实轨达成两缝同移。
+            final java.util.function.Supplier<MySQLColumnDef> columnDefSupplier = () ->
+                    MySQLColumnDef.of(RowMetaDataFidelity.effective(
+                            newMycatDataContext.getBackendRowMeta().get(), rowMetaData));
             final boolean[] headerSent = {false};
             try {
 
@@ -89,7 +97,7 @@ public class PrepareExecutor {
                 }
                 observable.subscribe(objects -> {
                             if (!headerSent[0]) {
-                                emitter.onNext(columnDef);
+                                emitter.onNext(columnDefSupplier.get());
                                 headerSent[0] = true;
                             }
                             emitter.onNext(new MysqlObjectArrayRow(objects));
@@ -102,7 +110,7 @@ public class PrepareExecutor {
                             CompositeFuture compositeFuture = newMycatDataContext.endFuture();
                             compositeFuture.onSuccess(event -> {
                                 if (!headerSent[0]) {   // 空结果集：正常终结时补发列头，保证客户端拿到合法 metadata+EOF
-                                    emitter.onNext(columnDef);
+                                    emitter.onNext(columnDefSupplier.get());
                                     headerSent[0] = true;
                                 }
                                 emitter.onComplete();

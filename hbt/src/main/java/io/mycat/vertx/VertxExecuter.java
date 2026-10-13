@@ -71,6 +71,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -883,6 +884,17 @@ public class VertxExecuter {
                                                 String sql,
                                                 List<Object> values,
                                                 MycatRowMetaData rowMetaDataArg) {
+        // 4 参重载：单结果集直出口（如 server/.../ReceiverImpl 传 rowMetaDataArg=null）无需上抛列头，
+        // sink 空实现，行为与历史一致。
+        return runQuery(connectionFuture, sql, values, rowMetaDataArg, meta -> {
+        });
+    }
+
+    public static Observable<Object[]> runQuery(Future<NewMycatConnection> connectionFuture,
+                                                String sql,
+                                                List<Object> values,
+                                                MycatRowMetaData rowMetaDataArg,
+                                                Consumer<MycatRowMetaData> backendMetaSink) {
         return Observable.create(emitter -> {
             // 单次终态门：与 runQueryOutputAsMysqlPayloadObject 同构，防 double-terminal → Undeliverable。
             final AtomicBoolean terminated = new AtomicBoolean(false);
@@ -896,13 +908,11 @@ public class VertxExecuter {
 
                         @Override
                         public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                            // I-DEBT-34（未闭合）：跨片 split 行解码与响应列头须“两缝同移”——若仅在此接
-                            // RowMetaDataFidelity.effective 以后端忠实轨为准，而 PrepareExecutor 发出的响应
-                            // columnDef 仍取有损 plan.getMetaData()（bit→数值），会致行值为 byte[] 却按数值
-                            // 列头 wire（ResultSetMapping 落 default 分支 toString）→ 沉默数据损坏，比原
-                            // 数值分支崩会话更坏。完整修复需将首分片 MycatMySQLRowMetaData 上抛至列头装配（异步
-                            // 契约，需 2 分片真库 e2e 验证），本轮 NO_DATA 不夹带，保留历史行为（计划轨优先
-                            // 时 bit(n>1) 跨片仍在行解码崩→响亮失败）。
+                            // I-DEBT-34（两缝同移·缝二未完，本任务只翻列头缝）：先上抛后端忠实轨到 per-query
+                            // carrier，供列头装配点 PrepareExecutor 用 effective 以后端物理类型为准重建列头。
+                            backendMetaSink.accept(mycatRowMetaData);
+                            // 行解码缝本任务不动（仍历史有损轨优先）：header 忠实 + decode 有损 → byte[] 于此
+                            // 响亮崩溃（非沉默损坏）；Task 2 再把此行切成 RowMetaDataFidelity.effective 达成两缝同移。
                             this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
                         }
 
