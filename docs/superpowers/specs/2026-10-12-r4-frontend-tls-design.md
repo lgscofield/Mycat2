@@ -69,6 +69,12 @@
 
 > **修正记录（2026-10-12 · Task 0 spike）**：本节初稿假设"Vert.x server 端 `NetSocket` 无公开 `upgradeToSsl`、必须把 acceptor 迁裸 Netty"。该假设被 spike **实证证伪**——Vert.x 4.5.14 `NetSocket.upgradeToSsl` 于 server 端可完成同连接 STARTTLS 握手、通道确为加密（`mvn -o -B test -pl server -Dtest=StartTlsSpikeTest` 1/1 绿，`sslSession().getCipherSuite()` 返回 `TLS_*`；权威依据：Vert.x Core 手册"Upgrading connections to SSL/TLS"+ `NetSocket#upgradeToSsl` javadoc："server name…should be null on a server"、"SSL must be configured"）。故方案 A 改为**保留 Vert.x acceptor**，Netty 迁移降为后手。
 
+> **修正记录 2（2026-10-13 · 合并读探针，推翻修正记录的乐观前提）**：BC 升 compile 域后重跑探针（`StartTlsCoalesceProbeTest`，Vert.x NetServer↔NetClient 回环，JDK21，证 `r4-probe.log`），坐实方案 A 的**内生脆弱性**：
+> - **干净边界成立**：客户端延时 150 ms 再发 ClientHello（服务端 `agg.length=32 tail=0`）→ STARTTLS 握手成功、`cipher=TLS_*`（BC 使 `SelfSignedCertificate` 在 JDK21 复活）。⇒ Task 0 spike 的"可行"仅在此无合并前提下成立。
+> - **合并读即死锁**：客户端 `write(SSLRequest)` 后**立即** `upgradeToSsl`（开 Nagle 令两次写合并进同一 TCP 段）→ 服务端明文 handler 一次收到 `SSLRequest+ClientHello`（`sawTail=true`）→ 就地 `upgradeToSsl` 把已投递进 Buffer 的尾部 ClientHello **吞掉** → Netty `SslHandshakeTimeoutException`（10 s 超时）。**无延时变体在 loopback 同样死锁**（接收侧本就合并）。
+> - **API 层面无法补救**：`javap` 核 Vert.x 4.5.14 `io.vertx.core.net.NetSocket` 公开面**无 `unwrap` 到 Netty `Channel`、无字节粒度 hook**（`fetch(n)` 是 n 个 Buffer 事件非 n 字节）；原始 `ByteBuf`/`messageHandler` 只存在于内部 `NetSocketInternal`（=`io.vertx.core.net.impl` 包，即被否决的方案 B 内部耦合）。MySQL STARTTLS **无往返**（区别于 SMTP/IMAP 的"服务端先应答、客户端再发 ClientHello"，故 Vert.x 官方 STARTTLS 示例天然不合并，对 MySQL 不成立）。
+> - **结论**：**在 Vert.x 公开 API 上，方案 A 无法鲁棒处理"SSLRequest 与 ClientHello 同读合并"**——真客户端是否合并取决于其写出时序（Connector/J 是否 flush-后延发 ClientHello），**须以真 Connector/J e2e 实证**（infra 红线，见 §6）；合成探针已证"若合并则静默挂起"，对安全硬门不可接受"大概率没事"。
+
 MySQL STARTTLS 要求**在同一条已建立明文 TCP 上、读完 SSLRequest 后把后续流切成 TLS**。Vert.x `NetServerOptions.setSsl(true)` 只做**接入即隐式 TLS**（整条连接从第一字节即 TLS），与协议不符，不可直接用；正确姿势是 server 端配好证书（不设 `setSsl(true)`），收到 SSLRequest 后对该连接调 `socket.upgradeToSsl(handler)`。
 
 ⇒ 三条路线（spike 后重排）：
@@ -92,7 +98,12 @@ MySQL 包 `LengthFieldBasedFrameDecoder` + `pipeline.addFirst(sslHandler)`。bla
 
 **裁定**：走 **方案 A**（保留 Vert.x acceptor，收到 SSLRequest 包后就地 `socket.upgradeToSsl`）。依据：Task 0 spike 实证 Vert.x 4.5.14 服务端 STARTTLS 可行且真加密；公开 API 路径比 B 的反射脆弱性、与 A' 的 Netty 重写都稳。B/C 否决，A' 仅作后手。
 
-> **风险挂账（spike 后更新）**：A 的净新增风险已从"前端 socket 抽象大迁移"收敛为两条明确约束：①按 MySQL 包长度边界"吃满 SSLRequest 再升级"以避免同读合并丢 ClientHello（可在 `VertxMySQLPacketResolver` 层保证）；②以 compile 域引入 BouncyCastle 作运行时依赖（装依赖红线，Task 3 前向用户拍板）。TLS 仍属安全敏感路径，故 Task 4 必含"真 Connector/J `sslMode=REQUIRED` e2e + `SHOW STATUS LIKE 'Ssl_cipher'` 非空防伪加密"的实跑验收，不以单元测代劳。
+> **裁定修正（2026-10-13 · 凭修正记录 2）**：方案 A 的"稳"前提是**SSLRequest 与 ClientHello 不被同读合并**，而修正记录 2 已证：**一旦合并，Vert.x 公开 API 无法补救→静默挂起**。因此 A 与 A' 的取舍现收敛为一个**需真 Connector/J e2e 才能回答的实证问题**：Connector/J（及 C/Go 等）在 8066 上是否实际合并这两次写？
+> - 若 **不合并**（真客户端写出有足够间隔）：方案 A 对真实客户端安全可用（loopback 合并属合成探针产物，非真实场景），按 A 落地，并在 §6 e2e 断言不合并成立。
+> - 若 **合并**（或任何客户端可能合并）：**必须启用后手 A'**（Netty pipeline 在字节边界注 `SslHandler`），因其 blast 涉及前端 socket 抽象重写（安全敏感 + 大 blast），属须向用户拍板的架构反转。
+> - **当前状态**：本机无法离线证伪/证实真 Connector/J 合并行为（需运行中后端 MySQL + 起 mycat 的 infra，属红线）；故 Task 3 传输升级在获得该实证前**暂停**，不以"大概率没事"提交可能静默挂起的安全路径（Evidenced-Done）。
+
+> **风险挂账（2026-10-13 再更新）**：初稿的两条约束中，②"compile 域引入 BC"**已拍板并证实有效**（探针绿，BC 使 `SelfSignedCertificate` 于 JDK21 复活且真加密）；①"按 MySQL 包长度边界吃满 SSLRequest 再升级"被修正记录 2 **证伪为不可单靠应用层 Buffer 分帧保证**——同读合并时尾部 ClientHello 已被投递进我方 Buffer，Vert.x 公开 API 无法回注→必需真 Connector/J 实证或降 Netty A'。⇒ TLS 仍属安全敏感路径，Task 3 的真正前置已上移为"真 Connector/J e2e 定合并行为"（infra 红线），不以单元测代劳。
 
 ---
 
