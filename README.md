@@ -44,6 +44,16 @@ Self-developed DSL manipulates the physical query plan.
 Support SQL forwarding and cache result set.
 
 
+## Non-Goals (Scope Exclusions)
+
+The following are explicitly out of scope. Mycat2 is a MySQL-protocol-compatible **distributed query middleware**, not a reimplementation of the MySQL server kernel. Anything below is delegated to physical backends (MySQL / MariaDB / etc.) or to dedicated CDC tooling. This section mirrors §1.2 of `docs/superpowers/specs/2026-09-30-mycat2-mysql-mariadb-lts-compatibility-design.md` and is intended to prevent scope creep.
+
+- **N1 — Proxy as a replication master**: Mycat2 does **not** implement `COM_BINLOG_DUMP` / `COM_BINLOG_DUMP_GTID` / `CLIENT_MASTER`. The `COM_BINLOG_DUMP` opcode constant exists in `MySQLCommandType` (protocol completeness only), but no handler is registered and `CommandDispatcher` has no route — a slave client sending this command will get a protocol error, not a binlog stream. This is consistent with MyCat1, ProxySQL, and ShardingSphere. Downstream CDC consumers (Canal, Flink CDC, Debezium) must attach to each **physical** shard directly, not to the proxy. Reference: MySQL 8.0 §13.7.4.13 `COM_BINLOG_DUMP` / §13.7.4.14 `COM_BINLOG_DUMP_GTID`.
+- **N2 — InnoDB kernel responsibilities**: storage engine internals, real transaction isolation levels, backup locks (`LOCK INSTANCE FOR BACKUP`), GTID generation and `gtid_executed` bookkeeping — all provided by the physical backend, not simulated by Mycat2.
+- **N3 — MySQL Shell AdminAPI / InnoDB Cluster**: Mycat2 does not emulate `\cluster`, `replication_metadata`, `mysql.native_password` rotation flows driven by MySQL Shell, or `Group_Replication` administrative interfaces.
+- **N4 — Productized external CDC subscription**: the `MIGRATE_*` / `BINLOG_*` hint family (see `HintHandler`) exists only for internal data-migration tooling (L3 online migration). It is not offered as an external, supported CDC subscription product.
+
+
 
 ## Framework
 
