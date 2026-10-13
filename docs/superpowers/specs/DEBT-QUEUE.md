@@ -73,7 +73,7 @@
 | I-DEBT-36·残 | `TIMESTAMPDIFF(unit,t1,t2)` **跨片全计划**去回环重解析后落标准算子→convertlet 展平成含 `REINTERPRET`(`SqlSyntax.SPECIAL`) 算术→Mycat dialect 无法 deparse（红锁 `UserCaseTest#caseI36`）。单片下推面已 R5 收口 ×7 绿（见 §5）；跨片正解=方向 A「原生三参整体下推」，2026-10-12 用户拍板**另立专项**、本里程碑不强推。根因图见 `.superpowers/sdd/2026-10-12-r5-crud-debt-roots/c2-pushdown.md` | 架构·特性级 | C |
 | I-DEBT-34·残 | **终审 Important #1**：BIT 列对外官方 byte[] 口径**仅单片/下推直通列头闭合**（Root B，见 §5）。跨片归并/本地计划列头走 `CalciteRowMetaData.getColumnType`（取 Calcite RelDataType jdbcOrdinal），BIT 经 fork 类型系统（无 `BIT` SqlTypeName）归一为**数值**列头、失 BIT 性，而行值仍是后端原生 byte[]→`BaseRowObservable.getObjects:355` 数值分支崩（live 复现 `UnsupportedOperationException:[B@`）。即使只透传不崩，对外列头仍为数值而非 `FIELD_TYPE_BIT`、官方口径仍未守。修复须联动 fork 类型系统/归并列头来源 = **“类型表征统一”专轮**（与 I-DEBT-36 跨片 caseI36 同族）。红锁 `UserCaseTest#caseCrossShardBitColumnFidelity`（live RED） | 架构·特性级 | C |
 | I-DEBT-39·残（除零对外语义） | **终审 Important #3**：I-DEBT-39 已关的是**传输层**（运行期错后会话不被 2013 打挂，C10 钉此）。MySQL 于 SELECT 期 `1/0` 语义=**NULL + Warning 1365**（仅 strict 模式下 DML 才升 1365），Mycat 此处返回 SQLException = 值语义分歧。**除零“对外返回什么”属独立语义对拍债**，不由 C10 宣称兼容（C10=错误路径格、非对拍格）。 | 挂账·语义对拍 | C |
-| I-DEBT-23e | `CURTIME()+0` TIME→NUMERIC：`Duration→TIME` java 反查映射缺，落 OTHER 不可 coerce | 有界 | C |
+| I-DEBT-23e | ✅ **Evidenced-Done `90ede2f86`**（2026-10-08）：`MycatRelDataTypeFactory.createJavaType` 已 override 补 `Duration.class → TIME` 正向映射，与 I-DEBT-12 反向对称；回归锁 `MycatDurationTimeMappingTest` 3/0/0（本地复验绿）；`PushDownFunctionShardingTableTest#testTimeFunction` 校验期错已消失（推进至 23f DAYOFWEEK 独立根 I-DEBT-32 挂账） | 已关·C | C |
 | （7C 分诊·独立根） | `ClientTest.testDBeaver`=druid 相邻 `@@` 变量丢逗号（上游/或需裁定破"不 fork druid"）；函数签名族 BIN/CONV 严格 overload；`information_schema ORDER BY` 重复列名 ambiguous；`BlobTest` BOM/EFBFBD 字节保真；`RwTest` 分片越界；`HbtTest` 测试隔离(先 DROP)+PARK VARCHAR 影子 | 各独立·多为架构 | C |
 
 ---
@@ -141,7 +141,7 @@
 
 第 3 步（地基债·C，靠第 0 步的 CRUD 矩阵出红地图后逐个专轮，不占主线名额）：
   ✅ **R5 已关**：I-DEBT-39（列头惰性化）/ I-DEBT-34（BIT byte[]）/ I-DEBT-36 单片下推面（×7 矩阵锤定）
-  ⏳ **待办**：I-DEBT-8 → I-DEBT-35（BINARY/BLOB 应用 BIT 样板）→ **I-DEBT-36 跨片全计划 caseI36 原生透传（已另立专项，方向 A）** → 23e → 各独立根 → I-DB-1
+  ⏳ **待办**：I-DEBT-8 → I-DEBT-35（BINARY/BLOB 应用 BIT 样板）→ **I-DEBT-36 跨片全计划 caseI36 原生透传（已另立专项，方向 A）** → 各独立根 → I-DB-1  （23e 已 `90ede2f86` 收口）
 
 主线外（D）：I-PR-1/2/3（生产稳健，与"无缝替代"正交，独立排期）
 ```
