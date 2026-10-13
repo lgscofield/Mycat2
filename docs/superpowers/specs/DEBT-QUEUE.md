@@ -26,7 +26,7 @@
 | M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS 传输实证+矩阵建格 · connector 真跑待 infra** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；I-AU-2 TLS：配置/解析/Connector/J 传输升级 Evidenced-Done（`e01368405`），e2e 矩阵与非 Java connector = NO_DATA 待 infra（`2026-10-13-tls-compat-matrix.md`）|
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🟡 ~60% | **I-ME-1 已落**（persona 驱动三张 i_s 表，锚官网，TDD 6/6）；**I-ME-2 双半区已落**（列覆盖锁 8/8 + FILES 补四列，e2e 矩阵格 NO_DATA 待 infra）；**I-ME-3 进程内已落**（p_s 列面+行面锁 8/8，锚 8.0.42 源码，rgm 补列+变量/状态同源行供应）；**I-ME-4 已落**（透传路径回归锁 10/10，`707c9a5bc`，锚官网 §15.7.7.23/36） |
-| M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
+| M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~30% | 本地修绿+迁移轴矩阵格已建（`MigrateMatrixTest` NO_DATA 待 infra） |
 | M5 / M6 | 生产就绪 / MariaDB ed25519 | ⚪ 0% | 关键路径外 |
 
 **方向判词（诚实）**：已收口的一大批 I-DEBT 几乎全在 **C 层**（引擎地基），而招牌的 **A 层头条（前端 TLS / caching_sha2 原生协商 / 版本 persona 连接级 / mysqldump 往返）几乎原封未动**。⚠️ 别被嗓门大的 e2e 崩栈（C）拽着走——关闭序严格按下方 §6 的 `M1→M2→M3` 走。
@@ -85,7 +85,7 @@
 |---|---|---|---|
 | I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow 已**快进 push 到 fork**（`a29744e68`，R0 四件套上树）；**唯一没做 = 启用 fork 的 Actions**（历史 total_runs=0⇒默认关，需用户去 settings/actions 开）后跑公共背书 | 背书·BLOCKED | **B** |
 | I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
-| I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
+| I-CI-4 | ✅ MigrateTest 接矩阵（迁移轴）——`c17265134`：`MigrateMatrixTest` normal→normal 端到端建格， NO_DATA 门控（Skipped:1+须响），待 run-matrix 真跑 | 有界·本地✅ | **B** |
 | I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 mysqldump 往返矩阵 0 覆盖；**TLS 轴已建格**：`TlsAxisMatrixTest`（sslMode 严格性判据+三层诚实门控，编译过）+ `2026-10-13-tls-compat-matrix.md`（on/off×7 persona NO_DATA 矩阵+runbook）；**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
 
 **M3 元数据/mysqldump（L2）【A】**：I-ME-1 排序规则表补全 **Evidenced-Done**（persona 驱动三张 i_s 仿真表，`PersonaCollations`+回归锁 `PersonaCollationsTest` 6/6，行值锚官网；SHOW COLLATION 回退分支共用本表口径同源；MariaDB 11.4 默认仍 general_ci，uca1400 属 11.5+） · I-ME-2 information_schema dump 面 **进程内 Evidenced-Done**（`3cc944dba`：官网 mysqldump.cc 8.0/8.4/MariaDB 11.4 逐行锚定查询面；回归锁 `DumpSurfaceRegressionTest` 8/8；FILES 仿表补 TOTAL_EXTENTS/INITIAL_SIZE/MAXIMUM_SIZE/AUTOEXTEND_SIZE；e2e 矩阵格 `DumpSurfaceMatrixTest` NO_DATA 待 infra；诚实结论：三引擎 dump 源码均不查 CHECK_CONSTRAINTS，不虚构缺口） · I-ME-3 performance_schema 完整 **进程内 Evidenced-Done**（`c35c14803`：列面逐锚官网 mysql-8.0.42 标签 storage/perfschema/table_*.cc Plugin_table Definition；rgm 补齐 MEMBER_COMMUNICATION_STACK+MEMBER_HOST 对齐官方；p_s session/global_variables 与 i_s 同源行供应，setup_consumers 官方 16 行集；MGR 心跳行仿真属后端复制 persona 语义层不入本票） · I-ME-4 SHOW MASTER/SLAVE STATUS **Evidenced-Done**（`707c9a5bc`：透传路径回归锁 `ShowBinlogStatusRoutingTest` 10/10；锁定 AST 类型识别+MySqlShowStatement 接口路由+toString 转发文本正确性；锚官网 MySQL 8.0 §15.7.7.23 SHOW MASTER STATUS 5 列/§15.7.7.36 SHOW SLAVE|REPLICA STATUS；e2e 由 DumpSurfaceMatrixTest SHOW MASTER STATUS 格覆盖 NO_DATA 待 infra）
