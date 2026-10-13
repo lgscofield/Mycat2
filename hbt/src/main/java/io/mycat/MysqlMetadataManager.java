@@ -40,24 +40,15 @@ public class MysqlMetadataManager extends MetadataManager {
                             return Observable.fromIterable(Collections.singletonList(new Object[]{"X"}));
                         }
                     });
+    // I-ME-1：persona 驱动（每次 scanAll 经 supplier 求值 currentPersona，与 VERSION() 同源 DI）
     public static final VisualTableHandler CHARACTER_SETS_TABLE_HANDLER = VisualTableHandler.createByMySQL(CHARACTER_SETS(),
-            () -> Observable.fromArray(
-                    new Object[]{"utf8", "utf8_bin", "UTF-8 Unicode", 3},
-                    new Object[]{"utf8mb4", "utf8mb4_bin", "UTF-8 Unicode", 4},
-                    new Object[]{"ascii", "ascii_bin", "US ASCII", 1},
-                    new Object[]{"latin1", "latin1_bin", "Latin1", 1},
-                    new Object[]{"binary", "binary", "binary", 1}
-            ));
-    public static final VisualTableHandler COLLATIONS_TABLE_HANDLER = VisualTableHandler.createByMySQL(COLLATIONS(), () -> {
-        List<Object[]> list = Collections.singletonList(new Object[]{"utf8mb4_bin", "utf8mb4", 46, "Yes", "Yes", 1, "PAD SPACE"});
-        return Observable.fromIterable(list);
-    });
+            () -> Observable.fromIterable(PersonaCollations.characterSetRows(PersonaCollations.currentPersona())));
+    public static final VisualTableHandler COLLATIONS_TABLE_HANDLER = VisualTableHandler.createByMySQL(COLLATIONS(),
+            () -> Observable.fromIterable(PersonaCollations.collationRows(PersonaCollations.currentPersona())));
 
     public static final VisualTableHandler COLLATION_CHARACTER_SET_APPLICABILITY_TABLE_HANDLER =
-            VisualTableHandler.createByMySQL(COLLATION_CHARACTER_SET_APPLICABILITY(), () -> {
-                List<Object[]> list = Collections.singletonList(new Object[]{"utf8mb4_bin", "utf8mb4"});
-                return Observable.fromIterable(list);
-            });
+            VisualTableHandler.createByMySQL(COLLATION_CHARACTER_SET_APPLICABILITY(),
+                    () -> Observable.fromIterable(PersonaCollations.collationCharsetNameRows(PersonaCollations.currentPersona())));
     public static final VisualTableHandler COLUMNS_TABLE_HANDLER =
             VisualTableHandler.createByMySQL(COLUMNS(), new Supplier<Observable<Object[]>>() {
                 @Override

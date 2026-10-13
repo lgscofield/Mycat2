@@ -12,10 +12,12 @@ package io.mycat.config;
  * @param authPlugin          宣称的认证插件名（握手 authPluginName；首版恒 mysql_native_password）
  * @param characterSet        字符集 id（握手 charset；首版 5.7 = 8）
  * @param statusFlags         服务器状态位（首版 = 2）
+ * @param persona             画像枚举本体（I-ME-1：供元数据仿真面按 persona 输出，如排序规则表/字符集表）
  */
 public record VersionProfile(String serverVersionString,
                              int capabilityMask,
                              String authPlugin,
                              int characterSet,
-                             int statusFlags) {
+                             int statusFlags,
+                             ServerPersona persona) {
 }

@@ -57,7 +57,8 @@ public final class VersionProfileFactory {
                 capabilityMask,
                 authPlugin,
                 DEFAULT_CHARACTER_SET,
-                DEFAULT_STATUS_FLAGS);
+                DEFAULT_STATUS_FLAGS,
+                persona);
     }
 
     /** 零回归默认画像 = MYSQL_5_7（DI 未注册时的回落，供 VERSION() 等消费方兜底）。 */
