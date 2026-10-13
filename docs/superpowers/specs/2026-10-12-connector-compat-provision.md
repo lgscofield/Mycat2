@@ -27,7 +27,7 @@
 | **C** MariaDB Connector/C（或 MySQL Connector/C） | — | 编译 `smoke.c` 调 `mysql_real_connect` | ⚪ NO_DATA | Java 测不了；见 §3.3 runbook；触 C 工具链/libmysqlclient 红线 |
 | **.NET** MySQL Connector/NET（或 Npgsql 族外的 `MySql.Data`） | — | `dotnet run` 冒烟 | ⚪ NO_DATA | Java 测不了；见 §3.4 runbook；触 .NET SDK/NuGet 红线 |
 
-> TLS 轴（R4）点亮时，同 runbook 各语言追加 `tls`/`ssl-mode` 参数（§3 已附参数名），TLS on/off 逐 connector 再展开为二维格。TLS 传输升级(R4 Task3)因 BouncyCastle 装依赖红线暂停，故 connector×TLS 全格当前 NO_DATA。
+> TLS 轴（R4）点亮时，同 runbook 各语言追加 `tls`/`ssl-mode` 参数（§3 已附参数名），TLS on/off 逐 connector 再展开为二维格。进展（2026-10-13）：TLS 传输升级(R4 Task3)已 Evidenced-Done（`e01368405`，BC 红线已批已落地，真 Connector/J 离线探针定谳）；Java 侧 TLS 矩阵格已建格（`TlsAxisMatrixTest` + `2026-10-13-tls-compat-matrix.md`，e2e 真跑待 infra）；非 Java connector×TLS 仍全格 NO_DATA（属本文 polyglot 专轮）。
 
 ---
 

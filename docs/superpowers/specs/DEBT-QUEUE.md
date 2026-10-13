@@ -6,7 +6,7 @@
 >
 > **深度证据在哪**：本队列是**索引**，不是证据本体。逐格的红/绿判定、file:line、实跑日志一律回看权威看板 `2026-09-30-mysql-mariadb-compat-PROGRESS.md`（进度总表 L52–117）+ 对应 SDD 账本 `.superpowers/sdd/*/progress.md`。
 >
-> **校准**：2026-10-12（凭当前 `git log` + 总表逐行只读复核，非凭记忆）。**R5 CRUD 红族三根收口**（I-DEBT-39/34 完全关，I-DEBT-36 单片下推面关，跨片 caseI36 另立专项）已据 `run-matrix` ×7 全档实证回写（`matrix-report.md`：`CrudResultMatrixTest` 10 格 × 7 档全 PASS）。**2026-10-12 整分支终审+修复 pass 后窄化**：I-DEBT-34 跨片归并/本地计划列头实证为真残口→闭合面窄化为单片/下推(见 §2 I-DEBT-34·残)，C10 除零语义口径窄化(见 §2 I-DEBT-39·残)，C9 数据换跨月跨年获真鉴别力；因生产码未变、C9 仅 test 数据变且值版本无关，已 `run-matrix` ×7 重跑全档 FAIL=0、数字不变（`matrix-report.md` 2026-10-12 20:27 重生）。
+> **校准**：2026-10-13（凭当前 `git log` + `server`/`example` 代码实读复核，非凭记忆）。**R4 前端 TLS Task3 已 Evidenced-Done**（`e01368405`：方案 A 传输升级 + `FrontendStartTlsUpgradeTest` 2/2 + server 全量 33/0/0 + 真 Connector/J 离线探针定谳不合并），**Task4 矩阵已建格**（`TlsAxisMatrixTest` 编译过 + `2026-10-13-tls-compat-matrix.md`，全矩阵 e2e = NO_DATA 待 infra）。此前：**R5 CRUD 红族三根收口**（I-DEBT-39/34 完全关，I-DEBT-36 单片下推面关，跨片 caseI36 另立专项）已据 `run-matrix` ×7 全档实证回写（`matrix-report.md`：`CrudResultMatrixTest` 10 格 × 7 档全 PASS）。**2026-10-12 整分支终审+修复 pass 后窄化**：I-DEBT-34 跨片归并/本地计划列头实证为真残口→闭合面窄化为单片/下推(见 §2 I-DEBT-34·残)，C10 除零语义口径窄化(见 §2 I-DEBT-39·残)，C9 数据换跨月跨年获真鉴别力；因生产码未变、C9 仅 test 数据变且值版本无关，已 `run-matrix` ×7 重跑全档 FAIL=0、数字不变（`matrix-report.md` 2026-10-12 20:27 重生）。
 
 ---
 
@@ -24,7 +24,7 @@
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
 | M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
-| **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS/connector 未做** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；**仍缺** I-AU-2 前端 TLS + 多 connector 冒烟 |
+| **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS 传输实证+矩阵建格 · connector 真跑待 infra** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；I-AU-2 TLS：配置/解析/Connector/J 传输升级 Evidenced-Done（`e01368405`），e2e 矩阵与非 Java connector = NO_DATA 待 infra（`2026-10-13-tls-compat-matrix.md`）|
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🔴 0% | I-ME-1..4 全 TODO |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~20% | 本地修绿、未接矩阵 |
 | M5 / M6 | 生产就绪 / MariaDB ed25519 | ⚪ 0% | 关键路径外 |
@@ -53,7 +53,7 @@
 |---|---|---|---|---|
 | **I-VE-2** | ✅ **EOF 能力位连接级化完成**（2026-10-12：config/handshake 段—`VersionProfileFactory` 按版本烘 `CLIENT_DEPRECATE_EOF`、`VertxMycatServer` 握手改读 profile 去全局 static；连接级编码段—活编码器 `MySQLServerSession.writeColumnEndPacket/writeRowEndPacket` 按 `isDeprecateEOF()`→`dataContext.getServerCapabilities()`(每连接实例字段，握手 `VertxMySQLAuthHandler:233` 存客户端上报 caps)分支，已架构正确。回归锁 `ConnectionEofDeprecationTest` 5/0/0 取证。债务点名的 `NewMycatConnectionImpl:305` 读全局 static 属**死码**（`ProxyReceiverImpl:32` 连同门控 `:27` 注释），不投机改动；该全局现仅喂后端 datasource 协商，非前端 persona） | I-VE-1 ✅ | 有界 | **A** |
 | I-AU-1 | ✅ **前端 caching_sha2 原生协商**（2026-10-12 R3 落地：删 0xFE 降级，`VertxMySQLAuthHandler` 状态机 fast-auth(warmed)+full-auth(RSA)；live 8.0/8.4/9.0 `FrontAuthMatrixTest` sha2 格全 PASS） | I-CI-3 本地✅ / I-VE-1 ✅ | 架构 | **A** |
-| **I-AU-2** | **前端 TLS 没实现**——云/托管 DB、`require_secure_transport=ON` 直接连不上；招牌最硬对外缺口（R4 进行中：配置面/SSLRequest 解析/spike 已落，Task3 传输升级因 BC 装依赖红线待拍板） | I-CI-3 本地✅ / I-VE-2 ✅ | 架构 | **A** |
+| **I-AU-2** | **前端 TLS：配置面/SSLRequest 解析/Connector/J 传输升级已 Evidenced-Done**（R4 Task1/2 + Task3 `e01368405`：`FrontendStartTlsUpgradeTest` 2/2 RED→GREEN + server 全量 33/0/0 + 真 Connector/J 离线探针 `firstReadTail=0 → cipher=TLS_AES_256_GCM_SHA384`，方案 A 对主目标客户端定谳；BC 装依赖红线**已获用户批准并落地** compile 域）。**仍缺**：全矩阵 e2e（`TlsAxisMatrixTest` 已建格+三层诚实门控，真跑待 run-matrix infra）与非 Java connector×TLS（=NO_DATA，判据口径/runbook 见 `2026-10-13-tls-compat-matrix.md`）。合并型客户端（MariaDB/go）行为未知属残留风险，不得类推） | I-CI-3 本地✅ / I-VE-2 ✅ | 架构 | **A** |
 | I-AU-3 | ✅ **非 TLS 下 RSA 公钥检索**（2026-10-12 R3：`RsaKeyPairProvider` 进程级 2048 RSA + PEM 下发、`fullAuthOk` OAEP/PKCS1 解密；live 冷态 full-auth 实测通过） | I-AU-1 ✅ | 架构 | **A** |
 | I-AU-5 | ✅ **persona 驱动握手宣称插件**（2026-10-12 R3-T1：`VersionProfileFactory` 按 persona 选 native/caching_sha2；T7 `-Dmycat.persona` 启动覆盖） | I-VE-1 ✅ | 有界偏中 | **A** |
 | I-AU-4 | 后端 ed25519（MariaDB `client_ed25519`） | I-VE-1 ✅ / M2 ⬜ | 架构·BLOCKED | **A**(M6) |
@@ -86,7 +86,7 @@
 | I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow 已**快进 push 到 fork**（`a29744e68`，R0 四件套上树）；**唯一没做 = 启用 fork 的 Actions**（历史 total_runs=0⇒默认关，需用户去 settings/actions 开）后跑公共背书 | 背书·BLOCKED | **B** |
 | I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
 | I-CI-4 | MigrateTest 接矩阵（迁移轴） | 有界 | **B** |
-| I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 TLS / mysqldump 往返 / 多 connector 矩阵 0 覆盖（**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
+| I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 mysqldump 往返矩阵 0 覆盖；**TLS 轴已建格**：`TlsAxisMatrixTest`（sslMode 严格性判据+三层诚实门控，编译过）+ `2026-10-13-tls-compat-matrix.md`（on/off×7 persona NO_DATA 矩阵+runbook）；**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
 
 **M3 元数据/mysqldump（L2）【A】**：I-ME-1 排序规则表补全 · I-ME-2 information_schema dump 面 · I-ME-3 performance_schema 完整 · I-ME-4 SHOW MASTER/SLAVE STATUS（均 TODO，多依赖 I-VE-1✅/I-AU-1）
 **M4 迁移/复制（L3）【A】**：I-RP-1 迁移流水线修复+CI · I-RP-2 binlog 客户端维护 · I-RP-3 文档化排除 N1（均 TODO）
@@ -132,7 +132,7 @@
   网络恢复后 I-CI-2 push fork 跑 Actions → CI 背书（把 M1 从本地✅推到 spec 定义的 Evidenced-Done）
 
 第 1 步（招牌本体·A→M2）：前端连接达标，按依赖链
-  I-VE-2 ✅（连接级 EOF 编码已架构完成+回归锁取证 2026-10-12；死码 `NewMycatConnectionImpl:305` 不改）→ I-AU-5 ✅ → I-AU-1 ✅（前端原生 caching_sha2）→ I-AU-3 ✅（RSA）→ I-AU-2（前端 TLS·对外最硬门，R4 进行中：配置/SSLRequest/spike 已落，Task3 传输升级因 BC 装依赖红线待拍板）
+  I-VE-2 ✅（连接级 EOF 编码已架构完成+回归锁取证 2026-10-12；死码 `NewMycatConnectionImpl:305` 不改）→ I-AU-5 ✅ → I-AU-1 ✅（前端原生 caching_sha2）→ I-AU-3 ✅（RSA）→ I-AU-2（前端 TLS·对外最硬门，R4：配置/SSLRequest/Connector/J 传输升级已 Evidenced-Done `e01368405`；Task4 矩阵已建格 `TlsAxisMatrixTest`+判据口径/runbook 见 `2026-10-13-tls-compat-matrix.md`，全矩阵 e2e 真跑待 infra）
   并行评估：I-AU-6 / I-AU-4（后端 ed25519/多驱动，用户必做，独立于前端链，属 M6）
 
 第 2 步（招牌本体·A→M3/M4）：
