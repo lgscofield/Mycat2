@@ -23,7 +23,7 @@
 
 | 里程碑 | 招牌判据 | 完成度 | 卡在哪 |
 |---|---|---|---|
-| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（卡在启用 fork Actions）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
+| M1 验证网 | 矩阵出 pass/fail + CI 绿 | 🟢 ~85% | 认证轴+**操作轴(CRUD)双轴 7 档全跑绿** + 已 push fork（2026-10-12）；剩 CI 徽标（**Actions 已启用 ✅，缺首个触发**：workflow 无 `workflow_dispatch`、需一次新 push 到 main 才会跑）+ connector 轴（Connector/J 9.x 已 PASS，Go/Python/C/.NET 已建格记 NO_DATA+provision runbook 就绪，真跑属 I-DEBT-9 polyglot/docker 专轮，触装运行时红线）|
 | **M2 L1 连接** | native+sha2、TLS on/off、全 connector | 🟡 **认证轴✅ · TLS 传输实证+矩阵建格 · connector 真跑待 infra** | 前端 I-AU-1/3/5 已落（native + caching_sha2 原生 fast/full-auth，2026-10-12 R3 live 8.0/8.4/9.0 实证）；I-AU-2 TLS：配置/解析/Connector/J 传输升级 Evidenced-Done（`e01368405`），e2e 矩阵与非 Java connector = NO_DATA 待 infra（`2026-10-13-tls-compat-matrix.md`）|
 | M3 L2 工具 | 各版本 mysqldump 往返回灌 | 🟡 ~60% | **I-ME-1 已落**（persona 驱动三张 i_s 表，锚官网，TDD 6/6）；**I-ME-2 双半区已落**（列覆盖锁 8/8 + FILES 补四列，e2e 矩阵格 NO_DATA 待 infra）；**I-ME-3 进程内已落**（p_s 列面+行面锁 8/8，锚 8.0.42 源码，rgm 补列+变量/状态同源行供应）；**I-ME-4 已落**（透传路径回归锁 10/10，`707c9a5bc`，锚官网 §15.7.7.23/36） |
 | M4 L3 迁移 | MigrateTest 矩阵绿 | 🟡 ~40% | 迁移轴矩阵格已建（`MigrateMatrixTest` NO_DATA）+ 流水线 bug修复（`dc22f5b92` PK检测时序+标识符反引号）+ **I-RP-3 已关**（README Non-Goals N1-N4 落文档，`400a99d33`，与 spec §1.2 同构）；I-RP-2 binlog 客户端属"保持"维护面（`BinlogUtil.observe` 已存）无当前 active bug；真跑待 infra |
@@ -83,7 +83,7 @@
 **M1 尾巴（验证网）**
 | ID | 一行说明 | 分类 | 对齐 |
 |---|---|---|---|
-| I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow 已**快进 push 到 fork**（`a29744e68`，R0 四件套上树）；**唯一没做 = 启用 fork 的 Actions**（历史 total_runs=0⇒默认关，需用户去 settings/actions 开）后跑公共背书 | 背书·BLOCKED | **B** |
+| I-CI-2 | 多库服务矩阵：本地全矩阵已跑通并出权威表；compat workflow（`.github/workflows/pr-validation-main-test.yml`）已 push 到 fork `origin/main`=`a29744e68`。**用户已启用 Actions（`Allow all actions and reusable workflows`）✅**（2026-10-13）。但启用**不补跑历史 push**：该 workflow 触发= `push:[main]`+`pull_request:[main]`、**无 `workflow_dispatch`**，故首个 CI run 需一次**新 push**（将本地领先的 ~49 commit 推上即触发 push 事件）。push 属用户红线、待拍板；建议顺带给 workflow 加 `workflow_dispatch` 以便日后手动重跑 | 背书·待 push 触发 | **B** |
 | I-CI-3 | 兼容性 harness：认证轴 11 格 + **操作轴 CRUD/结果集 10 格（`CrudResultMatrixTest`）双轴本地 7 档全跑绿**（2026-10-12）；三格版本无关红=引擎深债 I-DEBT-34/36/39（落第 3 步专轮，非版本兼容缺口） | 有界·本地✅ | **B** |
 | I-CI-4 | ✅ MigrateTest 接矩阵（迁移轴）——`c17265134`：`MigrateMatrixTest` normal→normal 端到端建格， NO_DATA 门控（Skipped:1+须响），待 run-matrix 真跑 | 有界·本地✅ | **B** |
 | I-DEBT-9 | example 测试面结构性健全：9-A/9-B 认证矩阵✅；剩 mysqldump 往返矩阵 0 覆盖；**TLS 轴已建格**：`TlsAxisMatrixTest`（sslMode 严格性判据+三层诚实门控，编译过）+ `2026-10-13-tls-compat-matrix.md`（on/off×7 persona NO_DATA 矩阵+runbook）；**connector 轴已建格**：2026-10-12 出 `2026-10-12-connector-compat-provision.md`—Connector/J 9.x=PASS、Go/Python/C/.NET=NO_DATA+官网锚定 provision runbook 就绪；真跑 polyglot/docker 网触装运行时红线待用户拍板） | 挂账 | **B** |
@@ -105,7 +105,7 @@
 | **I-VE-1** | TODO | **已 DONE** — `8ca4690e3 feat(I-VE-1)` + `b7294f94d fix(I-VE-1)` + `3fdb6d53b docs(I-VE-1)` + `3538006cb docs(compat-board): 补 I-VE-1 收口` |
 | **I-VE-3** | TODO | **已 DONE** — 随 I-VE-1 提交一并收口（`8ca4690e3` 正文注明"移除 MySQLVersion 可变静态，I-VE-3 收口"） |
 
-> ⚠ 待办：顺手把总表 L94（I-VE-1）、L96（I-VE-3）两行改 DONE + 填 commit 证据，避免下轮又被过期表误导。（本队列先如实反映，看板回写留你点头后做。）
+> **Ruling（2026-10-13）**：总表 I-VE-1/I-VE-3 **保持 WIP、不改 Done**——看板铁律（PROGRESS L4）要求"可重跑自动化检查当前为绿 + CI 证据"才准 Done，而 fork Actions 刚启用、首个 CI run 尚未产出（见 §3 I-CI-2）。DEBT-QUEUE 的"DONE"是**索引级本地证据口径**（commit 在树 + 本地矩阵绿），二者是**门槛差非对错差**。**禁止为"对齐"而放宽看板口径**；等首个 CI 绿 run 出来再据实升 Done。（原“顺手把总表改 DONE”的 TODO 已废：它会诱导违反铁律。）
 
 ---
 
