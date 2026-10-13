@@ -250,6 +250,20 @@
             <version>5.17.0</version>
             <scope>test</scope>
         </dependency>
+        <!-- R4 前端 TLS：Vert.x 服务端 upgradeToSsl 经 Netty SslContextBuilder 装载 PEM/PKCS12 与 SelfSignedCertificate
+             都需 BouncyCastle（BouncyCastlePemReader；JDK21 封 sun.security.x509 后 SelfSignedCertificate 唯一可用签名分支）。
+             root 未管理 BC 版本，模块级钉离线仓已缓存的 1.78.1（bcpkix→bcutil→bcprov 链），不动 root、不影响其它模块。
+             真 Connector/J STARTTLS 实测：SSLRequest 不与 ClientHello 合并（首读 tail=0）、升级后 cipher=TLS_AES_256_GCM_SHA384。 -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

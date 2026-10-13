@@ -15,6 +15,7 @@
 package io.mycat.vertx;
 
 import io.mycat.*;
+import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.VersionProfile;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.beans.mysql.packet.AuthPacket;
@@ -84,10 +85,15 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
     private byte[] seed;
     /** 生效版本 ≥8.0.5 时 full-auth 用 OAEP 解密，否则 PKCS1。 */
     private boolean oaep;
+    /** R4 前端 TLS：服务端是否在握手广告 CLIENT_SSL（由 defaultServerCapabilities 派生）。 */
+    private final boolean sslAdvertised;
+    /** 本连接是否已完成 STARTTLS 升级：升级后首包不再按 SSLRequest 解释，避免二次升级。 */
+    private boolean tlsUpgraded = false;
 
     public VertxMySQLAuthHandler(NetSocket socket, int defaultServerCapabilities, VertxMycatServer.MycatSessionManager mycatSessionManager) {
         this.socket = socket;
         this.mycatSessionManager = mycatSessionManager;
+        this.sslAdvertised = (defaultServerCapabilities & MySQLServerCapabilityFlags.CLIENT_SSL) != 0;
         this.mycatDataContext = new MycatDataContextImpl();
         this.seedParts = MysqlNativePasswordPluginUtil.nextSeedBuild();
         VersionProfile versionProfile = MetaClusterCurrent.wrapper(VersionProfile.class);
@@ -122,6 +128,29 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
         ReadView readView = new ReadView(payload);
         switch (stage) {
             case AUTH_RESPONSE: {
+                // R4 前端 TLS：升级前收到的首个置 CLIENT_SSL 的包 = Protocol::SSLRequest（截断 HandshakeResponse）。
+                // 上面的分帧已保证 buffer 恰为一个完整包（length==buffer.length()-4，无残留），
+                // 故此处按 MySQL 包边界吃满整个 SSLRequest 后再就地 socket.upgradeToSsl 升级，
+                // 避免同读合并吞掉尾部 ClientHello（真 Connector/J 实测首读 tail=0，不合并）。
+                // 升级成功后续 HandshakeResponse 走 Vert.x 解密流再入本 handler（tlsUpgraded=true 则不再判 SSLRequest）。
+                if (sslAdvertised && !tlsUpgraded
+                        && (readInt(payload, 0, 4) & MySQLServerCapabilityFlags.CLIENT_SSL) != 0) {
+                    SSLRequest sslRequest = new SSLRequest();
+                    sslRequest.readPayload(readView);
+                    buffer = Buffer.buffer();
+                    socket.upgradeToSsl(ar -> {
+                        if (ar.failed()) {
+                            LOGGER.error("frontend STARTTLS upgrade failed for " + socket.remoteAddress(),
+                                    ar.cause());
+                            socket.close();
+                            return;
+                        }
+                        this.tlsUpgraded = true;
+                        socket.handler(this);
+                        socket.resume();
+                    });
+                    return;
+                }
                 this.authPacket = new AuthPacket();
                 authPacket.readPayload(readView);
                 this.username = authPacket.getUsername();

@@ -18,13 +18,18 @@ import io.mycat.*;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.config.MycatServerConfig;
+import io.mycat.config.MySQLServerCapabilityFlags;
+import io.mycat.config.ServerConfig;
 import io.mycat.monitor.LogEntryHolder;
 import io.mycat.runtime.MycatXaTranscation;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.*;
+import io.vertx.core.net.KeyCertOptions;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.SelfSignedCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +149,12 @@ public class VertxMycatServer implements MycatServer {
             // I-VE-2：capabilityMask 已由版本档案自带 CLIENT_DEPRECATE_EOF（见 VersionProfileFactory），
             // 握手直接采用画像能力位，不再读启动期全局可变 static NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF。
             int finalServerCapabilities = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class).capabilityMask();
+            // R4 前端 TLS：握手广告 CLIENT_SSL（profile 依 tlsMode 置位）时，为 NetServer 配证书私钥。
+            // 注意不设 setSsl(true)——那是接入即隐式 TLS，与 MySQL 同端口内带 STARTTLS 协议不符；
+            // 真正的升级到 TLS 由 VertxMySQLAuthHandler 收到 SSLRequest 后 socket.upgradeToSsl 完成（方案 A）。
+            if ((finalServerCapabilities & MySQLServerCapabilityFlags.CLIENT_SSL) != 0) {
+                netServerOptions.setKeyCertOptions(buildFrontendKeyCertOptions(serverConfig.getServer()));
+            }
             for (int i = 0; i < serverConfig.getServer().getReactorNumber(); i++) {
                 vertx.deployVerticle(new AbstractVerticle() {
                     @Override
@@ -168,6 +179,22 @@ public class VertxMycatServer implements MycatServer {
                 }, deploymentOptions);
             }
 
+        }
+
+        /**
+         * R4 前端 TLS 证书供面：配了 {@code tlsCertFile/tlsKeyFile} 则用 PEM 证书（生产）；
+         * 未配则回落自签证书（仅 dev/测试，Vert.x {@code SelfSignedCertificate} 经 BC 在 JDK21 可用）。
+         * 调用时机：仅当握手广告 CLIENT_SSL（tlsMode!=DISABLED）时。
+         */
+        private static KeyCertOptions buildFrontendKeyCertOptions(ServerConfig cfg) {
+            String cert = cfg.getTlsCertFile();
+            String key = cfg.getTlsKeyFile();
+            if (cert != null && !cert.isEmpty() && key != null && !key.isEmpty()) {
+                return new PemKeyCertOptions().setCertPath(cert).setKeyPath(key);
+            }
+            LOGGER.warn("tlsMode!=DISABLED but no tlsCertFile/tlsKeyFile configured; "
+                    + "falling back to a self-signed certificate (DEV/TEST ONLY, not for production).");
+            return SelfSignedCertificate.create().keyCertOptions();
         }
 
         @Override
