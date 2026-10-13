@@ -915,6 +915,11 @@ public class MysqlMetadataManager extends MetadataManager {
         createEVENTSTableSQL.addColumn("LOGFILE_GROUP_NAME", "varchar(64)");
         createEVENTSTableSQL.addColumn("LOGFILE_GROUP_NUMBER", "varchar(64)");
         createEVENTSTableSQL.addColumn("ENGINE", "varchar(64)");
+        // I-ME-2: mysqldump --tablespaces 消费列（官网 8.0 i_s.FILES 页 TOTAL_EXTENTS/INITIAL_SIZE/MAXIMUM_SIZE/AUTOEXTEND_SIZE）
+        createEVENTSTableSQL.addColumn("TOTAL_EXTENTS", "bigint(21) unsigned");
+        createEVENTSTableSQL.addColumn("INITIAL_SIZE", "bigint(21) unsigned");
+        createEVENTSTableSQL.addColumn("MAXIMUM_SIZE", "bigint(21) unsigned");
+        createEVENTSTableSQL.addColumn("AUTOEXTEND_SIZE", "bigint(21) unsigned");
 
         createEVENTSTableSQL.addColumn("DELETED_ROWS", "int(64)");
         createEVENTSTableSQL.addColumn("UPDATE_COUNT", "int(64)");
