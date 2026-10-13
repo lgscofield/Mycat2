@@ -36,6 +36,7 @@ import io.mycat.api.collector.MysqlObjectArrayRow;
 import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
+import io.mycat.beans.mycat.RowMetaDataFidelity;
 import io.mycat.calcite.CodeExecuterContext;
 import io.mycat.calcite.DrdsRunnerHelper;
 import io.mycat.calcite.ExecutorProvider;
@@ -896,7 +897,7 @@ public class VertxExecuter {
 
                         @Override
                         public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                            this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
+                            this.mycatRowMetaData = resolveSplitRowMetaData(mycatRowMetaData, rowMetaDataArg);
                         }
 
                         @Override
@@ -935,6 +936,20 @@ public class VertxExecuter {
                 }
             });
         });
+    }
+
+    /**
+     * I-DEBT-34 跨片 split 行解码的列元数据选源：在“后端忠实轨 onColumnDef 参”与“计划派生
+     * {@code rowMetaDataArg}”之间归一。以后端物理列类型（{@code bit(n>1)}→{@code Types.BIT}）为准，
+     * 列名/label 仍以计划逻辑视图为准，使 {@link BaseRowObservable#getObjects} 走 {@code case BIT:}
+     * byte[] 透传分支而非落数值分支抛 {@code UnsupportedOperationException} 崩会话。不满足归一条件时
+     * 原样返回计划 meta（纯本地计算列兜底）。
+     */
+    public static MycatRowMetaData resolveSplitRowMetaData(MycatRowMetaData backendMeta, MycatRowMetaData rowMetaDataArg) {
+        if (rowMetaDataArg == null) {
+            return backendMeta;
+        }
+        return RowMetaDataFidelity.effective(backendMeta, rowMetaDataArg);
     }
 
     public static Future<long[]> runUpdate(Future<NewMycatConnection> sqlConnectionFuture, String sql) {
