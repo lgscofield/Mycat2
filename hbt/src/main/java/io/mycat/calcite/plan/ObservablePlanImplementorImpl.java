@@ -235,7 +235,9 @@ public class ObservablePlanImplementorImpl implements PlanImplementor {
         // I-DEBT-41 列类型唯一权威·形状谓词（计划期定死，发首行前）：顶层存在异构 Union 合并则置位，
         // 列头缝与解码缝同读此决策退计划轨；直通/同构不置位（I-DEBT-34 零回归）。
         if (MycatMergeShape.hasHeterogeneousUnion(plan.getMycatRel())) {
-            sqlMycatDataContext.markMergedHeterogeneousOutput();
+            // 切片2 ①：附带顶层 Union 分支数作 describe 探测完整性门槛（复杂形态 -1 → 不探回 ③）
+            sqlMycatDataContext.markMergedHeterogeneousOutput(
+                    MycatMergeShape.topLevelUnionBranchCount(plan.getMycatRel()));
         }
         LOGGER.info("I-DEBT-41-probe hetero={} rel={}", sqlMycatDataContext.isMergedHeterogeneousOutput(),
                 MycatMergeShape.shapeDump(plan.getMycatRel())); // 临时取证，合入前删

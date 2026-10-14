@@ -86,10 +86,76 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         this.mergedHeterogeneousOutput = true;
     }
 
+    /**
+     * I-DEBT-41 切片2 ①：置位并登记顶层 Union 分支数（后端 describe 探测的完整性门槛：
+     * 收集到的分支下推 SQL 数必须恰等于该值才允许探测，防半途分支缺席导致归并形状错判）。
+     */
+    public void markMergedHeterogeneousOutput(int unionBranchCount) {
+        this.mergedHeterogeneousOutput = true;
+        this.mergedExpectedBranches = unionBranchCount;
+    }
+
+    /**
+     * 切片2 ①：bind 期登记分支下推 SQL（仅异构置位后收集）。混合 ds、带参(?)SQL 一律标不可探测，
+     * 探测时回 ③ 计划轨（诚实保守面）。
+     */
+    public void registerProbeBranch(String dsKey, String sql) {
+        if (!mergedHeterogeneousOutput) {
+            return;
+        }
+        if (sql == null || sql.indexOf('?') >= 0) {
+            mergedProbeUnavailable = true;
+            return;
+        }
+        // 顶层拼接探测要求分支是纯查询块：自带 order by/limit 的分支拼接后语义漂移（limit 绑错
+        // 操作数），保守弃探回 ③。
+        String lower = sql.toLowerCase();
+        if (lower.contains("order by") || lower.contains("limit")) {
+            mergedProbeUnavailable = true;
+            return;
+        }
+        if (mergedBranchDsKey == null) {
+            mergedBranchDsKey = dsKey;
+        } else if (!mergedBranchDsKey.equals(dsKey)) {
+            mergedProbeUnavailable = true;
+            return;
+        }
+        mergedBranchSqls.add(sql);
+    }
+
+    /**
+     * 切片2 ①：异构合并列类型权威 = 单后端对该查询实际产出的归并列元数据（describe）。
+     * 门槛全过才探测：分支数吻合、同 ds、无参；取不到（跨 ds/超时/报错）返回 null →
+     * 列头缝照旧回 ③ 计划轨。一次查询只探一次，结果缓存。
+     */
+    public synchronized MycatRowMetaData probeMergedBackendMeta() {
+        if (mergedProbeDone) {
+            return mergedProbeMeta;
+        }
+        mergedProbeDone = true;
+        if (!mergedHeterogeneousOutput || mergedProbeUnavailable
+                || mergedExpectedBranches < 2 || mergedBranchSqls.size() != mergedExpectedBranches) {
+            return null;
+        }
+        MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
+        mergedProbeMeta = io.mycat.calcite.BackendMergedMetaProbe.probe(mySQLManager, mergedBranchDsKey,
+                new ArrayList<>(mergedBranchSqls), 2000);
+        return mergedProbeMeta;
+    }
+
     /** 两缝（列头/解码）共读的异构权威决策。 */
     public boolean isMergedHeterogeneousOutput() {
         return mergedHeterogeneousOutput;
     }
+
+    // I-DEBT-41 切片2 ①：后端 describe 归并列元数据探测的 per-query 状态（bind 期登记，列头发送前一次探测）。
+    private volatile int mergedExpectedBranches = -1;
+    private volatile String mergedBranchDsKey;
+    private volatile boolean mergedProbeUnavailable;
+    private volatile boolean mergedProbeDone;
+    private volatile MycatRowMetaData mergedProbeMeta;
+    private final java.util.concurrent.CopyOnWriteArrayList<String> mergedBranchSqls =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
 
 
     public AsyncMycatDataContextImpl(MycatDataContext dataContext,
@@ -173,6 +239,8 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         for (Map.Entry<String, SqlString> entry : expand.entries()) {
             String key = context.resolveDatasourceTargetName(entry.getKey());
             SqlString sqlString = entry.getValue();
+            // I-DEBT-41 切片2 ①：bind 期（订阅前同步）登记分支下推 SQL，供列头缝 describe 探测合成文本
+            registerProbeBranch(key, sqlString.getSql());
             Observable<T> observable = Observable.create(emitter -> {
                 Future<NewMycatConnection> sessionConnection = getConnection(key);
                 PromiseInternal<NewMycatConnection> promise = VertxUtil.newPromise();

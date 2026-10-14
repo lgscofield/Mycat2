@@ -40,6 +40,27 @@ public final class MycatMergeShape {
         return false;
     }
 
+    /**
+     * I-DEBT-41 切片2 ①：顶层 Union 分支数（describe 探测完整性门槛）。仅接受两种保守形态：
+     * 根即 Union，或根单一子节点为 Union（MemSort 等顶层包装不改列形状）。其余形态返回 -1
+     * → 不探测回 ③（嵌套 Union 等复杂树分支计数不可靠，宁保守）。
+     */
+    public static int topLevelUnionBranchCount(RelNode root) {
+        if (root == null) {
+            return -1;
+        }
+        if (root instanceof Union && root.getInputs().size() > 1) {
+            return root.getInputs().size();
+        }
+        if (root.getInputs().size() == 1) {
+            RelNode child = root.getInputs().get(0);
+            if (child instanceof Union && child.getInputs().size() > 1) {
+                return child.getInputs().size();
+            }
+        }
+        return -1;
+    }
+
     /** 临时诊断（I-DEBT-41 取证，合入前删）：dump rel 树中 Union 族节点的输入类与 rowType。 */
     public static String shapeDump(RelNode node) {
         if (node == null) {

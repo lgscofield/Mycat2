@@ -162,12 +162,14 @@ public class CrossShardUnionHeaderDifferentialTest implements MycatTest {
         System.out.println("实际(经 Mycat 跨源)  ：" + actual);
         System.out.println("================================================================================\n");
 
-        // 命题：不得崩、行值与真 MySQL 数值一致（无沉默损坏）。列头类型名精确等于后端归并类型
-        // （实得计划轨 BIGINT vs 后端 DECIMAL）属切片2 ① 后端 describe 权威，由 Task 5 收紧硬断言。
+        // 命题（切片2 ① 收紧后）：不得崩、列头类型名精确等于真 MySQL 归并类型（DECIMAL），
+        // 且行值逐类名精确等于后端（列头 DECIMAL → 客户端按 BigDecimal 解，与直连同形）。
         assertEquals(null, actual.rowError,
                 "I-DEBT-41：Mycat 跨源异构 union 不得崩（实得 " + actual.rowError + "）");
-        assertEquals(expected.numericRows(), actual.numericRows(),
-                "I-DEBT-41：Mycat 跨源异构 union 的行值数值应等于真 MySQL（切片1③：不崩+两缝一致+行值正确）");
+        assertEquals(expected.columnTypeName, actual.columnTypeName,
+                "I-DEBT-41 切片2：Mycat 跨源异构 union 列头应等于真 MySQL 归并类型（后端 describe 权威）");
+        assertEquals(expected.rows, actual.rows,
+                "I-DEBT-41 切片2：列头权威切到后端归并类型后，行值应与真 MySQL 逐类名/值精确一致");
     }
 
     private String expectedVersion() throws Exception {
