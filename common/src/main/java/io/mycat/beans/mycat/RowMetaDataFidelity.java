@@ -55,6 +55,37 @@ public final class RowMetaDataFidelity {
         return effective(backendMeta, planMeta);
     }
 
+    /**
+     * I-DEBT-41 终审 Important-2：异构多源合并（{@code mergedHeterogeneousOutput} 置位）时，解码缝一律走
+     * 计划轨 numeric（{@code isPlanTrackDecode}）。若列头探测权威取到的后端归并列是 <b>binary 族</b>
+     * （某些 persona 如 5.7/MariaDB 把 {@code bit∪bigint} 归并为 VARBINARY），拿它重建 binary 列头与
+     * numeric 行值分叉——客户端在该 binary 列头上把 numeric 值读成 {@code null}（实测：Mycat 5.7 跨源
+     * union 行值全 null，严格劣于改前响亮崩）。故命中 binary 族即须<b>整体拒绝</b>该探测权威、回 ③ 计划轨，
+     * 使两缝同 numeric 保持一致（仅失列头类型忠实，值数据正确不丢）。数值族（如 8.0 的 DECIMAL）返回
+     * false，保留 ① 后端为准的保真胜利。
+     *
+     * @param probeMeta 单后端 describe 取回的归并列元数据（可为 null）
+     * @return 任一列为 {@code BINARY/VARBINARY/LONGVARBINARY/BLOB} 族 → true（应拒绝回 ③）；否则 false
+     */
+    public static boolean isBinaryFamilyAuthority(MycatRowMetaData probeMeta) {
+        if (probeMeta == null) {
+            return false;
+        }
+        for (int i = 0; i < probeMeta.getColumnCount(); i++) {
+            switch (probeMeta.getColumnType(i)) {
+                case java.sql.Types.BINARY:
+                case java.sql.Types.VARBINARY:
+                case java.sql.Types.LONGVARBINARY:
+                case java.sql.Types.BLOB:
+                    return true;
+                default:
+                    // 其余列继续扫描
+                    break;
+            }
+        }
+        return false;
+    }
+
     /** 委托计划 meta 的一切，唯独 {@code getColumnType} 取后端忠实轨物理类型。 */
     private static final class FaithfulTypeView implements MycatRowMetaData {
         private final MycatRowMetaData backend;

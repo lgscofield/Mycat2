@@ -152,4 +152,35 @@ public class RowMetaDataFidelityTest {
         Assert.assertEquals("未置位须保持忠实覆写 Types.BIT",
                 Types.BIT, result.getColumnType(0));
     }
+
+    // ==== I-DEBT-41 终审 Important-2：异构 union 列头探测权威的 binary 族拒绝 ====
+    // 5.7/MariaDB 把 bit∪bigint 合并列报 VARBINARY；若拿它重建 binary 列头，而解码缝走计划轨
+    // numeric，两缝分叉→客户端在该 binary 列头上读到 null（实测：Mycat 5.7 union 行值全 null，
+    // 严格劣于改前响亮崩）。故探测权威含 binary 族列时必须整体拒绝、回 ③ 计划轨（两缝同 numeric）。
+
+    private static MycatRowMetaData varBinaryFaithfulMeta() {
+        return ResultSetBuilder.create()
+                .addColumnInfo("c", JDBCType.VARBINARY)
+                .build().getMetaData();
+    }
+
+    private static MycatRowMetaData decimalFaithfulMeta() {
+        return ResultSetBuilder.create()
+                .addColumnInfo("c", JDBCType.DECIMAL)
+                .build().getMetaData();
+    }
+
+    @Test
+    public void isBinaryFamilyAuthorityDetectsVarBinary() {
+        Assert.assertTrue("VARBINARY 合并列头权威须判为 binary 族（与计划轨 numeric 解码不兼容）",
+                RowMetaDataFidelity.isBinaryFamilyAuthority(varBinaryFaithfulMeta()));
+    }
+
+    @Test
+    public void isBinaryFamilyAuthorityRejectsNumericAndNull() {
+        Assert.assertFalse("DECIMAL 合并列头权威是数值族，不得拒绝（8.0 persona 依赖其保留）",
+                RowMetaDataFidelity.isBinaryFamilyAuthority(decimalFaithfulMeta()));
+        Assert.assertFalse("null 探测结果须判为非 binary（交由调用方回 ③ 逻辑处理）",
+                RowMetaDataFidelity.isBinaryFamilyAuthority(null));
+    }
 }

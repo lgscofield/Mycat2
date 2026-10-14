@@ -140,6 +140,12 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
         mergedProbeMeta = io.mycat.calcite.BackendMergedMetaProbe.probe(mySQLManager, mergedBranchDsKey,
                 new ArrayList<>(mergedBranchSqls), 2000);
+        // I-DEBT-41 终审 Important-2：探测权威若是 binary 族列头（5.7/MariaDB 把 bit∪bigint 归并
+        // 为 VARBINARY），与一律走计划轨 numeric 的解码缝分叉→客户端读到 null（实测 5.7 行值全 null）。
+        // 整体拒绝回 ③ 计划轨，两缝同 numeric 保持一致（仅失列头类型忠实，值不丢）。
+        if (io.mycat.beans.mycat.RowMetaDataFidelity.isBinaryFamilyAuthority(mergedProbeMeta)) {
+            mergedProbeMeta = null;
+        }
         return mergedProbeMeta;
     }
 
