@@ -73,6 +73,24 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         }
     }
 
+    /**
+     * I-DEBT-41 列类型唯一权威·异构决策位：顶层输出为异构多源合并（union/join/lookup 分支列类型
+     * 不同）时，单分支 carrier 不再是合法权威——列头缝与解码缝须同读本位退计划轨一致取列类型，
+     * 消除“列头来自首写者分支、行值按各自分支解码”的两缝分叉窗口。默认 false：直通/同构单源
+     * 沿用 carrier 忠实轨（行为零回归）。决策一次、两缝同读（发首行前置位）。
+     */
+    private volatile boolean mergedHeterogeneousOutput = false;
+
+    /** 计划构建期识别到异构合并时置位；置位后两缝均退计划轨取列类型。 */
+    public void markMergedHeterogeneousOutput() {
+        this.mergedHeterogeneousOutput = true;
+    }
+
+    /** 两缝（列头/解码）共读的异构权威决策。 */
+    public boolean isMergedHeterogeneousOutput() {
+        return mergedHeterogeneousOutput;
+    }
+
 
     public AsyncMycatDataContextImpl(MycatDataContext dataContext,
                                      CodeExecuterContext context,
