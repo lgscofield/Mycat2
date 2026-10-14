@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -351,6 +352,12 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                         value = MycatValueFactory.LONG_VALUE_FACTORY.createFromLong(numeric.longValue());
                     } else if (o instanceof Boolean) {
                         value = (Boolean) o ? 1 : 0;
+                    } else if (o instanceof byte[]) {
+                        // MYCAT CHANGE (I-DEBT-41 切片1): 多源 Union 合并退计划轨后，bit 分支的 byte[]
+                        // 落数值列不得再抛崩会话：按无符号整数转换（BigInteger(1,bytes)），对齐真 MySQL
+                        // bit→数值归并渲染（原 else 分支 throw 即 [B→Long 崩溃根因之一）。
+                        value = MycatValueFactory.LONG_VALUE_FACTORY.createFromLong(
+                                new BigInteger(1, (byte[]) o).longValue());
                     } else {
                         throw new UnsupportedOperationException(o.toString());
                     }
@@ -380,6 +387,12 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                 case DECIMAL:
                 case NUMERIC: {
                     value = row[columnIndex];
+                    // MYCAT CHANGE (I-DEBT-41 切片1): 同构/异构归并列计划轨落 DECIMAL 时（真 MySQL
+                    // bit∪bigint→DECIMAL(19)），bit 分支 byte[] 不得裸直通下游 (BigDecimal) 撞车，
+                    // 归一为无符号整数表示。
+                    if (value instanceof byte[]) {
+                        value = new BigInteger(1, (byte[]) value);
+                    }
                     break;
                 }
                 case NCHAR:

@@ -19,8 +19,8 @@ import java.util.List;
  *
  * <p>钉住跨片 split 行解码正确闭合所需的<b>契约</b>：{@link RowMetaDataFidelity#effective} 归一视图
  * 以忠实轨 {@code bit(n>1)}→{@code Types.BIT} 为准时，{@link BaseRowObservable#getObjects(Object[], MycatRowMetaData)}
- * 走 {@code case BIT:} byte[] 透传分支；而有损计划轨（BIGINT）下同 row 落数值分支抛
- * {@code UnsupportedOperationException}（崩溃根因）。
+ * 走 {@code case BIT:} byte[] 透传分支；有损计划轨（BIGINT）下 bit byte[] 按 I-DEBT-41 收口为
+ * 无符号整数转换（原抛崩行为已拆雷翻正，见 {@code bitByteArrayUnderNumericPlanCoercesToUnsignedLong}）。
  *
  * <p><b>解码原语契约锁</b>（in-process）：本锁只证“喂忠实/归一 meta 即 byte[] 透传”的组件级契约。
  * 生产行解码缝已在 Task 2 接入 {@code VertxExecuter.runQuery.onColumnDef}——与列头缝（{@code PrepareExecutor}
@@ -77,12 +77,30 @@ public class CrossShardBitRowDecodeTest {
         Assertions.assertEquals(1, resolved.getColumnCount(), "列头列数以计划逻辑视图为准");
     }
 
+    /**
+     * I-DEBT-41 切片1 收口：原 bug 面锁「有损数值 meta 下 byte[] 落数值分支 → 抛」已拆雷翻正——
+     * 计划轨数值列（多源 Union 合并退计划轨后的合法形态）解码 bit byte[] 须按无符号整数转换，
+     * 对齐 MySQL bit→数值 归并渲染，不得崩会话。
+     */
     @Test
-    public void lossyPlanMetaDecodeOfByteArrayThrows() {
-        Object[] row = { new byte[]{(byte) 0xB3} };
-        // 钉当前 bug 面：有损数值 meta 下 byte[] 落数值分支 → 抛（崩会话根因）
-        Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> BaseRowObservable.getObjects(row, numericPlanMeta()));
+    public void bitByteArrayUnderNumericPlanCoercesToUnsignedLong() {
+        Object[] row = { new byte[]{(byte) 0xFF} };
+        Object[] out = BaseRowObservable.getObjects(row, numericPlanMeta());
+        Assertions.assertEquals(255L, ((Number) out[0]).longValue(),
+                "计划轨 BIGINT 列解码 bit byte[]{0xFF} 须为无符号 255，非抛");
+        Object[] row2 = { new byte[]{(byte) 0xB3} };
+        Assertions.assertEquals(179L,
+                ((Number) BaseRowObservable.getObjects(row2, numericPlanMeta())[0]).longValue());
+    }
+
+    @Test
+    public void bitByteArrayUnderDecimalPlanCoercesToUnsignedInteger() {
+        // 异构归并列在计划轨常落 DECIMAL（真 MySQL bit∪bigint 归并 DECIMAL(19)）：不得裸 byte[] 直通
+        MycatRowMetaData decimalPlan = ResultSetBuilder.create()
+                .addColumnInfo("c_bit8", JDBCType.DECIMAL).build().getMetaData();
+        Object[] out = BaseRowObservable.getObjects(new Object[]{ new byte[]{(byte) 0xFF} }, decimalPlan);
+        Assertions.assertEquals(255, new java.math.BigInteger(out[0].toString()).intValue(),
+                "计划轨 DECIMAL 列解码 bit byte[] 须归一无符号整数");
     }
 
     @Test
