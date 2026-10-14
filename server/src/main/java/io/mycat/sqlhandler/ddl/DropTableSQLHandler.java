@@ -74,6 +74,15 @@ public class DropTableSQLHandler extends AbstractSQLHandler<SQLDropTableStatemen
                             ops.commit();
                         }
                         executeOnDataNodes(ast, jdbcConnectionManager, dataNodes, tableSource);
+                    } else {
+                        // I-DEBT-43：MySQL 语义下 DROP TABLE IF EXISTS 应“后端物理表存在即删”，
+                        // 不依赖 Mycat 元数据是否登记。Mycat 未握 TableHandler 时旧分支直接 sendOk 造成
+                        // “假 OK”——后端旧物理表残留，下例同建时撞旧 schema（现场取证：HbtTest 隔离
+                        // 内 JDBC 代理层 DROP 不生效，mysql client 手能删——因为当时元数据已登记过 TableHandler）。
+                        // 回接同文件早期写但从未调用的 onPhysics 兑底：下发到 prototype 连接。
+                        // 作域限制：本兑底仅覆盖 prototype 映射到的物理 db（单 db schema，典型 HbtTest 场景），
+                        // 对多 datanode 分片且元数据未登记的 schema 仍需后续票按 SchemaConfig 枚数据节点。
+                        onPhysics(schema, tableName);
                     }
                     return response.sendOk();
                 } catch (Throwable throwable) {
