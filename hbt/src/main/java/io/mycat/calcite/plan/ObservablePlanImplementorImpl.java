@@ -237,6 +237,8 @@ public class ObservablePlanImplementorImpl implements PlanImplementor {
         if (MycatMergeShape.hasHeterogeneousUnion(plan.getMycatRel())) {
             sqlMycatDataContext.markMergedHeterogeneousOutput();
         }
+        LOGGER.info("I-DEBT-41-probe hetero={} rel={}", sqlMycatDataContext.isMergedHeterogeneousOutput(),
+                MycatMergeShape.shapeDump(plan.getMycatRel())); // 临时取证，合入前删
         ExecutorProvider executorProvider = MetaClusterCurrent.wrapper(ExecutorProvider.class);
 
         PrepareExecutor prepare = executorProvider.prepare(plan);
