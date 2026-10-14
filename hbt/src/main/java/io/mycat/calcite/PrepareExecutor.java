@@ -80,9 +80,13 @@ public class PrepareExecutor {
             // effective(后端忠实轨, 计划有损轨)。延迟到发送点(首行/空集补发)才构造，确保后端 onColumnDef
             // 已把首分片 MycatMySQLRowMetaData 发布进 carrier。carrier 为空(非分片源/本地聚合)时 effective
             // 原样回计划轨 → 行为与改动前一致(零回归)。行解码缝(缝二)由 Task 2 一并切忠实轨达成两缝同移。
+            // I-DEBT-41 列类型唯一权威·列头缝：异构多源合并（union/join/lookup 分支列类型不同）时，
+            // 单分支 carrier 不是合法权威（首写者胜的轨只属于那一个分支），两缝一致退计划轨；
+            // 直通/同构（标志缺省 false）仍用 carrier 忠实轨（I-DEBT-34 行为零回归）。
             final java.util.function.Supplier<MySQLColumnDef> columnDefSupplier = () ->
                     MySQLColumnDef.of(RowMetaDataFidelity.effective(
-                            newMycatDataContext.getBackendRowMeta().get(), rowMetaData));
+                            newMycatDataContext.isMergedHeterogeneousOutput()
+                                    ? null : newMycatDataContext.getBackendRowMeta().get(), rowMetaData));
             final boolean[] headerSent = {false};
             try {
 

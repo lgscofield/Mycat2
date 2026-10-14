@@ -94,6 +94,53 @@ public class CrossShardHeaderFidelityTest {
     }
 
     @Test
+    public void headerFallsBackToPlanTrackWhenFlaggedHeterogeneous() {
+        // I-DEBT-41 列类型唯一权威：异构多源合并置位后，单分支 carrier 不再是合法权威，
+        // 列头缝须退计划轨（与解码缝同源），不得继续用首写者分支的忠实轨。
+        AsyncMycatDataContextImpl.SqlMycatDataContextImpl ctx =
+                new AsyncMycatDataContextImpl.SqlMycatDataContextImpl(null, null, null);
+        ctx.publishBackendRowMeta(faithfulBitMeta()); // carrier 持有 BIT 忠实轨
+        ctx.markMergedHeterogeneousOutput();          // 异构决策：降级 carrier
+
+        List<MysqlPayloadObject> out = PrepareExecutor
+                .getMysqlPayloadObjectObservable(oneRowBindable(), ctx, numericPlanMeta())
+                .toList().blockingGet();
+
+        MySQLColumnDef def = (MySQLColumnDef) out.get(0);
+        Assertions.assertEquals(Types.BIGINT, def.getMetaData().getColumnType(0),
+                "异构标志置位时列头须退计划轨（BIGINT），不再取单分支 carrier 的 BIT");
+    }
+
+    @Test
+    public void emptyResultSetHeaderUsesPlanTrackWhenFlaggedHeterogeneous() {
+        // Review Focus#4：零行时列头经空集补发路径求值，同样须遵异构权威决策退计划轨，不得两套行为。
+        AsyncMycatDataContextImpl.SqlMycatDataContextImpl ctx =
+                new AsyncMycatDataContextImpl.SqlMycatDataContextImpl(null, null, null);
+        ctx.publishBackendRowMeta(faithfulBitMeta());
+        ctx.markMergedHeterogeneousOutput();
+
+        MycatBindable emptyBindable = new MycatBindable() {
+            @Override
+            public Object bind(org.apache.calcite.runtime.NewMycatDataContext root) {
+                return Observable.empty();
+            }
+
+            @Override
+            public Class getElementType() {
+                return Object[].class;
+            }
+        };
+
+        List<MysqlPayloadObject> out = PrepareExecutor
+                .getMysqlPayloadObjectObservable(emptyBindable, ctx, numericPlanMeta())
+                .toList().blockingGet();
+
+        MySQLColumnDef def = (MySQLColumnDef) out.get(0);
+        Assertions.assertEquals(Types.BIGINT, def.getMetaData().getColumnType(0),
+                "空集补发的列头亦须遵异构权威决策退计划轨");
+    }
+
+    @Test
     public void headerFallsBackToPlanWhenCarrierEmpty() {
         AsyncMycatDataContextImpl.SqlMycatDataContextImpl ctx =
                 new AsyncMycatDataContextImpl.SqlMycatDataContextImpl(null, null, null);

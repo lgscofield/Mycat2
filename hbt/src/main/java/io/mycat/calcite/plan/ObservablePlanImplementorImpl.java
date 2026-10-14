@@ -26,6 +26,7 @@ import com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import io.mycat.*;
 import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.calcite.ExecutorProvider;
+import io.mycat.calcite.MycatMergeShape;
 import io.mycat.calcite.PrepareExecutor;
 import io.mycat.calcite.physical.MycatInsertRel;
 import io.mycat.calcite.physical.MycatUpdateRel;
@@ -231,6 +232,11 @@ public class ObservablePlanImplementorImpl implements PlanImplementor {
     @Override
     public Future<Void> executeQuery(Plan plan) {
         AsyncMycatDataContextImpl.SqlMycatDataContextImpl sqlMycatDataContext = new AsyncMycatDataContextImpl.SqlMycatDataContextImpl(context, plan.getCodeExecuterContext(), drdsSqlWithParams);
+        // I-DEBT-41 列类型唯一权威·形状谓词（计划期定死，发首行前）：顶层存在异构 Union 合并则置位，
+        // 列头缝与解码缝同读此决策退计划轨；直通/同构不置位（I-DEBT-34 零回归）。
+        if (MycatMergeShape.hasHeterogeneousUnion(plan.getMycatRel())) {
+            sqlMycatDataContext.markMergedHeterogeneousOutput();
+        }
         ExecutorProvider executorProvider = MetaClusterCurrent.wrapper(ExecutorProvider.class);
 
         PrepareExecutor prepare = executorProvider.prepare(plan);
