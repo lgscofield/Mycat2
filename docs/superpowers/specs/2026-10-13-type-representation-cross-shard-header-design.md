@@ -57,8 +57,8 @@
 
 **机制（方案 B 主干 —— 后端 `columnDefPackets` 作列头真相源）：**
 
-1. **侧信道载体**：`AsyncMycatDataContextImpl` 加 `final AtomicReference<MycatRowMetaData> backendRowMeta = new AtomicReference<>()`（首写者胜 `compareAndSet(null, meta)`）+ getter。
-2. **契约改动**：`VertxExecuter.Queryer.runQuery` 与 `VertxExecuter.runQuery` 增一参（后端 meta sink，如 `Consumer<MycatRowMetaData>` 或直传 `AtomicReference`）；`getObservables` 调用处传 `this.backendRowMeta`；三处 Queryer lambda 调用点（`AsyncMycatDataContextImpl.getObservableList` 两实现 + `MycatSQLTableLookup.dispatchRightObservable`）同步补参。`runQueryOutputAsMysqlPayloadObject`（单片轨）不动。
+1. **侧信道载体**：`AsyncMycatDataContextImpl` 加 `final AtomicReference<MycatRowMetaData> backendRowMeta = new AtomicReference<>()`（@Getter 暴露）+ `publishBackendRowMeta(MycatRowMetaData)`（首写者胜 `compareAndSet(null, meta)`）。
+2. **最小改动面（闭包绑定，不动 `Queryer`/`getObservables`）**：`VertxExecuter.runQuery` 新增一个带 sink 的重载 `runQuery(conn, sql, values, rowMetaDataArg, Consumer<MycatRowMetaData> backendMetaSink)`，原 4 参方法委托之（sink=`m->{}`）——因 `server/.../ReceiverImpl.java:208` 等 4 参直调点传 `rowMetaDataArg=null`（单结果集直出口），保留重载即零冲击。三处 lambda 调用点（`AsyncMycatDataContextImpl.getObservableList` 两实现 L205/L246 + `MycatSQLTableLookup.dispatchRightObservable` L272）改为 5 参并闭包捕获 `this::publishBackendRowMeta`（或 `sqlMycatDataContext::publishBackendRowMeta`）——`Queryer` 接口与 `getObservables` 不动。`runQueryOutputAsMysqlPayloadObject`（单片轨）不动。
 3. **缝二行解码**：`runQuery.onColumnDef` 内改 `this.mycatRowMetaData = RowMetaDataFidelity.effective(<后端忠实入参>, rowMetaDataArg)`，并 `sink.accept(<后端忠实入参>)`——bit `byte[]` 经 `BaseRowObservable` 既有 `case BIT:` 透传。
 4. **缝一列头**：`getMysqlPayloadObjectObservable` 把 `columnDef` 构造从 L77 急切改为 `headerSent` 首次置真时惰性 `new MySQLColumnDef(RowMetaDataFidelity.effective(ctx.getBackendRowMeta(), rowMetaData))`。
 

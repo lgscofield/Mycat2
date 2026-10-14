@@ -11,8 +11,10 @@ import java.sql.ResultSetMetaData;
  * 归并/本地计划在行解码缝与列头装配缝误用有损轨覆盖忠实轨，致 {@code bit(n>1)} 列头降为数值、行值
  * {@code byte[]} 落 {@code BaseRowObservable} 数值分支抛 {@code UnsupportedOperationException} 崩会话。
  *
- * <p>{@link #effective} 在列数相等且后端为忠实轨时，返回以<em>后端物理类型为准</em>、
+ * <p>{@link #effective} 在后端列数不少于计划列数且后端为忠实轨时，返回以<em>后端物理类型为准</em>、
  * <em>列名/label 仍以计划逻辑视图为准</em>的归一视图；否则原样返回计划 meta（纯本地计算列的 C 兜底）。
+ * 跨片 {@code order by} 会把排序键追加下推到后端 SELECT（后端列数 &gt; 计划列数），计划 project 掉尾部
+ * 排序键后列头列数少于后端；前导输出列与后端按位对齐，故守卫放宽为 {@code >=}，多余尾部列被归一视图忽略。
  * 与 {@link CopyMycatRowMetaData}/{@link RenameMycatRowMetaData} 同族。
  */
 public final class RowMetaDataFidelity {
@@ -30,7 +32,7 @@ public final class RowMetaDataFidelity {
             return backendMeta;
         }
         if (backendMeta instanceof MycatMySQLRowMetaData
-                && backendMeta.getColumnCount() == planMeta.getColumnCount()) {
+                && backendMeta.getColumnCount() >= planMeta.getColumnCount()) {
             return new FaithfulTypeView(backendMeta, planMeta);
         }
         return planMeta;
@@ -73,7 +75,9 @@ public final class RowMetaDataFidelity {
 
         @Override
         public int getColumnDisplaySize(int column) {
-            return plan.getColumnDisplaySize(column);
+            // 物理表征忠实：位长/长度取后端忠实轨（如 bit(8)=8），供列头重建生成正确的 wire column_length；
+            // 否则跨片列头被重建为默认长度会误导客户端类型解释（bit(n>1) 降为 Boolean）。
+            return backend.getColumnDisplaySize(column);
         }
 
         @Override

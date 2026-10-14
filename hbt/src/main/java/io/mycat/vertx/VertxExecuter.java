@@ -36,6 +36,7 @@ import io.mycat.api.collector.MysqlObjectArrayRow;
 import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
+import io.mycat.beans.mycat.RowMetaDataFidelity;
 import io.mycat.calcite.CodeExecuterContext;
 import io.mycat.calcite.DrdsRunnerHelper;
 import io.mycat.calcite.ExecutorProvider;
@@ -908,12 +909,13 @@ public class VertxExecuter {
 
                         @Override
                         public void onColumnDef(MycatRowMetaData mycatRowMetaData) {
-                            // I-DEBT-34（两缝同移·缝二未完，本任务只翻列头缝）：先上抛后端忠实轨到 per-query
-                            // carrier，供列头装配点 PrepareExecutor 用 effective 以后端物理类型为准重建列头。
+                            // I-DEBT-34（两缝同移·缝二）：先上抛后端忠实轨到 per-query carrier，供列头
+                            // 装配点 PrepareExecutor 用 effective 以后端物理类型为准重建列头（缝一，Task 1）。
                             backendMetaSink.accept(mycatRowMetaData);
-                            // 行解码缝本任务不动（仍历史有损轨优先）：header 忠实 + decode 有损 → byte[] 于此
-                            // 响亮崩溃（非沉默损坏）；Task 2 再把此行切成 RowMetaDataFidelity.effective 达成两缝同移。
-                            this.mycatRowMetaData = Optional.ofNullable(rowMetaDataArg).orElse(mycatRowMetaData);
+                            // 行解码缝：以 RowMetaDataFidelity.effective(后端忠实轨, 计划有损轨) 为准——与列头缝
+                            // 同一把尺子。effective 兜底：列数相符且后端为忠实轨才归一(取后端物理类型)，否则原样回
+                            // 计划轨；单结果集直出(rowMetaDataArg=null)时回后端轨 → 零回归。至此两缝合一(INV-④达成)。
+                            this.mycatRowMetaData = RowMetaDataFidelity.effective(mycatRowMetaData, rowMetaDataArg);
                         }
 
                         @Override

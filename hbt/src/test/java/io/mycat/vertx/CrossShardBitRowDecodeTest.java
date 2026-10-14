@@ -22,25 +22,31 @@ import java.util.List;
  * 走 {@code case BIT:} byte[] 透传分支；而有损计划轨（BIGINT）下同 row 落数值分支抛
  * {@code UnsupportedOperationException}（崩溃根因）。
  *
- * <p><b>⚠ 未接入生产装配</b>：本锁只证“喂忠实/归一 meta 即 byte[] 透传”的组件级契约，<em>不代表跨片
- * 端到端已闭合</em>。跨片响应须行解码缝与列头缝（{@code PrepareExecutor} 发出的 {@code MySQLColumnDef}）
- * <b>同移</b>为忠实轨，否则行值 byte[] 撞数值列头 wire 会沉默损坏（见 {@code VertxExecuter.runQuery}
- * onColumnDef 注释 + ledger Task2/3 Ruling）。异步 header wiring 与权威 e2e {@code caseCrossShardBitColumnFidelity}
- * 均 NO_DATA 待 Docker 2 分片 infra，故本锁保持 dormant（不进 {@code runQuery} 热路径）。
+ * <p><b>解码原语契约锁</b>（in-process）：本锁只证“喂忠实/归一 meta 即 byte[] 透传”的组件级契约。
+ * 生产行解码缝已在 Task 2 接入 {@code VertxExecuter.runQuery.onColumnDef}——与列头缝（{@code PrepareExecutor}
+ * 经 per-query carrier 用 {@code effective} 惰性重建）同移为忠实轨（INV-④）。跨片端到端的权威 RED→GREEN
+ * 见证为活 e2e {@code caseCrossShardBitColumnFidelity}（infra 已起，两分片真库）；本锁作解码语义的回归守卫。
  */
 public class CrossShardBitRowDecodeTest {
 
     private static final int FIELD_TYPE_BIT = 16;
 
     private static MycatMySQLRowMetaData faithfulBitMeta() {
+        return new MycatMySQLRowMetaData(List.of(colDef("c_bit8", FIELD_TYPE_BIT)));
+    }
+
+    private static ColumnDefPacketImpl colDef(String name, int mysqlType) {
+        return colDef(name, mysqlType, 256);
+    }
+
+    private static ColumnDefPacketImpl colDef(String name, int mysqlType, int columnLength) {
         ColumnDefPacketImpl c = new ColumnDefPacketImpl();
-        c.setColumnName("c_bit8".getBytes());
-        c.setColumnType(FIELD_TYPE_BIT);
+        c.setColumnName(name.getBytes());
+        c.setColumnType(mysqlType);
         c.setColumnFlags(0);
         c.setColumnCharsetSet(63);
-        List<ColumnDefPacket> list = new ArrayList<>();
-        list.add(c);
-        return new MycatMySQLRowMetaData(list);
+        c.setColumnLength(columnLength);
+        return c;
     }
 
     private static MycatRowMetaData numericPlanMeta() {
@@ -54,6 +60,21 @@ public class CrossShardBitRowDecodeTest {
         MycatRowMetaData resolved = RowMetaDataFidelity.effective(faithfulBitMeta(), numericPlanMeta());
         Assertions.assertEquals(Types.BIT, resolved.getColumnType(0),
                 "归一视图须以忠实轨 Types.BIT 为准，不被计划派生数值轨覆盖");
+    }
+
+    @Test
+    public void effectiveAlignsWhenBackendHasTrailingSortKeyColumn() {
+        // 跨片 order by：后端把排序键 id 追加下推 → 忠实轨 2 列(c_bit8 BIT, id BIGINT)，
+        // 计划列头 project 掉 id → 1 列。旧守卫要求列数相等(2!=1)误回退有损轨(BIGINT)，
+        // 与忠实解码(byte[])错配 → 客户端 NumberFormatException 沉默损坏。前导输出列须按位对齐取忠实 BIT。
+        MycatMySQLRowMetaData backend2 =
+                new MycatMySQLRowMetaData(List.of(colDef("c_bit8", FIELD_TYPE_BIT), colDef("id", 8)));
+        MycatRowMetaData plan1 = ResultSetBuilder.create()
+                .addColumnInfo("c_bit8", JDBCType.BIGINT).build().getMetaData();
+        MycatRowMetaData resolved = RowMetaDataFidelity.effective(backend2, plan1);
+        Assertions.assertEquals(Types.BIT, resolved.getColumnType(0),
+                "后端尾部追加排序键时，前导输出列仍须按位对齐取忠实 BIT");
+        Assertions.assertEquals(1, resolved.getColumnCount(), "列头列数以计划逻辑视图为准");
     }
 
     @Test
@@ -79,5 +100,31 @@ public class CrossShardBitRowDecodeTest {
                 RowMetaDataFidelity.effective(faithfulBitMeta(), numericPlanMeta()));
         Assertions.assertArrayEquals(new byte[]{(byte) 0xB3}, (byte[]) out[0],
                 "归一视图喂行解码即走 case BIT byte[] 透传（跨片闭合所需契约）");
+    }
+
+    @Test
+    public void faithfulViewCarriesBackendBitColumnLength() {
+        // 跨片列头重建需真实位长：归一视图应将列显示长度取自后端忠实轨（bit(8)=8），不被计划有损轨覆盖。
+        MycatMySQLRowMetaData backend =
+                new MycatMySQLRowMetaData(List.of(colDef("c_bit8", FIELD_TYPE_BIT, 8), colDef("id", 8, 8)));
+        MycatRowMetaData plan1 = ResultSetBuilder.create()
+                .addColumnInfo("c_bit8", JDBCType.BIGINT).build().getMetaData();
+        MycatRowMetaData resolved = RowMetaDataFidelity.effective(backend, plan1);
+        Assertions.assertEquals(8, resolved.getColumnDisplaySize(0),
+                "归一视图须以后端位长为准供列头重建");
+    }
+
+    @Test
+    public void columnDefReconstructionUsesRealBitLengthNotOne() {
+        // 跨片列头非 MycatMySQLRowMetaData → 走 ColumnDefPacketImpl 重建分支；旧代码将任何 BIT 硬编
+        // columnLength=1 → Connector/J 读成 Boolean（与单片 raw 后端包 bit(8)→byte[] 不一致）。须用真实位长 8。
+        MycatMySQLRowMetaData backend =
+                new MycatMySQLRowMetaData(List.of(colDef("c_bit8", FIELD_TYPE_BIT, 8), colDef("id", 8, 8)));
+        MycatRowMetaData plan1 = ResultSetBuilder.create()
+                .addColumnInfo("c_bit8", JDBCType.BIGINT).build().getMetaData();
+        MycatRowMetaData view = RowMetaDataFidelity.effective(backend, plan1);
+        ColumnDefPacketImpl cd = new ColumnDefPacketImpl(view, 0);
+        Assertions.assertEquals(8, cd.getColumnLength(),
+                "BIT 列定义重建须取真实位长 8，不能硬编为 1");
     }
 }

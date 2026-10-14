@@ -84,7 +84,14 @@ public class ColumnDefPacketImpl implements ColumnDefPacket {
             this.columnTable = new byte[]{};
             this.columnNextLength = 0xC;
             this.columnType = MySQLFieldsType.fromJdbcType(jdbcColumnType);
-            this.columnLength = resultSetMetaData.getColumnType(columnIndex) == JDBCType.BIT.getVendorTypeNumber() ? 1 : 255;
+            // I-DEBT-34：BIT 列长度取 meta 真实位长（后端忠实轨），不能硬编为 1——否则 bit(n>1) 会被
+            // Connector/J 当 BIT(1) 读成 Boolean，与单片 raw 后端包(bit(8)→byte[])口径不一致。
+            if (jdbcColumnType == JDBCType.BIT.getVendorTypeNumber()) {
+                int bitLength = resultSetMetaData.getColumnDisplaySize(columnIndex);
+                this.columnLength = bitLength > 0 ? bitLength : 1;
+            } else {
+                this.columnLength = 255;
+            }
             this.columnDecimals = (byte) resultSetMetaData.getScale(columnIndex);
             if (!resultSetMetaData.isNullable(columnIndex)) {
                 this.columnFlags |= MySQLFieldsType.NOT_NULL_FLAG;
