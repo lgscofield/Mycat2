@@ -83,6 +83,32 @@ public interface MycatTest {
         execute(connection, String.format("delete  from %s.%s", db, table));
     }
 
+    /**
+     * I-DEBT-7C·测试隔离前置：后端 MySQL 容器持久例，上一例／另一例遗留同名表会撞
+     * “Unknown column ...”（CREATE 经 Mycat 代理可能被吞或写向另一 ds，INSERT 则命中旧 schema）。
+     * 与 {@link #deleteData(Connection, String, String)} 同层语义：deleteData 只清行，本方法
+     * 清“旧 schema 形状”本身——建表前先 {@code DROP TABLE IF EXISTS}，给同例新 schema 腾位。
+     * 与 {@code RESET_CONFIG} 不同：RESET_CONFIG 只重置 Mycat 运行期配置，不动后端物理 schema。
+     *
+     * <p><b>为何直连后端而非经 Mycat</b>：现场取证发现 Mycat 代理层 {@code DROP TABLE IF EXISTS}
+     * 在建例后不会将 DROP 路由至后端物理库（同一语句经 mysql client 能成，但经 JDBC Statement + Druid
+     * 连接池的会话内不路由，根因属 Mycat DDL 路由自身候选债，待另票）。本方法为“测试隔离”目的
+     * 不绑 Mycat 代理，直接拿 DB1/DB2 将两张后端同名下旧表清掉；后端不存在该库时 {@code IF EXISTS}
+     * 会抛 {@code Unknown database}，本方法吐异常并继续下一后端（尽力而为，不阻断同例主流程）。
+     */
+    public default void dropTableIfExists(Connection mycatConnection, String db, String table) throws Exception {
+        // 保留参数位以同族 deleteData（当前不需 mycatConnection，将来 Mycat DDL 路由修复后可切回）。
+        for (String url : new String[] { DB1, DB2 }) {
+            try (Connection backend = getMySQLConnection(url);
+                 Statement st = backend.createStatement()) {
+                st.execute(String.format("DROP TABLE IF EXISTS %s.%s", db, table));
+            } catch (java.sql.SQLException e) {
+                // 后端无该库（如 m1-mysql-b 上未建 db1）合法吐错，不阻断；其他异常也当隔离失败吐下。
+                LOGGER.warn("dropTableIfExists skip {}:{} err={}", url, db + "." + table, e.getMessage());
+            }
+        }
+    }
+
     public default void execute(Connection mySQLConnection, String sql) throws Exception {
         LOGGER.info(sql);
         // 用 JDBC Statement.execute() 而非 druid JdbcUtils.execute（其内部强制 PreparedStatement.executeUpdate）。

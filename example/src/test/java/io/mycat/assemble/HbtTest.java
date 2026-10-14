@@ -47,6 +47,9 @@ public class HbtTest implements MycatTest {
 
             execute(mycatConnection, "CREATE DATABASE db1");
             execute(mycatConnection, "USE `db1`;");
+            // I-DEBT-7C·测试隔离：后端 MySQL 容器持久例，先 DROP 同名下旧表，避免 Mycat 代理层 CREATE 与旧 schema
+            // 碰撞后 INSERT 才爆 "Unknown column"（历史上 db1.company 曾被另一例建为 travelrecord 形态）。
+            dropTableIfExists(mycatConnection, "db1", "travelrecord");
             execute(mycatConnection, "CREATE TABLE db1.`travelrecord` (\n" +
                     "  `id` bigint NOT NULL AUTO_INCREMENT,\n" +
                     "  `user_id` varchar(100) DEFAULT NULL,\n" +
@@ -61,7 +64,8 @@ public class HbtTest implements MycatTest {
             deleteData(mycatConnection, "db1", "travelrecord");
 
 
-            execute(mycatConnection, "CREATE TABLE `company` (\n" +
+            dropTableIfExists(mycatConnection, "db1", "company");
+            execute(mycatConnection, "CREATE TABLE `db1`.`company` (\n" +
                     "  `id` int(11) NOT NULL AUTO_INCREMENT,\n" +
                     "  `companyname` varchar(20) DEFAULT NULL,\n" +
                     "  `addressid` int(11) DEFAULT NULL,\n" +
