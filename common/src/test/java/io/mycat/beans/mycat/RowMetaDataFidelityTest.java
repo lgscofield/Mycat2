@@ -133,4 +133,23 @@ public class RowMetaDataFidelityTest {
         Assert.assertEquals("异名列（col1 traveldate≠companyname）须回退计划轨 Types.VARCHAR，不被后端覆盖",
                 Types.VARCHAR, eff.getColumnType(1));
     }
+
+    /**
+     * I-DEBT-41 列类型唯一权威·解码缝：多源 Union 合并（权威=计划轨）时，解码不得再取单分支
+     * 后端忠实轨覆写（byte[] 撞 codegen 裸转 (Long) 即崩），须原样用计划 meta，与列头缝同源。
+     */
+    @Test
+    public void decodeAuthorityReturnsPlanMetaWhenPlanTrackAuthoritative() {
+        MycatRowMetaData plan = numericPlanMeta();
+        Assert.assertSame("置位权威下解码缝须直接用计划轨（不经忠实覆写）",
+                plan, RowMetaDataFidelity.decodeAuthority(faithfulBitMeta(), plan, true));
+    }
+
+    /** 未置位（直通/同构）：decodeAuthority 等价 effective，I-DEBT-34 保真行为零回归。 */
+    @Test
+    public void decodeAuthorityDelegatesToEffectiveWhenNotAuthoritative() {
+        MycatRowMetaData result = RowMetaDataFidelity.decodeAuthority(faithfulBitMeta(), numericPlanMeta(), false);
+        Assert.assertEquals("未置位须保持忠实覆写 Types.BIT",
+                Types.BIT, result.getColumnType(0));
+    }
 }

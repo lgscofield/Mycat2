@@ -235,7 +235,7 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             MycatTransientSQLTableScan relNode = (MycatTransientSQLTableScan) mycatRelDatasourceSourceInfo.getRelNode();
             ImmutableMultimap<String, SqlString> multimap = ImmutableMultimap.of(relNode.getTargetName(), new SqlString(MycatSqlDialect.DEFAULT, relNode.getSql()));
             return getObservables(multimap, mycatRelDatasourceSourceInfo.getColumnInfo(),
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta)
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta, this::isMergedHeterogeneousOutput)
             );
         }
 
@@ -276,7 +276,7 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             boolean share = mycatRelDatasourceSourceInfo.refCount > 0;
             List<Observable<Object[]>> observables = getObservables((view
                             .apply(dataContext.getMergeUnionSize(), mycatRelDatasourceSourceInfo.getSqlTemplate(), sqlMap, drdsSqlWithParams.getParams())), mycatRelDatasourceSourceInfo.getColumnInfo(),
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta)
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta, this::isMergedHeterogeneousOutput)
             );
             if (share) {
                 observables = observables.stream().map(i -> i.share()).collect(Collectors.toList());

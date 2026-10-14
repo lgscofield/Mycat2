@@ -896,6 +896,16 @@ public class VertxExecuter {
                                                 List<Object> values,
                                                 MycatRowMetaData rowMetaDataArg,
                                                 Consumer<MycatRowMetaData> backendMetaSink) {
+        // 5 参重载：无 per-query 权威决策源（非合并路径）→ 解码恒走 effective（I-DEBT-34 行为零回归）。
+        return runQuery(connectionFuture, sql, values, rowMetaDataArg, backendMetaSink, () -> false);
+    }
+
+    public static Observable<Object[]> runQuery(Future<NewMycatConnection> connectionFuture,
+                                                String sql,
+                                                List<Object> values,
+                                                MycatRowMetaData rowMetaDataArg,
+                                                Consumer<MycatRowMetaData> backendMetaSink,
+                                                Supplier<Boolean> planTrackDecode) {
         return Observable.create(emitter -> {
             // 单次终态门：与 runQueryOutputAsMysqlPayloadObject 同构，防 double-terminal → Undeliverable。
             final AtomicBoolean terminated = new AtomicBoolean(false);
@@ -912,10 +922,12 @@ public class VertxExecuter {
                             // I-DEBT-34（两缝同移·缝二）：先上抛后端忠实轨到 per-query carrier，供列头
                             // 装配点 PrepareExecutor 用 effective 以后端物理类型为准重建列头（缝一，Task 1）。
                             backendMetaSink.accept(mycatRowMetaData);
-                            // 行解码缝：以 RowMetaDataFidelity.effective(后端忠实轨, 计划有损轨) 为准——与列头缝
-                            // 同一把尺子。effective 兜底：列数相符且后端为忠实轨才归一(取后端物理类型)，否则原样回
-                            // 计划轨；单结果集直出(rowMetaDataArg=null)时回后端轨 → 零回归。至此两缝合一(INV-④达成)。
-                            this.mycatRowMetaData = RowMetaDataFidelity.effective(mycatRowMetaData, rowMetaDataArg);
+                            // 行解码缝：I-DEBT-41 列类型唯一权威——多源 Union 合并（planTrackDecode 置位，
+                            // 计划期定死）时两缝一致退计划轨，不得取单分支忠实轨覆写（byte[] 撞 codegen 裸转
+                            // (Long) 即崩）；未置位则维持 effective 忠实归一（I-DEBT-34 零回归）。
+                            // effective 兜底：列数相符且后端为忠实轨才归一；单结果集直出(rowMetaDataArg=null)回后端轨。
+                            this.mycatRowMetaData = RowMetaDataFidelity.decodeAuthority(mycatRowMetaData,
+                                    rowMetaDataArg, Boolean.TRUE.equals(planTrackDecode.get()));
                         }
 
                         @Override

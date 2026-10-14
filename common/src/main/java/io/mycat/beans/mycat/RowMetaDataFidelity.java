@@ -38,6 +38,23 @@ public final class RowMetaDataFidelity {
         return planMeta;
     }
 
+    /**
+     * I-DEBT-41 列类型唯一权威·解码缝入口：{@code planTrackAuthority} 置位（多源 Union 合并，单分支
+     * 后端轨不是合法权威）时原样返回计划 meta，与列头缝同源；未置位等价 {@link #effective}。
+     *
+     * @param backendMeta      本扫描后端忠实轨 meta（onColumnDef 回包）
+     * @param planMeta         本扫描计划派生 meta
+     * @param planTrackAuthority per-query 异构权威决策（发首行前计划期定死）
+     * @return 置位 → {@code planMeta}；否则 {@code effective(backendMeta, planMeta)}
+     */
+    public static MycatRowMetaData decodeAuthority(MycatRowMetaData backendMeta, MycatRowMetaData planMeta,
+                                                   boolean planTrackAuthority) {
+        if (planTrackAuthority) {
+            return planMeta == null ? backendMeta : planMeta;
+        }
+        return effective(backendMeta, planMeta);
+    }
+
     /** 委托计划 meta 的一切，唯独 {@code getColumnType} 取后端忠实轨物理类型。 */
     private static final class FaithfulTypeView implements MycatRowMetaData {
         private final MycatRowMetaData backend;
