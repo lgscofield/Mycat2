@@ -1,7 +1,12 @@
 package io.mycat.calcite;
 
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.Aggregate;
+import org.apache.calcite.rel.core.Correlate;
+import org.apache.calcite.rel.core.Join;
+import org.apache.calcite.rel.core.SetOp;
 import org.apache.calcite.rel.core.Union;
+import org.apache.calcite.rel.core.Window;
 
 import java.util.List;
 
@@ -41,6 +46,29 @@ public final class MycatMergeShape {
     }
 
     /**
+     * I-DEBT-41 Review Focus#2（lookup/join 形态，Task 6 活靶实证）：计划内存在<b>内存重消费</b>算子
+     * （Join/Aggregate/Window/Correlate/SetOp 族）时，扫描行将喂给 codegen 生成的 typed consumer
+     * （distinct/比较键按 Calcite 坍缩类型裸转 (Long) 等），后端忠实轨的 bit byte[] 必炸——解码缝
+     * 无条件退计划轨。与 Union 合并同源一条规则：“内部重消费→计划轨”；纯扫描直通（无任何此类算子，
+     * 含同构分片单 MycatView 归并）不命中，I-DEBT-34 忠实轨零回归。
+     */
+    public static boolean hasInternalReconsumingOperator(RelNode root) {
+        if (root == null) {
+            return false;
+        }
+        if (root instanceof Join || root instanceof Aggregate || root instanceof Window
+                || root instanceof Correlate || root instanceof SetOp) {
+            return true;
+        }
+        for (RelNode input : root.getInputs()) {
+            if (hasInternalReconsumingOperator(input)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * I-DEBT-41 切片2 ①：顶层 Union 分支数（describe 探测完整性门槛）。仅接受两种保守形态：
      * 根即 Union，或根单一子节点为 Union（MemSort 等顶层包装不改列形状）。其余形态返回 -1
      * → 不探测回 ③（嵌套 Union 等复杂树分支计数不可靠，宁保守）。
@@ -59,26 +87,5 @@ public final class MycatMergeShape {
             }
         }
         return -1;
-    }
-
-    /** 临时诊断（I-DEBT-41 取证，合入前删）：dump rel 树中 Union 族节点的输入类与 rowType。 */
-    public static String shapeDump(RelNode node) {
-        if (node == null) {
-            return "null";
-        }
-        StringBuilder sb = new StringBuilder();
-        dump(node, sb, 0);
-        return sb.toString();
-    }
-
-    private static void dump(RelNode node, StringBuilder sb, int depth) {
-        sb.repeat(' ', depth * 2).append(node.getClass().getSimpleName())
-                .append(" rowType=").append(node.getRowType().getFieldList().stream()
-                        .map(f -> f.getName() + ":" + f.getType().getFullTypeString())
-                        .reduce((a, b) -> a + ", " + b).orElse(""))
-                .append('\n');
-        for (RelNode in : node.getInputs()) {
-            dump(in, sb, depth + 1);
-        }
     }
 }

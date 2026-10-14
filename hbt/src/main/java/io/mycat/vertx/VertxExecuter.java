@@ -933,14 +933,6 @@ public class VertxExecuter {
                         @Override
                         public void onRow(Object[] row) {
                             try {
-                                // 临时探针（I-DEBT-41 取证，合入前删）
-                                if (row.length > 0) {
-                                    Object r0 = row[0];
-                                    LOGGER.info("I-DEBT-41-probe-decode colType0={} planTrack={} raw0Cls={} raw0={}",
-                                            this.mycatRowMetaData == null ? -1 : this.mycatRowMetaData.getColumnType(0),
-                                            planTrackDecode.get(), r0 == null ? "null" : r0.getClass().getSimpleName(),
-                                            r0 instanceof byte[] ? java.util.Arrays.toString((byte[]) r0) : String.valueOf(r0));
-                                }
                                 emitter.onNext(BaseRowObservable.getObjects(row, this.mycatRowMetaData));
                             } catch (Exception e) {
                                 LOGGER.error("", e);

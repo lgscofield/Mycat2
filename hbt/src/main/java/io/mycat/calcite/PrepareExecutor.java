@@ -88,6 +88,11 @@ public class PrepareExecutor {
                 MycatRowMetaData authorityBackend;
                 if (newMycatDataContext.isMergedHeterogeneousOutput()) {
                     authorityBackend = newMycatDataContext.probeMergedBackendMeta();
+                } else if (newMycatDataContext.isInternalReconsumeDecode()) {
+                    // I-DEBT-41 Task 6：内部重消费（join/agg/lookup）时多源先后发布 carrier 互踩，
+                    // 首写者分支不是合法权威（活靶实证 lookup 列头 BIT vs 直连 BIGINT）；行值已按
+                    // 计划轨解码，列头同退计划轨保持两缝不分叉（回 I-DEBT-34 前的计划轨形态）。
+                    authorityBackend = null;
                 } else {
                     authorityBackend = newMycatDataContext.getBackendRowMeta().get();
                 }

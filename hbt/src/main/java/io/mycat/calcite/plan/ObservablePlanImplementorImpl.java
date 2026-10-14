@@ -239,8 +239,12 @@ public class ObservablePlanImplementorImpl implements PlanImplementor {
             sqlMycatDataContext.markMergedHeterogeneousOutput(
                     MycatMergeShape.topLevelUnionBranchCount(plan.getMycatRel()));
         }
-        LOGGER.info("I-DEBT-41-probe hetero={} rel={}", sqlMycatDataContext.isMergedHeterogeneousOutput(),
-                MycatMergeShape.shapeDump(plan.getMycatRel())); // 临时取证，合入前删
+        // I-DEBT-41 Review Focus#2（Task 6）：计划内含内存重消费算子（Join/Aggregate/Window/Correlate/
+        // SetOp 族，含 lookup 经 SubQueryRemoveRule 变身的 SortMergeJoin+HashAggregate）→ 两缝同退计划轨，
+        // 防忠实轨 bit byte[] 进 codegen typed consumer 裸转崩，且多源发布 carrier 互踩使列头失真。
+        if (MycatMergeShape.hasInternalReconsumingOperator(plan.getMycatRel())) {
+            sqlMycatDataContext.markInternalReconsumeDecode();
+        }
         ExecutorProvider executorProvider = MetaClusterCurrent.wrapper(ExecutorProvider.class);
 
         PrepareExecutor prepare = executorProvider.prepare(plan);

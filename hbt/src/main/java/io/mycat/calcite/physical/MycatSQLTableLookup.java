@@ -269,7 +269,12 @@ public class MycatSQLTableLookup extends SingleRel implements MycatRel {
             SqlNode sqlTemplate = newRightView.getSQLTemplate(DrdsSqlWithParams.isForUpdate(drdsSql.getParameterizedSQL()));
             ImmutableMultimap<String, SqlString> apply1 = newRightView.apply(context.getContext().getMergeUnionSize(), sqlTemplate, sqlMycatDataContext.getSqlMap(Collections.emptyMap(), newRightView, drdsSql, drdsSql.getHintDataNodeFilter()), drdsSql.getParams());
             return Observable.merge(sqlMycatDataContext.getObservables(apply1, rightRowMetaData,
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, sqlMycatDataContext::publishBackendRowMeta, sqlMycatDataContext::isMergedHeterogeneousOutput)
+                    // I-DEBT-41 Review Focus#2：lookup 右侧行是<b>内部消费</b>（喂 Calcite distinct/join 内存算子，
+                    // 输出列来自左侧），不是直通 wire——解码必须无条件取计划轨：后端忠实轨的 bit byte[]
+                    // 会被 codegen 按 Calcite 坍缩类型裸转 (Long) 直接崩（[B cannot be cast to Long，
+                    // Task 6 活靶实证）。与多源 Union 合并同源于“内部重消费→计划轨”权威规则，
+                    // 不再借道外层 isMergedHeterogeneousOutput（顶层非 Union 时不置位，盖不住本路）。
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, sqlMycatDataContext::publishBackendRowMeta, () -> true)
             ));
         });
         return rightObservable;
