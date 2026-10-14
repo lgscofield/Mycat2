@@ -27,6 +27,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -88,6 +89,32 @@ public class ResultSetMapping {
                                 row[rowIndex] = TextConvertorImpl.getBytes(((Timestamp) o).toLocalDateTime());
                             } else if (o instanceof LocalDateTime) {
                                 row[rowIndex] = TextConvertorImpl.getBytes((LocalDateTime) o);
+                            } else {
+                                LOGGER.error(" unsupport type:{}  value:{}", o.getClass(), o);
+                                throw new UnsupportedOperationException();
+                            }
+                            break;
+                        }
+                        case Types.DATE: {
+                            // I-DEBT-42：MySQL text 协议 DATE 列的 wire 形式必须为 10 字节 ISO "yyyy-MM-dd"
+                            // （Connector/J MysqlTextValueDecoder.decodeDate 只认 0/10 字节，否则报 Invalid length）。
+                            // 旧实现无本分支 → DATE 落 default 的 Objects.toString().getBytes(UTF_8)：
+                            // HBT Calcite codegen 直发 Object[] 时 DATE 列的内部表示是 int days-since-epoch，
+                            // Integer.toString(18262) = "18262" = 5 字节，与 LocalDate.toString() 恰好 10 字节同走 default 看似
+                            // 安全但实际不同——本分支将内部表示归一到 ISO，未知类型响亮抱UnsUPPORTED，不再沉默损坏。
+                            Object o = objects[columnIndex];
+                            if (o == null) {
+                                row[rowIndex] = null;
+                            } else if (o instanceof LocalDate) {
+                                row[rowIndex] = ((LocalDate) o).toString().getBytes(StandardCharsets.UTF_8);
+                            } else if (o instanceof java.sql.Date) {
+                                row[rowIndex] = ((java.sql.Date) o).toLocalDate().toString().getBytes(StandardCharsets.UTF_8);
+                            } else if (o instanceof Integer) {
+                                // Calcite 内部日编码：days since 1970-01-01
+                                row[rowIndex] = LocalDate.ofEpochDay(((Integer) o).longValue()).toString().getBytes(StandardCharsets.UTF_8);
+                            } else if (o instanceof String) {
+                                // 后端 JDBC 直接以 "yyyy-MM-dd" 字符串回时，不重推时区，逐字透传。
+                                row[rowIndex] = ((String) o).getBytes(StandardCharsets.UTF_8);
                             } else {
                                 LOGGER.error(" unsupport type:{}  value:{}", o.getClass(), o);
                                 throw new UnsupportedOperationException();

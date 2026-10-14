@@ -50,7 +50,17 @@ public final class RowMetaDataFidelity {
 
         @Override
         public int getColumnType(int column) {
-            return backend.getColumnType(column);
+            // I-DEBT-42：忠实覆写只在“该位后端列名 == 计划列名”时成立。跨片单表直通（含 ORDER BY 下推
+            // 的尾部排序键）前导列逐位对齐，覆写安全；但 join/聚合/带计算列投影的计划，carrier 里的后端
+            // 轨是某个“输入叶子扫描”的形状，与计划输出不按位对应——无守卫直取后端类型会把输入列的物理
+            // 类型（如 traveldate=DATE/BIT）沉默套到语义完全不同的输出列（如 companyname=VARCHAR）上，
+            // 造成列头与行值错位的沉默数据损坏。异名列一律回计划轨（Calcite 派生，对非 BIT 类型本就正确）。
+            String backendCol = backend.getColumnName(column);
+            String planCol = plan.getColumnName(column);
+            if (backendCol != null && backendCol.equalsIgnoreCase(planCol)) {
+                return backend.getColumnType(column);
+            }
+            return plan.getColumnType(column);
         }
 
         @Override
@@ -77,7 +87,12 @@ public final class RowMetaDataFidelity {
         public int getColumnDisplaySize(int column) {
             // 物理表征忠实：位长/长度取后端忠实轨（如 bit(8)=8），供列头重建生成正确的 wire column_length；
             // 否则跨片列头被重建为默认长度会误导客户端类型解释（bit(n>1) 降为 Boolean）。
-            return backend.getColumnDisplaySize(column);
+            // I-DEBT-42：同样受列名对齐守卫约束——异名位的后端 displaySize 来自输入叶子，不属本输出列，应回计划轨。
+            String backendCol = backend.getColumnName(column);
+            if (backendCol != null && backendCol.equalsIgnoreCase(plan.getColumnName(column))) {
+                return backend.getColumnDisplaySize(column);
+            }
+            return plan.getColumnDisplaySize(column);
         }
 
         @Override
