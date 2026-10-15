@@ -606,10 +606,16 @@ public class VertxExecuter {
                         SQLExpr sqlExpr = values.get(fillAutoIncrementContext.existColumnIndex);
                         if (sqlExpr instanceof SQLVariantRefExpr) {
                             int paramIndex = ((SQLVariantRefExpr) sqlExpr).getIndex();
-                            Object o = params.get(paramIndex);
+                            // I-DEBT-48: 具名 variant（@x）index<0，视为取到 null（未定义用户变量），走自增填充。
+                            Object o = paramIndex >= 0 ? params.get(paramIndex) : null;
                             if (o == null || (o instanceof Number && o.equals(0))) {//may be Double
                                 Supplier<Number> stringSupplier = shardingTable.nextSequence();
-                                params.set(paramIndex, stringSupplier.get());
+                                if (paramIndex >= 0) {
+                                    params.set(paramIndex, stringSupplier.get());
+                                } else {
+                                    // 具名 variant 无位置槽，直接替换为自增字面量（等价 SQLNullExpr 分支）
+                                    primaryStatement.getValues().replace(sqlExpr, PreparedStatement.fromJavaObject(stringSupplier.get()));
+                                }
                             }
                         } else if (sqlExpr instanceof SQLNullExpr) {
                             Supplier<Number> stringSupplier = shardingTable.nextSequence();
@@ -638,7 +644,11 @@ public class VertxExecuter {
                         SQLBinaryOpExpr op = (SQLBinaryOpExpr) sqlExpr;
                         SQLExpr right = op.getRight();
                         if (right instanceof SQLVariantRefExpr) {
-                            op.setRight(PreparedStatement.fromJavaObject(paramArg.get(((SQLVariantRefExpr) right).getIndex())));
+                            int idx = ((SQLVariantRefExpr) right).getIndex();
+                            // I-DEBT-48: 具名 variant 取不到位置参数，保留 @var 文本下推由后端解析。
+                            if (idx >= 0) {
+                                op.setRight(PreparedStatement.fromJavaObject(paramArg.get(idx)));
+                            }
                         } else if (right instanceof SQLValuableExpr) {
 
                         } else {
@@ -673,7 +683,11 @@ public class VertxExecuter {
                             if (indexTable.getColumns().stream().anyMatch(i -> left.equalsIgnoreCase(i.getColumnName()))) {
                                 SQLExpr right = op.getRight();
                                 if (right instanceof SQLVariantRefExpr) {
-                                    op.setRight(PreparedStatement.fromJavaObject(paramArg.get(((SQLVariantRefExpr) right).getIndex())));
+                                    int idx = ((SQLVariantRefExpr) right).getIndex();
+                                    // I-DEBT-48: 具名 variant 取不到位置参数，保留 @var 文本下推由后端解析。
+                                    if (idx >= 0) {
+                                        op.setRight(PreparedStatement.fromJavaObject(paramArg.get(idx)));
+                                    }
                                 } else if (right instanceof SQLValuableExpr) {
 
                                 } else {
@@ -719,7 +733,11 @@ public class VertxExecuter {
         primaryStatement.accept(new MySqlASTVisitorAdapter() {
             @Override
             public boolean visit(SQLVariantRefExpr x) {
-                newParams.add(params.get(x.getIndex()));
+                // I-DEBT-48: 具名 variant（@x）index<0 不占位置参数槽（其文本原样保留在下推 SQL 中），仅收集位置参数。
+                int idx = x.getIndex();
+                if (idx >= 0) {
+                    newParams.add(params.get(idx));
+                }
                 return false;
             }
         });
@@ -774,7 +792,9 @@ public class VertxExecuter {
             Object o = null;
             if (sqlExpr instanceof SQLVariantRefExpr) {
                 int index = ((SQLVariantRefExpr) sqlExpr).getIndex();
-                o = params.get(index);
+                // I-DEBT-48: 具名 variant（MySQL 用户变量 @x）的 getIndex() 返回 -1，不在位置参数列表内。
+                // 本地分片计算无法解析其真值，按“未定义用户变量”语义取 null；真值仍由原样下推的文本交后端解析。
+                o = index >= 0 ? params.get(index) : null;
             } else if (sqlExpr instanceof SQLNullExpr) {
                 o = null;
             } else if (sqlExpr instanceof SQLValuableExpr) {
@@ -789,7 +809,7 @@ public class VertxExecuter {
                             SQLExpr sqlExpr1 = ((SQLMethodInvokeExpr) sqlExpr).getArguments().get(0);
                             if (sqlExpr1 instanceof SQLVariantRefExpr) {
                                 int index = ((SQLVariantRefExpr) sqlExpr1).getIndex();
-                                o = params.get(index);
+                                o = index >= 0 ? params.get(index) : null;
                                 success = true;
                             } else if (sqlExpr1 instanceof SQLCharExpr) { // 兼容 compress 等函数，放的是字符串
                                 o = ((SQLCharExpr) sqlExpr1).getText();
