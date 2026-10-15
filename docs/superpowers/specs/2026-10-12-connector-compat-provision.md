@@ -2,7 +2,7 @@
 
 > **这是什么**：招牌"全 connector 跑基本 CRUD"（主 spec §3 M2 / §7 判据 4）里 **connector 轴**的建格现状与点亮清单。口径冲突以主 spec `2026-09-30-mycat2-mysql-mariadb-lts-compatibility-design.md` §1.1/§7 + 各 connector **官方文档**为准（落实"拿不准查官网"）。
 >
-> **校准**：2026-10-12，凭当前 `example/.../compat/` 测试族 + 根 `pom.xml` 依赖实读 + MySQL/MariaDB/go-sql-driver 官网实读，非凭记忆。
+> **校准**：2026-10-12，凭当前 `example/.../compat/` 测试族 + 根 `pom.xml` 依赖实读 + MySQL/MariaDB/go-sql-driver 官网实读，非凭记忆。**2026-10-15 更新**：Go/Python/C/.NET 明文基本 CRUD 面经 docker 容器化真跑全 PASS（§2 已据实回写），证据 `.superpowers/sdd/2026-10-15-connector-polyglot/polyglot-report.md`；TLS×非 Java connector 与深面仍 NO_DATA。
 
 ---
 
@@ -22,12 +22,12 @@
 |---|---|---|---|---|
 | **Connector/J** | **9.x**（根 pom `mysql-connector-j:9.3.0`） | `ConnectionSmokeTest`+`CrudResultMatrixTest`（连 8066 打真实后端）× 7 档 | 🟢 **PASS** | 已跑绿（见 `matrix-report.md`）；此即 M2"至少一个 connector"底线 |
 | Connector/J | 5.1 / 8.x | 需切 classpath 到旧版 Connector/J 再跑四件套 | ⚪ NO_DATA | 目标 §1.1 点名 5.1/8.x/9.x；现类路径仅 9.x，旧线未跑=未覆盖（换 jar 非装新语言，红线较轻，但仍需用户裁定引入旧 jar） |
-| **Go** `go-sql-driver/mysql` | — | 独立 `go run` 冒烟（连 8066 打 CRUD） | ⚪ NO_DATA | Java 测不了；见 §3.1 runbook；触 Go 工具链红线 |
-| **Python** `PyMySQL` / `mysqlclient` | — | 独立 `python` 冒烟 | ⚪ NO_DATA | Java 测不了；见 §3.2 runbook；触 Python/pip 红线 |
-| **C** MariaDB Connector/C（或 MySQL Connector/C） | — | 编译 `smoke.c` 调 `mysql_real_connect` | ⚪ NO_DATA | Java 测不了；见 §3.3 runbook；触 C 工具链/libmysqlclient 红线 |
-| **.NET** MySQL Connector/NET（或 Npgsql 族外的 `MySql.Data`） | — | `dotnet run` 冒烟 | ⚪ NO_DATA | Java 测不了；见 §3.4 runbook；触 .NET SDK/NuGet 红线 |
+| **Go** `go-sql-driver/mysql` | — | 独立 `go run` 冒烟（连 8066 打 CRUD） | 🟢 **PASS**（明文基本面） | 2026-10-15 容器化真跑绿（docker 客户端主机零装、`host.docker.internal:8066` persona=MYSQL_8_0 明文，SELECT 1+最小 CRUD 保真+跨库归并读回）；证据 `.superpowers/sdd/2026-10-15-connector-polyglot/polyglot-report.md`；真情报：go-sql-driver 原生支持 caching_sha2 无需补丁。**TLS×Go 基本 CRUD 面已 2026-10-15 真跑 PASS（skip-verify），预编译/结果集边缘深面×TLS 仍 NO_DATA** |
+| **Python** `PyMySQL` / `mysqlclient` | — | 独立 `python` 冒烟 | 🟢 **PASS**（明文基本面） | 2026-10-15 容器化真跑绿（`py/smoke.py`，autocommit；证据同上）；真情报：PyMySQL caching_sha2 认证必须 `PyMySQL[cryptography]`（官方行为）。**TLS×Python 基本 CRUD 面已 2026-10-15 真跑 PASS（ssl ctx CERT_NONE），深面×TLS 仍 NO_DATA** |
+| **C** MariaDB Connector/C（或 MySQL Connector/C） | — | 编译 `smoke.c` 调 `mysql_real_connect` | 🟢 **PASS**（明文基本面） | 2026-10-15 容器化真跑绿（`gcc:13-bookworm` 内 `libmariadb-dev`+`mariadb_config` 编译；证据同上）。**TLS×C 基本 CRUD 面已 2026-10-15 真跑 PASS（SSL_ENFORCE），深面×TLS 仍 NO_DATA** |
+| **.NET** MySQL Connector/NET（或 Npgsql 族外的 `MySql.Data`） | — | `dotnet run` 冒烟 | 🟢 **PASS**（明文基本面） | 2026-10-15 容器化真跑绿（`mcr.microsoft.com/dotnet/sdk:8.0`+`MySql.Data 26.7.0`；证据同上）；真情报：MySql.Data 26.7.0 **拒 `sslmode=None`**（报 "Requested value 'None' was not found."），改 `sslmode=Preferred`（server 未声明 TLS 即回退明文，语义等价）。**TLS×.NET 基本 CRUD 面已 2026-10-15 真跑 PASS（sslmode=Required），深面×TLS 与 CA 校验仍 NO_DATA** |
 
-> TLS 轴（R4）点亮时，同 runbook 各语言追加 `tls`/`ssl-mode` 参数（§3 已附参数名），TLS on/off 逐 connector 再展开为二维格。进展（2026-10-13）：TLS 传输升级(R4 Task3)已 Evidenced-Done（`e01368405`，BC 红线已批已落地，真 Connector/J 离线探针定谳）；Java 侧 TLS 矩阵格已建格（`TlsAxisMatrixTest` + `2026-10-13-tls-compat-matrix.md`，e2e 真跑待 infra）；非 Java connector×TLS 仍全格 NO_DATA（属本文 polyglot 专轮）。
+> TLS 轴（R4）点亮时，同 runbook 各语言追加 `tls`/`ssl-mode` 参数（§3 已附参数名），TLS on/off 逐 connector 再展开为二维格。进展（2026-10-13）：TLS 传输升级(R4 Task3)已 Evidenced-Done（`e01368405`，BC 红线已批已落地，真 Connector/J 离线探针定谳）；Java 侧 TLS 矩阵格已建格（`TlsAxisMatrixTest` + `2026-10-13-tls-compat-matrix.md`，e2e 真跑待 infra）；非 Java connector×TLS 仍全格 NO_DATA（属本文 polyglot 专轮）。**进一（2026-10-15）**：容器化零装路径已跑非 Java connector×TLS **基本 CRUD 面**——go/py/c/dotnet 强制 TLS（skip-verify/ssl ctx/SSL_ENFORCE/sslmode=Required）连 tls.mode=REQUIRED 自签服务全 **PASS**，DISABLED 负控 FAIL 坐实判别力（证据 `2026-10-15-connector-polyglot/tls-polyglot-report.md`）；**仍 NO_DATA**：各语言深面×TLS、CA/Identity 真证书链校验。附发现：Mycat 前端不上报会话 `Ssl_cipher`（`SHOW SESSION STATUS` 返空，真 MySQL 会报 TLS-*）。
 
 ---
 
@@ -61,6 +61,7 @@
 
 ## 4. 看板/债务回写口径
 
-- `DEBT-QUEUE` M1 仪表盘"connector 只测 Connector/J（目标含 5 类）"→ 保留为**开放**，但注明 Connector/J 9.x 已 PASS、其余 4 类=本文 NO_DATA 建格 + runbook 已备。
-- `I-DEBT-9`（TLS/mysqldump/多 connector 矩阵 0 覆盖）之"多 connector"子面 → 由"未建格"推进为"**已建格记 NO_DATA + provision runbook 就绪**"；**真跑（polyglot/docker 网）仍为架构·挂账专轮**，须用户拍板装运行时后启。
+- `DEBT-QUEUE` M1 仪表盘"connector 只测 Connector/J（目标含 5 类）"→ **Connector/J 9.x 已 PASS；Go/Python/C/.NET 明文基本 CRUD 面 2026-10-15 容器化真跑也已全 PASS**（见 §2）；**仅余 TLS×非 Java connector 与各语言深面 NO_DATA**。
+- `I-DEBT-9`（TLS/mysqldump/多 connector 矩阵 0 覆盖）之"多 connector"子面 → 由"未建格"推进为"**已建格 + provision runbook 就绪**"，再于 **2026-10-15 容器化真跑点亮明文基本 CRUD 面（go/python/c/dotnet 全 PASS）**；**TLS×非 Java connector 与各语言深面仍为架构·挂账专轮**。
 - **绝不**把非 Java connector 写成 PASS——当前无一条非 Java connector 实跑证据。
+  - **订正（2026-10-15）**：本条约束的是一真——不得无证据虚写 PASS。**现 Go/Python/C/.NET 明文基本 CRUD 面已有容器化实跑真证据**（docker 客户端主机零装、persona=MYSQL_8_0 明文，SELECT 1+最小 CRUD 保真+跨库归并读回，含判别力自证 go_negctl FAIL@connect + sanitize_pre/post 清道夫），已据实回写为 🟢 PASS（见 §2）。**口径边界**：此 PASS 仅指**明文基本 CRUD 面**；**TLS×非 Java connector、各语言深面（预编译/结果集边缘/字符集保真）、Connector/J 5.1/8.x 旧线仍一律 NO_DATA**，不得类推。
