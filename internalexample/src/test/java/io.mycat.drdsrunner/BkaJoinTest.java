@@ -57,6 +57,16 @@ public class BkaJoinTest extends DrdsTest {
         return new Explain(plan, drdsSqlWithParams);
     }
 
+    /** I-DEBT-46：同本班 RBO 配置但不强添 hint，让用例自带精确的 hint 形态。 */
+    public static Explain parseRaw(String sql) {
+        DrdsSqlCompiler drds = getDrds();
+        DrdsSqlWithParams drdsSqlWithParams = DrdsRunnerHelper.preParse(sql, null);
+        OptimizationContext optimizationContext = new OptimizationContext();
+        MycatRel dispatch = drds.dispatch(optimizationContext, drdsSqlWithParams);
+        Plan plan = new PlanImpl(dispatch, DrdsExecutorCompiler.getCodeExecuterContext(optimizationContext.relNodeContext.getConstantMap(), dispatch, false), drdsSqlWithParams.getAliasList());
+        return new Explain(plan, drdsSqlWithParams);
+    }
+
     @Test
     public void testSelectNormalNormal() throws Exception {
         Explain explain = parse("select * from db1.normal s join db1.normal2 e on s.id = e.id");
@@ -171,6 +181,46 @@ public class BkaJoinTest extends DrdsTest {
 //                explainText.contains("MycatSQLTableLookup")
 //               );
 //        Assert.assertEquals(true,       explain.specificSql().toString().contains("WHERE ((`normal`.`id`) IN ($cor0)))"));
+    }
+
+    /**
+     * I-DEBT-46 RED（规划器多路 join BKA lookup 形状缺口，e2e 同形：BkaJoinExecuteTest.testBase L44-47）：
+     * sharding s ⋈ normal e（pair hint 目标）⋈ global g，hint 写作限定形 `use_bka_join(s,e)`。
+     * 期望：SemiJoinRule 应对 pair 命中的 join 生成 MycatSQLTableLookup，无论广播并表/重序先发。
+     * 旧行为：(s⋈g) 被并成下推视图后 pair join 节点消失，外层 join 无 hint 走 !hint 门被 isGisView 拦死→无 lookup。
+     */
+    @Test
+    public void testShardingNormalGlobalBkaPairHint() throws Exception {
+        Explain explain = parseRaw("/*+ mycat:use_bka_join(s,e) */select * from db1.sharding s join db1.normal e on s.id = e.id join db1.global g on s.id = g.id order by s.id");
+        String explainText = explain.dumpPlan().trim();
+        System.out.println("[I-DEBT-46 pair-hint plan]\n" + explainText);
+        Assert.assertEquals(true, explainText.contains("MycatSQLTableLookup"));
+    }
+
+    /**
+     * I-DEBT-46 变体（e2e BkaJoinExecuteTest.testBase L51-54 同形）：normal s ⋈ sharding e ⋈ global g，
+     * 限定形 use_bka_join(s,e)。期望：pair join 生成 MycatSQLTableLookup，与表序/mergeSort 视图无关。
+     */
+    @Test
+    public void testNormalLeftShardingGlobalBkaPairHint() throws Exception {
+        Explain explain = parseRaw("/*+ mycat:use_bka_join(s,e) */select * from db1.normal s join db1.sharding e on s.id = e.id join db1.global g on s.id = g.id order by s.id");
+        String explainText = explain.dumpPlan().trim();
+        System.out.println("[I-DEBT-46 normal-left pair-hint plan]\n" + explainText);
+        Assert.assertEquals(true, explainText.contains("MycatSQLTableLookup"));
+    }
+
+    /**
+     * I-DEBT-46 对照（现状钉桩）：同 SQL 但 hint 无 qualifier（use_bka_join()）。
+     * 裁定：join 聚类守卫只认限定形（options 非空）；全局形历史上就被聚类剥 hint 走 hash join，
+     * 若强honored会链式生成 lookup-over-sort-over-lookup，规则集无 Sort(NONE)→MYCAT2 转换直接
+     * CannotPlanException（回归）。本用例钉住「不炸且保持旧形状」；全局形三表 lookup 支持为后续缺口。
+     */
+    @Test
+    public void testShardingNormalGlobalBkaUnqualifiedHint() throws Exception {
+        Explain explain = parse("select * from db1.sharding s join db1.normal e on s.id = e.id join db1.global g on s.id = g.id order by s.id");
+        String explainText = explain.dumpPlan().trim();
+        System.out.println("[I-DEBT-46 unqualified-hint plan]\n" + explainText);
+        Assert.assertEquals(true, explainText.contains("MycatHashJoin"));
     }
 
     @Test

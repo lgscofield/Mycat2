@@ -60,8 +60,10 @@ import org.apache.calcite.rel.RelCollationTraitDef;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.RelShuttleImpl;
+import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.core.*;
 import org.apache.calcite.rel.hint.HintStrategyTable;
+import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.metadata.DefaultRelMetadataProvider;
 import org.apache.calcite.rel.metadata.RelMetadataProvider;
 import io.mycat.calcite.metadata.MycatRelMetadataProvider;
@@ -642,6 +644,13 @@ public class DrdsSqlCompiler {
 
     private Optional<RelNode> toMultiJoin(RelNode logPlan) {
         if (RelOptUtil.countJoins(logPlan) > 1) {
+            // I-DEBT-46：join 聚类路径（JOIN_TO_MULTI_JOIN → MULTI_JOIN_OPTIMIZE）展开成零 hints 的新 join 树
+            // （MultiJoin 不携带节点 hints），使 ≥3 表场景下 use_bka_join/use_values_join 等 join hint 语义
+            // 整体丢失（e2e BkaJoinExecuteTest 三表 use_bka_join(s,e) 形状缺口根因）。hint 是用户硬干预，
+            // 优先于重排收益：树内存在 join 族 hint 时跳过聚类，保留带 hint 的原树。
+            if (hasJoinFamilyHint(logPlan)) {
+                return Optional.empty();
+            }
             final HepProgram hep = new HepProgramBuilder()
                     .addRuleInstance(CoreRules.FILTER_INTO_JOIN)
                     .addMatchOrder(HepMatchOrder.BOTTOM_UP)
@@ -653,6 +662,36 @@ public class DrdsSqlCompiler {
         } else {
             return Optional.empty();
         }
+    }
+
+    /** I-DEBT-46：递归探测计划树内是否有 join 节点携带「限定形」join 族 hint（options 非空，如 use_bka_join(s,e)）。
+     * 只认限定形：无 qualifier 的全局形（use_bka_join()）历史上一直被聚类剥掉走 hash join，若也跳过聚类
+     * 会链式生成 lookup-over-sort-over-lookup，现有规则集无 Sort(NONE)→MYCAT2 转换会 CannotPlanException（回归）。
+     * 注意：必须用 RelVisitor 而非 RelShuttleImpl——fork 的 RelShuttleImpl 对 LogicalJoin/LogicalSort 等具体类型
+     * 有专用 visit(Xxx) 重载且不经 visit(RelNode) 兜底，只覆写 visit(RelNode) 会漏访 join 节点致守卫恒 false。 */
+    static boolean hasJoinFamilyHint(RelNode root) {
+        class JoinHintFinder extends RelVisitor {
+            boolean found = false;
+
+            @Override
+            public void visit(RelNode node, int ordinal, RelNode parent) {
+                // Hep pass 产出的树节点可能被 HepRelVertex 包装，拆包后再判定
+                if (node instanceof org.apache.calcite.plan.hep.HepRelVertex) {
+                    super.visit(((org.apache.calcite.plan.hep.HepRelVertex) node).getCurrentRel(), ordinal, parent);
+                    return;
+                }
+                if (node instanceof Join) {
+                    RelHint lastJoinHint = HintTools.getLastJoinHint(((Join) node).getHints());
+                    if (lastJoinHint != null && !lastJoinHint.listOptions.isEmpty()) {
+                        found = true;
+                    }
+                }
+                super.visit(node, ordinal, parent);
+            }
+        }
+        JoinHintFinder finder = new JoinHintFinder();
+        finder.go(root);
+        return finder.found;
     }
 
     private RelNode resolveAggExpr(RelNode logPlan) {

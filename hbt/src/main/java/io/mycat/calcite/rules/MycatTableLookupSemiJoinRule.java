@@ -54,7 +54,6 @@ public class MycatTableLookupSemiJoinRule extends RelRule<MycatTableLookupSemiJo
         Join join = call.rel(0);
         RelOptCluster cluster = join.getCluster();
 
-
         RelNode left = call.rel(1);
         RelNode right = call.rel(2);
 
@@ -80,7 +79,10 @@ public class MycatTableLookupSemiJoinRule extends RelRule<MycatTableLookupSemiJo
             return;
         }
         MycatView mycatView = (MycatView) right;
-        if (mycatView.banPushdown()) {
+        // I-DEBT-46：mergeSort 预排视图允许作为 lookup 回表侧——回表是按 key 的参数化查询，
+        // 右视图局部序对结果无影响；若拒绝则 bka hint join 在 Volcano 又被 exclusion hint
+        // 排除全部物理转换，两头堵死直接 CannotPlanException。
+        if (mycatView.banPushdown() && !mycatView.isMergeSort()) {
             return;
         }
         if (!hint) {
@@ -226,7 +228,8 @@ public class MycatTableLookupSemiJoinRule extends RelRule<MycatTableLookupSemiJo
 
         MycatTableLookupSemiJoinRule.Config DEFAULT = ImmutableMycatTableLookupSemiJoinRule.Config.builder().build()
                 .withOperandFor(b0 ->
-                        b0.operand(Join.class).inputs(b1 -> b1.operand(RelNode.class).anyInputs(), b1 -> b1.operand(MycatView.class).predicate(m -> ((MycatView) m).allowPushdown()).noInputs()))
+                        // I-DEBT-46：predicate 同步放行 mergeSort 视图（与 onMatch 内守卫一致）
+                        b0.operand(Join.class).inputs(b1 -> b1.operand(RelNode.class).anyInputs(), b1 -> b1.operand(MycatView.class).predicate(m -> ((MycatView) m).allowPushdown() || ((MycatView) m).isMergeSort()).noInputs()))
                 .withDescription("MycatTableLookupSemiJoinRule")
                 .as(MycatTableLookupSemiJoinRule.Config.class);
 
