@@ -106,6 +106,9 @@ public class MycatCore {
         // R3-T7: 允许 -Dmycat.persona 启动覆盖生效画像（须在 L143 VersionProfile 烘画像之前）。
         // 缺省无该属性则不改，零回归。
         io.mycat.config.PersonaOverride.apply(System.getProperty("mycat.persona"), serverConfig.getServer());
+        // R4/Task4: 允许 -Dmycat.tls.mode=REQUIRED|PREFERRED 启动覆盖 TLS 态（免写 server.json 污染后续矩阵），
+        // 同样须在 L146 VersionProfile 烘画像（CLIENT_SSL 能力位依 tlsMode）之前。缺省无该属性不改，零回归。
+        io.mycat.config.TlsModeOverride.apply(System.getProperty("mycat.tls.mode"), serverConfig.getServer());
         MetaClusterCurrent.register(Maps.of(MycatServerConfig.class, serverConfig, serverConfig.getServer().getClass(), serverConfig.getServer()));
         String datasourceProvider = Optional.ofNullable(serverConfig.getDatasourceProvider()).orElse(io.mycat.datasource.jdbc.DruidDatasourceProvider.class.getCanonicalName());
         ThreadPoolExecutorConfig workerPool = serverConfig.getServer().getWorkerPool();
