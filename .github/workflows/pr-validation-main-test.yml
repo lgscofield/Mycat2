@@ -7,6 +7,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # I-CI-2：手动重跑入口（启用后首个 CI run 不必等新 push；历史 push 不补跑）。
+  workflow_dispatch:
 
 jobs:
   compat:
