@@ -37,8 +37,10 @@ import io.vertx.core.net.NetSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLSession;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
@@ -257,6 +259,11 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
             userInfo = new UserConfig();
         }
         InetSocketAddress remoteAddress = new InetSocketAddress(socket.remoteAddress().host(), socket.remoteAddress().port());
+        // I-DEBT-47：前端已完成 STARTTLS 升级时，把本会话协商的 cipher/protocol 回填到会话态，
+        // 供 ShowStatusSQLHandler 回报 Ssl_cipher/Ssl_version（此刻 TLS 握手已随加密 HandshakeResponse 完成，sslSession 可用）。
+        if (tlsUpgraded) {
+            recordSslSessionState(socket, mycatDataContext);
+        }
         mycatDataContext.setUser(new MycatUser(username, null, null, host, remoteAddress, userInfo));
         mycatDataContext.useShcema(Optional.ofNullable(authPacket.getDatabase()).orElse(userInfo.getSchema()));
         mycatDataContext.setServerCapabilities(authPacket.getCapabilities());
@@ -270,6 +277,26 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
         mycatSessionManager.addSession(vertxSession);
 
         vertxSession.writeOkEndPacket();
+    }
+
+    /**
+     * I-DEBT-47：STARTTLS 升级成功后，把前端 TLS 会话协商到的 cipher/protocol 回填进会话 processStateMap，
+     * 供 {@code ShowStatusSQLHandler} 回报 Ssl_cipher/Ssl_version。sslSession 不可用（异常/空）时静默降级，
+     * 绝不拖垮认证主流程。
+     */
+    static void recordSslSessionState(NetSocket socket, MycatDataContext dataContext) {
+        try {
+            SSLSession ssl = socket.sslSession();
+            if (ssl != null) {
+                Map<String, Object> state = dataContext.getProcessStateMap();
+                if (state != null) {
+                    state.put("SSL_CIPHER", ssl.getCipherSuite());
+                    state.put("SSL_VERSION", ssl.getProtocol());
+                }
+            }
+        } catch (RuntimeException e) {
+            LOGGER.warn("record frontend ssl session state failed", e);
+        }
     }
 
     private void writeAccessDenied(int inboundPacketId, String message) {
