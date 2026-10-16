@@ -112,4 +112,23 @@ public class ShowBinlogStatusRoutingTest {
         assertInstanceOf(MySqlShowSlaveStatusStatement.class, stmt);
         assertTrue(stmt instanceof MySqlShowStatement);
     }
+
+    // ===== 6. I-DEBT-53：MySQL 8.4 改名后的复制状态 SHOW，druid 解析层即拒绝 =====
+    // 钉住依赖现状：改名命令无 AST，故 Mycat 侧必须靠文本分类器透传（见
+    // MycatdbCommandShowSalvageTest）。若未来 druid 升级后能解析这两条，
+    // 本锁会红，提醒重新评估是否可回归 AST 路径、移除文本分类器。
+
+    @Test
+    public void druidRejectsShowBinaryLogStatus() {
+        assertThrows(com.alibaba.druid.sql.parser.ParserException.class,
+                () -> SQLUtils.parseSingleMysqlStatement("SHOW BINARY LOG STATUS"),
+                "SHOW BINARY LOG STATUS 当前不被 druid 解析（I-DEBT-53 透传前提）");
+    }
+
+    @Test
+    public void druidRejectsShowReplicaStatus() {
+        assertThrows(com.alibaba.druid.sql.parser.ParserException.class,
+                () -> SQLUtils.parseSingleMysqlStatement("SHOW REPLICA STATUS"),
+                "SHOW REPLICA STATUS 当前不被 druid 解析（I-DEBT-53 透传前提）");
+    }
 }

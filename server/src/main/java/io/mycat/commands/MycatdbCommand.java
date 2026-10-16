@@ -205,7 +205,8 @@ public enum MycatdbCommand {
             return future;
         } catch (Throwable e) {
             Response response = responseFactory.apply(1);
-            if (isNavicatClientStatusQuery(text)) {
+            if (isNavicatClientStatusQuery(text) || isReplicationStatusShow(text)) {
+                // I-DEBT-53：改名后的复制状态 SHOW（druid 解不了）按原文透传后端
                 return response.proxySelectToPrototype(text,
                         Collections.emptyList());
             }
@@ -339,6 +340,22 @@ public enum MycatdbCommand {
         }
         return false;
     }
+
+    /**
+     * I-DEBT-53：识别 MySQL 8.4 改名后、druid 解析层即拒绝的复制状态 SHOW。
+     * <p>MySQL 8.4 移除 {@code SHOW MASTER STATUS}（改 {@code SHOW BINARY LOG STATUS}）
+     * 与 {@code SHOW SLAVE STATUS}（改 {@code SHOW REPLICA STATUS}）；两条新语法无 druid AST，
+     * 解析抛 ParserException 冒泡至本类 catch。旧语法（MASTER/SLAVE）能解析、走
+     * {@code instanceof MySqlShowStatement} 的 AST 透传分支，不经此处。为对 8.4+/9.0 后端
+     * 无缝替代（现代 mysqldump 只发新语法），此处按文本识别并透传原文，
+     * 不改 druid（依“不 fork druid、回归官方依赖”裁定）。
+     */
+    static boolean isReplicationStatusShow(String text) {
+        return text != null && REPLICATION_STATUS_SHOW.matcher(text.trim()).matches();
+    }
+
+    private static final java.util.regex.Pattern REPLICATION_STATUS_SHOW = java.util.regex.Pattern
+            .compile("(?i)^SHOW\\s+(?:BINARY\\s+LOG|REPLICA)\\s+STATUS(?:\\s+FOR\\s+CHANNEL\\s+'[^']*')?\\s*;?$");
 
     @NotNull
     private static Map<String, Object> getHintRoute(SQLStatement sqlStatement) {

@@ -181,10 +181,41 @@ public class DumpSurfaceMatrixTest implements MycatTest {
             surface.add(new String[]{"select 1 from information_schema.tables where table_schema='" + SCHEMA + "'"
                     + " and table_name='t1' and table_type='SYSTEM VERSIONED'", "mariadb-dump114.cc:3157"});
             surface.add(new String[]{"SELECT table_name, table_type FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='" + SCHEMA + "'", "mariadb-dump114.cc:4672"});
-            surface.add(new String[]{"SHOW MASTER STATUS", "mysqldump80.cc:5160（--source-data 轴，I-ME-4 判据复用本格）"});
+            // I-DEBT-53：SHOW MASTER STATUS 在 MySQL 8.4/9.0 被移除并改名 SHOW BINARY LOG STATUS，
+            // 真 8.4 后端直接拒旧语法（ERROR 1064 near 'MASTER STATUS'）。现代 mysqldump 按 server
+            // 版本发新语法，本格须忠实回放——探测后端版本，≥8.4 发 SHOW BINARY LOG STATUS（经 Mycat
+            // 透传分类器 I-DEBT-53），否则发 SHOW MASTER STATUS，避免用旧语法对 8.4 后端测出假回归。
+            surface.add(new String[]{sourceDataShowCommand(c), "mysqldump80.cc:5160（--source-data 轴，I-ME-4/I-DEBT-53 判据复用本格）"});
             for (String[] q : surface) {
                 replayDumpQuery(c, q[0], q[1]);
             }
         }
+    }
+
+    /**
+     * I-DEBT-53：{@code --source-data} 轴的 binlog 状态命令按后端版本选择。
+     * MySQL 8.4 起 {@code SHOW MASTER STATUS} 移除、改名 {@code SHOW BINARY LOG STATUS}；
+     * 9.x 同。旧后端（≤8.0/mariadb/5.7）仍用 {@code SHOW MASTER STATUS}。
+     * 版本经 Mycat {@code select version()} 透传取后端真实版本（同 {@code FrontAuthMatrixTest} 探针）。
+     */
+    private String sourceDataShowCommand(Connection c) throws Exception {
+        String v;
+        try (java.sql.Statement st = c.createStatement();
+                java.sql.ResultSet rs = st.executeQuery("select version()")) {
+            rs.next();
+            v = rs.getString(1);
+        }
+        // 解析 major.minor：≥ 8.4（含 9.x）用新语法
+        int dot = v.indexOf('.');
+        int major = dot > 0 ? Integer.parseInt(v.substring(0, dot)) : -1;
+        int minor = -1;
+        if (dot > 0) {
+            int dot2 = v.indexOf('.', dot + 1);
+            String minStr = dot2 > 0 ? v.substring(dot + 1, dot2) : v.substring(dot + 1);
+            minStr = minStr.replaceAll("[^0-9].*$", "");
+            minor = minStr.isEmpty() ? -1 : Integer.parseInt(minStr);
+        }
+        boolean modern = major > 8 || (major == 8 && minor >= 4);
+        return modern ? "SHOW BINARY LOG STATUS" : "SHOW MASTER STATUS";
     }
 }
