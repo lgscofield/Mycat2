@@ -2012,6 +2012,25 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
                 sqlNode = Objects.requireNonNull(functionOperator).createCall(SqlParserPos.ZERO, argNodes);
                 return false;
             }
+            case "IF": {
+                // I-DEBT-50：MySQL 三目 IF(cond, then, else) 在 Calcite 无同名算子，
+                // 此前落 default 被建成 SqlUnresolvedFunction("IF")，codegen 期无实现者
+                // → "cannot translate call IF(...)"（Connector/J getProcedureColumns
+                // 对 information_schema.parameters 的元数据投影大量使用 IF，令 prepareCall 崩）。
+                // 正解=在 AST 层等价改写为 searched CASE（CASE WHEN cond THEN then ELSE else END），
+                // 复用已可落码的 CASE 路径。value=null 即 searched 形。
+                if (argNodes.size() != 3) {
+                    throw new UnsupportedOperationException(
+                            "IF requires 3 arguments, got " + argNodes.size());
+                }
+                SqlNodeList whenList = new SqlNodeList(SqlParserPos.ZERO);
+                whenList.add(argNodes.get(0));
+                SqlNodeList thenList = new SqlNodeList(SqlParserPos.ZERO);
+                thenList.add(argNodes.get(1));
+                this.sqlNode = SqlCase.createSwitched(SqlParserPos.ZERO, null, whenList, thenList,
+                        argNodes.get(2));
+                return false;
+            }
             default:
                 if (functionOperator == null) {
                     functionOperator = new SqlUnresolvedFunction(
