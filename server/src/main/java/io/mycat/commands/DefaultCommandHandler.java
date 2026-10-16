@@ -30,6 +30,7 @@ import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.beans.mysql.packet.DefaultPreparedOKPacket;
 import io.mycat.command.AbstractCommandHandler;
 import io.mycat.proxy.session.MySQLServerSession;
+import io.mycat.util.MySQLSqlTextCodec;
 import io.vertx.core.Future;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class DefaultCommandHandler extends AbstractCommandHandler {
     @Override
     public Future<Void> handleQuery(byte[] bytes, MySQLServerSession session) {
         try {
-            String sql = new String(bytes);
+            String sql = MySQLSqlTextCodec.decode(bytes); // I-DEBT-54/D3:可逆解码,原为平台默认编码
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("-----------------reveice--------------------");
                 LOGGER.debug(sql);

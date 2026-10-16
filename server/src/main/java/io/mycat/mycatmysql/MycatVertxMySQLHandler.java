@@ -24,6 +24,7 @@ import io.mycat.commands.ReceiverImpl;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.ServerConfig;
 import io.mycat.prototypeserver.mysql.PrototypeService;
+import io.mycat.util.MySQLSqlTextCodec;
 import io.mycat.util.VertxUtil;
 import io.mycat.vertx.ReadView;
 import io.vertx.core.Future;
@@ -89,7 +90,8 @@ public class MycatVertxMySQLHandler {
                     break;
                 }
                 case MySQLCommandType.COM_QUERY: {
-                    String sql = new String(readView.readEOFStringBytes(), StandardCharsets.UTF_8);
+                    // I-DEBT-54/D3:可逆解码,非法 UTF-8 字节(binary 字面量)不再坍缩 U+FFFD
+                    String sql = MySQLSqlTextCodec.decode(readView.readEOFStringBytes());
                     process.setQuery(sql);
                     process.setState(Process.State.INIT);
                     IOExecutor vertx = MetaClusterCurrent.wrapper(IOExecutor.class);
@@ -424,7 +426,7 @@ public class MycatVertxMySQLHandler {
 
     private Future<Void> handlePrepareStatement(byte[] bytes, MycatVertxMysqlSession mysqlSession) {
         boolean deprecateEOF = mysqlSession.isDeprecateEOF();
-        String sql = new String(bytes);
+        String sql = MySQLSqlTextCodec.decode(bytes); // I-DEBT-54/D3:原为平台默认编码,Windows GBK 下沉默损坏
         /////////////////////////////////////////////////////
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("received pstmt sql:{}", sql);
