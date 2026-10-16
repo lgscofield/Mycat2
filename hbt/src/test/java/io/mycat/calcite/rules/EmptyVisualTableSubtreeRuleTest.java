@@ -58,6 +58,10 @@ public class EmptyVisualTableSubtreeRuleTest {
         // 注册真恒空 i_s 仿表：MycatLogicTable 包 VisualTableHandler（scanAll 永远 empty）
         rootSchema.add("COLUMN_STATISTICS",
                 new MycatLogicTable(MysqlMetadataManager.COLUMN_STATISTICS_TABLE_HANDLER));
+        // 注册含实数据的 i_s 仿表（ENGINES）：同为 VisualTableHandler 但 scanAll 有行，
+        // isStaticallyEmpty=false——用于锁死折叠判别面（不得以 isVisual 为键）。
+        rootSchema.add("ENGINES",
+                new MycatLogicTable(MysqlMetadataManager.ENGINES_TABLE_HANDLER));
         RelOptSchema schema = new CalciteCatalogReader(
                 rootSchema,
                 Collections.<String>emptyList(),
@@ -121,5 +125,38 @@ public class EmptyVisualTableSubtreeRuleTest {
         Assertions.assertFalse(out instanceof LogicalValues,
                 "掺入非恒空叶子的混合子树不应被折叠，实际=" + out.getClass().getSimpleName()
                         + "\n" + RelOptUtil.toString(out));
+    }
+
+    /**
+     * 含实数据的仿表（ENGINES，scanAll 有行、isStaticallyEmpty=false）投影不得折叠——
+     * 锁死折叠只以“静态恒空”为键，而非以 isVisual 为键（否则丢真数据）。
+     */
+    @Test
+    void nonEmptyVisualLeafIsNotFolded() {
+        RelBuilder rb = createRelBuilder();
+        RelNode enginesScan = MycatTableScan.ofTable(rb.scan("ENGINES").build());
+        RelNode tree = rb.push(enginesScan)
+                .project(rb.field(0))
+                .build();
+
+        RelNode out = applyRule(tree);
+
+        Assertions.assertFalse(out instanceof LogicalValues,
+                "含实数据仿表的子树不应被折叠，实际=" + out.getClass().getSimpleName()
+                        + "\n" + RelOptUtil.toString(out));
+    }
+
+    /**
+     * 直接锁判别面：恒空叶 true、实数据叶 false（不依赖 HEP 派发，回归时快速定位）。
+     */
+    @Test
+    void leafPredicateDiscriminatesStaticallyEmpty() {
+        RelBuilder rb = createRelBuilder();
+        RelNode emptyLeaf = MycatTableScan.ofTable(rb.scan("COLUMN_STATISTICS").build());
+        RelNode dataLeaf = MycatTableScan.ofTable(rb.scan("ENGINES").build());
+        Assertions.assertTrue(EmptyVisualTableSubtreeRule.allLeavesAreStaticallyEmptyVisual(emptyLeaf),
+                "COLUMN_STATISTICS 恒空叶子应判 true");
+        Assertions.assertFalse(EmptyVisualTableSubtreeRule.allLeavesAreStaticallyEmptyVisual(dataLeaf),
+                "ENGINES 实数据叶子应判 false");
     }
 }
