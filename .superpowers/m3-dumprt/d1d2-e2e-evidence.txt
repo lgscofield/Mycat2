@@ -1,0 +1,66 @@
+# I-DEBT-54 D1/D2 端到端金标准取证 — 真 mysqldump 二进制默认口径往返回灌
+
+北极星判据：**真 mysqldump 二进制**（非 JDBC 模拟）**默认无规避 flag**（含 tablespaces + column-statistics）
+连 Mycat → dump 结构+数据 → 回灌原生 MySQL 逐值保真。
+
+## 环境
+- 后端：docker `m1-mysql-a`（真 MySQL 8.0，宿主 3306）、`m1-mysql-b`（真 MySQL 8.0，宿主 3307，回灌靶）。
+- Mycat：`server/target/server-1.22-release-jar-with-dependencies.jar` **2026-10-17 01:33 重建**（含本轮
+  D1 折叠规则 `EmptyVisualTableSubtreeRule` + D2 `FILE_TABLE()` 补 `EXTRA`/`EXTENT_SIZE`）；
+  JDK21（LibericaJDK-21）；`-Dmycat.persona=MYSQL_8_0`；监听 8066。
+- 明链认证：`--get-server-public-key --ssl-mode=DISABLED`（caching_sha2 非安全连接）。
+- 源库：经 Mycat 运行时 `create database dbdump` + 建表（**代表类型，不含 bit(8)——D3 另立专轮，此处隔离**）：
+  `create table dbdump.t1 (id int pk, name varchar(64), amount decimal(10,2), ts datetime null, gen int as (id*2) stored, txt text)`
+  seed：`(1,'a',10.50,'2026-01-01 10:00:00','hello')`、`(2,'b',20.75,null,'plain')`。
+
+## Step 1 正向：真 mysqldump 默认口径连 Mycat
+命令：
+```
+docker run --rm mysql:8.0 mysqldump -h host.docker.internal -P 8066 -u root -p123456 \
+  --get-server-public-key --ssl-mode=DISABLED --databases dbdump > d1d2_export.sql 2>d1d2_err.txt
+```
+结果：**RC=0**，导出 52 行。
+- ✅ **D1 破面消除**：无 `Unable to implement MycatProject(...JSON_EXTRACT...)`（column-statistics 默认 ON，
+  其 JSON_EXTRACT 投影经 `EmptyVisualTableSubtreeRule` 折叠为空 Values，绕开 codegen）。
+- ✅ **D2 破面消除**：无 `Column 'EXTRA' not found`（`FILE_TABLE()` 已补列）。
+- 结构面：`CREATE TABLE IF NOT EXISTS \`dbdump\`.t1 (... gen int AS (id * 2) STORED ...)` — 生成列正确入 DDL。
+- 数据面：`INSERT INTO \`t1\` (\`id\`, \`name\`, \`amount\`, \`ts\`, \`txt\`) VALUES (1,'a',10.50,...)` —
+  **正确排除生成列 gen**（交叉验证 I-ME-2 i_s.columns EXTRA 修复承重）。
+
+### 残留（非致命，见下"tablespaces GROUP BY 定性"）
+stderr 仅一条**非致命**消息：
+```
+mysqldump: Error: 'org.apache.calcite.runtime.CalciteContextException: At line 0, column 0:
+Expression 'EXTRA' is not being grouped' when trying to dump tablespaces
+```
+mysqldump 对（已弃用的）tablespaces 路径失败按**非致命**处理，记录后继续，**RC 仍=0**，结构+数据完整导出。
+
+## Step 2 反向：回灌原生 MySQL 逐值保真
+命令：`d1d2_export.sql | docker exec -i m1-mysql-b mysql -uroot -p123456` → **restore RC=0**。
+回灌后原生读回（服务端归一化 `CAST/BIN/IFNULL`）：
+```
+1  a  10.50  2026-01-01 10:00:00  2  hello
+2  b  20.75  NULL                 4  plain
+```
+逐值命中 ground truth；`gen=2/4` 由原生按 `id*2` 重算（STORED 生列语义保真）。
+
+## 判别力隔离取证
+1. `--no-tablespaces`（默认仍含 column-statistics）跑 Mycat：D1 的 JSON_EXTRACT 投影查询经 Mycat
+   **不再 codegen 崩** → 坐实折叠在活链生效。
+2. 真 MySQL 8.0 默认 `sql_mode=ONLY_FULL_GROUP_BY,...` 下，原样跑 mysqldump 的 tablespaces Q1
+   （`SELECT ... EXTRA ... GROUP BY <不含 EXTRA>`）→ **真 MySQL 亦拒**：
+   `ERROR 1055: Expression #6 ... not in GROUP BY ... incompatible with sql_mode=only_full_group_by`；
+   `set session sql_mode=''` 后同查询 → **RC=0**。
+   → **Mycat 的 `Expression 'EXTRA' is not being grouped` 与真 MySQL 的 1055 行为等价、忠实**（FILES 恒空仿表，结果恒 0 行）。
+3. `mysqldump --databases mycat` 打**真原生 MySQL 8.0**（非 Mycat）→ **RC=0 且无任何 stderr**：
+   因 mysqldump 在会话设 `sql_mode=''`（关 ONLY_FULL_GROUP_BY），**真 MySQL 遵从、Mycat 未遵从**——
+   此即残留非致命消息的**根因差分**：Mycat 的 Calcite 校验恒 enforced grouping，不随 session sql_mode 放宽。
+
+## 结论
+- **D1（i_s 仿表 JSON_EXTRACT 投影 codegen 崩）+ D2（tablespaces `Column 'EXTRA' not found`）
+  两处真破面已修**：真 mysqldump 默认口径正向 dump Mycat **RC=0**、结构+数据完整、回灌原生逐值保真。
+- 新增独立子面（非 I-DEBT-54 D1/D2 原义，且不破坏金标准）：**D2b — Mycat 未按 session `sql_mode`
+  放宽 ONLY_FULL_GROUP_BY**，致 tablespaces GROUP BY 查询报非致命 Calcite 错（真 MySQL 靠 mysqldump 的
+  `sql_mode=''` 规避）。因失败非致命、且FILES 恒空表结果恒 0 行、且放宽分组校验是跨切验证器改动（风险大），
+  本专轮不投机修 → 挂账。
+- **D3（bit(8) 回灌 1406 binary 字面量表征链）仍原样挂账**（本次 e2e 特意不建 bit 列以隔离）。
