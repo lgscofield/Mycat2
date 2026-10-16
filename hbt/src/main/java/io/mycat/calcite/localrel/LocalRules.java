@@ -187,6 +187,18 @@ public class LocalRules {
                                         }
                                         return;
                                     }
+                                    // I-DEBT-49：无 hint 的自动 GSI 选择。旧实现放在 MycatViewIndexViewRule
+                                    // 的叶子视图规则中，迁入 HepPlanner 后 transformTo(rel, equiv) 的双参形态被
+                                    // 忽略 equiv、以视图自身做替换（自我替换 no-op），且回表 join 候选替换叶子视图
+                                    // 时会与祖先主表顶点按 digest 去重成自环。改在此处整棵 Filter>View 一次替换：
+                                    // 谓词命中索引键列时 produceIndexViews 产出候选（已按 QueryType 优先级排序），
+                                    // 取首个选中索引表；未命中则候选为空，落到 break 走主表下推，保持原行为。
+                                    List<RelNode> relNodes = MycatView.produceIndexViews(tableScan, filter.getCondition(),
+                                            tableScan.identity(), view.getRowType());
+                                    if (!relNodes.isEmpty()) {
+                                        call.transformTo(normalize(relNodes.get(0)));
+                                        return;
+                                    }
                                 }
 
                             }
