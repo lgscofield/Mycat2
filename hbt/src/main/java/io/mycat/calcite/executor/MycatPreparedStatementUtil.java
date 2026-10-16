@@ -195,11 +195,14 @@ public class MycatPreparedStatementUtil {
 
         };
         parameterVisitor.setShardingSupport(false);
+        // I-DEBT-44: 必须禁止 VALUES 列表合并。多行 VALUES 里不被参数化的 BIT 字面量 b'...'
+        // 若允许合并去重，druid 会把首行的 bit 字面量烤进共享模板并丢弃其余行的不同 bit 值，
+        // 分片 INSERT 写库即沉默数据损坏（第二行被折成首行的值）。与 INSERT proxy 路径保持一致。
         parameterVisitor.setFeatures(VisitorFeature.OutputParameterizedQuesUnMergeInList.mask |
                         VisitorFeature.OutputParameterizedQuesUnMergeAnd.mask |
                         VisitorFeature.OutputParameterizedUnMergeShardingTable.mask |
                         VisitorFeature.OutputParameterizedQuesUnMergeOr.mask
-//                | VisitorFeature.OutputParameterizedQuesUnMergeValuesList.mask
+                        | VisitorFeature.OutputParameterizedQuesUnMergeValuesList.mask
                         | VisitorFeature.OutputParameterized.mask
         );
         if (inputParameters != null && !inputParameters.isEmpty()) {
