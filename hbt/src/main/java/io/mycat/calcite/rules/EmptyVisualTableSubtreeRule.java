@@ -7,9 +7,11 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.plan.hep.HepRelVertex;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.LogicalValues;
+import org.apache.calcite.util.ImmutableBitSet;
 import org.immutables.value.Value;
 
 /**
@@ -58,6 +60,16 @@ public class EmptyVisualTableSubtreeRule extends RelRule<EmptyVisualTableSubtree
         if (node instanceof MycatTableScan) {
             MycatTableScan mts = (MycatTableScan) node;
             return isStaticallyEmptyTableScan(mts.getRelNode());
+        }
+        // 无分组聚合（grand aggregate，含 ROLLUP/CUBE/GROUPING SETS 的空分组总计行）对
+        // 空输入仍恒产出 ≥1 行（COUNT→0、MIN/MAX/SUM→NULL），折叠成空 Values 会丢这 1 行。
+        // 带分组键的聚合空输入→0 组→0 行，可安全继续判定。
+        if (node instanceof Aggregate) {
+            for (ImmutableBitSet group : ((Aggregate) node).getGroupSets()) {
+                if (group.isEmpty()) {
+                    return false;
+                }
+            }
         }
         if (node.getInputs().isEmpty()) {
             // 叶子但不是 MycatTableScan → 不是恒空仿表

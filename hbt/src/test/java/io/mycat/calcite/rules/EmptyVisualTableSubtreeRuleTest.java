@@ -147,6 +147,38 @@ public class EmptyVisualTableSubtreeRuleTest {
     }
 
     /**
+     * 恒空仿表之上的无分组聚合（grand aggregate，如 {@code SELECT COUNT(*) FROM <i_s 恒空表>}）
+     * 不得折叠——终审 Critical：空输入的 grand aggregate 恒返回恰好 1 行（COUNT→0、
+     * MIN/MAX/SUM→NULL），折叠成空 Values 会把 1 行静默变成 0 行（无声错结果）。
+     */
+    @Test
+    void grandAggregateOverStaticallyEmptyVisualIsNotFolded() {
+        RelBuilder rb = createRelBuilder();
+        RelNode visualScan = MycatTableScan.ofTable(rb.scan("COLUMN_STATISTICS").build());
+        RelNode agg = rb.push(visualScan)
+                .aggregate(rb.groupKey(), rb.count(false, "cnt", rb.field(0)))
+                .build();
+        // 手工造非恒等 Project（将聚合输出列 cnt 复制为两列），绕开 RelBuilder 对恒等投影的化简，
+        // 确保根为 Project 以真实触发规则（模拟 SELECT COUNT(*)+计算投影 over 恒空 i_s 表）
+        RelDataType cntType = agg.getRowType().getFieldList().get(0).getType();
+        RelDataType projType = agg.getCluster().getTypeFactory().builder()
+                .add("cnt", cntType).add("cnt2", cntType).build();
+        java.util.List<org.apache.calcite.rex.RexNode> refs = com.google.common.collect.ImmutableList.of(
+                new org.apache.calcite.rex.RexInputRef(0, cntType),
+                new org.apache.calcite.rex.RexInputRef(0, cntType));
+        RelNode tree = org.apache.calcite.rel.logical.LogicalProject.create(agg,
+                com.google.common.collect.ImmutableList.of(), refs, projType);
+        Assertions.assertTrue(tree instanceof Project,
+                "构造根应为非恒等 Project，实际=" + tree.getClass().getSimpleName());
+
+        RelNode out = applyRule(tree);
+
+        Assertions.assertFalse(out instanceof LogicalValues,
+                "含无分组聚合的子树不应折叠为空 Values（grand aggregate 对空输入返 1 行），实际="
+                        + out.getClass().getSimpleName() + "\n" + RelOptUtil.toString(out));
+    }
+
+    /**
      * 直接锁判别面：恒空叶 true、实数据叶 false（不依赖 HEP 派发，回归时快速定位）。
      */
     @Test
