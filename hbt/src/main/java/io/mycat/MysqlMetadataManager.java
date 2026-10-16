@@ -970,6 +970,10 @@ public class MysqlMetadataManager extends MetadataManager {
         createEVENTSTableSQL.addColumn("INITIAL_SIZE", "bigint(21) unsigned");
         createEVENTSTableSQL.addColumn("MAXIMUM_SIZE", "bigint(21) unsigned");
         createEVENTSTableSQL.addColumn("AUTOEXTEND_SIZE", "bigint(21) unsigned");
+        // I-DEBT-54/D2: mysqldump --tablespaces 消费列（真 MySQL 8.0 容器 general_log 取证）
+        // Q1(UNDO LOG) 需 EXTRA；Q2(DATAFILE) 需 EXTENT_SIZE。缺则校验期报 Column 'EXTRA' not found。
+        createEVENTSTableSQL.addColumn("EXTENT_SIZE", "bigint(21) unsigned");
+        createEVENTSTableSQL.addColumn("EXTRA", "varchar(255)");
 
         createEVENTSTableSQL.addColumn("DELETED_ROWS", "int(64)");
         createEVENTSTableSQL.addColumn("UPDATE_COUNT", "int(64)");

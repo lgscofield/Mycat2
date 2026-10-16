@@ -69,12 +69,19 @@ public class DumpSurfaceRegressionTest {
                 "SCHEMA_NAME", "TABLE_NAME", "COLUMN_NAME", "HISTOGRAM");
     }
 
-    /** --tablespaces 查询（mysqldump80.cc:4363-4462）；TOTAL_EXTENTS/INITIAL_SIZE 官网 i_s.FILES 页在列，现仿表缺 → 本用例当前应为红。 */
+    /**
+     * --tablespaces 查询（真 MySQL 8.0 容器 general_log 取证，见
+     * .superpowers/m3-dumprt/d2-tablespaces-repro.txt）：
+     * Q1(UNDO LOG) 消费 ...INITIAL_SIZE, ENGINE, EXTRA；
+     * Q2(DATAFILE) 消费 ...EXTENT_SIZE, INITIAL_SIZE, ENGINE。
+     * I-DEBT-54/D2：现仿表缺 EXTRA、EXTENT_SIZE → 本用例当前应为红。
+     */
     @Test
     public void filesTableCoversTablespaceQuery() {
         assertContainsAll("FILES", MysqlMetadataManager.FILE_TABLE_HANDLER,
                 "TABLESPACE_NAME", "FILE_TYPE", "LOGFILE_GROUP_NAME", "FILE_NAME",
-                "ENGINE", "TOTAL_EXTENTS", "INITIAL_SIZE", "MAXIMUM_SIZE", "AUTOEXTEND_SIZE");
+                "ENGINE", "TOTAL_EXTENTS", "INITIAL_SIZE", "MAXIMUM_SIZE", "AUTOEXTEND_SIZE",
+                "EXTRA", "EXTENT_SIZE");
     }
 
     /** PARTITIONS 派生表空间名（mysqldump80.cc:4287）。 */
