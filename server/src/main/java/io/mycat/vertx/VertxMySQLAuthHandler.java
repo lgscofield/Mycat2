@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLSession;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 
 import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
@@ -280,19 +279,15 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
     }
 
     /**
-     * I-DEBT-47：STARTTLS 升级成功后，把前端 TLS 会话协商到的 cipher/protocol 回填进会话 processStateMap，
-     * 供 {@code ShowStatusSQLHandler} 回报 Ssl_cipher/Ssl_version。sslSession 不可用（异常/空）时静默降级，
-     * 绝不拖垮认证主流程。
+     * I-DEBT-47：STARTTLS 升级成功后，把前端 TLS 会话协商到的 cipher/protocol 回填到会话的专用字段，
+     * 供 {@code ShowStatusSQLHandler} 回报 Ssl_cipher/Ssl_version。必须存会话字段而非 {@code processStateMap}
+     * ——后者会在每条语句执行前被 {@code MycatdbCommand.execute} 重置为空图，导致端到端恒空。sslSession 不可用（异常/空）时静默降级。
      */
     static void recordSslSessionState(NetSocket socket, MycatDataContext dataContext) {
         try {
             SSLSession ssl = socket.sslSession();
             if (ssl != null) {
-                Map<String, Object> state = dataContext.getProcessStateMap();
-                if (state != null) {
-                    state.put("SSL_CIPHER", ssl.getCipherSuite());
-                    state.put("SSL_VERSION", ssl.getProtocol());
-                }
+                dataContext.setSslSessionInfo(ssl.getCipherSuite(), ssl.getProtocol());
             }
         } catch (RuntimeException e) {
             LOGGER.warn("record frontend ssl session state failed", e);

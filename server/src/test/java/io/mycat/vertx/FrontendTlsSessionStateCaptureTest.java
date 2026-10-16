@@ -70,9 +70,8 @@ class FrontendTlsSessionStateCaptureTest {
         MycatDataContextImpl dataContext = new MycatDataContextImpl();
         VertxMySQLAuthHandler.recordSslSessionState(socket, dataContext);
 
-        Map<String, Object> state = dataContext.getProcessStateMap();
-        assertEquals("TLS_AES_256_GCM_SHA384", state.get("SSL_CIPHER"));
-        assertEquals("TLSv1.3", state.get("SSL_VERSION"));
+        assertEquals("TLS_AES_256_GCM_SHA384", dataContext.getSslCipher());
+        assertEquals("TLSv1.3", dataContext.getSslVersion());
     }
 
     /** sslSession 尚不可用（异常/空）：不写态、不抛出（降级为排放侧报空串，绝不拖垮认证）。 */
@@ -84,7 +83,7 @@ class FrontendTlsSessionStateCaptureTest {
         MycatDataContextImpl dataContext = new MycatDataContextImpl();
         VertxMySQLAuthHandler.recordSslSessionState(socket, dataContext);
 
-        assertTrue(!dataContext.getProcessStateMap().containsKey("SSL_CIPHER"),
-                "无 sslSession 时不应写入 SSL_CIPHER");
+        assertEquals("", dataContext.getSslCipher(),
+                "无 sslSession 时不应写入 TLS cipher");
     }
 }

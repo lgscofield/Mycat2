@@ -141,6 +141,22 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
 
     public void putProcessStateMap(Map<String, Object> map);
 
+    /**
+     * I-DEBT-47：前端 TLS 会话协商到的 cipher/version。属会话生命周期事实，必须独立于
+     * {@code MycatdbCommand.execute} 每语句重置的 {@code processStateMap}（否则 SHOW STATUS 执行期永远读到空）。
+     * 默认无前端 TLS 信息（非 TLS/后端 JDBC 上下文回报空串，与 MySQL 语义一致）。
+     */
+    default void setSslSessionInfo(String cipher, String version) {
+    }
+
+    default String getSslCipher() {
+        return "";
+    }
+
+    default String getSslVersion() {
+        return "";
+    }
+
     default public int getMergeUnionSize() {
         return ((Number) this.getProcessStateMap().getOrDefault("MERGE_UNION_SIZE", MetaClusterCurrent.exist(ServerConfig.class) ? MetaClusterCurrent.wrapper(ServerConfig.class).getMergeUnionSize() : -1)).intValue();
     }

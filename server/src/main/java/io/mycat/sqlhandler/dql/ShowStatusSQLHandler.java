@@ -35,10 +35,6 @@ import static io.mycat.prototypeserver.mysql.PrototypeService.getShowStatusColum
 
 public class ShowStatusSQLHandler extends AbstractSQLHandler<MySqlShowStatusStatement> {
 
-    /** I-DEBT-47：会话 TLS 态在 processStateMap 中的键，由 VertxMySQLAuthHandler 在 STARTTLS 升级成功后回填。 */
-    static final String SSL_CIPHER_KEY = "SSL_CIPHER";
-    static final String SSL_VERSION_KEY = "SSL_VERSION";
-
     @Override
     protected Future<Void> onExecute(SQLRequest<MySqlShowStatusStatement> request, MycatDataContext dataContext, Response response) {
         List<ColumnDefPacket> columnDefPacketList = getShowStatusColumns();
@@ -58,11 +54,12 @@ public class ShowStatusSQLHandler extends AbstractSQLHandler<MySqlShowStatusStat
         return response.sendResultSet(mySQLResultSet.build());
     }
 
-    /** 组装当前会话的 Ssl_* 状态变量（有序：Ssl_cipher 先、Ssl_version 后），值取自前端 TLS 回填态。 */
+    /** 组装当前会话的 Ssl_* 状态变量（有序：Ssl_cipher 先、Ssl_version 后），值取自前端 TLS 回填的会话专用字段。 */
     private static Map<String, String> sslSessionStatus(MycatDataContext dataContext) {
-        Map<String, Object> state = dataContext.getProcessStateMap();
-        String cipher = state == null ? "" : Objects.toString(state.get(SSL_CIPHER_KEY), "");
-        String version = state == null ? "" : Objects.toString(state.get(SSL_VERSION_KEY), "");
+        // I-DEBT-47：TLS 态取自会话字段（getSslCipher/getSslVersion），而非每语句被 MycatdbCommand.execute
+        // 重置的 processStateMap——后者会在 SHOW STATUS 执行前被擦成空图，导致端到端恒空。
+        String cipher = Objects.toString(dataContext.getSslCipher(), "");
+        String version = Objects.toString(dataContext.getSslVersion(), "");
         Map<String, String> ordered = new LinkedHashMap<>();
         ordered.put("Ssl_cipher", cipher);
         ordered.put("Ssl_version", version);

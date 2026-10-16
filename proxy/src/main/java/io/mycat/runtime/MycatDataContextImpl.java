@@ -90,6 +90,9 @@ public class MycatDataContextImpl implements MycatDataContext {
     private ObservableEmitter<AbstractWritePacket> emitter;
     private volatile Observable<AbstractWritePacket> observable;
     private Map<String, Object> processStateMap = new HashMap<>();
+    // I-DEBT-47：前端 TLS 会话 cipher/version，会话生命周期事实，独立于每语句重置的 processStateMap。
+    private volatile String sslCipher = "";
+    private volatile String sslVersion = "";
     private boolean debug = false;
     private boolean vector = false;
     private Set<String> usedlocks = new HashSet<>();
@@ -473,6 +476,23 @@ public class MycatDataContextImpl implements MycatDataContext {
     @Override
     public void putProcessStateMap(Map<String, Object> map) {
         this.processStateMap = map;
+    }
+
+    // I-DEBT-47：TLS 会话态存独立字段，不受 putProcessStateMap 每语句重置影响。
+    @Override
+    public void setSslSessionInfo(String cipher, String version) {
+        this.sslCipher = cipher == null ? "" : cipher;
+        this.sslVersion = version == null ? "" : version;
+    }
+
+    @Override
+    public String getSslCipher() {
+        return sslCipher;
+    }
+
+    @Override
+    public String getSslVersion() {
+        return sslVersion;
     }
 
     @Override

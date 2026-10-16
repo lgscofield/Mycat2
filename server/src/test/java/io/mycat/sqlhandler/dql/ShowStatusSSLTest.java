@@ -87,8 +87,7 @@ class ShowStatusSSLTest {
     @Test
     void tlsSessionReportsSslCipher() {
         MycatDataContextImpl ctx = new MycatDataContextImpl();
-        ctx.getProcessStateMap().put("SSL_CIPHER", "TLS_AES_256_GCM_SHA384");
-        ctx.getProcessStateMap().put("SSL_VERSION", "TLSv1.3");
+        ctx.setSslSessionInfo("TLS_AES_256_GCM_SHA384", "TLSv1.3");
 
         List<Map<String, Object>> rows = runShowStatus("SHOW SESSION STATUS LIKE 'Ssl_cipher'", ctx);
 
@@ -96,6 +95,27 @@ class ShowStatusSSLTest {
                 .filter(r -> "Ssl_cipher".equalsIgnoreCase(String.valueOf(r.get("Variable_name"))))
                 .findFirst().orElseThrow(() -> new AssertionError(
                         "TLS 会话下 SHOW SESSION STATUS 应含 Ssl_cipher 行，实得 " + rows));
+        assertEquals("TLS_AES_256_GCM_SHA384", cipher.get("Value"));
+    }
+
+    /**
+     * I-DEBT-47 端到端回归锁（防复发）：TLS 会话态必须扛过 {@code MycatdbCommand.execute} 每语句开头的
+     * {@code processStateMap} 重置。旧实现把 cipher 存进 processStateMap，执行 SHOW STATUS 时先被擦成空图，
+     * 导致端到端 {@code Ssl_cipher} 恒空（真 fat-jar+pymysql over TLS 实测坐实）。修法=TLS 态存会话专用字段。
+     */
+    @Test
+    void tlsCipherSurvivesPerStatementProcessStateReset() {
+        MycatDataContextImpl ctx = new MycatDataContextImpl();
+        // 模拟 auth 期回填（经会话生命周期专用存储，非每语句重置的 processStateMap）
+        ctx.setSslSessionInfo("TLS_AES_256_GCM_SHA384", "TLSv1.3");
+        // 模拟 MycatdbCommand.execute L442：每语句开头把 processStateMap 重置为不可变空图
+        ctx.putProcessStateMap(java.util.Collections.emptyMap());
+
+        List<Map<String, Object>> rows = runShowStatus("SHOW SESSION STATUS LIKE 'Ssl_cipher'", ctx);
+        Map<String, Object> cipher = rows.stream()
+                .filter(r -> "Ssl_cipher".equalsIgnoreCase(String.valueOf(r.get("Variable_name"))))
+                .findFirst().orElseThrow(() -> new AssertionError(
+                        "执行期重置后仍应含 Ssl_cipher 行，实得 " + rows));
         assertEquals("TLS_AES_256_GCM_SHA384", cipher.get("Value"));
     }
 
@@ -115,8 +135,7 @@ class ShowStatusSSLTest {
     @Test
     void likePrefixMatchesBothSslVars() {
         MycatDataContextImpl ctx = new MycatDataContextImpl();
-        ctx.getProcessStateMap().put("SSL_CIPHER", "ECDHE-RSA-AES256-GCM-SHA384");
-        ctx.getProcessStateMap().put("SSL_VERSION", "TLSv1.2");
+        ctx.setSslSessionInfo("ECDHE-RSA-AES256-GCM-SHA384", "TLSv1.2");
 
         List<Map<String, Object>> rows = runShowStatus("SHOW SESSION STATUS LIKE 'Ssl%'", ctx);
         List<String> names = rows.stream().map(r -> String.valueOf(r.get("Variable_name"))).toList();
