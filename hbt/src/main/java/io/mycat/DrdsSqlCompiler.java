@@ -509,6 +509,11 @@ public class DrdsSqlCompiler {
         // 同组内规则触发顺序是任意的（HepProgramBuilder.addGroupEnd 语义），故拆为独立的前置组以保证次序。
         builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
         builder.addGroupBegin().addRuleCollection(MycatExtraSortRule.RULES).addGroupEnd();
+        // I-DEBT-54/D1：恒空仿表折叠——子树全叶恒空时替换为空 Values，绕过投影 codegen
+        builder.addMatchLimit(64).addMatchOrder(HepMatchOrder.BOTTOM_UP);
+        builder.addGroupBegin()
+                .addRuleInstance(EmptyVisualTableSubtreeRule.INSTANCE)
+                .addGroupEnd();
         // 视图下推 + GSI 索引选择（含 JoinViewRule 并表）
         builder.addMatchLimit(1024).addMatchOrder(HepMatchOrder.BOTTOM_UP);
         builder.addGroupBegin()
