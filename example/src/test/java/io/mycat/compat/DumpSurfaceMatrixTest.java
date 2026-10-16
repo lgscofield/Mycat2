@@ -194,8 +194,11 @@ public class DumpSurfaceMatrixTest implements MycatTest {
 
     /**
      * I-DEBT-53：{@code --source-data} 轴的 binlog 状态命令按后端版本选择。
-     * MySQL 8.4 起 {@code SHOW MASTER STATUS} 移除、改名 {@code SHOW BINARY LOG STATUS}；
-     * 9.x 同。旧后端（≤8.0/mariadb/5.7）仍用 {@code SHOW MASTER STATUS}。
+     * <b>仅 MySQL</b> 8.4 起 {@code SHOW MASTER STATUS} 移除、改名 {@code SHOW BINARY LOG STATUS}（9.x 同）。
+     * <b>MariaDB 从未做此改名</b>——{@code SHOW BINARY LOG STATUS} 是 MySQL-8.4 专有语法，MariaDB
+     * 任何版本（含 10.6/10.11/11.4，其 {@code version()} 报 {@code 10.x}/{@code 11.x} 大版本）都不认，
+     * 真 mysqldump 对 MariaDB 恒发 {@code SHOW MASTER STATUS}。故门控须先排除 MariaDB 版本线，
+     * 否则 MariaDB 的 10.x/11.x 大版本号（{@code >8}）会被数值比较误判成 MySQL 现代线而发新语法致假红。
      * 版本经 Mycat {@code select version()} 透传取后端真实版本（同 {@code FrontAuthMatrixTest} 探针）。
      */
     private String sourceDataShowCommand(Connection c) throws Exception {
@@ -205,7 +208,9 @@ public class DumpSurfaceMatrixTest implements MycatTest {
             rs.next();
             v = rs.getString(1);
         }
-        // 解析 major.minor：≥ 8.4（含 9.x）用新语法
+        // MariaDB 版本线不改名：无论大版本号多大都用旧语法 SHOW MASTER STATUS
+        boolean mariadb = v != null && v.toLowerCase().contains("mariadb");
+        // 解析 major.minor：仅 MySQL ≥ 8.4（含 9.x）用新语法 SHOW BINARY LOG STATUS
         int dot = v.indexOf('.');
         int major = dot > 0 ? Integer.parseInt(v.substring(0, dot)) : -1;
         int minor = -1;
@@ -215,7 +220,7 @@ public class DumpSurfaceMatrixTest implements MycatTest {
             minStr = minStr.replaceAll("[^0-9].*$", "");
             minor = minStr.isEmpty() ? -1 : Integer.parseInt(minStr);
         }
-        boolean modern = major > 8 || (major == 8 && minor >= 4);
+        boolean modern = !mariadb && (major > 8 || (major == 8 && minor >= 4));
         return modern ? "SHOW BINARY LOG STATUS" : "SHOW MASTER STATUS";
     }
 }
