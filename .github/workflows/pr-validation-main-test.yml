@@ -25,19 +25,19 @@ jobs:
       matrix:
         include:
           - db: mysql:5.7
-            experimental: true
+            experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时，测试硬化后转 false
           - db: mysql:8.0
-            experimental: true
+            experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mysql:8.4
-            experimental: true
+            experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mysql:9.0
-            experimental: true
+            experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mariadb:10.6
-            experimental: true
+            experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时
           - db: mariadb:10.11
-            experimental: true
+            experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时
           - db: mariadb:11.4
-            experimental: true
+            experimental: true  # I-CI-6: Initialize containers 服务未起（CI infra）
     services:
       mysql-a:
         image: ${{ matrix.db }}
