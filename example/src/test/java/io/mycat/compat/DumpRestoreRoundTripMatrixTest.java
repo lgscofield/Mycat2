@@ -18,6 +18,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.abort;
 
@@ -33,8 +34,9 @@ import static org.junit.jupiter.api.Assumptions.abort;
  *       能建出即证 Mycat 吐出的 DDL 可被 vanilla MySQL reload（结构保真）。</li>
  *   <li><b>列发现面</b>：像 dump 工具一样<b>从源库 {@code SHOW FULL COLUMNS} 的 Extra 发现生成列</b>
  *       （含 GENERATED），构造 INSERT 时排除它们——生列由 MySQL reload 时按表达式重算。
- *       （注：Mycat 的 {@code information_schema.columns.extra} 对生列返空，非可用发现面；见
- *       {@link #discoverGeneratedColumns} 记录。）</li>
+ *       （注：Mycat 的 {@code information_schema.columns} 曾对生列 {@code extra} 返空，
+ *       现已修复——I-ME-2 修复后该面与 {@code SHOW FULL COLUMNS} 一致暴露生成列标记，
+ *       由 {@link #informationSchemaColumnsExposesGeneratedColumnExtra} 专项锁定。）</li>
  *   <li><b>数据面</b>：经 Mycat {@code SELECT} 逐值捕获非生列原始对象，{@code setObject} 回灌原生。</li>
  * </ol>
  *
@@ -211,6 +213,45 @@ public class DumpRestoreRoundTripMatrixTest implements MycatTest {
         }
     }
 
+    /**
+     * I-ME-2 · 生成列元数据面<b>回归锁</b>：Mycat 的 {@code information_schema.columns} 必须像原生
+     * MySQL 一样对生成列暴露 {@code EXTRA}（'STORED GENERATED'/'VIRTUAL GENERATED'）与非空
+     * {@code GENERATION_EXPRESSION}。
+     *
+     * <p><b>承重依据</b>：真实 mysqldump 的<b>结构面</b>正是走
+     * {@code SELECT ... EXTRA ... FROM information_schema.columns} 发现生成列
+     * （MySQL 8.0/8.4 mysqldump.cc {@code get_table_structure}；MariaDB 11.4 mariadb-dump
+     * {@code select column_name, extra, generation_expression from information_schema.columns}）。
+     * Mycat 的 {@code information_schema.columns} 以自身 Calcite 逻辑元数据应答
+     * （{@code hbt/MysqlMetadataManager} 的 COLUMNS 行供应），修复前把 {@code EXTRA} 无条件硬编为空
+     * → 客户端 dump 走该通道将无法识别生成列（把生列误当普通列 INSERT → 原生回灌 ERROR 3105）。
+     *
+     * <p>本锁复用 {@link #prepareSource()} seed 的 {@code dbdump.t1}（含 {@code gen int as (id*2) stored}）：
+     * 修复前 RED（EXTRA 恒空断言失败），修复并重生 jar 后 GREEN。
+     */
+    @Test
+    public void informationSchemaColumnsExposesGeneratedColumnExtra() throws Exception {
+        assumeInfraUp();
+        try (Connection mycat = getMySQLConnection(DB_MYCAT);
+                Statement st = mycat.createStatement();
+                ResultSet rs = st.executeQuery(
+                        "SELECT EXTRA, GENERATION_EXPRESSION FROM information_schema.columns "
+                                + "WHERE TABLE_SCHEMA = '" + SRC_SCHEMA + "' AND TABLE_NAME = '" + TABLE
+                                + "' AND COLUMN_NAME = 'gen'")) {
+            assertTrue(rs.next(), "information_schema.columns 应含 " + SRC_SCHEMA + "." + TABLE + ".gen 行");
+            String extra = rs.getString("EXTRA");
+            String genExpr = rs.getString("GENERATION_EXPRESSION");
+            assertNotNull(extra, "生成列的 i_s.columns.EXTRA 不应为 null");
+            assertTrue(extra.toUpperCase().contains("GENERATED"),
+                    "生成列的 i_s.columns.EXTRA 应含 'GENERATED'（对齐原生 MySQL，mysqldump 结构面依赖），实际：'" + extra + "'");
+            assertTrue(extra.toUpperCase().contains("STORED"),
+                    "gen 声明为 STORED，EXTRA 应为 'STORED GENERATED'，实际：'" + extra + "'");
+            assertNotNull(genExpr, "生成列的 GENERATION_EXPRESSION 不应为 null");
+            assertFalse(genExpr.trim().isEmpty(),
+                    "生成列的 GENERATION_EXPRESSION 应非空（含表达式），实际：'" + genExpr + "'");
+        }
+    }
+
     /** 经 Mycat/原生 SHOW CREATE TABLE 取回建表 DDL（结果集第 2 列）。 */
     private String showCreateTable(Connection c, String qualifiedTable) throws Exception {
         try (Statement st = c.createStatement();
@@ -223,14 +264,14 @@ public class DumpRestoreRoundTripMatrixTest implements MycatTest {
     /**
      * 像 dump 工具一样从源库发现生成列。
      *
-     * <p><b>为何用 {@code SHOW FULL COLUMNS} 而非 {@code information_schema.columns}</b>（本会话实测发现）：
-     * Mycat 对 {@code information_schema.columns} 以<b>自身 Calcite 逻辑元数据</b>应答，
-     * 生成列的 {@code extra} 返回<b>空</b>（{@code generation_expression} 亦 NULL），
-     * 且该虚拟视图无 {@code is_generated} 列——即 Mycat 的 information_schema 面<b>不</b>暴露生成列标记。
-     * 而 {@code SHOW FULL COLUMNS}/{@code SHOW FIELDS} 经 Mycat <b>正确</b>返回
-     * {@code Extra = 'STORED GENERATED'/'VIRTUAL GENERATED'}——这也正是真实 mysqldump
-     * （8.0/8.4 客户端）在数据面发现并跳过生成列所走的通道（实测对 Mycat dump 能正确排除生列）。
-     * 故本格采用 SHOW FULL COLUMNS 这一 Mycat 兑现、且贴 dump 工具真实行为的发现面。
+     * <p>本方法用 {@code SHOW FULL COLUMNS}（Mycat 正确返回 {@code Extra = 'STORED GENERATED'/
+     * 'VIRTUAL GENERATED'}）作为发现面；这也贴真实 mysqldump（部分版本）走的通道。
+     * <p><b>注：{@code information_schema.columns} 面也已可用</b>——此前 Mycat 的
+     * {@code information_schema.columns} 对生成列的 {@code extra} 无条件硬编为空、
+     * {@code generation_expression} 为 NULL（本会话先前发现）；<b>I-ME-2 修复</b>（
+     * {@code hbt/MysqlMetadataManager} COLUMNS 行供应改取 druid {@code getAsExpr()}/{@code getGeneratedAlwaysAs()}
+     * 并据 {@code isStored()} 填 {@code EXTRA}）后，该面与 {@code SHOW FULL COLUMNS} 一致暴露生成列标记，
+     * 由 {@link #informationSchemaColumnsExposesGeneratedColumnExtra} 回归锁定。
      * <p>返回列名集合（小写）。
      */
     private Set<String> discoverGeneratedColumns(Connection c, String schema, String table) throws Exception {

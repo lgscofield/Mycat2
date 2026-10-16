@@ -166,17 +166,38 @@ public class MysqlMetadataManager extends MetadataManager {
                                     }
                                     return null;
                                 });
-                                IS_NULLABLE = column.containsNotNullConstaint() ? "NO" : "YES";
+                                IS_NULLABLE = column.containsNotNullConstraint() ? "NO" : "YES";
                                 COLUMN_KEY = mySqlCreateTableStatement.isPrimaryColumn(name) ?
                                         "PRI" : mySqlCreateTableStatement.isUNI(name) ? "UNI" : mySqlCreateTableStatement.isMUL(name) ? "MUL" : null;
 
                                 COLUMN_DEFAULT = Optional.ofNullable(defaultValues.get(i)).orElse("NULL");
                                 CHARACTER_MAXIMUM_LENGTH = 4;
                                 COLUMN_TYPE = dataTypes.get(i);
-                                EXTRA = "";
+                                // I-ME-2: 生成列元数据面须对齐原生 information_schema.columns——
+                                // 真实 mysqldump（8.0/8.4/MariaDB 11.4）结构面靠 EXTRA 含 'GENERATED'
+                                // + GENERATION_EXPRESSION 非空 来发现并在回灌时跳过生成列。
+                                // druid 对短形 `AS (expr)` 将表达式存于 asExpr（getAsExpr()），
+                                // 仅长形 `GENERATED ALWAYS AS (expr)` 才填 getGeneratedAlwaysAs()，故两者都取。
+                                SQLExpr genExpr = column.getAsExpr();
+                                if (genExpr == null) {
+                                    genExpr = column.getGeneratedAlwaysAs();
+                                }
+                                if (genExpr != null) {
+                                    // MySQL 默认（裸 AS 不带 STORED/VIRTUAL）为 VIRTUAL GENERATED
+                                    EXTRA = column.isStored() ? "STORED GENERATED" : "VIRTUAL GENERATED";
+                                    GENERATION_EXPRESSION = SQLUtils.toMySqlString(genExpr);
+                                } else if (column.isAutoIncrement()) {
+                                    EXTRA = "auto_increment";
+                                    GENERATION_EXPRESSION = "";
+                                } else if (column.getOnUpdate() != null) {
+                                    EXTRA = "on update " + SQLUtils.toMySqlString(column.getOnUpdate());
+                                    GENERATION_EXPRESSION = "";
+                                } else {
+                                    EXTRA = "";
+                                    GENERATION_EXPRESSION = "";
+                                }
                                 PRIVILEGES = "select,insert,update,references";
                                 COLUMN_COMMENT = Optional.ofNullable(column.getComment()).map(s -> ((SQLCharExpr) s).getText()).orElse(null);
-                                GENERATION_EXPRESSION = Optional.ofNullable(column.getGeneratedAlwaysAs()).map(m -> m.toString()).orElse(null);
 
                                 objects.add(new Object[]{
                                         TABLE_CATALOG,
