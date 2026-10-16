@@ -21,8 +21,21 @@ import java.util.function.Supplier;
 
 public abstract class VisualTableHandler implements TableHandler {
    final LogicTable logicTable;
+   private final boolean staticallyEmpty;
 
-    public static VisualTableHandler createByMySQL(String sql, Supplier< Observable<Object[]> > rowsProvider){
+    /**
+     * 创建静态恒空仿表：scanAll 永远返回 Observable.empty()。
+     * 规划器可据此在投影前折叠为空 Values，绕过不可 codegen 的表达式。
+     */
+    public static VisualTableHandler createStaticallyEmptyByMySQL(String sql) {
+        return createByMySQLInternal(sql, () -> Observable.empty(), true);
+    }
+
+    public static VisualTableHandler createByMySQL(String sql, Supplier<Observable<Object[]>> rowsProvider) {
+        return createByMySQLInternal(sql, rowsProvider, false);
+    }
+
+    private static VisualTableHandler createByMySQLInternal(String sql, Supplier<Observable<Object[]>> rowsProvider, boolean staticallyEmpty) {
         SQLStatement sqlStatement1 = SQLUtils.parseSingleMysqlStatement(sql);
         MySqlCreateTableStatement sqlStatement = (MySqlCreateTableStatement)sqlStatement1;
         String schema = SQLUtils.normalize(sqlStatement.getSchema()).toLowerCase();
@@ -30,7 +43,7 @@ public abstract class VisualTableHandler implements TableHandler {
         MycatRowMetaData mycatRowMetaData = SQL2ResultSetUtil.getMycatRowMetaData((MySqlCreateTableStatement) sqlStatement);
         List<SimpleColumnInfo> columnInfo = CalciteConvertors.getColumnInfo(Objects.requireNonNull(mycatRowMetaData));
         LogicTable logicTable = new LogicTable(LogicTableType.NORMAL, schema, tableName, columnInfo, Collections.emptyMap(), sql);
-        return new VisualTableHandler(logicTable){
+        return new VisualTableHandler(logicTable, staticallyEmpty){
 
             @Override
             public Observable<Object[]> scanAll() {
@@ -40,7 +53,17 @@ public abstract class VisualTableHandler implements TableHandler {
     }
 
     public VisualTableHandler(LogicTable logicTable) {
+        this(logicTable, false);
+    }
+
+    VisualTableHandler(LogicTable logicTable, boolean staticallyEmpty) {
         this.logicTable = logicTable;
+        this.staticallyEmpty = staticallyEmpty;
+    }
+
+    /** 该仿表是否静态恒空（scanAll 永远返 empty）。规划器折叠规则据此判定。 */
+    public boolean isStaticallyEmpty() {
+        return staticallyEmpty;
     }
 
     @Override

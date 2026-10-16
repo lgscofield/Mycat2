@@ -233,20 +233,18 @@ public class MysqlMetadataManager extends MetadataManager {
                 }
             });
 
-    public static final VisualTableHandler EVENTS_TABLE_HANDLER = VisualTableHandler.createByMySQL(EVENTS(), () -> Observable.empty());
+    public static final VisualTableHandler EVENTS_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(EVENTS());
 
-    public static final VisualTableHandler COLUMN_STATISTICS_TABLE_HANDLER = VisualTableHandler.createByMySQL(COLUMN_STATISTICS(), () -> Observable.empty());
+    public static final VisualTableHandler COLUMN_STATISTICS_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(COLUMN_STATISTICS());
 
-    public static final VisualTableHandler FILE_TABLE_HANDLER = VisualTableHandler.createByMySQL(FILE_TABLE(), () -> Observable.empty());
-    public static final VisualTableHandler INNODB_DATAFILES_TABLE_HANDLER = VisualTableHandler.createByMySQL(DATAFILES(), () -> Observable.empty());
-    public static final VisualTableHandler INNODB_FIELDS_TABLE_HANDLER = VisualTableHandler.createByMySQL(INNODB_FIELDS(), () -> Observable.empty());
+    public static final VisualTableHandler FILE_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(FILE_TABLE());
+    public static final VisualTableHandler INNODB_DATAFILES_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(DATAFILES());
+    public static final VisualTableHandler INNODB_FIELDS_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(INNODB_FIELDS());
     public static final VisualTableHandler ENGINES_TABLE_HANDLER = VisualTableHandler.createByMySQL(INFORMATION_SCHEMA_INFO.get("ENGINES"),
             () -> Observable.fromIterable(Collections.singletonList(
                     new Object[]{"InnoDB", "DEFAULT", "Supports transactions, row-level locking, and foreign keys", "YES", "YES", "YES"})));
-    public static final VisualTableHandler KEY_COLUMN_USAGE_TABLE_HANDLER = VisualTableHandler.createByMySQL(KEY_COLUMN_USAGE(),
-            () -> Observable.empty());
-    public static final VisualTableHandler PARTITIONS_TABLE_HANDLER = VisualTableHandler.createByMySQL(PARTITIONS(),
-            () -> Observable.empty());
+    public static final VisualTableHandler KEY_COLUMN_USAGE_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(KEY_COLUMN_USAGE());
+    public static final VisualTableHandler PARTITIONS_TABLE_HANDLER = VisualTableHandler.createStaticallyEmptyByMySQL(PARTITIONS());
     public static final VisualTableHandler PROCESSLIST_TABLE_HANDLER = VisualTableHandler.createByMySQL(INFORMATION_SCHEMA_INFO.get("PROCESSLIST"), () -> {
         long ID;
         String USER;
@@ -718,7 +716,7 @@ public class MysqlMetadataManager extends MetadataManager {
 
         SQLStatement sqlStatement = SQLUtils.parseSingleMysqlStatement(value);
         if (sqlStatement instanceof MySqlCreateTableStatement) {
-            VisualTableHandler visualTableHandler = VisualTableHandler.createByMySQL(value, () -> Observable.empty());
+            VisualTableHandler visualTableHandler = VisualTableHandler.createStaticallyEmptyByMySQL(value);
             if (!tables.containsKey(key, false)) {
                 tables.put(key, visualTableHandler);
             }
