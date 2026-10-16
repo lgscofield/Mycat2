@@ -62,13 +62,15 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
     private static final ServerVersion OAEP_MIN_VERSION = new ServerVersion(8, 0, 5);
 
     /** caching_sha2 full-auth 子状态。 */
-    private enum AuthStage {
+    enum AuthStage {
         /** 等待首个 AuthResponse（native 或 caching_sha2 的初始 scramble）。 */
         AUTH_RESPONSE,
-        /** 已下发 full-auth 请求，等客户端裸 {@code 0x02}（求公钥）。 */
+        /** 已下发 full-auth 请求（非安全连接），等客户端裸 {@code 0x02}（求公钥）。 */
         SHA_FULL_ASK_PUBKEY,
-        /** 已下发公钥，等客户端 RSA 密文口令。 */
-        SHA_FULL_RECV_PW
+        /** 已下发公钥（非安全连接），等客户端 RSA 密文口令。 */
+        SHA_FULL_RECV_PW,
+        /** 已下发 full-auth 请求（TLS 安全连接），等客户端明文回传口令。 */
+        SHA_FULL_TLS_CLEARPW
     }
 
     final NetSocket socket;
@@ -200,6 +202,20 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
                 buffer = Buffer.buffer();
                 break;
             }
+            case SHA_FULL_TLS_CLEARPW: {
+                // I-DEBT-51：TLS 安全连接下 full-auth 不做 RSA 公钥交换，客户端直接回传 0x00 结尾明文口令，
+                // 剥尾 0x00 后常量时间比对；通过则暖缓存并回 OK（TLS 已保护信道，明文回传合规）。
+                byte[] clearPassword = readView.readEOFStringBytes();
+                if (CachingSha2ServerAuth.clearAuthOk(rightPassword, clearPassword)) {
+                    CachingSha2AuthCache.getInstance().markWarmed(username);
+                    completeAuthentication(packetId); // OK 在 packetId+1
+                } else {
+                    writeAccessDenied(packetId,
+                            "Access denied for user '" + username + "'@'" + host + "' (using password: YES)");
+                }
+                buffer = Buffer.buffer();
+                break;
+            }
         }
     }
 
@@ -216,8 +232,17 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
             completeAuthentication(packetId);
         } else {
             socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId + 1, AuthMoreData.fullAuth())));
-            stage = AuthStage.SHA_FULL_ASK_PUBKEY;
+            // I-DEBT-51/AU-3：安全连接（TLS 已升级）下的 full-auth 走明文回传校验，非安全连接才走 RSA 公钥舞蹈。
+            stage = fullAuthStageFor(tlsUpgraded);
         }
+    }
+
+    /**
+     * caching_sha2 full-auth 分支路由：{@code secure}（TLS 已升级）→ {@link AuthStage#SHA_FULL_TLS_CLEARPW}
+     * （客户端明文回传口令）；否则→ {@link AuthStage#SHA_FULL_ASK_PUBKEY}（RSA 公钥舞蹈）。拆出以便单测钉死此路由（防回归到两情混用）。
+     */
+    static AuthStage fullAuthStageFor(boolean secure) {
+        return secure ? AuthStage.SHA_FULL_TLS_CLEARPW : AuthStage.SHA_FULL_ASK_PUBKEY;
     }
 
     /** native 直校：scramble411（既有行为），成功进会话，失败 ERR。 */

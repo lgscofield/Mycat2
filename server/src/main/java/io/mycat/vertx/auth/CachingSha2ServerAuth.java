@@ -6,6 +6,7 @@ import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.util.Arrays;
 
 /**
  * R3：服务端 caching_sha2_password 原生认证校验原语（纯计算、无 socket）。
@@ -88,5 +89,29 @@ public final class CachingSha2ServerAuth {
         String expected = rightPassword;
         return MessageDigest.isEqual(
                 decoded.getBytes(StandardCharsets.UTF_8), expected.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * TLS（安全连接）full-auth 校验：按 MySQL 协议，加密连接下 {@code caching_sha2_password} 的 full-auth
+     * 不做 RSA 公钥交换——服务端回 {@code AuthMoreData(0x01,0x04)} 后，客户端直接以 {@code 0x00} 结尾的明文
+     * 口令回传（TLS 已保护信道），服务端剥掉尾部 {@code 0x00} 后与明文口令常量时间比对。
+     *
+     * @param rightPassword 服务端持有的明文口令（可能为 null/空）
+     * @param clearPassword 客户端回传的明文口令字节（可能以 0x00 结尾）
+     * @return 口令匹配则 true
+     */
+    public static boolean clearAuthOk(String rightPassword, byte[] clearPassword) {
+        if (rightPassword == null) {
+            // null 表不存在/被禁 IP 用户，绝不当作合法空口令放行。
+            return false;
+        }
+        int len = clearPassword == null ? 0 : clearPassword.length;
+        // 去掉 MySQL 明文口令的尾部 null 终止符（可能多个）
+        while (len > 0 && clearPassword[len - 1] == 0) {
+            len--;
+        }
+        byte[] provided = clearPassword == null ? new byte[0] : Arrays.copyOf(clearPassword, len);
+        byte[] expected = rightPassword.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(provided, expected);
     }
 }
