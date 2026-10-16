@@ -141,7 +141,7 @@
 第 0 步（前置·B）：让验证网四轴齐 + 出公共背书
   I-CI-3 补 CRUD/结果集矩阵 ✅ 已完成（`CrudResultMatrixTest` 双轴 7 档全跑，2026-10-12）→ 认证轴+操作轴齐；红地图已出（三格版本无关引擎深债 I-DEBT-34/36/39，喂第 3 步）
   I-CI-4 接 MigrateTest → 迁移轴
-  网络恢复后 I-CI-2 push fork 跑 Actions → CI 背书（把 M1 从本地✅推到 spec 定义的 Evidenced-Done）
+  I-CI-2 CI 背书：✅ **2026-10-16 破死锁**——用户已开启 fork Actions；本机 `github.com:443`(IP 140.82.114.3) TCP 连不通、`api.github.com`(140.82.114.5) 可达，push 通道仍阻（SSH 亦无 key）。改走可达 REST：用 GCM 缓存 PAT 对 `pr-validation-main-test.yml` 发 `workflow_dispatch`(HTTP 204)→ fork **史上首个 CI run #1**（id 38868386997，queued→in_progress），`total_count` 由恒 0→≥1，验证网确已点火。⚠ 该 run 打的是远端 main(`241d632c4`)，**不含本地领先 11 个债务提交**（I-DEBT-44..52）；M1 对「当前 HEAD」的完整 Evidenced-Done 仍需网络恢复后 `git push` 触发新 run（结论见 `.superpowers/sdd/2026-10-15-connector-polyglot/ci-run-38868386997.txt`）
 
 第 1 步（招牌本体·A→M2）：前端连接达标，按依赖链
   I-VE-2 ✅（连接级 EOF 编码已架构完成+回归锁取证 2026-10-12；死码 `NewMycatConnectionImpl:305` 不改）→ I-AU-5 ✅ → I-AU-1 ✅（前端原生 caching_sha2）→ I-AU-3 ✅（RSA）→ I-AU-2 ✅（前端 TLS·Connector/J 面全矩阵 e2e 2026-10-15 实跑 14/14 PASS，`71b184dfc`+`run-tls-matrix.ps1`；非 Java connector×TLS 属 I-DEBT-9）
