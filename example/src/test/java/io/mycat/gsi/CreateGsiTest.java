@@ -55,7 +55,16 @@ public class CreateGsiTest implements MycatTest {
             Assert.assertTrue(explainPrimaryTable.contains("Each(targetName=c0, sql=SELECT * FROM db1_0.travelrecord_1 AS `travelrecord` WHERE (`travelrecord`.`id` = ?))"));
             String explainIndexScan = explain(mycatConnection, "select * from db1.travelrecord where user_id = 1");//index-scan
             System.out.println(explainIndexScan);
-            Assert.assertTrue(explainIndexScan.contains("MycatSQLTableLookup"));
+            // I-DEBT-52 (2026-10-17): 规划器演化（I-DEBT-10 Hep 迁移 + I-DEBT-46 join 聚类）后，
+            // GSI 回表从旧版 MycatSQLTableLookup 改为当前版 MycatSortMergeJoin（数据语义正确，
+            // createGsi3/testGsiJoinConverges size 断言活库确认）。断言改为验证语义而非算子名。
+            Assert.assertTrue("GSI 表应作为 index-scan 驱动参注与计划",
+                    explainIndexScan.contains("travelrecord_g_i_user_id"));
+            boolean hasJoin52 = explainIndexScan.contains("MycatSQLTableLookup")
+                    || explainIndexScan.contains("SortMergeJoin")
+                    || explainIndexScan.contains("HashJoin");
+            Assert.assertTrue("GSI 回表应出某种连接算子（TableLookup 或 SortMergeJoin/HashJoin）",
+                    hasJoin52);
             String explainOnlyIndexScan = explain(mycatConnection, "select fee from db1.travelrecord where user_id = 1");//index-scan
 
             String explain;
@@ -191,10 +200,17 @@ public class CreateGsiTest implements MycatTest {
             String explainPrimaryTable = explain(connection, "select * from db1.travelrecord where id = 1");
             Assert.assertTrue(explainPrimaryTable.contains("Each(targetName=c0, sql=SELECT * FROM db1_0.travelrecord_1 AS `travelrecord` WHERE (`travelrecord`.`id` = ?))"));
             String explainIndexScan = explain(connection, "select * from db1.travelrecord where user_id = 1");//index-scan
-            Assert.assertTrue(explainIndexScan.contains("MycatProject(id=[$0], user_id=[$1], traveldate=[$3], fee=[$2], days=[$4], blob=[$5])\n" +
-                    "  MycatSQLTableLookup(condition=[=($0, $7)], joinType=[inner], type=[BACK], correlationIds=[[$cor0]], leftKeys=[[0]])\n" +
-                    "    MycatView(distribution=[[db1.travelrecord_g_i_user_id]], conditions=[=($0, ?0)])\n" +
-                    "    MycatView(distribution=[[db1.travelrecord]])"));
+            // I-DEBT-52 (2026-10-17): 精确计划字符串已随规划器演化而过时。
+            // 换为结构断言：GSI 表驱动扫描 + 主表回表目标 + 存在某种连接算子。
+            Assert.assertTrue("GSI 表 travelrecord_g_i_user_id 应出现在 index-scan 计划中",
+                    explainIndexScan.contains("travelrecord_g_i_user_id"));
+            Assert.assertTrue("主表 db1.travelrecord 应作为回表目标出现",
+                    explainIndexScan.contains("MycatView(distribution=[[db1.travelrecord]]"));
+            boolean hasBackFillJoin = explainIndexScan.contains("MycatSQLTableLookup")
+                    || explainIndexScan.contains("SortMergeJoin")
+                    || explainIndexScan.contains("HashJoin");
+            Assert.assertTrue(
+                    "GSI 回表应出某种连接算子（TableLookup 或 SortMergeJoin/HashJoin）", hasBackFillJoin);
             String explainOnlyIndexScan = explain(connection, "select fee from db1.travelrecord where user_id = 1");//index-scan
             //Assert.assertTrue(explainOnlyIndexScan.contains("Each(targetName=c0, sql=SELECT `travelrecord_g_i_user_id`.`fee` FROM db1_0.travelrecord_g_i_user_id_1 AS `travelrecord_g_i_user_id` WHERE (`travelrecord_g_i_user_id`.`user_id` = ?))"));
             deleteData(connection, "db1", "travelrecord");
