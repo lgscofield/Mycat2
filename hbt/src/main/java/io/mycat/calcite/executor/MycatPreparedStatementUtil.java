@@ -6,9 +6,11 @@ import com.alibaba.druid.sql.ast.SQLLimit;
 import com.alibaba.druid.sql.ast.SQLOrderBy;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLAggregateExpr;
+import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
 import com.alibaba.druid.sql.ast.expr.SQLInSubQueryExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIntervalExpr;
 import com.alibaba.druid.sql.ast.statement.*;
+import com.alibaba.druid.sql.dialect.mysql.ast.expr.MySqlCharExpr;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlExportParameterVisitor;
@@ -178,6 +180,103 @@ public class MycatPreparedStatementUtil {
                 } finally {
                     this.parameterized = true;
                 }
+            }
+
+            // I-DEBT-54/D3: 带 charset introducer 的字符串字面量（mysqldump 的 _binary '原始字节' 形态）
+            // 不得折叠为 ?+String 参数——restore 丢失 introducer 后，非法 UTF-8 载体经后端连接器
+            // utf8 再编码变 U+FFFD，bit(8) 列写库 1406/沉默损坏。直接以纯 ASCII hex 形态烤进模板：
+            // 字节级保真且不依赖任何连接器的编码行为（JDBC/原生协议两后端全兼容）。
+            // 接入点：参数化渲染走双参 visit(ValuesClause, List)（MySqlOutputVisitor.printValuesList 直调，
+            // 字节码实证），单参重载会被绕过，故两个重载都拦。
+            @Override
+            public boolean visit(SQLInsertStatement.ValuesClause x, List<Object> parameters) {
+                boolean hasIntroducer = false;
+                for (com.alibaba.druid.sql.ast.SQLExpr e : x.getValues()) {
+                    if (e instanceof MySqlCharExpr
+                            && ((MySqlCharExpr) e).getCharset() != null
+                            && !((MySqlCharExpr) e).getCharset().isEmpty()) {
+                        hasIntroducer = true;
+                        break;
+                    }
+                }
+                if (!hasIntroducer) {
+                    // 直通父类双参渲染，不走 renderValuesClause：那里 super.visit(单参) 会委派回本双参形成递归
+                    return super.visit(x, parameters);
+                }
+                appender.append("(");
+                for (int i = 0; i < x.getValues().size(); i++) {
+                    if (i > 0) {
+                        appender.append(", ");
+                    }
+                    com.alibaba.druid.sql.ast.SQLExpr e = x.getValues().get(i);
+                    if (e instanceof MySqlCharExpr) {
+                        if (!renderCharsetIntroducerHex((MySqlCharExpr) e)) {
+                            appender.append(e.toString()); // 无 text 边缘形态:默认字面量渲染
+                        }
+                    } else if (e instanceof com.alibaba.druid.sql.ast.expr.SQLLiteralExpr) {
+                        // 与父类双参渲染同型：print('?') + exportParameter 取值入参列表
+                        print0("?");
+                        incrementReplaceCunt();
+                        if (parameters != null) {
+                            com.alibaba.druid.sql.visitor.ExportParameterVisitorUtils.exportParameter(parameters, e);
+                        }
+                    } else {
+                        e.accept(this);
+                    }
+                }
+                appender.append(")");
+                return false;
+            }
+
+            @Override
+            public boolean visit(SQLInsertStatement.ValuesClause x) {
+                // 仅当 accept 派发路径命中：有 introducer 则自行渲染，否则返 true 继续默认遍历
+                return renderValuesClause(x);
+            }
+
+            private boolean renderValuesClause(SQLInsertStatement.ValuesClause x) {
+                boolean hasIntroducer = false;
+                for (com.alibaba.druid.sql.ast.SQLExpr e : x.getValues()) {
+                    if (e instanceof MySqlCharExpr
+                            && ((MySqlCharExpr) e).getCharset() != null
+                            && !((MySqlCharExpr) e).getCharset().isEmpty()) {
+                        hasIntroducer = true;
+                        break;
+                    }
+                }
+                if (!hasIntroducer) {
+                    return super.visit(x);
+                }
+                appender.append("(");
+                for (int i = 0; i < x.getValues().size(); i++) {
+                    if (i > 0) {
+                        appender.append(", ");
+                    }
+                    com.alibaba.druid.sql.ast.SQLExpr e = x.getValues().get(i);
+                    if (e instanceof MySqlCharExpr && !renderCharsetIntroducerHex((MySqlCharExpr) e)) {
+                        e.accept(this); // 无 text 等边缘形态退回默认行为
+                    } else if (!(e instanceof MySqlCharExpr)) {
+                        e.accept(this);
+                    }
+                }
+                appender.append(")");
+                return false;
+            }
+
+            /** 输出 {@code _binary x'HEX'} 并返 true；不可渲染（如 text 为 null）返 false 交回默认路径。 */
+            private boolean renderCharsetIntroducerHex(MySqlCharExpr x) {
+                String charset = x.getCharset();
+                if (x.getText() == null) {
+                    return false;
+                }
+                String prefix = charset.startsWith("_") ? charset : "_" + charset;
+                byte[] bytes = io.mycat.util.MySQLSqlTextCodec.encode(x.getText());
+                StringBuilder hex = new StringBuilder(2 * bytes.length);
+                for (byte b : bytes) {
+                    hex.append(String.format("%02X", b));
+                }
+                appender.append(prefix).append(" x'").append(hex).append("'");
+                return true;
             }
 
             @Override
