@@ -46,7 +46,7 @@ public class MycatRowMetaDataImpl implements MycatRowMetaData {
 
     @Override
     public boolean isNullable(int column) {
-        return !columnInfo.get(column).containsNotNullConstaint();
+        return !columnInfo.get(column).containsNotNullConstraint();
     }
 
     @Override

@@ -45,13 +45,13 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.8</version>
+            <!-- 版本归一轮（2026-10-15）：1.8 删除，随根管理值 1.9.0（修复 CVE-2024-25710/25712，
+                 API 兼容；executor 本就用 1.9.0，此处同时消除 reactor 内版本混用）。 -->
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.github.oshi/oshi-dist -->
         <dependency>
             <groupId>com.github.oshi</groupId>
             <artifactId>oshi-dist</artifactId>
-            <version>5.8.5</version>
             <type>pom</type>
             <exclusions>
                 <exclusion>
@@ -68,19 +68,16 @@
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
-            <version>0.9.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_httpserver</artifactId>
-            <version>0.9.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_hotspot -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>0.9.0</version>
         </dependency>
         <dependency>
             <groupId>io.mycat</groupId>
@@ -124,7 +121,6 @@
         <dependency>
             <groupId>au.com.bytecode</groupId>
             <artifactId>opencsv</artifactId>
-            <version>2.4</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
@@ -201,22 +197,18 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-access</artifactId>
-            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.danielwegener</groupId>
             <artifactId>logback-kafka-appender</artifactId>
-            <version>0.2.0-RC2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>2.7.2</version>
         </dependency>
         <dependency>
             <groupId>com.zendesk</groupId>
             <artifactId>mysql-binlog-connector-java</artifactId>
-            <version>0.25.5</version>
         </dependency>
 
         <dependency>
@@ -243,26 +235,23 @@
             <artifactId>avatica-core</artifactId>
         </dependency>
         <!-- I-DEBT-30: unit tests drive observer with a mocked front-end session.
-             离线仓无 root 管理的 5.16.1，模块级钉已缓存的 5.17.0（不动 root、不影响 va）。 -->
+             版本归一轮（2026-10-15）：root 已归一 mockito 5.17.0，模块级钉版本的历史前提（root 管理值 5.16.1 离线不可解析）已不存在，删除覆盖。 -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.17.0</version>
             <scope>test</scope>
         </dependency>
         <!-- R4 前端 TLS：Vert.x 服务端 upgradeToSsl 经 Netty SslContextBuilder 装载 PEM/PKCS12 与 SelfSignedCertificate
              都需 BouncyCastle（BouncyCastlePemReader；JDK21 封 sun.security.x509 后 SelfSignedCertificate 唯一可用签名分支）。
-             root 未管理 BC 版本，模块级钉离线仓已缓存的 1.78.1（bcpkix→bcutil→bcprov 链），不动 root、不影响其它模块。
+             版本归一轮（2026-10-15）：root 已新增 bcpkix/bcprov-jdk18on 1.78.1 管理条目（冻结原实测值），删除模块级钉。
              真 Connector/J STARTTLS 实测：SSLRequest 不与 ClientHello 合并（首读 tail=0）、升级后 cipher=TLS_AES_256_GCM_SHA384。 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.78.1</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.78.1</version>
         </dependency>
     </dependencies>
     <build>
@@ -328,7 +317,6 @@
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
                 <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
                 <executions>
                     <execution>
                         <id>version</id>

@@ -90,7 +90,7 @@ public class MycatRelDataType {
 
             boolean unsigned = dataTypeString.contains("UNSIGNED");
             boolean binary = dataTypeString.contains("BLOB")||dataTypeString.contains("BINARY") || dataType.isString() && dataType instanceof SQLCharacterDataType && ((SQLCharacterDataType) dataType).isHasBinary();
-            boolean notNull = columnDefinition.containsNotNullConstaint();
+            boolean notNull = columnDefinition.containsNotNullConstraint();
             int mysqlFlag;
             int scale = 0;//M
             int precision = 0;

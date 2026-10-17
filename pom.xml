@@ -65,7 +65,10 @@
     <!-- 功能升级项 -->
     <mysql.connector.version>9.3.0</mysql.connector.version>
     <mariadb.connector.version>3.5.3</mariadb.connector.version>
-    <kafka.version>4.0.0</kafka.version>
+    <!-- MYCAT CHANGE (版本归一轮 2026-10-15): 原值 4.0.0 是死属性（无 dM 条目、无人引用），
+         实际在用且离线仓有的是 server 传递链里的 kafka-clients 2.7.2（logback-kafka-appender 0.2.0-RC2
+         也是按旧 client API 写的）。归一冻结现状；4.x 升级是独立议题，勿在此混水。 -->
+    <kafka.version>2.7.2</kafka.version>
     <clickhouse.version>0.7.2</clickhouse.version>
     <oshi.version>6.8.2</oshi.version>
     <ehcache.version>3.10.8</ehcache.version>
@@ -93,10 +96,10 @@
     <!-- 计算引擎 -->
     <fastutil.version>8.5.6</fastutil.version>
     <openhft-compiler.version>2.4.1</openhft-compiler.version>
-    <commons-csv.version>1.9.0</commons-csv.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
-    <commons-codec.version>1.16.0</commons-codec.version>
-    <commons-io.version>2.15.0</commons-io.version>
+    <commons-csv.version>1.14.1</commons-csv.version>
+    <commons-lang3.version>3.21.0</commons-lang3.version>
+    <commons-codec.version>1.23.0</commons-codec.version>
+    <commons-io.version>2.22.0</commons-io.version>
     <hppc.version>0.9.0</hppc.version>
     <reflections.version>0.10</reflections.version>
     <rxjava3-extensions.version>3.1.1</rxjava3-extensions.version>
@@ -136,10 +139,10 @@
     <json-path.version>2.10.0</json-path.version>
     <sketches-core.version>0.9.0</sketches-core.version>
     <aggdesigner.version>6.1</aggdesigner.version>
-    <commons-dbcp2.version>2.11.0</commons-dbcp2.version>
+    <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-text.version>1.11.0</commons-text.version>
-    <uzaygezer.version>0.2</uzaygezer.version>
+    <commons-text.version>1.15.0</commons-text.version>
+    <uzaygezen.version>0.2</uzaygezen.version>
     <joou.version>0.9.5</joou.version>
     <error-prone.version>2.36.0</error-prone.version>
     <jts.version>1.19.0</jts.version>
@@ -151,6 +154,32 @@
 
     <!-- 根 POM 自身 -->
     <jetbrains-annotations.version>1.2.0</jetbrains-annotations.version>
+
+    <!-- ====== 版本归一轮（2026-10-15）：原散落于 server/hbt/example/calcite-core 的依赖，
+         版本一律冻结在其当前实测值上，纯治理动作，不含任何升级 ====== -->
+    <junit4.version>4.13.2</junit4.version>
+    <jackson-bom.version>2.22.3</jackson-bom.version>
+    <spring-boot.version>2.7.18</spring-boot.version>
+    <prometheus-client.version>0.9.0</prometheus-client.version>
+    <opencsv.version>2.4</opencsv.version>
+    <!-- 遗留休眠依赖：全仓无代码引用，与 logback-classic 1.5.18 不同代；离线仓无 1.5.18 的 access 包，
+         冻结现状 1.2.3，建议后续轮直接删除该依赖 -->
+    <logback-access.version>1.2.3</logback-access.version>
+    <logback-kafka-appender.version>0.2.0-RC2</logback-kafka-appender.version>
+    <bouncycastle.version>1.78.1</bouncycastle.version>
+    <mysql-binlog.version>0.25.5</mysql-binlog.version>
+    <!-- type=pom 的历史遗留声明（oshi 类实际来自 common 的 oshi-core ${oshi.version}） -->
+    <oshi-dist.version>5.8.5</oshi-dist.version>
+    <maven-replacer.version>1.5.3</maven-replacer.version>
+    <!-- hbt 的 Calcite 测试夹具家族（源自上游 Calcite pom，test 域） -->
+    <hsqldb.version>2.5.1</hsqldb.version>
+    <sqlline.version>1.9.0</sqlline.version>
+    <quidem.version>0.9</quidem.version>
+    <scott-data-hsqldb.version>0.1</scott-data-hsqldb.version>
+    <foodmart-data-hsqldb.version>0.4</foodmart-data-hsqldb.version>
+    <foodmart-queries.version>0.4.1</foodmart-queries.version>
+    <hamcrest-core.version>2.1</hamcrest-core.version>
+    <java-diff.version>1.1.2</java-diff.version>
   </properties>
 
   <scm>
@@ -182,7 +211,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <version>${junit4.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- MYCAT CHANGE: 补 junit-vintage-engine，让上面那个 JUnit 4 兼容层的测试真正被执行。
@@ -319,7 +348,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
-        <version>2.22.3</version>
+        <version>${jackson-bom.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -482,7 +511,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.13.2</version>
+        <version>${junit4.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -809,8 +838,10 @@
       </dependency>
       <dependency>
         <groupId>com.google.uzaygezen</groupId>
-        <artifactId>uzaygezer-core</artifactId>
-        <version>${uzaygezer.version}</version>
+        <!-- MYCAT CHANGE (版本归一轮 2026-10-15): 修正存量拼写错误 uzaygezer-core → 仓库真名 uzaygezen-core，
+             此前该条 dM 因错名从未生效（calcite-core 一直靠字面量钉版本才没暴露） -->
+        <artifactId>uzaygezen-core</artifactId>
+        <version>${uzaygezen.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jooq</groupId>
@@ -855,6 +886,134 @@
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
+      </dependency>
+
+      <!-- ====== 版本归一轮（2026-10-15）：以下条目自 server/hbt/example 的散养声明上收，
+           版本冻结原实测值，模块侧只删 <version> 字面量，行为零变化 ====== -->
+      <!-- Spring Boot（example 客户端样例，javax 线止步 2.7.18） -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-test-autoconfigure</artifactId>
+        <version>${spring-boot.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- 监控 / CSV / -binlog / TLS 前端（server 域） -->
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient</artifactId>
+        <version>${prometheus-client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_httpserver</artifactId>
+        <version>${prometheus-client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_hotspot</artifactId>
+        <version>${prometheus-client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>au.com.bytecode</groupId>
+        <artifactId>opencsv</artifactId>
+        <version>${opencsv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-access</artifactId>
+        <version>${logback-access.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.danielwegener</groupId>
+        <artifactId>logback-kafka-appender</artifactId>
+        <version>${logback-kafka-appender.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>${kafka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.zendesk</groupId>
+        <artifactId>mysql-binlog-connector-java</artifactId>
+        <version>${mysql-binlog.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.oshi</groupId>
+        <artifactId>oshi-dist</artifactId>
+        <version>${oshi-dist.version}</version>
+        <type>pom</type>
+      </dependency>
+
+      <!-- Calcite 测试夹具家族（hbt，源自上游 Calcite pom） -->
+      <dependency>
+        <groupId>org.hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${hsqldb.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>sqlline</groupId>
+        <artifactId>sqlline</artifactId>
+        <version>${sqlline.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.hydromatic</groupId>
+        <artifactId>quidem</artifactId>
+        <version>${quidem.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.hydromatic</groupId>
+        <artifactId>scott-data-hsqldb</artifactId>
+        <version>${scott-data-hsqldb.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.hydromatic</groupId>
+        <artifactId>foodmart-data-hsqldb</artifactId>
+        <version>${foodmart-data-hsqldb.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.hydromatic</groupId>
+        <artifactId>foodmart-queries</artifactId>
+        <version>${foodmart-queries.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>${hamcrest-core.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.incava</groupId>
+        <artifactId>java-diff</artifactId>
+        <version>${java-diff.version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -929,6 +1088,12 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>buildnumber-maven-plugin</artifactId>
           <version>3.2.1</version>
+        </plugin>
+        <!-- 版本归一轮（2026-10-15）：server 生成 version.txt 用的 replacer 插件上收管理 -->
+        <plugin>
+          <groupId>com.google.code.maven-replacer-plugin</groupId>
+          <artifactId>replacer</artifactId>
+          <version>${maven-replacer.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

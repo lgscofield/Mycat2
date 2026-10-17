@@ -181,59 +181,52 @@
             <scope>test</scope>
         </dependency>
         <!-- I-DEBT-30: unit tests mock NewMycatConnection to drive streaming producer.
-             离线仓无 root 管理的 5.16.1，模块级钉已缓存的 5.17.0（不动 root、不影响 va）。 -->
+             版本归一轮（2026-10-15）：root 已把 mockito 归一为 5.17.0（见根 pom 注释），
+             模块级钉版本的历史前提（root 管理值 5.16.1 离线不可解析）已不存在，删除覆盖。
+             Calcite 测试夹具家族的版本也已全部上收根 pom dependencyManagement。 -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.17.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>scott-data-hsqldb</artifactId>
-            <version>0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>sqlline</groupId>
             <artifactId>sqlline</artifactId>
-            <version>1.9.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>foodmart-data-hsqldb</artifactId>
-            <version>0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>2.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>foodmart-queries</artifactId>
-            <version>0.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.hydromatic</groupId>
             <artifactId>quidem</artifactId>
-            <version>0.9</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.5.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.incava</groupId>
             <artifactId>java-diff</artifactId>
-            <version>1.1.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

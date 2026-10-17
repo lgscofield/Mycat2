@@ -1,8 +1,10 @@
-package io.mycat.swapbuffer;
+package io.mycat.protocol.swapbuffer;
 
+// MYCAT CHANGE (版本归一轮 2026-10-15)：全 reactor 重建暴露存量断链——swapbuffer 实现类早已
+// 迁到本包（protocol 模块），本测试此前停留在旧包 io.mycat.swapbuffer，靠陈旧本地 jar 才
+// “碰巧编译得过”。测试访问包私有字段 sender/recycler，故整体搬入同包，回归当前源码现实。
 import io.reactivex.rxjava3.core.Emitter;
 import io.vertx.core.Future;
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 

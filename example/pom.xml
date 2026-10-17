@@ -48,11 +48,11 @@
              无法解析 JDK21 字节码（Unsupported class file major version 65），且引用 slf4j 1.7 的
              StaticLoggerBinder（本仓已统一到 slf4j 2.0.16/logback 1.5.18）。升到最后一个 2.7.x（Spring
              5.3.31，ASM 支持 JDK21），保留 javax/Hibernate 5.x/Spring Data 2.x API——零业务代码改动、
-             对 Mycat 生成的 SQL 行为不变。 -->
+             对 Mycat 生成的 SQL 行为不变。版本归一轮（2026-10-15）：2.7.18 已上收根 pom
+             dependencyManagement（spring-boot.version，冻结现值），模块侧删 <version>。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
-            <version>2.7.18</version>
         </dependency>
         <!-- MYCAT CHANGE: 此处曾硬码 junit-jupiter-api/engine 5.7.0，与根 pom 全局注入的
              5.12.2（pom.xml:174-192，配套 vintage）冲突：nearest-wins 把 platform 压到 1.7，
@@ -64,13 +64,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>2.7.18</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.7.18</version>
         </dependency>
         <!-- MYCAT CHANGE (I-DEBT-22): 删显式 hibernate-core 5.4.25，由 spring-boot-starter-data-jpa 2.7.18
              传递带来 Hibernate 5.6.15（JDK21 兼容，API 同 5.x 线）；否则旧版会被 nearest-wins 钉住。 -->

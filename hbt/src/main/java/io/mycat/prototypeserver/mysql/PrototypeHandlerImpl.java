@@ -163,7 +163,7 @@ public class PrototypeHandlerImpl implements PrototypeHandler {
             String Field = name;
             String Type = dataTypes.get(i);
             String Collation = Optional.ofNullable(column.getCollateExpr()).map(s -> SQLUtils.normalize(s.toString())).orElse(null);
-            String Null = column.containsNotNullConstaint() ? "NO" : "YES";
+            String Null = column.containsNotNullConstraint() ? "NO" : "YES";
             String Key = sqlStatement.isPrimaryColumn(name) ?
                     "PRI" : sqlStatement.isUNI(name) ? "UNI" : sqlStatement.isMUL(name) ? "MUL" : "";
 
