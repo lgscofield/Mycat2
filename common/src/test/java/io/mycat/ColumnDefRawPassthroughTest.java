@@ -4,6 +4,7 @@ import io.mycat.beans.mycat.MycatMySQLRowMetaData;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.beans.mycat.RowMetaDataFidelity;
+import io.mycat.beans.mysql.packet.ColumnDefPacket;
 import io.mycat.beans.mysql.packet.ColumnDefPacketImpl;
 import io.mycat.protocol.mysql.type.MySQLFieldsType;
 import io.mycat.protocol.mysql.type.MySQLPayloadWriter;
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * I-DEBT-45：后端忠实轨（FaithfulTypeView 名对齐守卫通过的列）列头必须 raw 透传后端原始
@@ -148,5 +150,36 @@ class ColumnDefRawPassthroughTest {
 
         assertEquals(1, payloads.size());
         assertArrayEquals(rawBytesOf(v), payloads.get(0));
+    }
+
+    @Test
+    void heterogeneousProbeSuppressionDisablesRawPassthrough() {
+        // 终审 Important-1：异构探测权威（probeMergedBackendMeta 合成 SQL 结果）
+        // 列名天然对齐（union 输出列=计划列），但物理表名/库名是探测副作用不应透传给客户端。
+        // effectiveWithSuppressedRaw 保留类型忠实，但 rawColumnDef 一律回 null → 发射缝走重建轨。
+        ColumnDefPacketImpl probePacket = backendVarbinaryPacket("c");
+        probePacket.setColumnTable("_probe_tmp_".getBytes());
+        probePacket.setColumnSchema("_probe_ds_".getBytes());
+        MycatRowMetaData suppressed = RowMetaDataFidelity.effectiveWithSuppressedRaw(
+                backendMeta(probePacket), planMeta("c", Types.DECIMAL));
+
+        // rawColumnDef 被抑制 → null
+        assertNull(suppressed.rawColumnDef(0),
+                "异构探测权威必须抑制 rawColumnDef（Review Focus#1：多源异构不得进透传分支）");
+
+        // 列头仍取忠实类型（getColumnType 不受抑制影响：后端列名对齐仍取 VARBINARY）
+        // 但发射走重建轨（因为 rawColumnDef=null + 整体非 MycatMySQLRowMetaData 实例）：
+        // 重建轨经 MySQLFieldsType.fromJdbcType(VARBINARY) → LONG_BLOB(251)
+        // 这证明合成 SQL 的物理表名/库名不会透传到客户端。
+        List<byte[]> payloads = emit(suppressed);
+        int[] clt = parseCharsetLengthType(payloads.get(0));
+        assertEquals(MySQLFieldsType.FIELD_TYPE_LONG_BLOB, clt[2],
+                "抑制透传后异构探测权威走重建轨（不原样透传探测包字节）");
+        // 确认发射的 payload 不包含探测物理表名（重建轨的 table 字段为空串）
+        String payloadStr = new String(payloads.get(0));
+        assertEquals(false, payloadStr.contains("_probe_tmp_"),
+                "物理表名不得出现在客户端列头");
+        assertEquals(false, payloadStr.contains("_probe_ds_"),
+                "物理库名不得出现在客户端列头");
     }
 }

@@ -86,8 +86,11 @@ public class PrepareExecutor {
             // 则退 ③ 计划轨（与解码缝一致，两缝不分叉）；直通/同构仍用 carrier 忠实轨（零回归）。
             final java.util.function.Supplier<MySQLColumnDef> columnDefSupplier = () -> {
                 MycatRowMetaData authorityBackend;
+                boolean suppressRaw = false;
                 if (newMycatDataContext.isMergedHeterogeneousOutput()) {
                     authorityBackend = newMycatDataContext.probeMergedBackendMeta();
+                    // 终审 Important-1：异构探测权威合成 SQL 不得进透传分支（计划 Review Focus#1）
+                    suppressRaw = true;
                 } else if (newMycatDataContext.isInternalReconsumeDecode()) {
                     // I-DEBT-41 Task 6：内部重消费（join/agg/lookup）时多源先后发布 carrier 互踩，
                     // 首写者分支不是合法权威（活靶实证 lookup 列头 BIT vs 直连 BIGINT）；行值已按
@@ -96,7 +99,10 @@ public class PrepareExecutor {
                 } else {
                     authorityBackend = newMycatDataContext.getBackendRowMeta().get();
                 }
-                return MySQLColumnDef.of(RowMetaDataFidelity.effective(authorityBackend, rowMetaData));
+                MycatRowMetaData effective = suppressRaw
+                        ? RowMetaDataFidelity.effectiveWithSuppressedRaw(authorityBackend, rowMetaData)
+                        : RowMetaDataFidelity.effective(authorityBackend, rowMetaData);
+                return MySQLColumnDef.of(effective);
             };
             final boolean[] headerSent = {false};
             try {

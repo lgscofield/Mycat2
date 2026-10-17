@@ -41,6 +41,22 @@ public final class RowMetaDataFidelity {
     }
 
     /**
+     * 终审 Important-1（I-DEBT-45 收口轮）：异构探测权威（{@code probeMergedBackendMeta} 合成 SQL 结果）
+     * 列名天然对齐，但物理表名/库名是探测副作用不应透传给客户端；计划 Review Focus#1 “多源异构不得进透传分支”。
+     * 本方法保留忠实类型归一，但 {@code rawColumnDef} 一律回 null → 发射缝走重建轨。
+     */
+    public static MycatRowMetaData effectiveWithSuppressedRaw(MycatRowMetaData backendMeta, MycatRowMetaData planMeta) {
+        if (planMeta == null) {
+            return backendMeta;
+        }
+        if (backendMeta instanceof MycatMySQLRowMetaData
+                && backendMeta.getColumnCount() >= planMeta.getColumnCount()) {
+            return new RawSuppressedView(backendMeta, planMeta);
+        }
+        return planMeta;
+    }
+
+    /**
      * I-DEBT-41 列类型唯一权威·解码缝入口：{@code planTrackAuthority} 置位（多源 Union 合并，单分支
      * 后端轨不是合法权威）时原样返回计划 meta，与列头缝同源；未置位等价 {@link #effective}。
      *
@@ -88,8 +104,21 @@ public final class RowMetaDataFidelity {
         return false;
     }
 
+    /** 终审 Important-1：异构探测权威屏蔽 rawColumnDef 的变体视图，保留类型忠实但禁止透传。 */
+    private static final class RawSuppressedView extends FaithfulTypeView {
+        RawSuppressedView(MycatRowMetaData backend, MycatRowMetaData plan) {
+            super(backend, plan);
+        }
+
+        @Override
+        public ColumnDefPacket rawColumnDef(int column) {
+            // 多源异构探测的列包携带合成 SQL 的物理表名/库名，不得透传（计划 Review Focus#1）。
+            return null;
+        }
+    }
+
     /** 委托计划 meta 的一切，唯独 {@code getColumnType} 取后端忠实轨物理类型。 */
-    private static final class FaithfulTypeView implements MycatRowMetaData {
+    private static class FaithfulTypeView implements MycatRowMetaData {
         private final MycatRowMetaData backend;
         private final MycatRowMetaData plan;
 
