@@ -124,21 +124,10 @@ public class MySQLPacketUtil {
     public static final Iterable<byte[]> generateAllColumnDefPayload(MycatRowMetaData metaData) {
         List<byte[]> list = new ArrayList<>(metaData.getColumnCount());
         final int count = metaData.getColumnCount();
-        if (metaData instanceof MycatMySQLRowMetaData) {
-            List<ColumnDefPacketImpl> columnDefPackets = (List) ((MycatMySQLRowMetaData) metaData).getColumnDefPackets();
-            for (int index = 0; index < count; index++) {
-                try (MySQLPayloadWriter writer = new MySQLPayloadWriter(128)) {
-                    columnDefPackets.get(index).writePayload(writer);
-                    list.add(writer.toByteArray());
-                }
-            }
-        } else {
-            for (int index = 0; index < count; index++) {
-                list.add(MySQLPacketUtil
-                        .generateColumnDefPayload(
-                                metaData,
-                                index));
-            }
+        // I-DEBT-45：逐列发射统一走 generateColumnDefPayload——raw 真相源优先（MycatMySQLRowMetaData
+        // 全部列 + FaithfulTypeView 名对齐守卫通过列），其余回既有重建轨，字节行为不变。
+        for (int index = 0; index < count; index++) {
+            list.add(generateColumnDefPayload(metaData, index));
         }
         return list;
     }
@@ -146,7 +135,11 @@ public class MySQLPacketUtil {
     public static final byte[] generateColumnDefPayload(MycatRowMetaData metaData, int columnIndex) {
         try (MySQLPayloadWriter writer = new MySQLPayloadWriter(128)) {
             ColumnDefPacketImpl columnDefPacket;
-            if (metaData instanceof MycatMySQLRowMetaData) {
+            // I-DEBT-45：优先逐字节透传后端原始包（物理形态忠实），无真源才回 JDBC 型中介重建轨。
+            ColumnDefPacket raw = metaData.rawColumnDef(columnIndex);
+            if (raw instanceof ColumnDefPacketImpl) {
+                columnDefPacket = (ColumnDefPacketImpl) raw;
+            } else if (metaData instanceof MycatMySQLRowMetaData) {
                 columnDefPacket = (ColumnDefPacketImpl) ((MycatMySQLRowMetaData) metaData).getColumnDefPackets().get(columnIndex);
             } else {
                 columnDefPacket = new ColumnDefPacketImpl(metaData, columnIndex);

@@ -1,5 +1,7 @@
 package io.mycat.beans.mycat;
 
+import io.mycat.beans.mysql.packet.ColumnDefPacket;
+
 import java.sql.ResultSetMetaData;
 
 /**
@@ -109,6 +111,18 @@ public final class RowMetaDataFidelity {
                 return backend.getColumnType(column);
             }
             return plan.getColumnType(column);
+        }
+
+        @Override
+        public ColumnDefPacket rawColumnDef(int column) {
+            // I-DEBT-45：与 getColumnType 同源的列名对齐守卫——仅当该位后端列名 == 计划列名时，
+            // 才透传后端原始 column-def 包（消灭 VARBINARY→LONGBLOB 形态失真）；异名列返回 null 回重建轨，
+            // 避免把输入叶子的物理元数据沉默套到语义不同的输出列（I-DEBT-42 教训同源）。
+            String backendCol = backend.getColumnName(column);
+            if (backendCol != null && backendCol.equalsIgnoreCase(plan.getColumnName(column))) {
+                return backend.rawColumnDef(column);
+            }
+            return null;
         }
 
         @Override

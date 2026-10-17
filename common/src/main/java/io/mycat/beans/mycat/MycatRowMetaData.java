@@ -15,6 +15,8 @@
 
 package io.mycat.beans.mycat;
 
+import io.mycat.beans.mysql.packet.ColumnDefPacket;
+
 import java.io.Serializable;
 import java.sql.JDBCType;
 import java.sql.ResultSetMetaData;
@@ -58,6 +60,18 @@ public interface MycatRowMetaData extends Serializable {
     ResultSetMetaData metaData();
 
     public boolean isNullable(int column);
+
+    /**
+     * I-DEBT-45：列头 raw 透传真相源钩子。返回后端回包的原始 {@link ColumnDefPacket}（其 wire
+     * field-type/charset/length 为物理忠实值），供发射缝逐字节透传，绕开经 JDBC int 型中介的有损重建
+     * （{@code MySQLFieldsType.fromJdbcType} 把 BINARY/VARBINARY/LONGVARBINARY 全折叠为 LONG_BLOB）。
+     * <p>默认 {@code null} = 无原始真相源，发射缝回退到重建轨（既有行为）。仅
+     * {@link MycatMySQLRowMetaData}（后端回包）与 {@code RowMetaDataFidelity.FaithfulTypeView}
+     * 的列名对齐守卫通过的列返回非空。
+     */
+    default ColumnDefPacket rawColumnDef(int column) {
+        return null;
+    }
 
     public default boolean isPrimaryKey(int column) {
         return false;

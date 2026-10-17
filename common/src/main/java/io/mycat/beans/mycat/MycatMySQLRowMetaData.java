@@ -99,6 +99,12 @@ public class MycatMySQLRowMetaData implements MycatRowMetaData {
         return (columnDefPackets.get(column).getColumnFlags() & MySQLFieldsType.NOT_NULL_FLAG) == 0;
     }
 
+    /** I-DEBT-45：后端回包持有原始 column-def 包，逐字节透传的真源。 */
+    @Override
+    public ColumnDefPacket rawColumnDef(int column) {
+        return columnDefPackets.get(column);
+    }
+
     @Override
     public String toString() {
         return columnDefPackets.stream().map(i -> i.toString()).collect(Collectors.joining(","));
