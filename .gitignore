@@ -66,3 +66,14 @@ pnpm-debug.log*
 
 # maven-shade-plugin 副产物，不是源文件
 server/dependency-reduced-pom.xml
+
+# SDD/e2e 过程 scratch（技能约定即 git-ignored 临时区，防误提交/误 clean）
+.superpowers/
+
+# classpath 直启 e2e 运行态临时 home 与日志（非源码，勿入库；见 I-DEBT-56）
+.mycat-home-e2e/
+.mycat-e2e-server.pid
+.mycat-server-e2e.err
+.mycat-server-e2e.out
+.mycat-server-fjar.err
+.mycat-server-fjar.out
