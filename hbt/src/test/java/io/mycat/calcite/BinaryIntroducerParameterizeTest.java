@@ -29,8 +29,8 @@ public class BinaryIntroducerParameterizeTest {
         // unicode 转义写载体，免受源文件编码影响：SQL 文本 = insert into t values (2,_binary 'ª','aa')
         DrdsSqlWithParams parsed = preParse("insert into t values (2,_binary '\u00AA','aa')");
         String sql = parsed.getParameterizedSQL();
-        Assertions.assertTrue(sql.contains("_binary x'AA'") || sql.contains("binary x'AA'"),
-                "introducer 字面量须 hex 化为纯 ASCII: " + sql);
+        Assertions.assertTrue(sql.contains("x'AA'"),
+                "introducer 字面量须 hex 化为纯 ASCII 十六进制字面量: " + sql);
         List<Object> params = parsed.getParams();
         Assertions.assertEquals(2, params.size(), "载体 U+00AA 不得进 params,应为 [2, \"aa\"]: " + params);
         Assertions.assertEquals("aa", params.get(1));
@@ -70,5 +70,33 @@ public class BinaryIntroducerParameterizeTest {
         DrdsSqlWithParams parsed = preParse("insert into t (`id`,`c`) values (2, b'10101010')");
         String sql = parsed.getParameterizedSQL();
         Assertions.assertTrue(sql.contains("b'10101010'"), "bit 字面量须原样在模板: " + sql);
+    }
+
+    @Test
+    public void proxyInsertChannelAlsoEmitsHex() {
+        // 普通/全局 INSERT 走 outputToParameterizedProxySql（e2e 实测 1406 真实通道），同须 hex 化；
+        // 另钉住 mysqldump 的 '\0' 反斜杠转义必须展开为 NUL 字节（x'00'）而非字面两字节
+        com.alibaba.druid.sql.ast.SQLStatement stmt = com.alibaba.druid.sql.SQLUtils
+                .parseSingleMysqlStatement("insert into t values (2,_binary '\\0','zero'),(3,_binary '\u00AA','aa')");
+        io.mycat.DrdsSqlWithParams parsed = io.mycat.calcite.executor.MycatPreparedStatementUtil
+                .outputToParameterizedProxySql((com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement) stmt);
+        String sql = parsed.getParameterizedSQL();
+        Assertions.assertTrue(sql.contains("x'00'"), "NUL 转义 \\0 须展开为 x'00': " + sql);
+        Assertions.assertTrue(sql.contains("x'AA'"), "载体须 hex: " + sql);
+        Assertions.assertEquals(0, parsed.getParams().size(), "introducer 行不走 params: " + parsed.getParams());
+    }
+
+    @Test
+    public void hexOutputIsReparseableByDruid() {
+        // 金标准 e2e 发现：proxy 通道会对生成的 SQL 再解析，_charset x'..' 形态会触发
+        // ParserException(token IDENTIFIER x)。回归钩：两通道输出的 hex 模板必须可被 druid 重新解析。
+        String mainOut = preParse("insert into t values (2,_binary '\u00AA','aa')").getParameterizedSQL();
+        com.alibaba.druid.sql.SQLUtils.parseSingleMysqlStatement(mainOut);
+        com.alibaba.druid.sql.ast.SQLStatement stmt = com.alibaba.druid.sql.SQLUtils
+                .parseSingleMysqlStatement("insert into t values (2,_binary '\\0','zero'),(3,_binary '\u00AA','aa')");
+        String proxyOut = io.mycat.calcite.executor.MycatPreparedStatementUtil
+                .outputToParameterizedProxySql((com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement) stmt)
+                .getParameterizedSQL();
+        com.alibaba.druid.sql.SQLUtils.parseSingleMysqlStatement(proxyOut);
     }
 }

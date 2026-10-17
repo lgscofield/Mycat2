@@ -6,7 +6,6 @@ import com.alibaba.druid.sql.ast.SQLLimit;
 import com.alibaba.druid.sql.ast.SQLOrderBy;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLAggregateExpr;
-import com.alibaba.druid.sql.ast.expr.SQLCharExpr;
 import com.alibaba.druid.sql.ast.expr.SQLInSubQueryExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIntervalExpr;
 import com.alibaba.druid.sql.ast.statement.*;
@@ -190,42 +189,13 @@ public class MycatPreparedStatementUtil {
             // 字节码实证），单参重载会被绕过，故两个重载都拦。
             @Override
             public boolean visit(SQLInsertStatement.ValuesClause x, List<Object> parameters) {
-                boolean hasIntroducer = false;
-                for (com.alibaba.druid.sql.ast.SQLExpr e : x.getValues()) {
-                    if (e instanceof MySqlCharExpr
-                            && ((MySqlCharExpr) e).getCharset() != null
-                            && !((MySqlCharExpr) e).getCharset().isEmpty()) {
-                        hasIntroducer = true;
-                        break;
-                    }
-                }
-                if (!hasIntroducer) {
+                if (!hasCharsetIntroducer(x)) {
                     // 直通父类双参渲染，不走 renderValuesClause：那里 super.visit(单参) 会委派回本双参形成递归
                     return super.visit(x, parameters);
                 }
-                appender.append("(");
-                for (int i = 0; i < x.getValues().size(); i++) {
-                    if (i > 0) {
-                        appender.append(", ");
-                    }
-                    com.alibaba.druid.sql.ast.SQLExpr e = x.getValues().get(i);
-                    if (e instanceof MySqlCharExpr) {
-                        if (!renderCharsetIntroducerHex((MySqlCharExpr) e)) {
-                            appender.append(e.toString()); // 无 text 边缘形态:默认字面量渲染
-                        }
-                    } else if (e instanceof com.alibaba.druid.sql.ast.expr.SQLLiteralExpr) {
-                        // 与父类双参渲染同型：print('?') + exportParameter 取值入参列表
-                        print0("?");
-                        incrementReplaceCunt();
-                        if (parameters != null) {
-                            com.alibaba.druid.sql.visitor.ExportParameterVisitorUtils.exportParameter(parameters, e);
-                        }
-                    } else {
-                        e.accept(this);
-                    }
-                }
-                appender.append(")");
-                return false;
+                // parameterizeOthers=true：非 introducer 值交回 visitor 正常参数化，保证 params 非空，
+                // 避免 preParse 的 “params 空即回退 toString” 吞掉本行 hex 渲染。
+                return renderValuesClauseWithIntroducer(x, appender, this, true);
             }
 
             @Override
@@ -235,48 +205,10 @@ public class MycatPreparedStatementUtil {
             }
 
             private boolean renderValuesClause(SQLInsertStatement.ValuesClause x) {
-                boolean hasIntroducer = false;
-                for (com.alibaba.druid.sql.ast.SQLExpr e : x.getValues()) {
-                    if (e instanceof MySqlCharExpr
-                            && ((MySqlCharExpr) e).getCharset() != null
-                            && !((MySqlCharExpr) e).getCharset().isEmpty()) {
-                        hasIntroducer = true;
-                        break;
-                    }
-                }
-                if (!hasIntroducer) {
+                if (!hasCharsetIntroducer(x)) {
                     return super.visit(x);
                 }
-                appender.append("(");
-                for (int i = 0; i < x.getValues().size(); i++) {
-                    if (i > 0) {
-                        appender.append(", ");
-                    }
-                    com.alibaba.druid.sql.ast.SQLExpr e = x.getValues().get(i);
-                    if (e instanceof MySqlCharExpr && !renderCharsetIntroducerHex((MySqlCharExpr) e)) {
-                        e.accept(this); // 无 text 等边缘形态退回默认行为
-                    } else if (!(e instanceof MySqlCharExpr)) {
-                        e.accept(this);
-                    }
-                }
-                appender.append(")");
-                return false;
-            }
-
-            /** 输出 {@code _binary x'HEX'} 并返 true；不可渲染（如 text 为 null）返 false 交回默认路径。 */
-            private boolean renderCharsetIntroducerHex(MySqlCharExpr x) {
-                String charset = x.getCharset();
-                if (x.getText() == null) {
-                    return false;
-                }
-                String prefix = charset.startsWith("_") ? charset : "_" + charset;
-                byte[] bytes = io.mycat.util.MySQLSqlTextCodec.encode(x.getText());
-                StringBuilder hex = new StringBuilder(2 * bytes.length);
-                for (byte b : bytes) {
-                    hex.append(String.format("%02X", b));
-                }
-                appender.append(prefix).append(" x'").append(hex).append("'");
-                return true;
+                return renderValuesClauseWithIntroducer(x, appender, this, true);
             }
 
             @Override
@@ -334,7 +266,24 @@ public class MycatPreparedStatementUtil {
         StringBuilder sb = new StringBuilder();
         List<Object> outputParameters = new ArrayList<>();
         MySqlExportParameterVisitor parameterVisitor = new MySqlExportParameterVisitor(outputParameters, sb, true) {
+            // I-DEBT-54/D3：proxy INSERT 通道同样不得折叠 charset-introducer 字面量（与上面主 visitor 同构）。
+            // parameterizeOthers=false：本通道整行烤平进模板（outputToParameterizedProxySql 无 toString 回退），
+            // 与回归测试 proxyInsertChannelAlsoEmitsHex（params=0）一致。
+            @Override
+            public boolean visit(SQLInsertStatement.ValuesClause x, List<Object> parameters) {
+                if (!hasCharsetIntroducer(x)) {
+                    return super.visit(x, parameters);
+                }
+                return renderValuesClauseWithIntroducer(x, appender, this, false);
+            }
 
+            @Override
+            public boolean visit(SQLInsertStatement.ValuesClause x) {
+                if (!hasCharsetIntroducer(x)) {
+                    return true;
+                }
+                return renderValuesClauseWithIntroducer(x, appender, this, false);
+            }
         };
         parameterVisitor.setShardingSupport(false);
         parameterVisitor.setFeatures(VisitorFeature.OutputParameterizedQuesUnMergeInList.mask |
@@ -347,6 +296,118 @@ public class MycatPreparedStatementUtil {
         parameterVisitor.setInputParameters(Collections.emptyList());
         sqlStatement.accept(parameterVisitor);
         return new DrdsSqlWithParams(sb.toString(), outputParameters, false, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    }
+
+    /** I-DEBT-54/D3：VALUES 行内是否含带 charset introducer 的字符串字面量。 */
+    static boolean hasCharsetIntroducer(SQLInsertStatement.ValuesClause x) {
+        for (com.alibaba.druid.sql.ast.SQLExpr e : x.getValues()) {
+            if (e instanceof MySqlCharExpr
+                    && ((MySqlCharExpr) e).getCharset() != null
+                    && !((MySqlCharExpr) e).getCharset().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * I-DEBT-54/D3：含 introducer 的 VALUES 行自行渲染：introducer 字面量输出纯 ASCII 十六进制字面量 {@code x'HEX'}。
+     * <p>不加 {@code _charset} 前缀：druid MySQL 词法不接受 {@code _charset x'..'} 形态（proxy 通道会对生成的
+     * SQL 再解析，实测报 {@code ParserException: token IDENTIFIER x}）；而裸 hex 字面量在 MySQL 语义中隐含
+     * binary 字符集，与 {@code _binary} 等价且字节保真，对 bit/binary 列及任何后端连接器都无编码歧义。
+     * <p>非 introducer 值：{@code parameterizeOthers=true} 时交回 visitor（{@code e.accept(visitor)}）走默认参数化
+     * （输出 {@code ?} 并将参数加入 visitor 的参数列表），主 outputToParameterized 路径靠此保证 params 非空；
+     * {@code =false}（proxy 通道）时字面量原样烤进模板、不参数化。
+     */
+    static boolean renderValuesClauseWithIntroducer(SQLInsertStatement.ValuesClause x,
+                                                   StringBuilder appender,
+                                                   com.alibaba.druid.sql.visitor.SQLASTVisitor visitor,
+                                                   boolean parameterizeOthers) {
+        appender.append("(");
+        for (int i = 0; i < x.getValues().size(); i++) {
+            if (i > 0) {
+                appender.append(", ");
+            }
+            com.alibaba.druid.sql.ast.SQLExpr e = x.getValues().get(i);
+            if (e instanceof MySqlCharExpr && hasIntroducerText((MySqlCharExpr) e)) {
+                MySqlCharExpr c = (MySqlCharExpr) e;
+                // druid 把字面量内的 MySQL 反斜杠转义存为原文（mysqldump 的 _binary '\0' 是两字符 \和0），
+                // 必须按 MySQL 字符串字面量语义展开后再 encode，否则转义序列被当普通字节写入即沉默损坏。
+                byte[] bytes = io.mycat.util.MySQLSqlTextCodec.encode(unescapeMySqlLiteral(c.getText()));
+                StringBuilder hex = new StringBuilder(2 * bytes.length);
+                for (byte b : bytes) {
+                    hex.append(String.format("%02X", b));
+                }
+                // 裸 hex 字面量 x'HEX'：等价 _binary 且 druid/MySQL 全可解析，字节级保真
+                appender.append("x'").append(hex).append("'");
+            } else if (parameterizeOthers) {
+                // 交回 visitor：非 introducer 值按默认规则参数化（? + 加入参数列表），保持行内 ? 与 params 同构
+                e.accept(visitor);
+            } else {
+                appender.append(SQLUtils.toSQLString(e, com.alibaba.druid.DbType.mysql));
+            }
+        }
+        appender.append(")");
+        return false;
+    }
+
+    private static boolean hasIntroducerText(MySqlCharExpr c) {
+        return c.getText() != null;
+    }
+
+    /** 按 MySQL 字符串字面量语义展开反斜杠转义（\0→NUL、\n、\t、\\、\' 等；未知转义保留后一字符）。 */
+    static String unescapeMySqlLiteral(String text) {
+        if (text.indexOf('\\') < 0) {
+            return text;
+        }
+        StringBuilder sb = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch != '\\' || i + 1 >= text.length()) {
+                sb.append(ch);
+                continue;
+            }
+            char n = text.charAt(++i);
+            switch (n) {
+                case '0':
+                    sb.append('\0');
+                    break;
+                case 'n':
+                    sb.append('\n');
+                    break;
+                case 't':
+                    sb.append('\t');
+                    break;
+                case 'r':
+                    sb.append('\r');
+                    break;
+                case 'b':
+                    sb.append('\b');
+                    break;
+                case 'Z':
+                    sb.append((char) 26);
+                    break;
+                case '\\':
+                    sb.append('\\');
+                    break;
+                case '\'':
+                    sb.append('\'');
+                    break;
+                case '"':
+                    sb.append('"');
+                    break;
+                case '%':
+                    sb.append("\\%");
+                    break;
+                case '_':
+                    sb.append("\\_");
+                    break;
+                default:
+                    sb.append(n);
+                    break;
+            }
+        }
+        return sb.toString();
     }
 
     public static ExecuteBatchInsert batchInsert(String sql, Group value, Connection connection, String targetName) {

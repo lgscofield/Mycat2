@@ -120,7 +120,9 @@ public class RowSetQuery implements Query<RowSet<Row>> {
                 }
                 LOGGER.debug("session id:{} sql:{}", mySQLClientSession.sessionId(), curSql);
             }
-            resultSetHandler.request(mySQLClientSession, MySQLCommandType.COM_QUERY, curSql.getBytes(),
+            // I-DEBT-54/D3: 显式对称编码(与前端 decode 互为逆),消平台默认编码(Windows GBK)隐患
+            resultSetHandler.request(mySQLClientSession, MySQLCommandType.COM_QUERY,
+                    io.mycat.util.MySQLSqlTextCodec.encode(curSql),
                     new ResultSetCallBack<MySQLClientSession>() {
                         @Override
                         public void onFinishedSendException(Exception exception, Object sender,
