@@ -47,7 +47,7 @@
 
 | 版本线 | 评级 | 依据（当前证据，非旧记录） |
 |---|---|---|
-| **MySQL 8.0 / 8.4 / 9.x** | 🟡 **L1 候选，未达全生态** | 认证+TLS(仅 Connector/J)+dump(JDBC 模拟)+迁移本地全绿、CI 稳定档绿；卡点=① 全 connector 深面/旧线 NO_DATA ② **真 mysqldump 二进制 3 破面 I-DEBT-54** ③ 当前 HEAD 领先 origin 10 commit 未 push→无最新徽标 ④ GUI 列库未验 |
+| **MySQL 8.0 / 8.4 / 9.x** | 🟡 **L1 候选，未达全生态** | 认证+TLS(仅 Connector/J)+dump(JDBC 模拟)+迁移本地全绿、CI 稳定档绿；卡点=① 全 connector 深面/旧线 NO_DATA ② ~~真 mysqldump 二进制 3 破面 I-DEBT-54~~ **已收口（2026-10-17 D1/D2/D3 全修，真二进制正+反向往返本地金标准 RC=0 逐值保真；仅余对当前 HEAD 的 CI 徽标）** ③ 当前 HEAD 领先 origin 未 push→无最新徽标 ④ GUI 列库未验 |
 | **MySQL 5.7** | 🔴 **未达标** | CRUD/迁移 persona 绿，但 CI 实验档红（I-CI-6 测试硬化未解）+ **I-DEBT-45 列头 VARBINARY→LONGBLOB 形态失真未修** |
 | **MariaDB 10.6 / 10.11 / 11.4** | 🔴 **仅 persona 冒烟绿，非无缝** | 迁移/dump 回灌 persona 绿；**ed25519(M6)=0%**（按 spec 本为"预留扩展位"非"无缝替代"）+ CI 实验档红 + 11.4 服务容器未起 |
 
