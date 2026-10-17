@@ -49,6 +49,7 @@ import lombok.SneakyThrows;
 import org.apache.calcite.adapter.enumerable.RexImpTable;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
+import org.apache.calcite.config.NullCollation;
 import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.Driver;
 import org.apache.calcite.plan.Context;
@@ -182,7 +183,13 @@ public enum MycatCalciteSupport implements Context {
                 ImmutableSet.<SqlTypeName>builder().add(SqlTypeName.OTHER).build());
 
         SqlTypeCoercionRule instance1 = SqlTypeCoercionRule.instance(map);
+        // MYCAT CHANGE (I-DEBT-55): 裸 ORDER BY 的默认 NULL 方向由本 config 的 defaultNullCollation 决定
+        // （SqlToRelConverter 全部 6 个 collation 出生点唯一读取此旋钮），Calcite 连接属性默认 HIGH
+        // （SQL 标准惯例）与 MySQL/MariaDB 真库语义相反（NULL 按最小值排：ASC 在前、DESC 在后）。
+        // 本方法是 Mycat 全链唯一 validator config 出生点，一处钉 LOW 即根治去程 deparse、
+        // 本地 codegen、executor 跨片归并三条消费腿的 NULL 序偏离；显式 NULLS FIRST/LAST 不受影响。
         return SqlValidator.Config.DEFAULT.withSqlConformance(calciteConnectionConfig.conformance())
+                .withDefaultNullCollation(NullCollation.LOW)
                 .withTypeCoercionEnabled(true)
                 .withTypeCoercionRules(instance1).withLenientOperatorLookup(true)
                 .withTypeCoercionFactory(new TypeCoercionFactory() {
