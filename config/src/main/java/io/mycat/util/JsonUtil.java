@@ -24,9 +24,15 @@ public class JsonUtil {
     // "{value:30000}" 字段名未加双引号，默认 ObjectMapper 抛 JsonParseException("was expecting double-quote
     // to start field name")。再开 ALLOW_UNQUOTED_FIELD_NAMES（纯放宽接受、对既有合法 JSON 逐字解析无影响），
     // 与上面容错读端同属"hint 宽容兼容"主旨，单点覆盖 HintHandler 全部 JsonUtil.from(body, Map.class) 解析口。
+    //
+    // MYCAT CHANGE (I-DEBT-7C): 0735b13d3「fastjson→Jackson 迁移」的兼容面回退——fastjson 天然容忍
+    // 尾逗号，人写的分片 function properties / hint body 里 {"k":v,} [1,2,] 形态迁移后被 Jackson 严格
+    // 模式拒收（HashFunctionTest#testHashTableId fixture 即此形态）。再开 ALLOW_TRAILING_COMMA 钉回
+    // 原宽容度（纯放宽接受，严格 JSON 逐字解析不变、真错误如 "{:}" 仍拒），锁见 JsonUtilTest。
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+            .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true);
 
     public static Map<String, String> urlSplit(String s) {
         Map<String, String> mapRequest = new HashMap<>(2);

@@ -260,7 +260,8 @@ public class BkaJoinTest extends DrdsTest {
                 "[{columnType=BIGINT, nullable=false, columnName=id}, {columnType=VARCHAR, nullable=true, columnName=user_id}, {columnType=DATE, nullable=true, columnName=traveldate}, {columnType=DECIMAL, nullable=true, columnName=fee}, {columnType=BIGINT, nullable=true, columnName=days}, {columnType=VARBINARY, nullable=true, columnName=blob}, {columnType=BIGINT, nullable=false, columnName=id0}, {columnType=VARCHAR, nullable=true, columnName=addressname}, {columnType=BIGINT, nullable=false, columnName=id1}, {columnType=VARCHAR, nullable=true, columnName=addressname0}]",
                 explain.getColumnInfo());
         String explainText = explain.dumpPlan().trim();
-        Assert.assertEquals("MycatProject(id=[$4], user_id=[$5], traveldate=[$6], fee=[$7], days=[$8], blob=[$9], id0=[$0], addressname=[$1], id1=[$2], addressname0=[$3])   MycatHashJoin(condition=[=($0, $4)], joinType=[inner])     MycatView(distribution=[[db1.normal, db1.normal2]])     MycatView(distribution=[[db1.sharding]])",
+        // MYCAT CHANGE (I-DEBT-7C 再基线): 有序下推演化，分片 MycatView 新增 mergeSort=[true] 属性。
+        Assert.assertEquals("MycatProject(id=[$4], user_id=[$5], traveldate=[$6], fee=[$7], days=[$8], blob=[$9], id0=[$0], addressname=[$1], id1=[$2], addressname0=[$3])   MycatHashJoin(condition=[=($0, $4)], joinType=[inner])     MycatView(distribution=[[db1.normal, db1.normal2]])     MycatView(distribution=[[db1.sharding]], mergeSort=[true])",
                 explainText
         );
         Assert.assertEquals("[Each(targetName=prototype, sql=SELECT * FROM db1.normal AS `normal`     INNER JOIN db1.normal2 AS `normal2` ON (`normal`.`id` = `normal2`.`id`)), Each(targetName=c0, sql=SELECT * FROM db1_0.sharding_0 AS `sharding` union all SELECT * FROM db1_0.sharding_1 AS `sharding`)\n" +

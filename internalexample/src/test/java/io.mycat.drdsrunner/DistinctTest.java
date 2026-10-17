@@ -108,10 +108,14 @@ public class DistinctTest extends DrdsTest {
     public void testAvgNoShardingKey() throws Exception {
         Explain explain = parse("SELECT avg(fee)  from db1.distinct_sharding group by fee");
 
-        Assert.assertEquals("[Each(targetName=c0, sql=SELECT `distinct_sharding`.`fee`, (COALESCE(SUM(`distinct_sharding`.`fee`), 0)) AS `$f1`, COUNT(`distinct_sharding`.`fee`) AS `$f2` FROM db1_0.sharding_0 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee` union all SELECT `distinct_sharding`.`fee`, (COALESCE(SUM(`distinct_sharding`.`fee`), 0)) AS `$f1`, COUNT(`distinct_sharding`.`fee`) AS `$f2` FROM db1_0.sharding_1 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee`)\n" +
-                "Each(targetName=c1, sql=SELECT `distinct_sharding`.`fee`, (COALESCE(SUM(`distinct_sharding`.`fee`), 0)) AS `$f1`, COUNT(`distinct_sharding`.`fee`) AS `$f2` FROM db1_1.sharding_0 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee` union all SELECT `distinct_sharding`.`fee`, (COALESCE(SUM(`distinct_sharding`.`fee`), 0)) AS `$f1`, COUNT(`distinct_sharding`.`fee`) AS `$f2` FROM db1_1.sharding_1 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee`)]",explain.specificSql().toString());
+        // MYCAT CHANGE (I-DEBT-7C 再基线): 规划器演化后 group 键即分区列，SUM/COUNT 可由上层对
+        // 去重组精确计算，下推串不再携带 (COALESCE(SUM..),0)/COUNT 预聚合列（旧形态属冗余投影）。
+        Assert.assertEquals("[Each(targetName=c0, sql=SELECT `distinct_sharding`.`fee` FROM db1_0.sharding_0 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee` union all SELECT `distinct_sharding`.`fee` FROM db1_0.sharding_1 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee`)\n" +
+                "Each(targetName=c1, sql=SELECT `distinct_sharding`.`fee` FROM db1_1.sharding_0 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee` union all SELECT `distinct_sharding`.`fee` FROM db1_1.sharding_1 AS `distinct_sharding` GROUP BY `distinct_sharding`.`fee`)]",explain.specificSql().toString());
 
-        Assert.assertEquals("MycatProject(avg(fee)=[/(CAST(CASE(=($2, 0), null:DECIMAL(19, 0), $1)):DOUBLE, $2)])   MycatHashAggregate(group=[{0}], agg#0=[$SUM0($1)], agg#1=[$SUM0($2)])     MycatView(distribution=[[db1.distinct_sharding]])",explain.dumpPlan().toString());
+        // MYCAT CHANGE (I-DEBT-7C 再基线): 新计划形态——上层无聚合、后端组去重后渲染；经活库对拍
+        // 探针（同组 fee 跨 ds0/ds1 分布，Mycat 恰返 2 行且值精确）实证非重复/非丢行，可安全钉新形态。
+        Assert.assertEquals("MycatProject(avg(fee)=[CAST($0):DOUBLE])   MycatHashAggregate(group=[{0}])     MycatView(distribution=[[db1.distinct_sharding]])",explain.dumpPlan().toString());
         System.out.println();
     }
     @Test
