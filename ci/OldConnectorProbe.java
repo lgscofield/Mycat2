@@ -4,6 +4,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.math.BigDecimal;
 
 /**
  * 旧 Java Connector 线冒烟探针（I-DEBT-9 旧线 NO_DATA 治具，B 层仪器）。
@@ -132,6 +133,53 @@ public class OldConnectorProbe {
                     // 清理尽力而为（含后端物理库不随逻辑 drop 消失的残留，属测试环境范畴），不影响判定
                 }
             }
+
+            // STAGE 5: 逐类型深面（旧线 NO_DATA 攻坚：BIT/DATE/DATETIME/TEXT 字符集/DECIMAL 精度/NULL 保真）。
+            // 与 STAGE 4 的 INT/VARCHAR/DECIMAL 基本面相比，本段专打 I-DEBT-34/35/36 同族的“旧客户端拿到什么表征”：
+            // 不 CAST、不 HEX 归一，直接按 JDBC 契约读回，让 5.1.x vs 8.0.x 的差异如实显形（真破面即真发现，不伪绿）。
+            String db5 = "dbolddeep_" + System.currentTimeMillis();
+            try {
+                st.execute("DROP DATABASE IF EXISTS " + db5);
+                st.execute("CREATE DATABASE " + db5);
+                st.execute("USE " + db5);
+                st.execute("CREATE TABLE tdeep (id INT PRIMARY KEY, b BIT(8), d DATE, dt DATETIME,"
+                        + " txt VARCHAR(64), decv DECIMAL(20,10))"
+                        + " dbpartition by mod_hash(`id`) dbpartitions 2");
+                st.execute("INSERT INTO tdeep (id,b,d,dt,txt,decv) VALUES"
+                        + " (1, b'10101010', '2026-10-18', '2026-10-18 13:45:30', '文本探针', 123456.1234567890),"
+                        + " (2, b'00000001', '2000-01-01', '2000-02-29 00:00:00', NULL, -0.0000000001)");
+                try (ResultSet rs = st.executeQuery("SELECT id,b,d,dt,txt,decv FROM tdeep ORDER BY id")) {
+                    StringBuilder bad = new StringBuilder();
+                    if (!rs.next()) {
+                        bad.append("missing-row1;");
+                    } else {
+                        checkBit(bad, rs, "b", 2, 0xAA);
+                        checkObj(bad, rs.getDate(3), java.sql.Date.valueOf("2026-10-18"), "d");
+                        checkObj(bad, rs.getTimestamp(4), java.sql.Timestamp.valueOf("2026-10-18 13:45:30"), "dt");
+                        checkStr(bad, rs.getString(5), "txt", "文本探针");
+                        checkDec(bad, rs.getBigDecimal(6), "decv", "123456.1234567890");
+                    }
+                    if (!rs.next()) {
+                        bad.append("missing-row2;");
+                    } else {
+                        checkBit(bad, rs, "b", 2, 0x01);
+                        checkObj(bad, rs.getDate(3), java.sql.Date.valueOf("2000-01-01"), "d");
+                        checkObj(bad, rs.getTimestamp(4), java.sql.Timestamp.valueOf("2000-02-29 00:00:00"), "dt");
+                        checkStr(bad, rs.getString(5), "txt", null); // NULL 保真
+                        checkDec(bad, rs.getBigDecimal(6), "decv", "-0.0000000001");
+                    }
+                    pass &= report("deeptype", bad.length() == 0,
+                            bad.length() == 0 ? "bit/date/datetime/text/decimal/null 全保真" : bad.toString());
+                }
+            } catch (SQLException e) {
+                pass &= report("deeptype", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            } finally {
+                try {
+                    st.execute("DROP DATABASE IF EXISTS " + db5);
+                } catch (SQLException ignore) {
+                    // 清理尽力而为
+                }
+            }
         } catch (SQLException e) {
             pass &= report("statement", false, e.getClass().getSimpleName() + ": " + e.getMessage());
         } finally {
@@ -168,6 +216,75 @@ public class OldConnectorProbe {
                 + " verdict=" + (pass ? "PASS" : "FAIL"));
         if (!pass) {
             System.exit(1);
+        }
+    }
+
+    // -------------------------------------------------------------- STAGE 5 逐类型断言助手
+    // 每个 helper 只把“不符”追加到 bad（含实际值/期望值/返回 Java 类型），使 FAIL 详情足以定性表征漂移。
+
+    /** BIT：旧线 getObject 可能返 byte[]/Number，归一为无符号低字节再比对（问“0xAA 有没有活下来”）。 */
+    private static void checkBit(StringBuilder bad, ResultSet rs, String col, int idx, int expect) {
+        try {
+            Object o = rs.getObject(idx);
+            if (o == null) {
+                bad.append(col).append("=null(exp ").append(expect).append(");");
+                return;
+            }
+            int got;
+            if (o instanceof byte[]) {
+                byte[] bb = (byte[]) o;
+                got = bb.length == 0 ? 0 : (bb[bb.length - 1] & 0xFF);
+            } else if (o instanceof Number) {
+                got = ((Number) o).intValue();
+            } else {
+                try {
+                    got = Integer.parseInt(o.toString().trim());
+                } catch (NumberFormatException nfe) {
+                    bad.append(col).append("?(").append(o.getClass().getName()).append(",").append(o).append(");");
+                    return;
+                }
+            }
+            if (got != expect) {
+                bad.append(col).append("=").append(got).append("(exp ").append(expect)
+                       .append(",type ").append(o.getClass().getSimpleName()).append(");");
+            }
+        } catch (SQLException e) {
+            bad.append(col).append("err:").append(e.getMessage()).append(";");
+        }
+    }
+
+    /** Date/Timestamp：按 java.sql 值对象 equals 比对（nanos/scale 差异如实反映）。 */
+    private static void checkObj(StringBuilder bad, Object got, Object expect, String col) {
+        if (got == null) {
+            bad.append(col).append("=null(exp ").append(expect).append(");");
+        } else if (!got.equals(expect)) {
+            bad.append(col).append("=").append(got).append("(exp ").append(expect)
+                    .append(",type ").append(got.getClass().getSimpleName()).append(");");
+        }
+    }
+
+    private static void checkStr(StringBuilder bad, String got, String col, String expect) {
+        if (expect == null) {
+            if (got != null) {
+                bad.append(col).append("!=null(exp null").append(",got ").append(got).append(");");
+            }
+            return;
+        }
+        if (got == null) {
+            bad.append(col).append("=null(exp ").append(expect).append(");");
+        } else if (!got.equals(expect)) {
+            bad.append(col).append("=").append(got).append("(exp ").append(expect).append(");");
+        }
+    }
+
+    /** DECIMAL：compareTo 容忍标度差异，只判数值是否失真。 */
+    private static void checkDec(StringBuilder bad, BigDecimal got, String col, String expect) {
+        if (got == null) {
+            bad.append(col).append("=null(exp ").append(expect).append(");");
+            return;
+        }
+        if (got.compareTo(new BigDecimal(expect)) != 0) {
+            bad.append(col).append("=").append(got.toPlainString()).append("(exp ").append(expect).append(");");
         }
     }
 
