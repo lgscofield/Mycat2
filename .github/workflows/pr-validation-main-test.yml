@@ -96,6 +96,18 @@ jobs:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}" "-Dtest=DumpSurfaceMatrixTest,DumpRestoreRoundTripMatrixTest,MigrateMatrixTest"
+      # I-DEBT-54 真二进制 mysqldump/mariadb-dump 全类型（含 bit(8)）往返回灌金标准网（逐矩阵档）。
+      # 二进制跑在与矩阵同版的容器里（主机零装 mysqldump），逐档自适应选客户端/dump 二进制名与认证 flag 方言；
+      # 字节安全回灌（bash < dump.sql）→ 逐值断言（BIN(bit)/HEX(中文)/decimal/生列/text）。判据=RC=0+逐值命中，
+      # 容忍那条已知非致命 tablespaces Calcite stderr（否则假红）。本地 mysql:8.0 已实跑 BINRT PASS。
+      # 观察期（continue-on-error）：8.4/9.0/MariaDB 真二进制面本地不可全验，先出逐档 pass/fail 证据不阻塞稳定门禁；
+      # CI run 全绿后按 M3/M4 撤观察期姿势转正式门禁。
+      - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
+        continue-on-error: true  # 观察期：逐档真二进制面取证，暂不阻塞稳定门禁
+        env:
+          COMPAT_DB: ${{ matrix.db }}
+          MYCAT_PERSONA: ${{ matrix.persona }}
+        run: bash ci/verify-mysqldump-binary-roundtrip.sh
 
   # I-DEBT-9 旧 Java Connector 线冒烟网（B 层仪器，spec §3 M2“全 connector 跑基本 CRUD”）。
   # 与后端版本无关（量的是旧客户端过 Mycat 前端的认证/CRUD 兼容面），故单 job 不进矩阵；
