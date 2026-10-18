@@ -117,9 +117,14 @@ public class MycatMergeJoinRule extends MycatConverterRule {
                 if (!info.pairs().isEmpty()) {
                     final List<RelFieldCollation> fieldCollations = new ArrayList<>();
                     for (int key : info.keys().get(ord.i)) {
+                        // MYCAT CHANGE (I-DEBT-55): null 方向跟随 defaultNullCollation=LOW 旋钮（裸 ASC 时
+                        // validator 生成 ASC-nulls-first 逻辑 Sort）；硬编 LAST 会使 Volcano 找不到
+                        // trait 匹配的产物→CannotPlanException（活锁 SqlFunctionTest#testComplexQuery）。
+                        // 键序对连接正确性中性（NULL 键永不匹配），但须与后端裸 ASC 实返序、
+                        // MycatSortMergeJoin 运行期 comparator 三者一致，故三处成套翻 FIRST。
                         fieldCollations.add(
                                 new RelFieldCollation(key, RelFieldCollation.Direction.ASCENDING,
-                                        RelFieldCollation.NullDirection.LAST));
+                                        RelFieldCollation.NullDirection.FIRST));
                     }
                     final RelCollation collation = RelCollations.of(fieldCollations);
                     collations.add(RelCollations.shift(collation, offset));

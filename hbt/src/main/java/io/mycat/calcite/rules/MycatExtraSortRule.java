@@ -69,9 +69,11 @@ public class MycatExtraSortRule extends RelRule<MycatExtraSortRule.Config> {
             for (Ord<RelNode> ord : Ord.zip(ImmutableList.of(leftMycatView, rightMycatView))) {
                 final List<RelFieldCollation> fieldCollations = new ArrayList<>();
                 for (int key : info.keys().get(ord.i)) {
+                    // MYCAT CHANGE (I-DEBT-55): 与 MycatMergeJoinRule/MycatSortMergeJoin 成套翻 FIRST，
+                    // 跟随 defaultNullCollation=LOW（硬编 LAST 与推下去的裸 ASC 实返序矛盾）。
                     fieldCollations.add(
                             new RelFieldCollation(key, RelFieldCollation.Direction.ASCENDING,
-                                    RelFieldCollation.NullDirection.LAST));
+                                    RelFieldCollation.NullDirection.FIRST));
                 }
                 collations.add(RelCollations.of(fieldCollations));
             }

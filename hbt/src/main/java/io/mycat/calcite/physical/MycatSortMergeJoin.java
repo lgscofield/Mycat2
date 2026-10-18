@@ -161,13 +161,16 @@ public class MycatSortMergeJoin extends Join implements MycatRel {
         final PhysType rightKeyPhysType =
                 rightResult.physType.project(joinInfo.rightKeys, JavaRowFormat.LIST);
 
-        // Generate the appropriate key Comparator (keys must be sorted in ascending order, nulls last).
+        // Generate the appropriate key Comparator (keys must be sorted in ascending order).
+        // MYCAT CHANGE (I-DEBT-55): null 位翻 FIRST 与 MycatMergeJoinRule/MycatExtraSortRule 的 trait
+        // 成套——comparator 必须与输入实序（后端裸 ASC = MySQL null-first）一致，否则 merge 扫描
+        // 不变式被破坏；NULL 键永不匹配，键序对连接正确性中性。
         final int keysSize = joinInfo.leftKeys.size();
         final List<RelFieldCollation> fieldCollations = new ArrayList<>(keysSize);
         for (int i = 0; i < keysSize; i++) {
             fieldCollations.add(
                     new RelFieldCollation(i, RelFieldCollation.Direction.ASCENDING,
-                            RelFieldCollation.NullDirection.LAST));
+                            RelFieldCollation.NullDirection.FIRST));
         }
         final RelCollation collation = RelCollations.of(fieldCollations);
         final Expression comparator = leftKeyPhysType.generateComparator(collation);
