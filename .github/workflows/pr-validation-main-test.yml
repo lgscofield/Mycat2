@@ -96,3 +96,39 @@ jobs:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}" "-Dtest=DumpSurfaceMatrixTest,DumpRestoreRoundTripMatrixTest,MigrateMatrixTest"
+
+  # I-DEBT-9 旧 Java Connector 线冒烟网（B 层仪器，spec §3 M2“全 connector 跑基本 CRUD”）。
+  # 与后端版本无关（量的是旧客户端过 Mycat 前端的认证/CRUD 兼容面），故单 job 不进矩阵；
+  # 不起多 connector 同 classpath（类遮蔽），verify-old-connector.sh 逐线 java -cp 单喂一个旧 jar。
+  old-connector:
+    runs-on: ubuntu-latest
+    services:
+      mysql-a:
+        image: mysql:8.0
+        ports: [ "3306:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      mysql-b:
+        image: mysql:8.0
+        ports: [ "3307:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build server jar (skip test compile)
+        run: mvn -B install '-Dmaven.test.skip=true' -pl server -am
+      # 旧线清单：Connector/J 5.1 末版（旧类名 com.mysql.jdbc.Driver，早于 caching_sha2）+ 8.x 首档。
+      - name: Run old Java connector line smoke net
+        run: bash ci/verify-old-connector.sh
