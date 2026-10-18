@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * <p>
  * <b>回退证伪</b>：{@code MycatMySQLManagerImpl} 在建 NATIVE 池失败时会 {@code recover()} 成
  * JDBC 池（静默降级），单看"查询成功"无法区分是谁在服务。故 NATIVE 用例的 URL 一律带
- * {@code socketTimeout=1} —— 这是 Connector/J 专属参数（1ms 读超时必然建连失败），
- * 自带协议客户端只取 host/port/库名，完全忽略之。于是 NATIVE 用例的任何成功
+ * {@code socketFactory=无效类名} —— 这是 Connector/J 专属参数（建连时反射实例化该类，必抛 SQLException，
+ * 不依赖任何时序），自带协议客户端只取 host/port/库名、完全忽略之。于是 NATIVE 用例的任何成功
  * 只能由自带协议客户端产出；G1 用例反向证明这条毒药确实能打死 JDBC 通路。
  * <p>
  * 本类通过 hint 改写服务端全局配置并增删容器账号，不可与其他配置型测试并发；
@@ -72,8 +72,18 @@ public class BackendAuthMatrixTest implements MycatTest {
     private static final String CLEAN_URL = "jdbc:mysql://127.0.0.1:3306/mysql"
             + "?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true"
             + "&serverTimezone=Asia/Shanghai";
-    /** 同上但带 Connector/J 专属毒药参数：Connector/J 必然建连失败，自带协议客户端不受影响。 */
-    private static final String JDBC_DEAD_URL = CLEAN_URL + "&socketTimeout=1";
+    /**
+     * 同上但带 Connector/J 专属毒药参数：Connector/J 必然建连失败，自带协议客户端不受影响。
+     * <p>
+     * 毒药取<b>无效 {@code socketFactory} 类名</b>而非旧的 {@code socketTimeout=1}：后者是 1ms 读超时，
+     * 成败取决于套接字缓冲/池热冷/主机负载——同一份代码在 CI runner 上会因连接已热、响应已在缓冲区
+     * 而<b>读不超时、往返成功</b>（分片 CREATE TABLE 的 DDL 扇出错误又被 Mycat 吞掉，末条 SELECT 仍返 2 行）→
+     * G1 假红（{@code nothing was thrown}，见 I-CI-6 诊断）；换到别的后端/时序又在 60s 池等待后抛 → 非确定性。
+     * {@code socketFactory} 由 Connector/J 在每次物理建连时反射实例化，类不存在即<b>确定性地</b>在 connect 阶段抛
+     * {@link SQLException}，不依赖任何时序；自带协议客户端只取 host/port/库名、忽略该参数，故 N1~N3 的
+     * “成功必属自带协议客户端”前提不受影响。G1 反向证明这条毒药能打死 JDBC 通路。
+     */
+    private static final String JDBC_DEAD_URL = CLEAN_URL + "&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison";
     /** 纯 Connector/J 直连（绕开 Mycat），用于确定性焐热服务端 caching_sha2 缓存并自检账号可用。 */
     private static final String WARM_URL = "jdbc:mysql://127.0.0.1:3306/mysql"
             + "?username=" + USER_SHA2 + "&password=" + PW
