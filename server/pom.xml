@@ -326,7 +326,8 @@
                         </goals>
                         <configuration>
                             <file>${project.basedir}/${version.template.file}</file>
-                            <outputFile>${project.basedir}/src/main/resources/${version.file}</outputFile>
+                            <!-- I-DEBT-56: 生成物落模块根目录（assembly fileSet 的 ${basedir}/version.txt 消费地），不再写回 src/main/resources 污染源码树 -->
+                            <outputFile>${project.basedir}/${version.file}</outputFile>
                             <replacements>
                                 <replacement>
                                     <token>@buildnumber@</token>
