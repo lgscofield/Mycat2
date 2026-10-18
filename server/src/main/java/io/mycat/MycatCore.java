@@ -206,16 +206,20 @@ public class MycatCore {
     }
 
     @NotNull
-    private String findMycatHome() throws URISyntaxException {
+    // I-DEBT-56：包级 static 化供回归锁 MycatHomeFallbackTest 直接调用；行为不越 MycatCore 自身。
+    static String findMycatHome() throws URISyntaxException {
         String configResourceKeyName = "MYCAT_HOME";
         String path = System.getProperty(configResourceKeyName);
 
         if (path == null) {
-            Path bottom = Paths.get(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+            Path bottom = Paths.get(MycatCore.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             while (!(Files.isDirectory(bottom) && Files.isWritable(bottom))) {
                 bottom = bottom.getParent();
             }
-            path = bottom.toString();
+            // I-DEBT-56：未显式设 MYCAT_HOME 时，运行态回写（hint 建库/建集群、resetConfig 生成的
+            // {clusters,datasources,users,schemas}/*.json 与 state.json）落进隔离子目录，
+            // 不再污染 jar/classes 所在目录本身（直启场景曾把工作树刷脏）。
+            path = bottom.resolve(".mycat-home").toString();
             System.setProperty(configResourceKeyName, path);
         }
         if (path == null) {
