@@ -89,9 +89,9 @@ jobs:
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}" "-Dtest=ConnectionSmokeTest,FrontAuthMatrixTest,BackendAuthMatrixTest,CrudResultMatrixTest"
       # M3/M4 专项套件进 CI（dump 查询面+往返回灌+迁移矩阵，纯 JDBC、自带 assumeInfraUp 诚实门控）。
       # persona 随矩阵档对齐后端版本（dump 面版本门/迁移 DDL 方言随画像变，与本地逐 persona 实跑同口径）。
-      # 观察期 continue-on-error：首落地不阻塞徽标，稳定档（8.0/8.4/9.0）该步转绿后撤除本标记（I-CI-5 姿势）。
+      # 观察期已撤（run@e2a6c29f2：稳定档 8.0/8.4/9.0 该步全绿 + 本地彩排 6/6，I-CI-5 姿势转正式门禁）；
+      # 实验档 job 级仍由 matrix.experimental 兜底不阻塞 run。
       - name: Run M3/M4 suites (dump surface/round-trip + migrate) against ${{ matrix.db }}
-        continue-on-error: true
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
