@@ -26,7 +26,7 @@
 1. **跨片分页切窗**：`LIMIT/OFFSET` 边界恰好落在 NULL 段中间时，归并序与单 MySQL 全表序必须逐格相等（Task 3 cells 8–9）。
 2. **窗口 `OVER (ORDER BY 可空列)`**：经 `buildCollation`(L1638) 而非 visitor 的出生点，旋钮应同样生效；若引擎不支持窗口则该格 PARK 并立账，不伪绿（Task 3 cell 12）。
 3. **显式 `NULLS FIRST/LAST` 不被过宽改写**：MySQL 原生语法不含此子句，Mycat 经 druid 接受；显式指定必须尊重原意、`(col IS NULL)` 模拟保留（Task 1 守卫测试 + Task 3 cell 11）。
-4. **merge-join 键路径不误伤**：规则显式造的 `NullDirection.LAST` 不经旋钮，`generateMergeJoinComparator` 的 assert 不得崩（Task 4 全量套件回归覆盖）。
+4. **merge-join 键路径不误伤**：规则显式造的 `NullDirection.LAST` 不经旋钮，`generateMergeJoinComparator` 的 assert 不得崩（Task 4 全量套件回归覆盖）。**（Task 4 实跑修正：本条前提半对半错——assert 确实未触达（Mycat 走 `generateComparator`），但硬编 LAST 与旋钮后逻辑 Sort 的 nulls-first trait 冲突致 CannotPlanException 活锁，三处已成套翻 FIRST，见 spec §5-1 修正注。）**
 5. **dumpPlan 文本随动**：collation 由 `NULLS LAST` 翻 `NULLS FIRST` 会改 plan 断言字面量，属修复本相、按实转正（Task 4）。
 
 ---

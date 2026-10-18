@@ -74,6 +74,13 @@ MySQL 与 MariaDB 在 NULL 排序上行为一致（皆 nulls-low），单旋钮�
    不经旋钮（旋钮只答 UNSPECIFIED）；`PhysTypeImpl.generateMergeJoinComparator:544` 的
    `assert nullDirection == LAST` 守卫因此不受扰动。join 键 NULL 匹配语义是另一条轴（已由
    Semi/Anti-Join 债处理），与本债正交。
+   **⚠ 发现即修正（Task 4 全量护栏活锁 `SqlFunctionTest#testComplexQuery` 坐实，`4ff59e4f4`）**：
+   本节前提“旋钮只答 UNSPECIFIED”成立，但原推论“因此 merge-join 面不受扰动”**错**——旋钮改的是
+   其上游逻辑 Sort 的 trait（裸 ASC→nulls-first），与规则硬编的 ASC-LAST 必需 trait 冲突 →
+   Volcano 无解 `CannotPlanException`。正解=trait 声明（`MycatMergeJoinRule`）、RBO 推入
+   （`MycatExtraSortRule`）、运行期 comparator（`MycatSortMergeJoin`）**三处成套**翻 FIRST（与
+   后端裸 ASC 实返序一致；NULL 键永不匹配，键序对连接正确性中性）。仍为真的豁免面收窄为：
+   `generateMergeJoinComparator` 的 assert 未被触达（Mycat 走 `generateComparator`，无该 assert）。
 2. **显式 NULLS FIRST/LAST 的语法面**：MySQL 客户端不会发此语法，Mycat 经 druid 接受它是既存
    超集行为，不属本债，不回归不删除。
 3. 手工构造 collation 的算子/测试代码显式传 FIRST/LAST 者，语义自明，不随旋钮变。
