@@ -26,7 +26,7 @@ jobs:
         include:
           - db: mysql:5.7
             persona: MYSQL_5_7
-            experimental: true  # I-CI-6: 已根治（poisonUrlKillsJdbcBackend 旧毒药 socketTimeout=1 系时机相关 flaky 护栏，已换确定性 socketFactory）；多 run 稳定绿后再议转 false
+            experimental: false  # I-CI-6 已根治（socketFactory 确定性毒药）；连续 5 run 全绿后 2026-10-19 用户拍板撤实验档→阻断 PR
           - db: mysql:8.0
             persona: MYSQL_8_0
             experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
@@ -38,13 +38,13 @@ jobs:
             experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mariadb:10.6
             persona: MARIADB_10_6
-            experimental: true  # I-CI-6: 已根治（G1 旧毒药 socketTimeout=1 flaky，已换确定性 socketFactory）；待四件套转绿后首次执行下游 M3/M4+真二进制步再逐档评估
+            experimental: false  # I-CI-6 已根治；连续 5 run 四件套+M3/M4+真二进制全绿后 2026-10-19 用户拍板撤实验档→阻断 PR
           - db: mariadb:10.11
             persona: MARIADB_10_11
-            experimental: true  # I-CI-6: 同上，已根治，待 CI 复跑取证
+            experimental: false  # I-CI-6 已根治；同上，连续 5 run 全绿，2026-10-19 用户拍板撤实验档→阻断 PR
           - db: mariadb:11.4
             persona: MARIADB_11_4
-            experimental: true  # I-CI-6: 已根治；此前 Initialize containers 连红系本仓 healthcheck bug（11.4=ubu2404 镜像无 mysqladmin，仅 mariadb-admin），已改双命令兼容 health-cmd
+            experimental: true  # healthcheck bug 已修（`7c0a82f70` 双命令兼容）；真跑产测尚只 2 样本，多轮验证闭环后再逐档撤（待用户二次拍板）
     services:
       mysql-a:
         image: ${{ matrix.db }}
