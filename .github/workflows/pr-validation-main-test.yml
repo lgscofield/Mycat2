@@ -44,7 +44,7 @@ jobs:
             experimental: true  # I-CI-6: 同上，已根治，待 CI 复跑取证
           - db: mariadb:11.4
             persona: MARIADB_11_4
-            experimental: true  # Initialize containers 服务未起（CI infra），与本护栏无关
+            experimental: true  # I-CI-6: 已根治；此前 Initialize containers 连红系本仓 healthcheck bug（11.4=ubu2404 镜像无 mysqladmin，仅 mariadb-admin），已改双命令兼容 health-cmd
     services:
       mysql-a:
         image: ${{ matrix.db }}
@@ -53,7 +53,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: 123456
           MARIADB_ROOT_PASSWORD: 123456
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -p123456 || mysqladmin ping -h 127.0.0.1 -uroot -p123456"
           --health-interval=5s --health-timeout=5s --health-retries=20
       mysql-b:
         image: ${{ matrix.db }}
@@ -62,7 +62,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: 123456
           MARIADB_ROOT_PASSWORD: 123456
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -p123456 || mysqladmin ping -h 127.0.0.1 -uroot -p123456"
           --health-interval=5s --health-timeout=5s --health-retries=20
     steps:
       - uses: actions/checkout@v4
