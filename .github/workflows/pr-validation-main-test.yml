@@ -25,18 +25,25 @@ jobs:
       matrix:
         include:
           - db: mysql:5.7
+            persona: MYSQL_5_7
             experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时，测试硬化后转 false
           - db: mysql:8.0
+            persona: MYSQL_8_0
             experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mysql:8.4
+            persona: MYSQL_8_4
             experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mysql:9.0
+            persona: MYSQL_9_X
             experimental: false  # I-CI-5: 稳定档阻断（run #1 已实测绿）
           - db: mariadb:10.6
+            persona: MARIADB_10_6
             experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时
           - db: mariadb:10.11
+            persona: MARIADB_10_11
             experimental: true  # I-CI-6: poisonUrlKillsJdbcBackend 在 runner 上读超时
           - db: mariadb:11.4
+            persona: MARIADB_11_4
             experimental: true  # I-CI-6: Initialize containers 服务未起（CI infra）
     services:
       mysql-a:
@@ -80,3 +87,12 @@ jobs:
         env:
           COMPAT_DB: ${{ matrix.db }}
         run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}" "-Dtest=ConnectionSmokeTest,FrontAuthMatrixTest,BackendAuthMatrixTest,CrudResultMatrixTest"
+      # M3/M4 专项套件进 CI（dump 查询面+往返回灌+迁移矩阵，纯 JDBC、自带 assumeInfraUp 诚实门控）。
+      # persona 随矩阵档对齐后端版本（dump 面版本门/迁移 DDL 方言随画像变，与本地逐 persona 实跑同口径）。
+      # 观察期 continue-on-error：首落地不阻塞徽标，稳定档（8.0/8.4/9.0）该步转绿后撤除本标记（I-CI-5 姿势）。
+      - name: Run M3/M4 suites (dump surface/round-trip + migrate) against ${{ matrix.db }}
+        continue-on-error: true
+        env:
+          COMPAT_DB: ${{ matrix.db }}
+          MYCAT_PERSONA: ${{ matrix.persona }}
+        run: bash ci/run-example.sh "-Dcompat.db=${{ matrix.db }}" "-Dtest=DumpSurfaceMatrixTest,DumpRestoreRoundTripMatrixTest,MigrateMatrixTest"

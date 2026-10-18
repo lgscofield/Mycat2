@@ -24,9 +24,13 @@ if command -v mysql >/dev/null 2>&1; then
 fi
 
 # 1) 启动 Mycat
+# MYCAT_PERSONA：M3/M4 专项套件步的 persona 启动覆盖（与本地 run-mig-persona.ps1 等同口径，
+# dump 面版本门/迁移 DDL 方言随画像变）。置空则保持缺省 MYSQL_5_7，既有四件套 CI 行为不变。
+PERSONA_ARG=""
+if [ -n "${MYCAT_PERSONA:-}" ]; then PERSONA_ARG="-Dmycat.persona=${MYCAT_PERSONA}"; fi
 # --add-opens=java.base/java.nio=ALL-UNNAMED: Apache Arrow 18 (vector() 算子用其堆外内存,
 # MemoryUtil 反射 java.nio.Buffer.address) 在 JDK17+ 必需,否则 VectorTest 挂死。
-java --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
+java $PERSONA_ARG --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
 trap 'kill $MYCAT_PID 2>/dev/null || true' EXIT
 
 # 2) 轮询前端 8066 就绪（最多 60s），替代旧 CI 不稳定的 sleep 10s
