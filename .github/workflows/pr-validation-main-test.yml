@@ -100,9 +100,11 @@ jobs:
       # 二进制跑在与矩阵同版的容器里（主机零装 mysqldump），逐档自适应选客户端/dump 二进制名与认证 flag 方言；
       # 字节安全回灌（bash < dump.sql）→ 逐值断言（BIN(bit)/HEX(中文)/decimal/生列/text）。判据=RC=0+逐值命中，
       # 容忍那条已知非致命 tablespaces Calcite stderr（否则假红）。本地 mysql:8.0 已实跑 BINRT PASS。
-      # 观察期已撤（run@93fc5cda4：稳定档 8.0/8.4/9.0 该步 binStep 全 success + 本地 mysql:8.0 实跑 BINRT PASS，
-      # 与 M3/M4 撤观察期同姿势转正式门禁）；实验档 5.7/MariaDB 由 job 级 matrix.experimental 兜底不阻塞 run。
+      # 撤观察期尝试已回退：run@c993c337a 撤 coe 后，同一脚本同一产品码，稳定档 mysql 8.0/8.4/9.0 该步全红，
+      # 而 run@93fc5cda4 同输入却全绿 → 该步在 Linux runner 上 **flaky（非确定性）**，不可作硬门禁，恢复 continue-on-error 观察。
+      # 待 runner 侧确定性诊断（Mycat 起停 / host-gateway 解析 / 后端服务就绪时序）专轮稳定后再议撤观察期。
       - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
+        continue-on-error: true  # 观察期：runner flaky（同输入跨 run 结论翻转），取证但不阻塞稳定门禁
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
