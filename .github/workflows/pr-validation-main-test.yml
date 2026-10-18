@@ -13,15 +13,15 @@ on:
 jobs:
   compat:
     runs-on: ubuntu-latest
-    # M1 目标=产出逐版本 pass/fail，不是全绿。尚未确认支持的版本标
-    # experimental:true → 允许红但不阻塞 PR。M2/M3 逐档转绿后撤该标记。
+    # M1 目标=产出逐版本 pass/fail。历史：R0 时全部档 experimental:true（CRUD 深债 7 版皆红）；
+    # 2026-10-19 逐档撤实验完毕：全 7 档 experimental:false，任何档红均阻断 PR（闸门全牙闭环，
+    # 背书见 DEBT-QUEUE §5：I-CI-6 socketFactory 根治 + 11.4 healthcheck 修复 + 多轮全绿）。
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
-      # 矩阵 job 的职责=产出逐版本×逐格子 pass/fail 证据（M1 本意），非在 R5 前硬阻塞。
-      # R0 已证 CRUD 操作轴 3 格深债（bit/timestampdiff/除零=I-DEBT-34/36/39）在**全部 7 版**皆红，
-      # 要到里程碑 R5（基本 CRUD 全绿）才转绿——故全部档 experimental:true（红但不阻塞）。
-      # 认证轴无真实缺口（native/caching_sha2 在七版合法插件组合上零红）。R5 绿后再逐档撤 experimental。
+      # 矩阵 job 的职责=产出逐版本×逐格子 pass/fail 证据（M1 本意）。
+      # 早期全部档 experimental:true（红不阻断）；随 R5 CRUD 三根收口、I-CI-6 根治、11.4 healthcheck 修复，
+      # 2026-10-16 稳定档先转 false（I-CI-5），2026-10-19 余档全部转 false（本注释即关闭序终点记录）。
       matrix:
         include:
           - db: mysql:5.7
@@ -44,7 +44,7 @@ jobs:
             experimental: false  # I-CI-6 已根治；同上，连续 5 run 全绿，2026-10-19 用户拍板撤实验档→阻断 PR
           - db: mariadb:11.4
             persona: MARIADB_11_4
-            experimental: true  # healthcheck bug 已修（`7c0a82f70` 双命令兼容）；真跑产测尚只 2 样本，多轮验证闭环后再逐档撤（待用户二次拍板）
+            experimental: false  # healthcheck bug 已修（`7c0a82f70`）；真跑产测连续 5 run 全绿（含 2026-10-19 三轮 dispatch 验证），随三档同批撤实验档→阻断 PR，M1 闸门全 7 档有牙闭环
     services:
       mysql-a:
         image: ${{ matrix.db }}
