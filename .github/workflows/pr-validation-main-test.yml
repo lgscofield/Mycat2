@@ -107,9 +107,12 @@ jobs:
       #   宿主 wait_for_port 探 127.0.0.1 通、但容器经 host-gateway(172.17.0.1) 连回环-only 监听必被 RST 拒；非起停 race（该 run Mycat started up 早于 seed 14s）。
       #   JDBC 四件套/M3M4 步是宿主直连 127.0.0.1、从不跨容器，故从未暴露此洞。
       # 修法（测试基建·零产品码）：verify-mysqldump-binary-roundtrip.sh 在 Linux 改 --network host + 直连 127.0.0.1（回环 Mycat + 已发布 0.0.0.0:3307 后端均可达）。
-      # 暂仍留 continue-on-error 观察，待本改 push+dispatch 在 Linux 取到连续 BINRT PASS 原始日志后背书撤观察期转硬门（见 §5 DEBT-QUEUE 订正条）。
+      # run@61eb56afa 三轮取证坐实修法全效：ECONNREFUSED 零出现，5 档×3 轮全 BINRT PASS；新暴露两个确定性红：
+      #   ① mysql:5.7 seed ERROR 1366（官方镜像 server 默认 latin1，裸 CREATE DATABASE 继承之——测试基建缺陷，seed 显式 utf8mb4 已修，本地真 5.7 后端闭环复现+验证）；
+      #   ② mariadb:11.4 dump rc=2（mariadb-dump 原样下发 /*M!100100 ...*/ 条件注释被 Mycat 判 1105 Illegal syntax——产品兼容面缺口，另行挂账）。
+      # 暂仍留 continue-on-error，待 seed 修复 push+dispatch 取到连续 6/7 档 BINRT PASS（11.4 除外）后背书撤观察期转硬门（见 §5 DEBT-QUEUE 订正条）。
       - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
-        continue-on-error: true  # 观察期：--network host 修复待 Linux 连续 BINRT PASS 取证后背书撤除（当前仍掩盖步失败，勿当已绿）
+        continue-on-error: true  # 观察期：待 seed 修复后连续取证 6/7 档 BINRT PASS（mariadb:11.4 产品缺口除外）再拍板撤除（当前仍掩盖步失败，勿当已绿）
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}

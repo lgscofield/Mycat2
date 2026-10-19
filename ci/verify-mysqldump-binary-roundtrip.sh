@@ -108,9 +108,12 @@ trap cleanup EXIT
 wait_for_port "$MYCAT_HOST" "$MYCAT_PORT" 60 "Mycat 前端 $MYCAT_PORT" || { echo "启动日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
 
 # ---- 播种脚本（全类型含 bit(8) + 中文；写成 UTF-8 文件，走字节安全 < 喂入）----
+# CREATE DATABASE 显式 utf8mb4：mysql:5.7 服务端默认字符集是 latin1（my.cnf 未抬），
+# 裸 CREATE DATABASE 会让表继承 latin1 → 中文 INSERT 报 ERROR 1366（2026-10-19 run@61eb56afa 取证，
+# 三 run×5.7 档全红=确定性）；8.0/9.x 与 MariaDB 各档显式声明亦为无操作或同值，零副作用。
 cat > "$SEED_SQL" <<'SQL'
 DROP DATABASE IF EXISTS dbdump;
-CREATE DATABASE dbdump;
+CREATE DATABASE dbdump CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE dbdump;
 CREATE TABLE t1 (id INT PRIMARY KEY, name VARCHAR(64), amount DECIMAL(10,2), ts DATETIME NULL, gen INT AS (id*2) STORED, b BIT(8), txt TEXT);
 INSERT INTO t1 (id,name,amount,ts,b,txt) VALUES (1,'探针',10.50,'2026-01-01 10:00:00',b'10101010','hello'),(2,'abc',20.75,NULL,b'00001111','plain');
