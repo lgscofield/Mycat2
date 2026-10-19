@@ -32,14 +32,26 @@
 1. **下推全遮蔽本地公式**：可下推场景交后端算，返回正确值（Sun=1…Sat=7），Mycat 本地实现**永不被触达**——解释了"方法级单测显示公式错、但活库探针显示正确"的表面矛盾（非矛盾，是路径不同）。
 2. **本地路径确为 Mode A `cannot translate call`**（非我最初静态臆测的 ClassCastException）。探针修正了推断，符合"不信既有记录/须实证"。
 
-## 3. 根因链（已凭当前代码逐环锚定）
+### 2b. 第 0 步诊断结论（**推翻本 spec 初稿假设**，落地前已执行）
 
-1. **解析/建算子**：`MycatCalciteMySqlNodeVisitor` 的函数名→算子映射 `operators` 表（L48-61）只灌 `SqlStdOperatorTable`（Calcite 标准算子）。MySQL 专有标量（DAYOFWEEK 等）不在其中，`func(hash)` 返 null。
-2. **落 default**：大 `switch` 无 `case "DAYOFWEEK"` → **L2034-2045 default 分支**建 `new SqlUnresolvedFunction(DAYOFWEEK, USER_DEFINED_FUNCTION)`。这与 I-DEBT-50 `case "IF"`（L2015 注释自述"此前落 default 被建成 SqlUnresolvedFunction"）**完全同构**。
-3. **校验/落 Rex**：算子表虽在 `MycatCalciteSupport` L408 注册了 `DayOfWeekFunction.INSTANCE`（供列名/校验），但**到达 codegen 的 Rex 算子并非可分派的 Mycat 实例形态**。
-4. **codegen 查找**：`RexToLixTranslator.visitCall`（L1511-1514）调 `RexImpTable.INSTANCE.get(operator)`；该 `get()`（fork，L1485-1525）有三发现路：① `mycatCustomRegistry`（L1487，仅 4 枚 `registerMycatFunction` 的日期函数：DateAdd/DateSub/Extract/AddTime，见 `MycatCalciteSupport` L310-313）② `instanceof MycatSqlDefinedFunction`（L1492）③ `instanceof SqlUserDefinedFunction`（L1496）。返回 null → `RexToLixTranslator:1514` 抛 `cannot translate call` → `MycatEnumerableRelImplementor:57`/`StreamMycatEnumerableRelImplementor:34` 裹成 `Unable to implement`。
+追加离线诊断（打印 codegen 期 RexCall 算子类型 + 直查 `RexImpTable.INSTANCE.get(...)`）实证：
 
-**残留待实现期首诊确认的子因（承重）**：为何 ②/③ 分派支没兜住——即本地路径解析出的 DAYOFWEEK 算子确切类型（`SqlUnresolvedFunction` 未回绑？回绑成非 Mycat/非 UserDefined 的普通 `SqlFunction`？）。§2 探针 + 一句 `call.getOperator().getClass()` 打印即可钉死；它决定修法落点是"回绑 Mycat 实例"还是"补注册 implementor"。**本 spec 不臆断，列为落地第 0 步。**
+- `select DAYOFWEEK(DATA_TYPE) from information_schema.parameters` 到 codegen 的算子是 **`org.apache.calcite.sql.fun.SqlDatePartFunction`（name=DAYOFWEEK），`isMycatSD=false`**——是 Calcite **标准**算子，不是 Mycat 的 `DayOfWeekFunction`，也不是 Unresolved。
+- `RexImpTable.INSTANCE.get(Mycat DayOfWeekFunction.INSTANCE)` = **非空**（返回 `RexImpTable$2@...`）→ **Mycat 注册的标量实例本就可通过 fork 的 `instanceof MycatSqlDefinedFunction` 分派落码**。
+- `RexImpTable.INSTANCE.get(Std SqlStdOperatorTable.DAYOFWEEK)` = **null** → 标准 `SqlDatePartFunction` 在本 fork 的 RexImpTable **从未登记实现者** → `cannot translate call`。
+- 且 `MycatCalciteMySqlNodeVisitor` **确有 `case "DAYOFWEEK"`→`DayOfWeekFunction.INSTANCE`（L1828）**——常规分片 SQL 走 drds parser 用 Mycat 实例（随即被下推，本地不触达）；而 `information_schema` 走 **Calcite parser**，解析到标准 `SqlStdOperatorTable.DAYOFWEEK`（L2253 `SqlDatePartFunction`），触发崩溃。
+
+**⇒ 真根因不是"注册标量函数未接入 codegen"（它们其实能接入），而是"i_s/Calcite-parser 路径把 MySQL 函数名解析成本 fork 无 codegen 的标准同名算子，遮蔽了 Mycat 自己的可落码实现"。** 修法随之改变（见 §5 订正）。
+
+## 3. 根因链（第 0 步诊断后订正版）
+
+崩溃有**两条不同解析路径**，只有 i_s 路径触雷：
+
+1. **常规分片 SQL → drds parser（`MycatCalciteMySqlNodeVisitor`）**：其 `switch(methodName)` **已有 `case "DAYOFWEEK"`（L1828）→ `DayOfWeekFunction.INSTANCE`**（Mycat 自己的 `MycatDateFunction`/`MycatSqlDefinedFunction`）。而 `get(Mycat 实例)` 非空→本可落码；但分片场景整投影被**下推**交后端，Mycat 本地实现从不执行（故周日公式 bug 至今不可观测）。
+2. **`information_schema` 查询 → Calcite parser**：不走 drds visitor，`DAYOFWEEK` 解析到**标准 `SqlStdOperatorTable.DAYOFWEEK`（L2253，`SqlDatePartFunction`）**。
+3. **codegen 查找**：`RexToLixTranslator.visitCall`（L1511-1514）先经 `MycatCalciteRuntime.get().remapOperator(operator)`（中立 seam，默认恒等）再 `RexImpTable.INSTANCE.get(...)`。标准 `SqlDatePartFunction.DAYOFWEEK`：① 不在 `mycatCustomRegistry`（仅 4 枚手工 `registerMycatFunction`），② 非 `MycatSqlDefinedFunction`，③ 非 `SqlUserDefinedFunction`，④ fork `map` 亦未登记→`get()`=**null**（本轮实证）→ `cannot translate call` → `MycatEnumerableRelImplementor:57` 裹成 `Unable to implement`。
+
+**净结论**：Mycat 注册标量其实**能**通过 `instanceof MycatSqlDefinedFunction` 分派落码（已证 `get(Mycat 实例)` 非空）；真正的缺口是 **i_s/Calcite-parser 选中的标准同名算子在本 fork 无 codegen 实现者**，把 Mycat 可用实现遮蔽了。
 
 ## 4. 与两枚已收口手法的对比（为何都不通用）
 
@@ -49,11 +61,14 @@
 
 ## 5. 候选修法与推荐
 
-### 候选 A（推荐）：系统性把注册标量接入 enumerable codegen
-统一让每个 Mycat 注册标量函数在本地路径解析出其 `MycatSqlDefinedFunction` 实例（其 `function` 为 `ScalarFunctionImpl`，**已 implements ImplementableFunction**——本轮实证，`calcite-core/.../schema/impl/ScalarFunctionImpl.java:45-46`），从而命中 `get()` ② 分派支，反射落到其 Java 方法。
-- 落点（据 §3 首诊结果二选一或并用）：(a) `MycatCalciteMySqlNodeVisitor` 以算子表批量回绑（把 `operators`/default 从"仅 SqlStdOperatorTable"扩到含 Mycat 注册标量表），或 (b) 在 `MycatCalciteSupport` 静态块对注册标量**批量 `registerMycatFunction`**（把现有 4 枚手工泛化为遍历注册）。
-- 优点：一处根治整族，DAYOFWEEK/JSON_EXTRACT/后续标量统一可本地算；与 fork 既有 ② 分派设计契合（本就为 Mycat 函数加的）。
-- 代价：**blast 大**（触所有标量函数解析/注册）；须补 **java.time 形参适配**（`dayOfWeek(LocalDate)` 期望 LocalDate，codegen 喂列的 Java 型须对齐，与 I-DEBT-12/23e 相邻）；须全族差分对拍防伪绿。
+### 候选 A（推荐·诊断后重定位）：经 `remapOperator` seam 把标准同名算子重映射到 Mycat 实例
+真根是 i_s/Calcite-parser 选中的标准 `SqlDatePartFunction`（及其他无 codegen 同名算子）遮蔽 Mycat 实现。`RexToLixTranslator.visitCall` **已有 `remapOperator` 中立 seam**（L1512，`<=>`→`StrictEqualFunction` 先例），hbt 侧实现为 `MycatCalciteRuntimeHooks.remapOperator`。
+- **做法**：在 `MycatCalciteRuntimeHooks.remapOperator` 里，对"标准算子但本 fork 无 codegen、且 Mycat 有可用实例"的函数名（首先 `DAYOFWEEK`）映射到对应 Mycat `MycatSqlDefinedFunction` 实例（`get(Mycat 实例)` 已证非空→自然落码）。只改查表用 operator，不改算子本身。
+- **优点**：**blast 最小**（复用现有 seam，仅按名单重定向特定算子，其余恒等不变）；直接走到 Mycat 自己的语义实现。
+- **代价**：需处理 **java.time 形参适配**（remap 后以原 call 传入，operand 是 `CAST($6):TIMESTAMP`，而 `dayOfWeek(LocalDate)` 期 LocalDate，需验证 ScalarFunctionImpl 生成的码能接住 java.sql.Timestamp/需否插转，与 I-DEBT-12/23e 相邻）；接入后周日公式 bug 才首次可观测→同轮兼修公式。
+
+### 候选 A'（备选）：向 `mycatCustomRegistry` 批量 `registerMycatFunction` 标准算子
+以 `registerMycatFunction(SqlStdOperatorTable.DAYOFWEEK, <implementor>)` 给标准算子直接挂实现者。缺点：需为每个标准算子手写 implementor 且要保证语义与 MySQL 一致（Calcite DOW 与 MySQL Sun=1 可能不同），不如 A 直接复用 Mycat 实例。
 
 ### 候选 B：逐函数 AST 改写（续 I-DEBT-50 路子）
 每个缺失标量各写 `case`。仅在"有等价已实现算子"时可行，DAYOFWEEK 无。不可扩展，制造更多散点。**不推荐**。
@@ -61,14 +76,14 @@
 ### 候选 C：维持现状（下推遮蔽 + 窄修 + 挂账）
 普通客户端多走下推，本地崩面窄。**但**招牌判据下"无表 SELECT/纯本地投影/未来 connector 元数据深面"仍会触雷，且 I-DEBT-32 无法真关。**不满足北极星无缝目标**。
 
-**推荐 A**，理由：三例已证根相同，A 是唯一能"关根"而非"绕例"的方案；分片/下推面已绿，增量风险集中在本地路径，可被离线规划器锁 + 差分对拍完全兜住。落地必须与 §7 三层测试同轮。
+**推荐 A（seam 重映射）**，理由：第 0 步已证真根是"i_s/Calcite-parser 选中无 codegen 的标准同名算子遮蔽 Mycat 实现"，而非 Mycat 实例不可落码；`remapOperator` seam 是**现成、低 blast、有先例**（`<=>`）的正确落点。分片/下推面已绿，增量风险集中在本地路径，可被离线规划器锁 + 差分对拍完全兜住。落地必须与 §7 三层测试同轮。
 
-## 6. 设计（推荐方向·高层，落地期细化）
+## 6. 设计（推荐方向·高层）
 
-1. **第 0 步（诊断）**：扩 §2 探针打印 `call.getOperator().getClass()`，钉死 §3 子因 → 决定回绑 vs 补注册。
-2. **通用接入**：按候选 A 落点，使注册标量在本地路径可得其 Mycat 实例/已注册 implementor；优先"遍历注册表批量 `registerMycatFunction`"以最小化对解析链的侵入。
-3. **java.time 适配**：对期望 `LocalDate/LocalDateTime/Duration` 的标量，核对 codegen 实参 Java 型（列/字面量/CAST 三态），必要时在 implementor 前插转换，复用 I-DEBT-12/23e 既有适配口径。
-4. **DAYOFWEEK 公式纠偏**：`DayOfWeekFunction.dayOfWeek` 由 `getValue()+1` 改 `getValue()%7+1`（Sun 7→1，Mon 1→2…Sat 6→7），**接入 codegen 后**才随附落此改（届时可观测、非伪绿）。兄弟 `WeekDayFunction`（`getValue()-1`）本就正确，仅回归锁覆盖。
+1. **第 0 步（诊断）——✅ 已执行（2026-10-19）**：结论见 §2b/§3——真根=i_s/Calcite-parser 选中标准 `SqlDatePartFunction.DAYOFWEEK`（`get()`=null）遮蔽 Mycat 实例（`get(Mycat 实例)`≠null）；故落点=**重映射标准同名算子→Mycat 实例**（非"回绑解析链"也非"批量注册"）。
+2. **seam 重映射**：在 `MycatCalciteRuntimeHooks.remapOperator(op)` 新增分支：当 `op` 属于"本 fork 无 codegen 且 Mycat 有可用实例"的标准同名算子集（首批 `SqlStdOperatorTable.DAYOFWEEK`→`DayOfWeekFunction.INSTANCE`）时返回 Mycat 实例，其余保持恒等。映射表可逐步扩充覆盖整族（YEAR/WEEK/MONTH… 逐个先验证下推/本地行为再纳入）。
+3. **java.time 适配**：remap 后以原 call（operand `CAST(...):TIMESTAMP`）传入，需验证 `ScalarFunctionImpl` 生成的码能接住实参 Java 型（java.sql.Timestamp vs LocalDate）；不适配则在 implementor 前插转换，复用 I-DEBT-12/23e 口径。
+4. **DAYOFWEEK 公式纠偏**：`DayOfWeekFunction.dayOfWeek` 由 `getValue()+1` 改 `getValue()%7+1`（Sun 7→1，Mon 1→2…Sat 6→7），**接入本地 codegen 后**才随附落此改（届时可观测、非伪绿）。兄弟 `WeekDayFunction`（`getValue()-1`）本就正确，仅回归锁覆盖。
 
 ## 7. 测试策略（三层，防伪绿）
 
