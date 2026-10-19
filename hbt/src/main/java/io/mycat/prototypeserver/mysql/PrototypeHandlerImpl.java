@@ -235,12 +235,19 @@ public class PrototypeHandlerImpl implements PrototypeHandler {
 
     @Override
     public List<Object[]> showCreateDatabase(MySqlShowCreateDatabaseStatement statement) {
-        String database = SQLUtils.normalize(statement.getDatabase().toString());
-        SQLCreateDatabaseStatement sqlCreateDatabaseStatement = new SQLCreateDatabaseStatement();
-        sqlCreateDatabaseStatement.setDatabase(database);
-        ArrayList<Object[]> objects = new ArrayList<>();
-        objects.add(new Object[]{"database", sqlCreateDatabaseStatement.toString()});
-        return objects;
+        // I-DEBT-58（Design A）：Mycat2 是薄透传代理，库级字符集的权威唯一来源在物理后端
+        //（CreateDatabaseSQLHandler.onPhysics 已把 CREATE DATABASE ... CHARACTER SET ... 原样下发）。
+        // 与仓内 7 个 SHOW 命令同惯例，透传读回后端真实定义（含 /*!40100 DEFAULT CHARACTER SET ... */），
+        // 而非自拼裸串丢字符集、且无法匹配真 MySQL 随版本变的方言（5.7 省 COLLATE、8.0 带 ENCRYPTION）。
+        // 后端不可达/无物理对应（如虚拟管理库）时 onJdbc 返空，退回裸仿真兜底，绝不整体报错。
+        return onJdbc(statement.toString()).orElseGet(() -> {
+            String database = SQLUtils.normalize(statement.getDatabase().toString());
+            SQLCreateDatabaseStatement sqlCreateDatabaseStatement = new SQLCreateDatabaseStatement();
+            sqlCreateDatabaseStatement.setDatabase(database);
+            ArrayList<Object[]> objects = new ArrayList<>();
+            objects.add(new Object[]{database, sqlCreateDatabaseStatement.toString()});
+            return objects;
+        });
     }
 
     @Override
