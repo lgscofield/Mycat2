@@ -66,6 +66,7 @@ import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexExecutor;
 import org.apache.calcite.sql.*;
+import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.sql.dialect.MssqlSqlDialect;
 import org.apache.calcite.sql.dialect.OracleSqlDialect;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
@@ -531,6 +532,24 @@ public enum MycatCalciteSupport implements Context {
                     operatorList.addAll(sqlOperator);
                     if (sqlOperator == ConvertFunction.INSTANCE) {//fix bug
                         // class org.apache.calcite.sql.fun.SqlConvertFunction: CONVERT is broken.
+                        return;
+                    }
+                    // MYCAT CHANGE (I-DEBT-32): 当 Mycat 对该函数名注册了自有实现算子
+                    // （MycatSqlDefinedFunction），不再向下追加 Calcite 标准同名孪生算子。
+                    // 否则校验期 SqlValidator 的 overload 解析可能选中标准算子（如 DAYOFWEEK 的
+                    // SqlDatePartFunction），其 operand 推断把入参 coerce 成 TIMESTAMP，与 Mycat
+                    // 落码方法声明的 java.time 形参不一致，导致落码/执行期类型分叉。让 Mycat 拥有该名，
+                    // 校验/折算/落码全链按 Mycat 算子的 operand 推断同源（DAYOFWEEK 形参 String→
+                    // CHARACTER family，直配 information_schema 的 VARCHAR 列，无需 coerce），
+                    // 一次性覆盖所有被标准孪生遮蔽的 Mycat 标量函数。
+                    boolean mycatOwns = false;
+                    for (SqlOperator o : sqlOperator) {
+                        if (o instanceof MycatSqlDefinedFunction) {
+                            mycatOwns = true;
+                            break;
+                        }
+                    }
+                    if (mycatOwns) {
                         return;
                     }
                 }

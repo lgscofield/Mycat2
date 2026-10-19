@@ -124,3 +124,30 @@
 - 离线探针：`mvn -o -pl internalexample -am test "-Dtest=<Probe>" "-Dsurefire.failIfNoSpecifiedTests=false"`（`-D` 参数须加引号，防 PowerShell 拆坏；`-am` 拉入 hbt 否则 `io.mycat.calcite` 包缺失）。
 - 后端容器：`my57-3306`(3306)/`m1-mysql-b`(3307)，root/123456；Mycat 8066。
 - PowerShell 无 grep/head，用 `Select-String`/`Select-Object`；中文 commit 用 `git commit -F <file>` + `[Console]::OutputEncoding=UTF8` 校验。
+
+## 13. 落地收口订正（2026-10-19，二次翻案：否 remap、否"E 单独"，定 E+String 形参）
+
+> 本节**取代** §5 候选 A（`remapOperator` seam 重映射）与 §6.2 的初稿推荐。§2b/§3 的"真根=标准同名算子遮蔽 Mycat 实例"结论方向正确，但据此选定的**修法（走 remap seam）经实证被推翻**，最终落地为另一条路径。以下为当前证据支撑的定案。
+
+### 13.1 为何否掉 remap（初稿翻案）
+`remapOperator` 把标准 `DAYOFWEEK` 重映射到 Mycat 实例仅在**落码期**生效；**校验期**仍用标准算子把 i_s 的 VARCHAR 列 coerce 成 `CAST(:TIMESTAMP)`→本 fork 表征 `LocalDateTime`，而 `dayOfWeek(LocalDate)` 要 `LocalDate`。离线锁不 janino 编译→看不见此分叉；活库实跑暴露**执行期类型分叉**（校验产物与落码形参不一致）。故 remap 单独不成立。
+
+### 13.2 为何否掉"方案 E 单独"（一次翻案）
+改选方案 E（`MycatCalciteSupport.lookupOperatorOverloads`：Mycat 已注册自有实现算子则不追加标准同名孪生，使 validator 独占选 Mycat）。实探针坐：E + `dayOfWeek(LocalDate)` 反使 DAYOFWEEK 降为 `SqlUnresolvedFunction`——Mycat 算子的 operand family 由 **Java 形参 `LocalDate`→DATE** 派生，接不住 i_s VARCHAR；`mycatCoerceOperands` 因 `canCastFrom(DATE,VARCHAR)=true` 不包 CAST→Calcite overload 匹配仍要真 CAST→无候选。
+
+### 13.3 定案：E + `DayOfWeekFunction` 形参改 String（根因解除）
+**根因**=`MycatSqlDefinedFunction` 把「方法 Java 形参 / 算子 operand family / codegen 绑定类型」三者耦合（一个形参类型身兼三职）。将落码形参对齐兄弟惯例（`DateFormatFunction` 吃 String）改为 `dayOfWeek(String)`：String→经 `toSql`→CHARACTER/VARCHAR family，直配 i_s VARCHAR 列，校验/折算/落码全链同源，**不靠标准 coerce、不用 remap 桥**。仅当 E（Mycat 独占领名）与 String 形参**组合**才成立。
+- executor 直调路径（`io.ordinate...DayOfWeekFunctionFactory:67`）保留 `dayOfWeek(LocalDate)` 重载；双 overload 下 `ScalarFunctionImpl.create(clazz,name)`→`findMethod` 取 `getMethods()` 首个同名**顺序不确定**，故改为 `create(Method)` 显式绑定 String 方法消歧。
+- 同时 `getValue()+1`→`getValue()%7+1` 纠周日越界（Java ISO Sun=7→旧返 8，MySQL DAYOFWEEK Sun=1）。
+
+### 13.4 四重验证（均当前实跑证据）
+1. **静态单测** `hbt/.../DayOfWeekFunctionTest`：全 7 天含周日=1，LocalDate/String 两形态同解，非法串→null（3/3 GREEN）。
+2. **离线锁** `internalexample/.../ScalarStdFuncLocalCodegenTest`：E+String 下 i_s 投影 DAYOFWEEK RED→GREEN，生成码 `dayOfWeek(row[i]==null?null:row[i].toString())` 类型一致无 LocalDateTime/LocalDate 分叉。
+3. **回归**：config/common/router/**hbt 208**/server/example 全绿（含 `TypeRepresentationThreePathConsistencyTest`/`DynamicParamCoercionTest` 校验族，E blast 无回归）。
+4. **活库 8066 i_s 端到端差分** `ci/I8066DayOfWeekDiff.java` verdict=**PASS**：DAYOFWEEK 对实有行 i_s VARCHAR 列真执行（旧 bug=在此崩）、7 天逐值经代理与真 MySQL 全等（含周日=1）、datetime/非法串均一致。STAGE1 采用投影+limit（缘由见 13.5）。
+
+### 13.5 派生发现：I-DEBT-59（与本债无关、另立挂账）
+差分中将 STAGE1 换为 `select distinct DAYOFWEEK(DATA_TYPE) from information_schema.columns` 抛 `NullPointerException: The mapper function returned a null value`（RxJava3 `ObservableMap`）。对照 control `select distinct IF(1=2,'a',NULL) ...`（不碰 DAYOFWEEK）**同样 NPE**；而纯投影+limit 正常——即 **nullable 标量值流经满量扫描/distinct 聚合的 Calcite enumerable→RxJava `.map` 不容 null 返回值**（RxJava3 map 契约禁 null）。属跨切执行层独立债（与标量函数接入正交），**挂账不混入本锁**，本轮在差分中用投影+limit 绕开。详见 DEBT-QUEUE I-DEBT-59。
+
+### 13.6 同族批量接入待办
+本债只锤 DAYOFWEEK 一枚；§1.3/§5 所述同族（I-DEBT-50 IF、I-DEBT-54-D1 JSON_EXTRACT 等）可复用 E+String 形参模式逐个验证纳入，存量窄修（AST 改写/恒空折叠）保留不回归。
