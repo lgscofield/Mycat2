@@ -31,10 +31,22 @@ MYCAT_PERSONA="${MYCAT_PERSONA:-MYSQL_8_0}"
 MYCAT_USER="${BINRT_USER:-root}"
 MYCAT_PASSWORD="${BINRT_PASSWORD:-123456}"
 
-# 前端 Mycat：宿主视角 127.0.0.1:8066；容器回看宿主用 host.docker.internal。
+# 前端 Mycat：宿主视角 127.0.0.1:8066。
 MYCAT_HOST="${BINRT_MYCAT_HOST:-127.0.0.1}"
 MYCAT_PORT="${BINRT_MYCAT_PORT:-8066}"
-CONTAINER_HOST="${BINRT_CONTAINER_HOST:-host.docker.internal}"
+# 容器→宿主可达方式随平台（根因，2026-10-19 诊断推翻旧「runner flaky」定性）：
+# Mycat 运行期只绑回环（fat-jar 走代码缺省 ServerConfig.ip="localhost"，server.json 的 0.0.0.0 未被加载），
+# 故 GitHub Linux runner 上容器经 --add-host=host.docker.internal:host-gateway 连 8066 必 ECONNREFUSED(111)（确定性、非抖动）。
+# Linux 改用 --network host 进宿主网络命名空间直连 127.0.0.1（回环 Mycat + 已发布 0.0.0.0:3307 后端均可达）；
+# 非 Linux（本地 Windows/Docker Desktop）沿用 host-gateway 路径不破（本地 host.docker.internal 代理到宿主回环，实测 PASS）。
+HOST_OS="$(uname -s 2>/dev/null || echo unknown)"
+if [ "$HOST_OS" = "Linux" ]; then
+  NETARG=(--network host)
+  CONTAINER_HOST="${BINRT_CONTAINER_HOST:-127.0.0.1}"
+else
+  NETARG=(--add-host=host.docker.internal:host-gateway)
+  CONTAINER_HOST="${BINRT_CONTAINER_HOST:-host.docker.internal}"
+fi
 # 回灌靶库：mysql-b/mariadb-b 服务发布的 3307（原生后端，绕开 Mycat 直灌）。
 BACKEND_PORT="${BINRT_BACKEND_PORT:-3307}"
 
@@ -53,7 +65,6 @@ case "$COMPAT_DB" in
     ;;
 esac
 CHARSET=(--default-character-set=utf8mb4)
-ADDHOST=(--add-host=host.docker.internal:host-gateway)
 
 # ---- 运行期探测镜像内的二进制名（mariadb 10.6 与 11.x 命名不同，MySQL 只有 mysqldump）----
 if docker run --rm "$COMPAT_DB" sh -c 'command -v mariadb-dump' >/dev/null 2>&1; then
@@ -61,7 +72,7 @@ if docker run --rm "$COMPAT_DB" sh -c 'command -v mariadb-dump' >/dev/null 2>&1;
 else
   DUMP_BIN=mysqldump; CLIENT_BIN=mysql
 fi
-echo "flavor=$FLAVOR image=$COMPAT_DB persona=$MYCAT_PERSONA client=$CLIENT_BIN dump=$DUMP_BIN"
+echo "flavor=$FLAVOR image=$COMPAT_DB persona=$MYCAT_PERSONA client=$CLIENT_BIN dump=$DUMP_BIN host_os=$HOST_OS container_host=$CONTAINER_HOST net=${NETARG[*]}"
 
 LOG_DIR="target/ci"
 mkdir -p "$LOG_DIR"
@@ -106,13 +117,13 @@ INSERT INTO t1 (id,name,amount,ts,b,txt) VALUES (1,'探针',10.50,'2026-01-01 10
 SQL
 
 # 回灌靶/主源 best-effort 清库（原生直连，忽略不可达/不存在）
-docker run -i --rm "${ADDHOST[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" \
+docker run -i --rm "${NETARG[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" \
   -h "$CONTAINER_HOST" -P "$BACKEND_PORT" -u"$MYCAT_USER" -p"$MYCAT_PASSWORD" \
   -e 'DROP DATABASE IF EXISTS dbdump;' >/dev/null 2>&1 || true
 
 # ---- STEP 1 正向：经 Mycat 8066 播种源库（容器真客户端走真协议）----
 echo "== STEP 1: seed via Mycat 8066 =="
-if ! docker run -i --rm "${ADDHOST[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
+if ! docker run -i --rm "${NETARG[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
      -h "$CONTAINER_HOST" -P "$MYCAT_PORT" -u"$MYCAT_USER" -p"$MYCAT_PASSWORD" < "$SEED_SQL"; then
   echo "BINRT FAIL 播种失败（seed rc!=0）"; exit 1
 fi
@@ -120,7 +131,7 @@ fi
 # ---- STEP 2 正向：容器化真二进制 mysqldump/mariadb-dump 默认口径 dump Mycat ----
 echo "== STEP 2: dump via $DUMP_BIN from Mycat 8066 =="
 set +e
-docker run --rm "${ADDHOST[@]}" "$COMPAT_DB" "$DUMP_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
+docker run --rm "${NETARG[@]}" "$COMPAT_DB" "$DUMP_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
   -h "$CONTAINER_HOST" -P "$MYCAT_PORT" -u"$MYCAT_USER" -p"$MYCAT_PASSWORD" \
   --databases dbdump 1>"$DUMP_SQL" 2>"$DUMP_ERR"
 DUMP_RC=$?
@@ -135,7 +146,7 @@ grep -q 'INSERT INTO' "$DUMP_SQL" || { echo "BINRT FAIL dump.sql 无 INSERT（�
 # ---- STEP 3 反向：字节安全回灌原生靶库 3307（bash < file，禁宿主文本管道）----
 echo "== STEP 3: restore into native backend :$BACKEND_PORT (byte-safe) =="
 set +e
-docker run -i --rm "${ADDHOST[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
+docker run -i --rm "${NETARG[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
   -h "$CONTAINER_HOST" -P "$BACKEND_PORT" -u"$MYCAT_USER" -p"$MYCAT_PASSWORD" < "$DUMP_SQL"
 RESTORE_RC=$?
 set -e
@@ -144,7 +155,7 @@ set -e
 # ---- STEP 4 逐值读回（ASCII 安全：BIN(bit)/HEX(中文)/decimal/ISNULL/生列/text）----
 echo "== STEP 4: readback + 逐值断言 =="
 set +e
-RB="$(docker run --rm "${ADDHOST[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
+RB="$(docker run --rm "${NETARG[@]}" "$COMPAT_DB" "$CLIENT_BIN" "${AUTH[@]}" "${CHARSET[@]}" \
   -h "$CONTAINER_HOST" -P "$BACKEND_PORT" -u"$MYCAT_USER" -p"$MYCAT_PASSWORD" \
   -N -B -e 'SELECT id,HEX(name),BIN(b),amount,ISNULL(ts),gen,txt FROM dbdump.t1 ORDER BY id;' 2>&1)"
 RB_RC=$?

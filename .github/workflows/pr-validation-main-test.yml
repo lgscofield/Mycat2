@@ -100,11 +100,16 @@ jobs:
       # 二进制跑在与矩阵同版的容器里（主机零装 mysqldump），逐档自适应选客户端/dump 二进制名与认证 flag 方言；
       # 字节安全回灌（bash < dump.sql）→ 逐值断言（BIN(bit)/HEX(中文)/decimal/生列/text）。判据=RC=0+逐值命中，
       # 容忍那条已知非致命 tablespaces Calcite stderr（否则假红）。本地 mysql:8.0 已实跑 BINRT PASS。
-      # 撤观察期尝试已回退：run@c993c337a 撤 coe 后，同一脚本同一产品码，稳定档 mysql 8.0/8.4/9.0 该步全红，
-      # 而 run@93fc5cda4 同输入却全绿 → 该步在 Linux runner 上 **flaky（非确定性）**，不可作硬门禁，恢复 continue-on-error 观察。
-      # 待 runner 侧确定性诊断（Mycat 起停 / host-gateway 解析 / 后端服务就绪时序）专轮稳定后再议撤观察期。
+      # ⚠ 旧「runner flaky」定性已被 2026-10-19 诊断推翻：读原始 stdout（非被 continue-on-error 掩盖的步级 conclusion）坐实
+      # run@93fc5cda4 与 run@c993c337a 的该步**都**在 STEP1 报 `ERROR 2003(111) host.docker.internal:8066`=ECONNREFUSED，
+      # 即本步在 Linux runner 上从未真绿过、是**确定性失败**（"绿 run" 只是 coe 把 exit1 掩盖成步绿+我把 job 绿误读成步绿）。
+      # 根因：Mycat 运行期只绑回环（fat-jar 走代码缺省 ServerConfig.ip="localhost"，server.json 的 0.0.0.0 未被加载），
+      #   宿主 wait_for_port 探 127.0.0.1 通、但容器经 host-gateway(172.17.0.1) 连回环-only 监听必被 RST 拒；非起停 race（该 run Mycat started up 早于 seed 14s）。
+      #   JDBC 四件套/M3M4 步是宿主直连 127.0.0.1、从不跨容器，故从未暴露此洞。
+      # 修法（测试基建·零产品码）：verify-mysqldump-binary-roundtrip.sh 在 Linux 改 --network host + 直连 127.0.0.1（回环 Mycat + 已发布 0.0.0.0:3307 后端均可达）。
+      # 暂仍留 continue-on-error 观察，待本改 push+dispatch 在 Linux 取到连续 BINRT PASS 原始日志后背书撤观察期转硬门（见 §5 DEBT-QUEUE 订正条）。
       - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
-        continue-on-error: true  # 观察期：runner flaky（同输入跨 run 结论翻转），取证但不阻塞稳定门禁
+        continue-on-error: true  # 观察期：--network host 修复待 Linux 连续 BINRT PASS 取证后背书撤除（当前仍掩盖步失败，勿当已绿）
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
