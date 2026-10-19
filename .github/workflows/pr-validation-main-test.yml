@@ -108,11 +108,15 @@ jobs:
       #   JDBC 四件套/M3M4 步是宿主直连 127.0.0.1、从不跨容器，故从未暴露此洞。
       # 修法（测试基建·零产品码）：verify-mysqldump-binary-roundtrip.sh 在 Linux 改 --network host + 直连 127.0.0.1（回环 Mycat + 已发布 0.0.0.0:3307 后端均可达）。
       # run@61eb56afa 三轮取证坐实修法全效：ECONNREFUSED 零出现，5 档×3 轮全 BINRT PASS；新暴露两个确定性红：
-      #   ① mysql:5.7 seed ERROR 1366（官方镜像 server 默认 latin1，裸 CREATE DATABASE 继承之——测试基建缺陷，seed 显式 utf8mb4 已修，本地真 5.7 后端闭环复现+验证）；
-      #   ② mariadb:11.4 dump rc=2（mariadb-dump 原样下发 /*M!100100 ...*/ 条件注释被 Mycat 判 1105 Illegal syntax——产品兼容面缺口，另行挂账）。
-      # 暂仍留 continue-on-error，待 seed 修复 push+dispatch 取到连续 6/7 档 BINRT PASS（11.4 除外）后背书撤观察期转硬门（见 §5 DEBT-QUEUE 订正条）。
+      #   ① mysql:5.7 seed ERROR 1366（官方镜像 server 默认 latin1，裸 CREATE DATABASE 继承之——测试基建缺陷，seed 显式 utf8mb4 已修 `468566830`）；
+      #      承修后又暴第三红：5.7 档 STEP4 读回 HEX(name)=3F3F(??)——Mycat SHOW CREATE DATABASE 仿真面丢弃库级字符集（产品缺口 I-DEBT-58），
+      #      回灌 latin1 默认靶中文损化；Mycat SHOW CREATE TABLE 透传表级字符集，故 seed CREATE TABLE 钉 utf8mb4 即绕过（`ed7795914`）。
+      #   ② mariadb:11.4 dump rc=2（mariadb-dump 原样下发 /*M!100100 ...*/ 条件注释被 Mycat 判 1105 Illegal syntax——产品兼容面缺口 I-DEBT-57）。
+      # ✅ 2026-10-19 三轮取证（run@39200417484/39200476277/39200481430）连续一致：6/7 档（mysql 5.7/8.0/8.4/9.0 + mariadb 10.6/10.11）全 BINRT PASS×3。
+      # 已由观察期转硬门（人拍板口径 A）：6 档真红即阻断 PR；唯 mariadb:11.4 因产品缺口 I-DEBT-57（非测试基建、不可测端修）保窄 coe/expected-fail，
+      #   待 I-DEBT-57 专轮修好后摘掉该窄 coe、回归全 7 档一刀硬门。
       - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
-        continue-on-error: true  # 观察期：待 seed 修复后连续取证 6/7 档 BINRT PASS（mariadb:11.4 产品缺口除外）再拍板撤除（当前仍掩盖步失败，勿当已绿）
+        continue-on-error: ${{ matrix.db == 'mariadb:11.4' }}  # 硬门：除 mariadb:11.4（产品缺口 I-DEBT-57 窄豁免）外全部档真失败即阻断 PR
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
