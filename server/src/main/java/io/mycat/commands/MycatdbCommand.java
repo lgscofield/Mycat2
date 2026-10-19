@@ -189,7 +189,13 @@ public enum MycatdbCommand {
             }
             LinkedList<SQLStatement> statements = parse(text);
             if (statements.isEmpty()) {
-                throw new MycatException("Illegal syntax:" + text);
+                // 纯注释/无语句查询（如 mariadb-dump 下发的 /*M!100100 SET @@MAX_STATEMENT_TIME=0 */、
+                // 或任意 /* ... */ 注释）：真 MySQL/MariaDB 对这类返回 Query OK，而非语法错误。
+                // 此前误抛 1105 Illegal syntax 是「空语句表被判非法」的普遍兼容缺口（I-DEBT-57 真根，
+                // 非 MariaDB 方言专面）。真·非法 SQL 已由 druid parse() 抛 ParserException 先行拦截
+                //（走下方 catch），不会落到此分支，故此处放行 OK 不吞掉真实语法错误。
+                Response response = responseFactory.apply(1);
+                return response.sendOk();
             }
             Response response = responseFactory.apply(statements.size());
             Future<Void> future = Future.succeededFuture();
