@@ -78,6 +78,19 @@ public class MycatRelDataTypeFactory implements JavaTypeFactory {
                 // docs/superpowers/specs/2026-10-10-type-representation-unification-design.md。
                 case FLOAT:
                     return type.isNullable() ? Float.class : float.class;
+                // MYCAT CHANGE (I-DEBT-60): BaseRowObservable.getObjects 对 TINYINT/SMALLINT/INTEGER
+                // 统一解码为 Long（MycatValueFactory.LONG_VALUE_FACTORY.createFromLong），与 BIGINT 共用
+                // 同一 case 分支——即物理行 Object[] 里整数组一律是 **boxed Long 对象**，从不存在 primitive long。
+                // fork 默认 INTEGER→Integer.class 导致下推函数（YEAR/LENGTH）结果经后端返回为 Long 而
+                // codegen 生成 (Integer) 强转抛 CCE；而本地计算轨（DAYOFMONTH→EXTRACT(DAY)，Calcite 把
+                // 结果误标非空 INTEGER）走 isNullable=false→primitive long 分支时，dayOfMonth(null) 写入
+                // primitive 槽触发 SqlFunctions.toLong(null) 抛 "Cannot convert null to long"。二者同根：
+                // 存储类型未扳齐物理真相。与 I-DEBT-12 时间类型 "非空列亦归一" 同原则——整数组恒返回
+                // boxed Long.class（忽略 logical nullability），与 Object[] 恒装 Long 的现实一致。见 spec 2026-10-20 专轮。
+                case TINYINT:
+                case SMALLINT:
+                case INTEGER:
+                    return Long.class;
                 default:
                     break;
                 }

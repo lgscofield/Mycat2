@@ -120,15 +120,18 @@ public class TypeRepresentationThreePathConsistencyTest {
      */
     static Stream<Arguments> columnTypeMatrix() {
         return Stream.of(
-                // 布尔/整数（fork primitive 默认，Mycat 不接管）——[non-nullable, nullable]
+                // 布尔（fork 默认，Mycat 不接管）——[non-nullable, nullable]
                 Arguments.of(SqlTypeName.BOOLEAN, false, boolean.class),
                 Arguments.of(SqlTypeName.BOOLEAN, true, Boolean.class),
-                Arguments.of(SqlTypeName.TINYINT, false, byte.class),
-                Arguments.of(SqlTypeName.TINYINT, true, Byte.class),
-                Arguments.of(SqlTypeName.SMALLINT, false, short.class),
-                Arguments.of(SqlTypeName.SMALLINT, true, Short.class),
-                Arguments.of(SqlTypeName.INTEGER, false, int.class),
-                Arguments.of(SqlTypeName.INTEGER, true, Integer.class),
+                // 整数（I-DEBT-60：BaseRowObservable 统一解码为 boxed Long，getJavaClass 忽略
+                // logical nullability 恒返回 Long.class——物理行 Object[] 从不存在 primitive long，
+                // primitive 槽遇本地函数 null（如 DAYOFMONTH→EXTRACT）会抛 toLong(null)）
+                Arguments.of(SqlTypeName.TINYINT, false, Long.class),
+                Arguments.of(SqlTypeName.TINYINT, true, Long.class),
+                Arguments.of(SqlTypeName.SMALLINT, false, Long.class),
+                Arguments.of(SqlTypeName.SMALLINT, true, Long.class),
+                Arguments.of(SqlTypeName.INTEGER, false, Long.class),
+                Arguments.of(SqlTypeName.INTEGER, true, Long.class),
                 Arguments.of(SqlTypeName.BIGINT, false, long.class),
                 Arguments.of(SqlTypeName.BIGINT, true, Long.class),
                 // 浮点：FLOAT=本轮靶 1 override（两分支皆须钉）；REAL/DOUBLE 保持 fork 默认

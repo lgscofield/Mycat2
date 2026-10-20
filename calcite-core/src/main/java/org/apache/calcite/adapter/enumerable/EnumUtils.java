@@ -316,6 +316,15 @@ public class EnumUtils {
       }
     } else if (fromType == byte[].class && targetType == ByteString.class) {
       return Expressions.call(BuiltInMethod.BYTE_ARRAY_TO_BYTE_STRING.method, operand);
+    } else if (targetType != null && !fromType.equals(targetType)
+        && fromType instanceof Class && targetType instanceof Class
+        && Number.class.isAssignableFrom((Class<?>) fromType)
+        && Number.class.isAssignableFrom((Class<?>) targetType)) {
+      // I-DEBT-60 (类型表征统一·靶 3): Mycat 物理行统一以 Long 作整数表征
+      // (BaseRowObservable.getObjects 对 TINYINT/SMALLINT/INTEGER/BIGINT 均走 LONG_VALUE_FACTORY)，
+      // getJavaClass(INTEGER) 已扳齐为 Long.class。当本地 codegen 函数返回 Integer（如 YEAR/LENGTH）
+      // 而 physType 存储槽声明 Long 时，需数值宽化转换以避免下游 (Long) 强撞 Integer 抛 CCE。
+      return convert(operand, fromType, targetType);
     }
     return operand;
   }

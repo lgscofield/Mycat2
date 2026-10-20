@@ -25,19 +25,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * I-DEBT-12 方向 A 守卫：{@link MycatRelDataTypeFactory#getJavaClass} 对时间类型必须返回
- * java.time，而非 fork {@code JavaTypeFactoryImpl} 默认的内部数值表示（DATE→Integer、
- * TIMESTAMP→Long）。
+ * I-DEBT-12 方向 A + I-DEBT-60（类型表征统一）守卫：{@link MycatRelDataTypeFactory#getJavaClass}
+ * 对时间类型必须返回 java.time（而非 fork 默认的 Integer/Long 内部数值表示），
+ * 对整数类型必须返回 long/Long（对齐 BaseRowObservable 统一解码为 Long 的 wire 真相源）。
  *
  * <p>
  * 锁的是 codegen 裸列投影的 storage type 来源：物理行 {@code Object[]} 里时间列装的是 java.time
- * 对象（{@code BaseRowObservable.convertSqlValue}）、结果端也按 java.time 读（{@code MycatDataType}、
- * {@code AbstractObjectRowIterator.getTimestamp}）。若本工厂仍吐 Integer/Long，janino 生成码会对
- * java.time 值强转 {@code (Long)} → ClassCastException（case1）、DATE 走 {@code SqlFunctions.toInt}
- * → Cannot convert（testCastFunction）。此测试即钉死这条契约，防回归。
+ * 对象（{@code BaseRowObservable.convertSqlValue}）、整数列装的是 Long
+ * （{@code LONG_VALUE_FACTORY.createFromLong}）、结果端也按此读取（{@code MycatDataType}）。
+ * 若本工厂仍吐 Integer/int，janino 生成码会强转 Integer 撞 Long → ClassCastException。
  *
  * <p>
- * 见 spec {@code docs/superpowers/specs/2026-10-07-i-debt-12-temporal-java-time-representation-design.md}。
+ * 见 spec {@code docs/superpowers/specs/2026-10-07-i-debt-12-temporal-java-time-representation-design.md}
+ * 及 I-DEBT-60 类型表征统一专轮。
  */
 public class MycatTemporalJavaClassTest {
 
@@ -68,10 +68,25 @@ public class MycatTemporalJavaClassTest {
 
     @Test
     public void nonTemporalMappingsUnaffected() {
-        // 护栏：只扳时间，其它类型映射必须保持 fork 默认。
-        // 注意 createSqlType 默认非空，fork 对非空数值返回 primitive（int.class/long.class）。
-        Assertions.assertEquals(int.class, javaClassOf(SqlTypeName.INTEGER));
+        // 护栏：时间类扳齐 java.time，整数组扳齐 boxed Long（wire 真相源，I-DEBT-60）。
+        // 物理行 Object[] 对 TINYINT/SMALLINT/INTEGER 恒装 LONG_VALUE_FACTORY 产出的 boxed Long，
+        // 故 getJavaClass 忽略 logical nullability 恒返回 Long.class（避免 primitive 槽遇 null 崩）。
+        // BIGINT 本 case 未覆写，走 fork 默认（非空 primitive long），暂留观察。
+        Assertions.assertEquals(Long.class, javaClassOf(SqlTypeName.INTEGER));
         Assertions.assertEquals(long.class, javaClassOf(SqlTypeName.BIGINT));
+        Assertions.assertEquals(Long.class, javaClassOf(SqlTypeName.TINYINT));
+        Assertions.assertEquals(Long.class, javaClassOf(SqlTypeName.SMALLINT));
         Assertions.assertEquals(String.class, javaClassOf(SqlTypeName.VARCHAR));
+    }
+
+    @Test
+    public void integerTypesMapToLongForWireTrack() {
+        // I-DEBT-60: BaseRowObservable.getObjects 对 TINYINT/SMALLINT/INTEGER/BIGINT
+        // 统一返回 Long。getJavaClass 必须与之一致，否则 codegen 生成的 (Integer)/(int)
+        // 强转与 Object[] 中实际 Long 值撞车 → CCE。
+        RelDataType nullableInt = MycatCalciteSupport.TypeFactory
+                .createTypeWithNullability(
+                        MycatCalciteSupport.TypeFactory.createSqlType(SqlTypeName.INTEGER), true);
+        Assertions.assertEquals(Long.class, MycatCalciteSupport.TypeFactory.getJavaClass(nullableInt));
     }
 }
