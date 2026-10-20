@@ -19,6 +19,7 @@ import org.apache.calcite.schema.ScalarFunction;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 import org.apache.tools.ant.taskdefs.Local;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -26,9 +27,19 @@ import java.time.temporal.Temporal;
 import java.util.Locale;
 
 public class DaynameFunction extends MycatDateFunction {
-    public static ScalarFunction scalarFunction = ScalarFunctionImpl.create(DaynameFunction.class,
-            "dayname");
+    // MYCAT CHANGE (标量函数同族批量接入, 承 I-DEBT-32): 显式绑定 String 重载使 operand
+    // family=CHARACTER 直配 i_s VARCHAR; 双 overload 下靠 findMethod 取首个同名顺序不确定。
+    public static ScalarFunction scalarFunction = createStringScalarFunction();
     public static DaynameFunction INSTANCE = new DaynameFunction();
+
+    private static ScalarFunction createStringScalarFunction() {
+        try {
+            Method method = DaynameFunction.class.getMethod("dayname", String.class);
+            return ScalarFunctionImpl.create(method);
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     public DaynameFunction() {
         super("DAYNAME", scalarFunction);
@@ -39,5 +50,11 @@ public class DaynameFunction extends MycatDateFunction {
             return null;
         }
         return s.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.US);
+    }
+
+    /** 字符串入参形态: 宽松解析(MySQL 非法日期→NULL 不抛), 委托既有 LocalDate 实现。 */
+    public static String dayname(String dateText) {
+        LocalDate date = MycatBuiltInMethodImpl.stringToDate(dateText);
+        return date == null ? null : dayname(date);
     }
 }

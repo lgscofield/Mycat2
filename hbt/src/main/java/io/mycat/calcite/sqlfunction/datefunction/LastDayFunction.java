@@ -14,16 +14,28 @@
  */
 package io.mycat.calcite.sqlfunction.datefunction;
 
+import org.apache.calcite.mycat.MycatBuiltInMethodImpl;
 import org.apache.calcite.schema.ScalarFunction;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.YearMonth;
 
 public class LastDayFunction extends MycatDateFunction {
-    public static ScalarFunction scalarFunction = ScalarFunctionImpl.create(LastDayFunction.class,
-            "lastDay");
+    // MYCAT CHANGE (标量函数同族批量接入, 承 I-DEBT-32): 显式绑定 String 重载使 operand
+    // family=CHARACTER 直配 i_s VARCHAR; 双 overload 下靠 findMethod 取首个同名顺序不确定。
+    public static ScalarFunction scalarFunction = createStringScalarFunction();
     public static LastDayFunction INSTANCE = new LastDayFunction();
+
+    private static ScalarFunction createStringScalarFunction() {
+        try {
+            Method method = LastDayFunction.class.getMethod("lastDay", String.class);
+            return ScalarFunctionImpl.create(method);
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     public LastDayFunction() {
         super("LAST_DAY", scalarFunction);
@@ -33,6 +45,12 @@ public class LastDayFunction extends MycatDateFunction {
     public static LocalDate lastDay(LocalDate date) {
         if (date == null)return null;
         return    YearMonth.from(date).atEndOfMonth();
+    }
+
+    /** 字符串入参形态: 宽松解析(MySQL 非法日期→NULL 不抛), 委托既有 LocalDate 实现。 */
+    public static LocalDate lastDay(String dateText) {
+        LocalDate date = MycatBuiltInMethodImpl.stringToDate(dateText);
+        return date == null ? null : lastDay(date);
     }
 //    public static LocalDate lastDay(Period date){
 //        if (date == null){
