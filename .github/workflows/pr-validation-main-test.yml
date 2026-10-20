@@ -112,11 +112,10 @@ jobs:
       #      承修后又暴第三红：5.7 档 STEP4 读回 HEX(name)=3F3F(??)——Mycat SHOW CREATE DATABASE 仿真面丢弃库级字符集（产品缺口 I-DEBT-58），
       #      回灌 latin1 默认靶中文损化；Mycat SHOW CREATE TABLE 透传表级字符集，故 seed CREATE TABLE 钉 utf8mb4 即绕过（`ed7795914`）。
       #   ② mariadb:11.4 dump rc=2（mariadb-dump 原样下发 /*M!100100 ...*/ 条件注释被 Mycat 判 1105 Illegal syntax——产品兼容面缺口 I-DEBT-57）。
-      # ✅ 2026-10-19 三轮取证（run@39200417484/39200476277/39200481430）连续一致：6/7 档（mysql 5.7/8.0/8.4/9.0 + mariadb 10.6/10.11）全 BINRT PASS×3。
-      # 已由观察期转硬门（人拍板口径 A）：6 档真红即阻断 PR；唯 mariadb:11.4 因产品缺口 I-DEBT-57（非测试基建、不可测端修）保窄 coe/expected-fail，
-      #   待 I-DEBT-57 专轮修好后摘掉该窄 coe、回归全 7 档一刀硬门。
+      # ✅ 2026-10-19 三轮取证（run@39200417484/39200476277/39200481430）连续一致：6/7 档全 BINRT PASS×3。
+      # ✅ 2026-10-20 I-DEBT-57 修后 run@39349940670 全 7 档 BINRT step = success（首次 7/7 全绿），
+      #   窄 coe/expected-fail 已撑销，全 7 档一刀硬门——任何档 BINRT 真失败即阻断 PR。
       - name: Verify real-binary dump round-trip (full types incl bit(8)) against ${{ matrix.db }}
-        continue-on-error: ${{ matrix.db == 'mariadb:11.4' }}  # 硬门：除 mariadb:11.4（产品缺口 I-DEBT-57 窄豁免）外全部档真失败即阻断 PR
         env:
           COMPAT_DB: ${{ matrix.db }}
           MYCAT_PERSONA: ${{ matrix.persona }}
