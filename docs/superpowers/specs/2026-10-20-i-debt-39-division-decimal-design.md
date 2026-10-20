@@ -16,8 +16,10 @@
 | `select 10/3` | `3`（Integer） | `3.3333`（DECIMAL） | **静默返错**（截断） |
 | `select 7/2` | `3`（Integer） | `3.5000` | **静默返错** |
 | `select 10 DIV 3` | `3` | `3` | 正确（整除本就是 DIV 语义） |
-| `select 10.0/4` | `2.5`（BigDecimal） | `2.5000` | 值对（scale 显示差，见 §4） |
-| `select 1/0` | 抛 `ArithmeticException: / by zero` | `NULL` | 报错 vs 返空（本票宽口径一并治） |
+| `select 10.0/4` | `2.5`（BigDecimal） | `2.50000` | 值等但 scale 差：真库=scale 5（=1+4），本票按公式对齐 |
+| `select 1/0` | 抛 `ArithmeticException: / by zero` | `NULL`(+Warn 1365) | 报错 vs 返空（本票宽口径一并治，warning 不发） |
+
+> **跨版本取证注（已活库坐实）**：本表"真 MySQL"列已在真实 **MySQL 5.7.44**（Docker `t57`，3357）**直连复拍证实**——`@@div_precision_increment=4`、`10/3`=`3.3333`、`7/2`=`3.5000`、`10.0/4`=`2.50000`（scale=1+4，**经验性证实 §4.1 公式**）、`10 DIV 3`=`3`、`1/0`=`NULL`+Warn 1365。跨版本判研：`/` 主干语义在 **MySQL 5.x→9.x 与 MariaDB 行存一致**（`div_precision_increment` 默认皆 4，官方差异清单未列除法）；版本差异仅在 DECIMAL 精度天花板尾（见 §6），不影本票主干。
 
 ### 1.1 根因链（代码证据）
 - Mycat 把 MySQL `/` 映射到 Calcite 标准 `SqlStdOperatorTable.DIVIDE`（`MycatCalciteMySqlNodeVisitor:1158`），`DIV`→`DIVIDE_INTEGER`（L1162）。
@@ -38,7 +40,7 @@
 对齐 MySQL 查询投影里的 `/`：
 
 1. **精确数值 ÷ 精确数值**（整型/DECIMAL 参与）：结果 **DECIMAL**，**不整除截断**，值与真 MySQL 逐位相符。
-   - scale 采用 MySQL 公式：`结果 scale = 被除数 scale + div_precision_increment`。本票把 `div_precision_increment` **当常量 4**（MySQL 默认），即整型÷整型→scale 4（`10/3`=`3.3333`），`DECIMAL(5,1)÷整型`→scale 5。
+   - scale 采用 MySQL 公式：`结果 scale = 被除数 scale + div_precision_increment`。`div_precision_increment` 是**会话/全局可动态变量（默认 4、范围 0–30）**，本票 scale 派生**挂该变量当前生效值（缺省 4）而非写死**，以承载客户 `SET` 与版本画像差异：整型÷整型默认→scale 4（`10/3`=`3.3333`），`DECIMAL(5,1)÷整型`默认→scale 5。
    - 舍入：MySQL 除法用**四舍五入(half-up)** 到目标 scale。
 2. **含近似型（FLOAT/REAL/DOUBLE）操作数**：结果 DOUBLE（与后端一致；此路径现状已由 `LEAST_RESTRICTIVE` 落 DOUBLE，本票**不改**，仅确保归一时不被误扳 DECIMAL）。
 3. **除零**：本地求值时**返回 NULL**（不再抛异常），与 MySQL 查询语义一致。NULL 语义来源=§4 的除零守卫，**非**代理短路绕过下推（见 §6）。
@@ -57,7 +59,7 @@
 ### 4.1 修复落点=类型派生钩子（否决 convertlet-on-SqlKind）
 - **选** `MycatTypeSystem.deriveDecimalDivideType`：`DIVIDE_INTEGER` 用独立推断 `INTEGER_QUOTIENT_NULLABLE`，**不经** `deriveDecimalDivideType`，故在此覆写**天然不误伤 `DIV`**。
 - **否决**旧注释的 convertlet 路子：`DIVIDE` 与 `DIVIDE_INTEGER` **同属 `SqlKind.DIVIDE`**（`SqlStdOperatorTable` L294/L353），按 SqlKind 判会连 `DIV` 一起改浮点→破 §2.5。若用 convertlet 必须按算子实例判，复杂度高于类型钩子，不取。
-- 覆写体：两操作数皆整型时，返回 `DECIMAL(p, 4)`（p 取足够大的派生精度，实施期定值并以对拍校准）；其余沿用 `super.deriveDecimalDivideType`（含"至少一 DECIMAL"的既有正路）。近似型不进此分支（保持 DOUBLE）。
+- 覆写体：两操作数皆整型时，返回 `DECIMAL(p, k)`，`k = 被除数 scale + div_precision_increment`（默认 4；实施期从目标后端/会话画像取该值，不可得则回退 4），`p` 取足够大的派生精度（实施期定值并以对拍校准）；其余沿用 `super.deriveDecimalDivideType`（含"至少一 DECIMAL"的既有正路）。近似型不进此分支（保持 DOUBLE）。
 
 ### 4.2 本地求值/出码=十进制除法 + 除零→NULL
 仅有 DECIMAL 声明型不足：codegen 按**操作数运行时类型**分派，整型操作数仍会撞整数 `divide`。故须二选一（实施期定，spec 记原则）：
@@ -80,7 +82,8 @@
 - **内部复用 DIVIDE**（AVG/统计聚合 `AggregateReduceFunctionsRule` L452/613/817/883/907、`AggregatePushContext:157`）：外层多会 CAST 回声明型，方向与 §2 一致（这些本应浮点/十进制），但仍以 §5.2 实测为准，禁臆断无扰。
 - **下推路不动**：可下推到真 MySQL 的 `/` 交后端算（本就对）。本票只治本地求值路。除零→NULL 是"本地把 `1/0` 算成和后端一样的 NULL"，**不是**代理侦测除零而不发下游——是否下推由既有规划器决定，本票不新增短路。
 - **JDBC/列类型元数据**：结果列声明 DECIMAL→对外列型与后端一致（无缝的一环），对拍含列型比对。
-- **`div_precision_increment` 当常量**：暂不接会话变量（可变该量属边角，tranche③/④ 随 warning/会话参数一起收）。
+- **`div_precision_increment` 挂会话/画像值（缺省 4）**：scale 派生读该变量当前生效值，不写死 4；默认场景=4。若目标后端会话变量不可得则回退常量 4（MySQL/MariaDB 默认皆 4）。
+- **MariaDB 扩展 DECIMAL 精度天花板**：MariaDB DECIMAL 最大位数（30→38 演进）大于 MySQL，仅在结果位数逼近上限的溢出尾上口径不同；常见量级逐位一致。该尾差异交 **VersionProfile 版本矩阵对拍**（MySQL 8 + MariaDB 容器）后续跟踪，不入 tranche①（属 §3 已挂账的溢出残面）。
 
 ## 7. 交付边界（本票关闭判据）
 
