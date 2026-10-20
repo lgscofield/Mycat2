@@ -67,6 +67,17 @@ public final class MycatCastOverride {
     }
 
     String src = canonical(srcName);
+    // MYCAT CHANGE (I-DEBT-60 补全): getJavaClass 现把 TINYINT/SMALLINT/INTEGER 一律表征为 Long
+    // ——物理行 BaseRowObservable 对整数组（含 BIGINT）恒解码为 Long，四者 wire-truth 相同。矩阵里
+    // 源为整数组的 X_TO_Y 方法（integerToDouble(Integer)/tinyintToX(Byte)/smallintToX(Short)…）形参
+    // 未随之更新，Long operand 派发不到 Integer 参数 → codegen 抛 "No applicable constructor/method
+    // found for actual parameters \"long\"; candidates ... integerToDouble(Integer)"（I-DEBT-60 把整数组
+    // 表征改 Long 后引入的 CAST 回归）。源侧归一到 BIGINT：bigintToY(Long) 收 Long（primitive long 经
+    // autobox 亦可），且各 bigintToY 与整数组同名方法体一致（均委托 doubleValue()/toString() 等），数值语义零漂移。
+    // 仅归一"源"；目标侧不动——矩阵本就无 *_TO_INTEGER 项，cast 到整型一贯走 fork EnumUtils.convert，行为不变。
+    if ("TINYINT".equals(src) || "SMALLINT".equals(src) || "INTEGER".equals(src)) {
+      src = "BIGINT";
+    }
     String tgt = canonical(tgtName);
     if (src == null || tgt == null) {
       // 复杂/结构类型（ARRAY/MULTISET/ROW/MAP/VARIANT/GEOMETRY/UUID/... ）交回 fork。

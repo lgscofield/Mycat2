@@ -86,4 +86,22 @@ public class ScalarStdFuncLocalCodegenTest implements MycatTest {
         String dumped = planAndCodegen("select DAYOFWEEK(DATA_TYPE) from information_schema.parameters");
         Assert.assertNotNull("DAYOFWEEK 本地 codegen 应成功出码，实际计划：" + dumped, dumped);
     }
+
+    /**
+     * I-DEBT-60 补全回归锁：整数组（TINYINT/SMALLINT/INTEGER）源 {@code CAST} 必须能本地落码。
+     *
+     * <p>旧（回归）行为：I-DEBT-60 把 {@code getJavaClass(TINYINT/SMALLINT/INTEGER)} 从 {@code Integer}
+     * 扳齐为 {@code Long}（对齐物理行 wire-truth），但 {@code MycatCastOverride} 的 {@code X_TO_Y} 矩阵
+     * 里整数组源方法（{@code integerToDouble(Integer)} 等）形参未跟进 → {@code Long} operand 派发不到
+     * {@code Integer} 参数 → codegen 抛 {@code "No applicable constructor/method found for actual
+     * parameters \"long\""}。正解=源侧整数组归一到 BIGINT（{@code bigintToY(Long)}，方法体等价）。
+     * 整型字面量 {@code 10} 即 INTEGER 源，故用字面量即可锁住该派发面。
+     */
+    @Test
+    public void castOnIntegerFamilyCodegens() {
+        Assert.assertNotNull(planAndCodegen("select cast(10 as double)"));
+        Assert.assertNotNull(planAndCodegen("select cast(10 as float)"));
+        Assert.assertNotNull(planAndCodegen("select cast(10 as decimal(10,2))"));
+        Assert.assertNotNull(planAndCodegen("select cast(10 as char)"));
+    }
 }
