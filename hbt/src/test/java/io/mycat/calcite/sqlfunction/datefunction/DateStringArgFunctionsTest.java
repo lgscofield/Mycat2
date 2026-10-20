@@ -20,10 +20,11 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 /**
- * 标量函数同族批量接入·静态单测（tranche 1, 承 I-DEBT-32）。
+ * 标量函数同族批量接入·静态单测（tranche 1+2, 承 I-DEBT-32）。
  *
- * <p>覆盖 9 个新接入 String 形参的日期族标量：YEAR/MONTH/DAYOFYEAR/QUARTER/WEEKDAY/
- * MONTHNAME/DAYNAME/LAST_DAY/TO_DAYS。验证三条不变式：
+ * <p>覆盖 11 个新接入 String 形参的日期族标量：YEAR/MONTH/DAYOFYEAR/QUARTER/WEEKDAY/
+ * MONTHNAME/DAYNAME/LAST_DAY/TO_DAYS（tranche 1）+ WEEK/DATEDIFF（tranche 2）。
+ * 验证三条不变式：
  * 1) String 与 LocalDate 两形态同解；2) MySQL 锚点值正确；3) null/非法串→NULL 不抛异常。
  */
 public class DateStringArgFunctionsTest {
@@ -45,6 +46,12 @@ public class DateStringArgFunctionsTest {
             Assertions.assertEquals(DaynameFunction.dayname(d), DaynameFunction.dayname(s), "DAYNAME " + d);
             Assertions.assertEquals(LastDayFunction.lastDay(d), LastDayFunction.lastDay(s), "LAST_DAY " + d);
             Assertions.assertEquals(ToDaysFunction.toDays(d), ToDaysFunction.toDays(s), "TO_DAYS " + d);
+            // tranche 2: WEEK 默认 Locale 环域, 只锚两形态同解; DATEDIFF 反身与跨日
+            Assertions.assertEquals(WeekFunction.week(d), WeekFunction.week(s), "WEEK " + d);
+            Assertions.assertEquals(WeekFunction.week(d, 3), WeekFunction.week(s, 3), "WEEK(mode=3) " + d);
+            Assertions.assertEquals(0L, DateDiffFunction.dateDiff(s, s), "DATEDIFF reflexive " + d);
+            Assertions.assertEquals(DateDiffFunction.dateDiff(d, d.minusDays(34)),
+                    DateDiffFunction.dateDiff(s, d.minusDays(34).toString()), "DATEDIFF " + d);
         }
     }
 
@@ -66,6 +73,11 @@ public class DateStringArgFunctionsTest {
         // datetime 串亦须宽松解析
         Assertions.assertEquals(2017, YearFunction.year("2017-02-03 13:45:00"));
         Assertions.assertEquals("Friday", DaynameFunction.dayname("2017-02-03 00:00:01"));
+        // tranche 2: WEEK mode=3 为 ISO 周(locale 无关): 2017-02-03(周五)属 ISO 第 5 周
+        Assertions.assertEquals(5, WeekFunction.week("2017-02-03", 3));
+        // DATEDIFF: 天数差 a-b, 与 MySQL DATEDIFF(d1,d2)=d1-d2 同向(2017-01-01→2017-02-03 隔 33 天)
+        Assertions.assertEquals(33L, DateDiffFunction.dateDiff("2017-02-03", "2017-01-01"));
+        Assertions.assertEquals(-58L, DateDiffFunction.dateDiff("2016-12-31 10:00:00", "2017-02-27"));
     }
 
     @Test
@@ -90,5 +102,10 @@ public class DateStringArgFunctionsTest {
         Assertions.assertNull(DaynameFunction.dayname("bad"));
         Assertions.assertNull(LastDayFunction.lastDay((String) null));
         Assertions.assertNull(ToDaysFunction.toDays("bad"));
+        // tranche 2: WEEK/DATEDIFF 的 null/非法守卫
+        Assertions.assertNull(WeekFunction.week((String) null));
+        Assertions.assertNull(WeekFunction.week("bad", 1));
+        Assertions.assertNull(DateDiffFunction.dateDiff((String) null, "2017-02-03"));
+        Assertions.assertNull(DateDiffFunction.dateDiff("2017-02-03", "not-a-date"));
     }
 }

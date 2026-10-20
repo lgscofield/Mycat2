@@ -15,15 +15,27 @@
 package io.mycat.calcite.sqlfunction.datefunction;
 
 import org.apache.calcite.linq4j.function.Parameter;
+import org.apache.calcite.mycat.MycatBuiltInMethodImpl;
 import org.apache.calcite.schema.ScalarFunction;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 
+import java.lang.reflect.Method;
 import java.time.*;
 
 public class DateDiffFunction extends MycatDateFunction {
-    public static ScalarFunction scalarFunction = ScalarFunctionImpl.create(DateDiffFunction.class,
-            "dateDiff");
+    // MYCAT CHANGE (标量函数同族批量接入 tranche 2, 承 I-DEBT-32): 显式绑定双 String 重载使
+    // operand family=CHARACTER 直配 i_s VARCHAR; 否则 DATEDIFF(VARCHAR,VARCHAR) 无法本地落码。
+    public static ScalarFunction scalarFunction = createStringScalarFunction();
     public static DateDiffFunction INSTANCE = new DateDiffFunction();
+
+    private static ScalarFunction createStringScalarFunction() {
+        try {
+            Method method = DateDiffFunction.class.getMethod("dateDiff", String.class, String.class);
+            return ScalarFunctionImpl.create(method);
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     public DateDiffFunction() {
         super("DATEDIFF",
@@ -38,5 +50,12 @@ public class DateDiffFunction extends MycatDateFunction {
         long f = date0.toEpochDay();
         long f2 = date1.toEpochDay();
         return f - f2;
+    }
+
+    /** 字符串入参形态: 宽松解析(任一非法/NULL→NULL, 合 MySQL 语义), 委托既有 LocalDate 实现。 */
+    public static Long dateDiff(String dateText0, String dateText1) {
+        LocalDate date0 = MycatBuiltInMethodImpl.stringToDate(dateText0);
+        LocalDate date1 = MycatBuiltInMethodImpl.stringToDate(dateText1);
+        return dateDiff(date0, date1);
     }
 }

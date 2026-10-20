@@ -12,7 +12,6 @@ import io.mycat.hint.CreateDataSourceHint;
 import io.mycat.sqlhandler.ConfigUpdater;
 import io.mycat.util.JsonUtil;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -87,7 +86,7 @@ public class ScalarDateFuncFamilyLocalCodegenTest implements MycatTest {
     public void singleArgDateFamilyCodegensOverVarchar() {
         Map<String, String> probes = new LinkedHashMap<>();
         for (String fn : new String[]{"YEAR", "MONTH", "DAYOFMONTH", "DAYOFYEAR", "DAYOFWEEK",
-                "HOUR", "MINUTE", "SECOND", "MICROSECOND", "QUARTER", "WEEKDAY",
+                "HOUR", "MINUTE", "SECOND", "MICROSECOND", "QUARTER", "WEEKDAY", "WEEK",
                 "MONTHNAME", "DAYNAME", "LAST_DAY", "TO_DAYS"}) {
             probes.put(fn, "select " + fn + "(DATA_TYPE) from information_schema.columns");
         }
@@ -104,12 +103,16 @@ public class ScalarDateFuncFamilyLocalCodegenTest implements MycatTest {
         Assert.assertTrue("以下日期族标量投影到 VARCHAR 未能本地落码：\n" + String.join("\n", red), red.isEmpty());
     }
 
-    /** 双参日期族（tranche 2 挂账：DATEDIFF 双 String 形参尚未接入）。 */
-    @Ignore("tranche 2: DATEDIFF/WEEK 双参形态待接入, 见 DEBT-QUEUE 标量函数同族批量接入专轮")
+    /** 双参日期族（tranche 2 已接入：DATEDIFF 双 String、WEEK 可选 mode 重载）。 */
     @Test
     public void twoArgDateFamilyCodegensOverVarchar() {
         Map<String, String> probes = new LinkedHashMap<>();
-        probes.put("DATEDIFF", "select DATEDIFF(DATA_TYPE, DATA_TYPE) from information_schema.columns");
+        probes.put("DATEDIFF(VARCHAR,VARCHAR)",
+                "select DATEDIFF(TABLE_NAME, COLUMN_NAME) from information_schema.columns");
+        probes.put("DATEDIFF(VARCHAR,literal)",
+                "select DATEDIFF(DATA_TYPE, '2017-02-03') from information_schema.columns");
+        probes.put("WEEK(VARCHAR,mode)",
+                "select WEEK(DATA_TYPE, 1) from information_schema.columns");
         List<String> red = new ArrayList<>();
         for (Map.Entry<String, String> e : probes.entrySet()) {
             try {
