@@ -276,32 +276,37 @@ public class CrudResultMatrixTest implements MycatTest {
         return scalarValue(rows.get(0).get("d"));
     }
 
-    /** C10 运行期错误须是干净 ERR 包，而非断连（探针：I-DEBT-39 select 1/0 → ERR 2013 终止会话）。
-     *  用独立直连（非类共享连接）：本格会打挂会话，隔离开以免污染同池其他格子。
-     *  <b>口径边界（终审 Important #3）</b>：本格钉的是**传输层契约**——运行期错误后连接不被打挂、会话可继续
-     *  (I-DEBT-39 修复意图)，**非值语义对拍**。MySQL 于 SELECT 期 `1/0` 语义=NULL+Warning 1365(仅 strict 模式
-     *  下 DML 才升 1365 错误)，Mycat 此处返回 SQLException 属**独立的除零对外语义债**，另计，不由本格宣称兼容。 */
+    /** C10 除零对外值语义 + 运行期错误传输层契约（探针：I-DEBT-39）。
+     *  <b>tranche①-宽 收口·翻转旧绿锁</b>：Mycat 本地 {@code /} 已对齐 MySQL——SELECT 期 {@code 1/0} 返回
+     *  <b>单行 NULL</b>（非报错、非断连），与真库 MySQL 5.7.44 活库对拍逐位一致（值语义见 I-DEBT-39 spec §5）。
+     *  本格钉三层：<b>①值语义</b>——除零=单行 NULL（旧 C10 断"抛 SQLException"属 tranche① 前的临时口径，现据 MySQL 语义翻转）；
+     *  <b>②传输层契约</b>——除零返回 NULL 后会话不被打挂、可继续查询（I-DEBT-39 的失效形态是被 2013 终止会话）；
+     *  <b>③未知列（③类规划/校验期错误）</b>仍须干净 ERR 而非断连——与除法语义正交，A2 修流式首行错(①类)时不得把
+     *  连接关闭过度收窄而伤及此路径，保留回归守卫（派生表免建表，列解析期即失败）。
+     *  <b>口径边界</b>：仍<b>不覆盖</b> MySQL 的 Warning 1365 是否透传，及 strict 模式下 DML 除零升 1365 错误——
+     *  此二者属独立的除零对外语义债，另计，不由本格宣称兼容。
+     *  用独立直连（非类共享连接）：会话存活断言须干净起点，避免同池其他格子干扰。 */
     @Test
-    public void divideByZeroIsCleanError() throws Exception {
+    public void divideByZeroYieldsNullAndSessionSurvives() throws Exception {
         try (Connection probe = DriverManager.getConnection(
                 "jdbc:mysql://127.0.0.1:8066/" + SCHEMA
                         + "?useUnicode=true&characterEncoding=utf8&useSSL=false"
                         + "&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true",
                 "root", "123456")) {
-            SQLException ex = assertThrows(SQLException.class,
-                    () -> executeQuery(probe, "select 1/0"),
-                    "C10：除零应报错（而非静默返回）");
-            // 关键断言：错误发生后会话仍可用——能继续跑下一条查询（I-DEBT-39 的失效形态是会话被 2013 打挂）
+            // ① 值语义：SELECT 期 1/0 对齐 MySQL = 单行 NULL（tranche①-宽 交付，翻转旧绿锁 C10 的抛异常口径）
+            List<Map<String, Object>> div = executeQuery(probe, "select 1/0 as d");
+            assertEquals(1, div.size(), "C10：select 1/0 应返回单行（对齐 MySQL SELECT 期语义）");
+            assertNull(div.get(0).get("d"),
+                    "C10：除零值应为 NULL（tranche①-宽：本地 / 对齐 MySQL，翻转旧绿锁 C10 的抛 SQLException 口径）");
+            // ② 传输层契约：除零返回 NULL 后会话仍可用（I-DEBT-39 的失效形态是会话被 2013 打挂）
             List<Map<String, Object>> after = executeQuery(probe, "select 1");
-            assertEquals(1, after.size(), "C10：出错后会话应保持存活、可继续查询（探针 I-DEBT-39 断连缺陷）");
-            assertTrue(ex.getMessage() != null, "C10：错误应带消息");
-            // Review Focus #1 回归守卫：③类规划/校验期错误（未知列）本应干净 ERR + 会话存活，
-            // A2 修流式首行错(①类)时不得把连接关闭过度收窄而伤及此路径。派生表免建表，列解析期即失败。
+            assertEquals(1, after.size(), "C10：除零后会话应保持存活、可继续查询（探针 I-DEBT-39 断连缺陷）");
+            // ③ 未知列（③类规划/校验期错误）仍须干净 ERR + 会话存活——与除法语义正交的传输层契约，保留守卫。
             assertThrows(SQLException.class,
                     () -> executeQuery(probe, "select `no_such_col_zzz` from (select 1) t"),
                     "C10+：未知列应报错");
             List<Map<String, Object>> still = executeQuery(probe, "select 2");
-            assertEquals(1, still.size(), "C10+：多条语句级错误后会话仍存活");
+            assertEquals(1, still.size(), "C10+：语句级错误后会话仍存活");
         }
     }
 
