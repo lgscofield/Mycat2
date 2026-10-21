@@ -125,7 +125,8 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
     }
 
     private static boolean isApproximate(RelDataType type) {
-        return type.getSqlTypeName().getFamily() == SqlTypeFamily.APPROXIMATE_NUMERIC;
+        // 注：近似/精确型在 getFamily() 下均归声明族 NUMERIC，判子族归属用 SqlTypeFamily.contains，与 Task2 对齐。
+        return SqlTypeFamily.APPROXIMATE_NUMERIC.contains(type);
     }
 
     @Override

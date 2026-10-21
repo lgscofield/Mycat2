@@ -27,6 +27,7 @@ import io.mycat.api.collector.RowIteratorUtil;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.calcite.physical.MycatSQLTableLookup;
 import io.mycat.calcite.resultset.CalciteRowMetaData;
+import io.mycat.calcite.sqlfunction.arith.MysqlDivideFunction;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
 import io.mycat.calcite.sqlfunction.datefunction.*;
 import io.mycat.calcite.sqlfunction.infofunction.*;
@@ -671,15 +672,16 @@ public enum MycatCalciteSupport implements Context {
 
         @Override
         public RelDataType deriveDecimalDivideType(RelDataTypeFactory typeFactory, RelDataType type1, RelDataType type2) {
-//            SqlTypeFamily a = type1.getSqlTypeName().getFamily();
-//            SqlTypeFamily b = type2.getSqlTypeName().getFamily();
-//            if (SqlTypeFamily.NUMERIC.equals(a) || SqlTypeFamily.NUMERIC.equals(b)) {
-//                return typeFactory.createTypeWithNullability(typeFactory.createSqlType(SqlTypeName.DOUBLE), true);
-//            }
-//            RelDataType relDataType = super.deriveDecimalDivideType(typeFactory, type1, type2);
-//            if (typeFactory.createUnknownType().equals(relDataType)) {
-//                return typeFactory.createTypeWithNullability(typeFactory.createSqlType(SqlTypeName.DOUBLE), true);
-//            }
+            // I-DEBT-39·tranche①（宽）：MySQL `/` 口径——纯精确数值→DECIMAL(p, 被除数scale+div_precision_increment)，
+            // 与 MysqlDivideFunction 求值 scale 一致；近似型/其它交回 super（保持 DOUBLE 路不动）。
+            // 注：INTEGER/DECIMAL 的 getFamily() 返回声明族 NUMERIC，判精确/近似须用 SqlTypeFamily.contains（子族归属）。
+            if (SqlTypeFamily.EXACT_NUMERIC.contains(type1) && SqlTypeFamily.EXACT_NUMERIC.contains(type2)) {
+                boolean nullable = type1.isNullable() || type2.isNullable();
+                int scale = Math.max(type1.getScale() + MysqlDivideFunction.DIV_PRECISION_INCREMENT, 0);
+                int precision = typeFactory.getTypeSystem().getMaxPrecision(SqlTypeName.DECIMAL);
+                RelDataType dec = typeFactory.createSqlType(SqlTypeName.DECIMAL, precision, scale);
+                return typeFactory.createTypeWithNullability(dec, nullable);
+            }
             return super.deriveDecimalDivideType(typeFactory, type1, type2);
         }
     }
