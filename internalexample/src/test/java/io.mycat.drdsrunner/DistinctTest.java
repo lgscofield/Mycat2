@@ -115,7 +115,10 @@ public class DistinctTest extends DrdsTest {
 
         // MYCAT CHANGE (I-DEBT-7C 再基线): 新计划形态——上层无聚合、后端组去重后渲染；经活库对拍
         // 探针（同组 fee 跨 ds0/ds1 分布，Mycat 恰返 2 行且值精确）实证非重复/非丢行，可安全钉新形态。
-        Assert.assertEquals("MycatProject(avg(fee)=[CAST($0):DOUBLE])   MycatHashAggregate(group=[{0}])     MycatView(distribution=[[db1.distinct_sharding]])",explain.dumpPlan().toString());
+        // MYCAT CHANGE (I-DEBT-39·tranche②): deriveAvgAggType 精确数值改判 DECIMAL（对齐 MySQL AVG(decimal)=DECIMAL）。
+        // fee=decimal(10,0)→scale 0+div_precision_increment(4)=4，最大 DECIMAL 精度 19（MycatTypeSystem 委托 DEFAULT）。
+        // 计划外层 CAST 型随之由 DOUBLE→DECIMAL(19, 4)（与 CalciteValidatorGolden #10 avg(salary DECIMAL(10,2))→DECIMAL(19,6) 同公式）。
+        Assert.assertEquals("MycatProject(avg(fee)=[CAST($0):DECIMAL(19, 4)])   MycatHashAggregate(group=[{0}])     MycatView(distribution=[[db1.distinct_sharding]])",explain.dumpPlan().toString());
         System.out.println();
     }
     @Test

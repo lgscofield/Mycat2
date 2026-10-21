@@ -663,8 +663,19 @@ public enum MycatCalciteSupport implements Context {
 
         @Override
         public RelDataType deriveAvgAggType(RelDataTypeFactory typeFactory, RelDataType argumentType) {
-            SqlTypeFamily a = argumentType.getSqlTypeName().getFamily();
-            if (SqlTypeFamily.NUMERIC.equals(a)) {
+            // I-DEBT-39·tranche②（聚合连带面）：MySQL AVG 口径——精确数值(INTEGER/BIGINT/DECIMAL)→
+            // DECIMAL(p, 参数scale+div_precision_increment)，与 deriveDecimalDivideType/MysqlDivideFunction 同口径。
+            // 跨片归并 AVG 走本地 AGGREGATE_REDUCE（内部 SUM/COUNT 的 DIVIDE），外层型定 DOUBLE 会令中间累加器
+            // 塌成 Double→重映射出的 mysqlDivide 命中近似路返回未舍入 double(偏离真库)；改判 DECIMAL 后走精确 BigDecimal 路。
+            // 近似数值(FLOAT/DOUBLE)→DOUBLE 不变（MySQL 对近似列 AVG 亦返 double）。判精确/近似用 SqlTypeFamily.contains
+            // （子族归属；getFamily() 对整/小数恒返回声明族 NUMERIC，不可辨，与 tranche① Task2 同教训）。
+            if (SqlTypeFamily.EXACT_NUMERIC.contains(argumentType)) {
+                int scale = Math.max(argumentType.getScale() + MysqlDivideFunction.DIV_PRECISION_INCREMENT, 0);
+                int precision = typeFactory.getTypeSystem().getMaxPrecision(SqlTypeName.DECIMAL);
+                RelDataType dec = typeFactory.createSqlType(SqlTypeName.DECIMAL, precision, scale);
+                return typeFactory.createTypeWithNullability(dec, true);
+            }
+            if (SqlTypeFamily.APPROXIMATE_NUMERIC.contains(argumentType)) {
                 return typeFactory.createTypeWithNullability(typeFactory.createSqlType(SqlTypeName.DOUBLE), true);
             }
             return super.deriveAvgAggType(typeFactory, argumentType);

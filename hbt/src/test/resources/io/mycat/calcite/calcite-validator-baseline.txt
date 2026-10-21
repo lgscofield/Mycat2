@@ -7,7 +7,7 @@
 7	cols=plus_one=INTEGER NOT NULL,doubled=INTEGER
 8	cols=count(*)=BIGINT NOT NULL
 9	cols=deptno=INTEGER,count(*)=BIGINT NOT NULL
-10	cols=deptno=INTEGER,avg(salary)=DOUBLE
+10	cols=deptno=INTEGER,avg(salary)=DECIMAL(19, 6)
 11	cols=deptno=INTEGER,count(name)=BIGINT NOT NULL
 12	!!ERR!! org.apache.calcite.runtime.CalciteContextException: At line 0, column 0: Expression 'name' is not being grouped
 13	cols=deptno=INTEGER,mx=DECIMAL(10, 2),mn=DECIMAL(10, 2)

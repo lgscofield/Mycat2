@@ -310,6 +310,61 @@ public class CrudResultMatrixTest implements MycatTest {
         }
     }
 
+    /** C11 跨分片 AVG 值保真（探针：I-DEBT-39 tranche①-宽 聚合内部除法连带面）。
+     *  AVG 经 Mycat 跨 2 分库归并后<b>必走本地 AGGREGATE_REDUCE</b>（各分片下推部分 SUM/COUNT、归并后本地算
+     *  最终 AVG＝含 DIVIDE 的 RexCall），tranche①-宽 的 {@code remapOperator} 把该 DIVIDE 也改判为
+     *  {@code MysqlDivideFunction}（精确数值商 scale=被除数scale+div_precision_increment、HALF_UP）。
+     *  <b>金标准＝同数据在真 MySQL(3306) 单表直算的 AVG</b>——Mycat 跨片归并 AVG 必须与后端逐值一致
+     *  （值保真，BigDecimal.compareTo 忽略 scale 只比数值），否则暴露聚合内部除法与 MySQL 的偏离。
+     *  整型列/DECIMAL 列各一枚（选<b>非整除</b>数据产 .3333 一类，令 scale 舍入真具鉴别力）。
+     *  <b>口径边界</b>：仅钉 AVG 十进制商值；不覆盖 Warning 1365 / strict DML（另计），不覆盖列头 scale/precision（§5.3 残面）。 */
+    @Test
+    public void crossShardAvgFidelity() throws Exception {
+        String t = createCell("c11", "`id` bigint NOT NULL, `i` int, `d` decimal(20, 4), PRIMARY KEY(`id`)");
+        // i: 1,2,3,4,5,7 → sum=22 count=6 → MySQL avg=3.6667(scale4)；d 同值但 decimal(20,4) → avg scale=8。
+        String[][] rows = {{"1", "1", "1.0000"}, {"2", "2", "2.0000"}, {"3", "3", "3.0000"},
+                {"4", "4", "4.0000"}, {"5", "5", "5.0000"}, {"6", "7", "7.0000"}};
+        for (String[] r : rows) {
+            execute(mycat, "insert into " + t + "(`id`,`i`,`d`) values (" + r[0] + ", " + r[1] + ", " + r[2] + ")");
+        }
+        // oracle：在真 MySQL(3306) 的 mysql 库建同数据非分片参照表，直算 AVG（后端单趟聚合＝真值口径）。
+        execute(adminBackend, "drop table if exists c11_ref");
+        execute(adminBackend, "create table c11_ref(`id` bigint primary key, `i` int, `d` decimal(20, 4))");
+        for (String[] r : rows) {
+            execute(adminBackend, "insert into c11_ref(`id`,`i`,`d`) values (" + r[0] + ", " + r[1] + ", " + r[2] + ")");
+        }
+        try {
+            assertAvgEqualsOracle("C11：跨分片 AVG(int)", t, "`i`", "c11_ref", "`i`");
+            assertAvgEqualsOracle("C11：跨分片 AVG(decimal(20,4))", t, "`d`", "c11_ref", "`d`");
+        } finally {
+            execute(adminBackend, "drop table if exists c11_ref");
+        }
+    }
+
+    /** 读 Mycat 跨分片 {@code select avg(col) from t} 值，与后端 {@code select avg(col) from ref} 真值 BigDecimal 逐值相等。 */
+    private void assertAvgEqualsOracle(String tag, String shardTable, String col, String refTable, String refCol) throws Exception {
+        Object mycatV = executeQuery(mycat, "select avg(" + col + ") from " + shardTable).get(0).values().iterator().next();
+        Object oracleV = executeQuery(adminBackend, "select avg(" + refCol + ") from " + refTable).get(0).values().iterator().next();
+        BigDecimal mycatBd = mycatV == null ? null : new BigDecimal(String.valueOf(mycatV));
+        BigDecimal oracleBd = oracleV == null ? null : new BigDecimal(String.valueOf(oracleV));
+        // 无条件打印两侧实际值（即便绿也留下度量痕，便于跨 persona 复盘）。
+        System.out.println(tag + " => mycat=" + mycatV + " [" + typeOf(mycatV) + "] oracle=" + oracleV + " [" + typeOf(oracleV) + "]");
+        assertTrue(oracleBd != null, tag + "：oracle 不应为 null");
+        assertTrue(mycatBd != null, tag + "：Mycat AVG 不应为 null（会话/归并崩？）");
+        assertEquals(0, mycatBd.compareTo(oracleBd), tag + "：Mycat 跨片归并 AVG 值必与真 MySQL 逐值相等，实得 mycat="
+                + mycatBd + " oracle=" + oracleBd);
+    }
+
+    // C12（跨分片 STDDEV/VARIANCE 值保真）——【已撤出绿矩阵·按债登记，非本 tranche 交付】
+    // tranche② 曾以探针跑 STDDEV/VARIANCE 跨片归并值，活库实证发现真分歧（数据 {1,2,3,4,5,7}，n=6）：
+    //   分片表本地跨片归并：stddev=2.160245356435236、variance=4.66666000（均＝样本口径，除以 n-1）；
+    //   真 MySQL 无后缀默认＝总体口径：stddev(STDDEV_POP)=1.9720265943665387、variance(VAR_POP)=3.8888888888888893。
+    //   对照：非分片单表整体下推后端时 Mycat 透传真库结果=1.9720/3.8889（正确），仅本地归并路径偏样本。
+    // 根因独立于 tranche②（本票 deriveAvgAggType 只改 AVG 型，未触 STDDEV/VARIANCE 规约）：Calcite
+    //   AggregateReduceFunctionsRule 将无后缀 STDDEV/VARIANCE 规约为样本(n-1)口径，而 MySQL 二者默认总体(n)。
+    // 处置（守「宁挂账不伪绿」，遵 C11/BIT 先例）：不将该红断言提进 CI 阻断的绿矩阵，亦不反写 pin 样本值冒充达标；
+    //   缺口已登记 DEBT-QUEUE（跨片 STDDEV/VARIANCE 样本vs总体），是否开后续 tranche 修规约口径由用户拍板。
+
     // ---------------------------------------------------------------- helpers
 
     /** 在探针库内建一格独立分片小表，返回 {@code schema.table} 限定名。 */

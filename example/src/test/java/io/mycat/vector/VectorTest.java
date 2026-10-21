@@ -64,7 +64,9 @@ public class VectorTest implements MycatTest {
 
                 maps = executeQuery(mycatConnection, "SELECT avg(id) FROM `db1`.`vector` LIMIT 0, 1000; ");
 
-                Assert.assertEquals("[{avg(id)=5.0}]",maps.toString());
+                // MYCAT CHANGE (I-DEBT-39·tranche②): deriveAvgAggType 精确数值改判 DECIMAL，AVG(bigint)
+                // 对齐 MySQL = DECIMAL(scale=div_precision_increment=4)，id 1..9 avg=5 → 5.0000（旧 DOUBLE 形态 5.0）。
+                Assert.assertEquals("[{avg(id)=5.0000}]",maps.toString());
 
                 maps = executeQuery(mycatConnection, "SELECT user_id FROM `db1`.`vector` group by user_id LIMIT 0, 1000; ");
 
