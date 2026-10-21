@@ -71,13 +71,21 @@ public class ScalarStdFuncLocalCodegenTest implements MycatTest {
 
     /** 规划 + 落码（触发 codegen）；落码失败会抛异常。 */
     private static String planAndCodegen(String sql) {
+        return codegenOf(sql).dumpPlan().replaceAll("\r", " ").replaceAll("\n", " ").trim();
+    }
+
+    /** 规划 + 落码，返回生成的 janino 码源串（remap 在出码期生效，只有码源能看到函数名）。 */
+    private static String codegenSource(String sql) {
+        return codegenOf(sql).getCodeExecuterContext().getCodeContext().getCode();
+    }
+
+    private static Plan codegenOf(String sql) {
         init();
         DrdsSqlWithParams drdsSqlWithParams = DrdsRunnerHelper.preParse(sql, "db1");
         OptimizationContext optimizationContext = new OptimizationContext();
         MycatRel dispatch = drds.dispatch(optimizationContext, drdsSqlWithParams);
-        Plan plan = new PlanImpl(dispatch, DrdsExecutorCompiler.getCodeExecuterContext(
+        return new PlanImpl(dispatch, DrdsExecutorCompiler.getCodeExecuterContext(
                 optimizationContext.relNodeContext.getConstantMap(), dispatch, false), drdsSqlWithParams.getAliasList());
-        return plan.dumpPlan().replaceAll("\r", " ").replaceAll("\n", " ").trim();
     }
 
     /** 核心：i_s 投影里的 DAYOFWEEK 必须能被本地落码（旧行为=codegen 崩）。 */
@@ -103,5 +111,30 @@ public class ScalarStdFuncLocalCodegenTest implements MycatTest {
         Assert.assertNotNull(planAndCodegen("select cast(10 as float)"));
         Assert.assertNotNull(planAndCodegen("select cast(10 as decimal(10,2))"));
         Assert.assertNotNull(planAndCodegen("select cast(10 as char)"));
+    }
+
+    /**
+     * I-DEBT-39·tranche①（宽）回归锁：MySQL {@code /} 除法必须能本地落码，且出码/常量折叠走 Mycat 自定义实现。
+     *
+     * <p>旧行为：{@code select 1/0} 走内置 {@code SqlFunctions.divide} 整除路 → 常量折叠/落码抛
+     * {@code ArithmeticException / by zero}；{@code select 10/3} 被整除截断为 3（非 MySQL 的 3.3333）。
+     * 正解：{@code MycatCalciteRuntimeHooks.remapOperator} 把 {@code SqlStdOperatorTable.DIVIDE} 重映射到
+     * {@code MysqlDivideFunction}（经 {@code RexToLixTranslator.visitCall} 单一接缝），除零→NULL、精确→十进制商。
+     * {@code DIV}（{@code DIVIDE_INTEGER}）非本算子，仍整除，不得被波及。
+     */
+    @Test
+    public void divisionLocalCodegens() {
+        // 常量折叠形态（无表）与可逐行形态都不得崩。
+        Assert.assertNotNull(planAndCodegen("select 10/3"));
+        Assert.assertNotNull(planAndCodegen("select 1/0"));
+        // 出码期 "/" 重映射到 MysqlDivideFunction：生成码源串含 mysqlDivide（plan 树不反映 remap，故断码不断树）。
+        String slashCode = codegenSource("select 10/3");
+        Assert.assertTrue("`10/3` 应经 MysqlDivideFunction.mysqlDivide 落码，实际码：" + slashCode,
+                slashCode.contains("mysqlDivide"));
+        // DIV（DIVIDE_INTEGER）非本算子，仍整除，不得被 remap 波及。
+        String divCode = codegenSource("select 10 DIV 3");
+        Assert.assertNotNull(divCode);
+        Assert.assertFalse("`10 DIV 3` 不得走 mysqlDivide（应仍 DIVIDE_INTEGER），实际码：" + divCode,
+                divCode.contains("mysqlDivide"));
     }
 }

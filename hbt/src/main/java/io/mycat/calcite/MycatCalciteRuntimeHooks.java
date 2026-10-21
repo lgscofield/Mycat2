@@ -1,12 +1,14 @@
 package io.mycat.calcite;
 
 import io.mycat.calcite.spm.ParamHolder;
+import io.mycat.calcite.sqlfunction.arith.MysqlDivideFunction;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
 import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.ParameterExpression;
 import org.apache.calcite.mycat.MycatCalciteRuntime;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 
 /**
  * I-DEBT-3 面③ Phase A Task 2：{@link MycatCalciteRuntime.Hooks} 的 Mycat 实现。
@@ -36,6 +38,12 @@ public final class MycatCalciteRuntimeHooks implements MycatCalciteRuntime.Hooks
 
   @Override
   public SqlOperator remapOperator(SqlOperator op) {
+    // I-DEBT-39·tranche①（宽）：MySQL {@code /}（{@code SqlStdOperatorTable.DIVIDE}）在出码期重映射到
+    // {@link MysqlDivideFunction}（十进制商 + 除零→NULL + 近似→double）。按算子实例判（非 SqlKind，
+    // 因 {@code SqlKind.DIVIDE} 同时容纳 {@code DIVIDE_INTEGER}="DIV"），否则误伤 DIV。
+    if (op == SqlStdOperatorTable.DIVIDE) {
+      return MysqlDivideFunction.INSTANCE;
+    }
     return "<=>".equalsIgnoreCase(op.getName()) ? StrictEqualFunction.INSTANCE : op;
   }
 
