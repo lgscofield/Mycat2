@@ -167,6 +167,24 @@ public class MycatDataContextImpl implements MycatDataContext {
             MysqlVariableService variableService = MetaClusterCurrent.wrapper(MysqlVariableService.class);
             return variableService.getGlobalVariable(target);
         }
+        // I-DEBT-54 D2b-A：session 域显式设过 sql_mode 时回读真值；未设（null）落回下方既有静态模板，行为不变。
+        if (target != null) {
+            String t = target.toLowerCase();
+            while (t.startsWith("@@")) {
+                t = t.substring(2);
+            }
+            if (t.startsWith("session.")) {
+                t = t.substring("session.".length());
+            } else if (t.startsWith("local.")) {
+                t = t.substring("local.".length());
+            }
+            if (t.equals("sql_mode")) {
+                String mode = getSessionSqlMode();
+                if (mode != null) {
+                    return mode;
+                }
+            }
+        }
         if (target.contains("autocommit")) {
             return this.isAutocommit() ? "1" : "0";
         } else if (target.equalsIgnoreCase("xa")) {
