@@ -36,6 +36,15 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
         MySQLVariablesUtil.setVariable(this, target, text);
     }
 
+    // I-DEBT-54 D2b-A：会话 sql_mode 原始串（去引号后），供回读与向后端 diff-replay 传播。
+    // 默认 no-op/null，兼容无会话态的桩实现（如 JdbcMycatDataContext）；活前端 MycatDataContextImpl 以字段覆盖。
+    default String getSessionSqlMode() {
+        return null;
+    }
+
+    default void setSessionSqlMode(String sqlMode) {
+    }
+
     default int serverStatus() {
         MySQLServerStatusFlags.Builder builder = MySQLServerStatusFlags.builder();
         if (isAutocommit()) {

@@ -12,6 +12,17 @@ public class MySQLVariablesUtil {
         String value = SQLUtils.normalize(Objects.toString(text));
         if (target.contains("autocommit")) {
             dataContext.setAutoCommit(toInt(value) == 1);
+        } else if (target.toLowerCase().contains("sql_mode")) {
+            // I-DEBT-54 D2b-A：session 域 SET sql_mode 存原始串（去引号），供回读与向后端 diff-replay。
+            // global 域写会话之外，不得误捕获进会话态。
+            if (!target.toLowerCase().contains("global")) {
+                String mode = value;
+                // SQLUtils.normalize 对空引号串 '' 不剥离，显式剥一对首尾单引号，保证存的是纯模式列表。
+                if (mode.length() >= 2 && mode.charAt(0) == '\'' && mode.charAt(mode.length() - 1) == '\'') {
+                    mode = mode.substring(1, mode.length() - 1);
+                }
+                dataContext.setSessionSqlMode(mode);
+            }
         } else if (target.equalsIgnoreCase("transaction_policy")) {
             if ("proxy".equalsIgnoreCase(value)) {
                 dataContext.switchTransaction(TransactionType.PROXY_TRANSACTION_TYPE);

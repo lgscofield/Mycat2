@@ -74,6 +74,8 @@ public class MycatDataContextImpl implements MycatDataContext {
     private long selectLimit = -1;
     private long netWriteTimeout = -1;
     private boolean readOnly = false;
+    // I-DEBT-54 D2b-A：会话 sql_mode 原始串（去引号），Lombok @Getter/@Setter 生成访问器覆盖接口 default。
+    private String sessionSqlMode;
 
     public int multiStatementSupport = 0;
     private String charsetSetResult;
