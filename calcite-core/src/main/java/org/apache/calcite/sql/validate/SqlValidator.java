@@ -1014,6 +1014,28 @@ public interface SqlValidator {
      */
     Config withTypeCoercionRules(@Nullable SqlTypeCoercionRule rules);
 
+    /** Returns whether GROUP BY aggregation checking enforces
+     * ONLY_FULL_GROUP_BY.
+     *
+     * <p>MYCAT CHANGE (D2b 第一刀): Calcite enforces this unconditionally (SQL
+     * standard design), but MySQL gates it on the session's {@code sql_mode}. A
+     * session that has cleared ONLY_FULL_GROUP_BY (e.g. mysqldump's
+     * {@code SET @@SQL_MODE=''}) must not be held to a stricter rule than its
+     * backend — the Vitess principle "the proxy must not be stricter than the
+     * backend". Mycat sets this knob from the per-session sql_mode; the default
+     * true preserves Calcite's native strict behavior for every other consumer
+     * (and every existing golden baseline). Read by {@link AggChecker} to gate
+     * the {@code notGroupExpr} error. SELECT DISTINCT checking is unaffected:
+     * it is standard SQL, not a sql_mode-gated MySQL behavior. */
+    @Value.Default default boolean onlyFullGroupBy() {
+      return true;
+    }
+
+    /** Sets whether GROUP BY checking enforces ONLY_FULL_GROUP_BY.
+     *
+     * <p>MYCAT CHANGE (D2b 第一刀): see {@link #onlyFullGroupBy()}. */
+    Config withOnlyFullGroupBy(boolean onlyFullGroupBy);
+
     /** Returns the dialect of SQL (SQL:2003, etc.) this validator recognizes.
      * Default is {@link SqlConformanceEnum#DEFAULT}. */
     @Value.Default default SqlConformance conformance() {

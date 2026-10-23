@@ -141,6 +141,17 @@ class AggChecker extends SqlBasicVisitor<Void> {
     }
     SqlNode originalExpr = validator.getOriginal(id);
     final String exprString = originalExpr.toString();
+    // MYCAT CHANGE (D2b 第一刀): MySQL gates ONLY_FULL_GROUP_BY on the session's
+    // sql_mode, while Calcite enforces it unconditionally. When the validator is
+    // lenient (the session cleared ONLY_FULL_GROUP_BY, e.g. mysqldump's
+    // {@code SET @@SQL_MODE=''}), a bare column not in GROUP BY is legal on the
+    // backend, so the proxy must not be stricter than the backend (Vitess
+    // principle) -- let it through instead of throwing notGroupExpr. This applies
+    // only to GROUP BY (distinct==false): SELECT DISTINCT checking is standard SQL
+    // and unaffected by sql_mode, so the distinct branch still throws.
+    if (!distinct && !validator.config().onlyFullGroupBy()) {
+      return null;
+    }
     throw validator.newValidationError(originalExpr,
         distinct
             ? RESOURCE.notSelectDistinctExpr(exprString)

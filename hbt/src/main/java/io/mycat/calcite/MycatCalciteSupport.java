@@ -192,6 +192,12 @@ public enum MycatCalciteSupport implements Context {
         // 本地 codegen、executor 跨片归并三条消费腿的 NULL 序偏离；显式 NULLS FIRST/LAST 不受影响。
         return SqlValidator.Config.DEFAULT.withSqlConformance(calciteConnectionConfig.conformance())
                 .withDefaultNullCollation(NullCollation.LOW)
+                // MYCAT CHANGE (D2b 第一刀): 分组校验严格性跟随会话 sql_mode。缺省严格
+                // （SessionSqlMode 未显式穿会话态时=true，保 Calcite 原生行为与 golden 基线）；
+                // 代理入口依据会话 sql_mode 是否含 ONLY_FULL_GROUP_BY 显式置位，落此单一生出点，
+                // 由 AggChecker 门控 notGroupExpr——关闭该模式的会话（如 mysqldump SET @@SQL_MODE=''）
+                // 不再被代理判得比后端严（Vitess 原则）。SELECT DISTINCT 校验不受影响。
+                .withOnlyFullGroupBy(SessionSqlMode.isOnlyFullGroupBy())
                 .withTypeCoercionEnabled(true)
                 .withTypeCoercionRules(instance1).withLenientOperatorLookup(true)
                 .withTypeCoercionFactory(new TypeCoercionFactory() {
