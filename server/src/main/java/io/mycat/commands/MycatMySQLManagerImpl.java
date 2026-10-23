@@ -33,6 +33,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.*;
@@ -43,6 +45,8 @@ import static io.mycat.config.DatasourceConfig.DatasourceType.NATIVE_JDBC;
 import static io.mycat.newquery.NewMycatConnectionConfig.FORCE_NATIVE_DATASOURCE;
 
 public class MycatMySQLManagerImpl extends AbstractMySQLManagerImpl {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MycatMySQLManagerImpl.class);
 
 
     private final ConcurrentHashMap<String, MycatDatasourcePool> map;
@@ -69,9 +73,16 @@ public class MycatMySQLManagerImpl extends AbstractMySQLManagerImpl {
                 case NATIVE:
                 case NATIVE_JDBC:
                     MycatDatasourcePool nativeDatasourcePool = createNativeDatasourcePool(datasource, name);
+                    // MYCAT CHANGE (I-AU-6): native 池首连失败回退 JDBC 池不得静默——回退是能力降级
+                    // (vertx 原生协议腿 → JDBC 腿)，运维必须能从日志看到退化原因，否则 MariaDB 特有
+                    // 场景(如驱动/认证插件差异)会被沉默吞掉。
                     futureList.add(nativeDatasourcePool.getConnection()
                             .flatMap(c -> c.close().map(nativeDatasourcePool))
-                            .recover(throwable -> Future.succeededFuture(createJdbcDatasourcePool(name))));
+                            .recover(throwable -> {
+                                LOGGER.warn("native datasource pool failed for {}, falling back to JDBC pool: {}",
+                                        name, throwable.toString());
+                                return Future.succeededFuture(createJdbcDatasourcePool(name));
+                            }));
                     break;
                 case JDBC:
                     hashMap.put(name, createJdbcDatasourcePool(name));
