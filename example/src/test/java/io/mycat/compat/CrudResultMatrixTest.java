@@ -387,7 +387,11 @@ public class CrudResultMatrixTest implements MycatTest {
         }
     }
 
-    /** 读 Mycat 跨分片 {@code select <fn>(i) from t} 与后端 {@code select <fn>(i) from ref} 真值，浮点相对容差 1e-5 对拍（口径钉；本地归并精度偏差另挂账，见 C12 注释）。 */
+    /** 读 Mycat 跨分片 {@code select <fn>(i) from t} 与后端 {@code select <fn>(i) from ref} 真值，浮点相对容差对拍（口径钉；本地归并精度偏差另挂账，见 C12 注释）。
+     *  <b>容差按 oracle 形态分支</b>：MariaDB 对裸 STDDEV/VARIANCE <b>确定性舍入到 4 位小数</b>（10.11 实测 1.9720/3.8889，
+     *  经 mysql-connector 回读为 Double），拿舍入态 oracle 用全精度 1e-5 相对容差硬比必假红（差可达半单位末位=0.5e-4）；
+     *  此时放宽到"相对 1e-5 与绝对 0.5001e-4 取大"。MySQL 系返全精度（scale&gt;4）保持 1e-5 严容差，整数态（scale≤0）精确亦严容差。
+     *  判别力不失：样本口径(n-1)偏差 ~20% ≫ 任何一档容差。 */
     private void assertAggFidelity(String tag, String shardTable, String fn, String refTable) throws Exception {
         Object mycatV = executeQuery(mycat, "select " + fn + "(`i`) from " + shardTable).get(0).values().iterator().next();
         Object oracleV = executeQuery(adminBackend, "select " + fn + "(`i`) from " + refTable).get(0).values().iterator().next();
@@ -397,8 +401,32 @@ public class CrudResultMatrixTest implements MycatTest {
         double m = ((Number) mycatV).doubleValue();
         double o = ((Number) oracleV).doubleValue();
         double tol = 1e-5 * Math.max(1.0, Math.abs(o));
+        if (isRoundedOracleShape(toBigDecimal(oracleV))) {
+            tol = Math.max(tol, 0.5001e-4); // oracle 被后端舍入到 4 位小数：覆盖 ±0.5×10^-4 舍入误差
+        }
         assertEquals(o, m, tol, tag + "：Mycat 跨片归并 " + fn + " 必与真 MySQL 无后缀默认(总体口径)一致，实得 mycat="
                 + m + " oracle=" + o);
+    }
+
+    /** 数值 → BigDecimal 形态（Double 走 {@link BigDecimal#valueOf} 规范化，与浏览器/十进制字面量口径一致）。 */
+    private static BigDecimal toBigDecimal(Object v) {
+        if (v instanceof BigDecimal) {
+            return (BigDecimal) v;
+        }
+        if (v instanceof Number) {
+            return BigDecimal.valueOf(((Number) v).doubleValue());
+        }
+        return new BigDecimal(v.toString());
+    }
+
+    /**
+     * oracle 是否为"后端舍入形态"：scale∈[1,4] 的短小数（MariaDB 裸 STDDEV/VARIANCE 确定性舍入到 4 位小数的回读特征）。
+     * scale≤0 = 整数精确结果（如 n=2 {1,3} 的 STDDEV=2），非舍入态；scale&gt;4 = 全精度（MySQL 系），同样不放宽。
+     * 离线守卫见 {@link CrudResultMatrixOracleShapeTest}。
+     */
+    static boolean isRoundedOracleShape(BigDecimal oracle) {
+        int s = oracle.scale();
+        return s >= 1 && s <= 4;
     }
 
     // ---------------------------------------------------------------- helpers
