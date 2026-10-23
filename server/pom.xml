@@ -36,10 +36,13 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
+        <!-- MYCAT CHANGE (I-AU-6): 原 <scope>test</scope> 使 mariadb 在 server 降为 test，
+             被 maven-shade 排除出 fat-jar（server 直接声明恒胜经 datasource 传递的 compile）。
+             MariaDB 后端(client_ed25519)要在 fat-jar 部署形态可用，驱动必须进运行期 classpath，
+             故改 compile。版本仍归根 pom dependencyManagement(3.5.3)。Task 5 jar tf 锁。 -->
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
         <dependency>
@@ -287,6 +290,10 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>io.mycat.MycatCore</mainClass>
                                 </transformer>
+                                <!-- MYCAT CHANGE (I-AU-6): 合并各 jar 的 META-INF/services/* 描述符，
+                                     否则 java.sql.Driver 会被单一方(此前为 druid)覆盖，mariadb/mysql 驱动行丢失，
+                                     fat-jar 内 DriverManager/ServiceLoader 自动发现失效。Task 5 冒烟锁。 -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 
                             </transformers>
                         </configuration>
