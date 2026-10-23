@@ -242,6 +242,28 @@ public class AggregatingSelectScope
     checkAggregateExpr(expr, true);
   }
 
+  /**
+   * MYCAT CHANGE (D2b-B): probe whether {@code expr} references a not-grouped bare
+   * column under the lenient ONLY_FULL_GROUP_BY gate (sql_mode without
+   * ONLY_FULL_GROUP_BY). Mirrors {@link #checkAggregateExpr}'s checker construction;
+   * the lenient {@link AggChecker} records offenders instead of throwing, and
+   * {@link AggChecker#foundNotGrouped()} reports the outcome so
+   * {@code SqlValidatorImpl.validateSelectList} can rewrite such select items into
+   * group aggregates before conversion (the Calcite converter can only project the
+   * aggregate output).
+   */
+  boolean findsNotGroupedExpr(SqlNode expr) {
+    final ImmutableList.Builder<SqlNode> extraExprs = ImmutableList.builder();
+    final ImmutableList.Builder<SqlNode> measureExprs = ImmutableList.builder();
+    final ImmutableList.Builder<SqlNode> groupExprs = ImmutableList.builder();
+    gatherGroupExprs(extraExprs, measureExprs, groupExprs);
+    final AggChecker aggChecker =
+        new AggChecker(validator, this, extraExprs.build(),
+            measureExprs.build(), groupExprs.build(), false);
+    expr.accept(aggChecker);
+    return aggChecker.foundNotGrouped();
+  }
+
   /** Information about an aggregating scope that can only be determined
    * after validation has occurred. Therefore it cannot be populated when
    * the scope is created. */

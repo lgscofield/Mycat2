@@ -50,6 +50,11 @@ class AggChecker extends SqlBasicVisitor<Void> {
   private final boolean distinct;
   private final SqlValidatorImpl validator;
 
+  /** MYCAT CHANGE (D2b-B): set when a not-grouped bare column was let through by the
+   * lenient ONLY_FULL_GROUP_BY gate; {@link AggregatingSelectScope#findsNotGroupedExpr}
+   * reports it so the validator can rewrite the offender into a group aggregate. */
+  private boolean foundNotGrouped;
+
   //~ Constructors -----------------------------------------------------------
 
   /**
@@ -150,12 +155,19 @@ class AggChecker extends SqlBasicVisitor<Void> {
     // only to GROUP BY (distinct==false): SELECT DISTINCT checking is standard SQL
     // and unaffected by sql_mode, so the distinct branch still throws.
     if (!distinct && !validator.config().onlyFullGroupBy()) {
+      foundNotGrouped = true;
       return null;
     }
     throw validator.newValidationError(originalExpr,
         distinct
             ? RESOURCE.notSelectDistinctExpr(exprString)
             : RESOURCE.notGroupExpr(exprString));
+  }
+
+  /** MYCAT CHANGE (D2b-B): whether the lenient gate let a not-grouped bare column
+   * through during this checker's last traversal. */
+  boolean foundNotGrouped() {
+    return foundNotGrouped;
   }
 
   @Override public Void visit(SqlCall call) {

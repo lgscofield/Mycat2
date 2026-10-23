@@ -1,8 +1,11 @@
 package io.mycat.calcite;
 
 import com.alibaba.druid.sql.ast.SQLStatement;
+import io.mycat.DrdsSqlCompiler;
 import io.mycat.DrdsSqlWithParams;
 import org.apache.calcite.jdbc.CalciteSchema;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -12,12 +15,15 @@ import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.validate.SqlValidator;
+import org.apache.calcite.rel.RelRoot;
+import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.util.Static;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +47,11 @@ public class OnlyFullGroupBySqlModeTest {
     private static final String NON_STRICT_GROUP_BY =
             "select a, sum(b) from tgb group by c";
 
+    /** 活库判据②的确切形状：i_s.FILES 仿表(多列) + 全大写裸列 + 常量谓词 + 单列分组。 */
+    private static final String TABLESPACES_SHAPE =
+            "select TABLESPACE_NAME, EXTRA from INFORMATION_SCHEMA.FILES"
+                    + " group by TABLESPACE_NAME";
+
     private static org.apache.calcite.schema.SchemaPlus rootSchemaWithFixtureTables() {
         org.apache.calcite.schema.SchemaPlus root = CalciteSchema.createRootSchema(false).plus();
         final Map<String, Table> tables = new HashMap<>();
@@ -51,6 +62,16 @@ public class OnlyFullGroupBySqlModeTest {
                 return tables;
             }
         });
+        // i_s 仿表：information_schema 子 schema，FILES 多列(含 EXTRA)贴近 MysqlMetadataManager.FILE_TABLE 形态
+        final Map<String, Table> i_sTables = new HashMap<>();
+        i_sTables.put("FILES", fixtureTable(filesRowType()));
+        final org.apache.calcite.schema.SchemaPlus i_s = root.add("INFORMATION_SCHEMA",
+                new AbstractSchema() {
+                    @Override
+                    protected Map<String, Table> getTableMap() {
+                        return i_sTables;
+                    }
+                });
         return root;
     }
 
@@ -61,6 +82,29 @@ public class OnlyFullGroupBySqlModeTest {
         builder.add("a", factory.createSqlType(SqlTypeName.INTEGER));
         builder.add("b", factory.createSqlType(SqlTypeName.INTEGER));
         builder.add("c", factory.createSqlType(SqlTypeName.INTEGER));
+        return builder.build();
+    }
+
+    /** i_s.FILES 仿表多列形态（EXTRA 处于高序号，复刻活库 IOOBE "Index out of range: 15" 的越界面）。 */
+    private static RelDataType filesRowType() {
+        RelDataTypeFactory factory = MycatCalciteSupport.TypeFactory;
+        RelDataTypeFactory.Builder builder = factory.builder();
+        builder.add("FILE_ID", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("FILE_NAME", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("FILE_TYPE", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("TABLESPACE_NAME", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("TABLE_CATALOG", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("TABLE_SCHEMA", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("TABLE_NAME", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("LOGFILE_GROUP_NAME", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("LOGFILE_GROUP_NUMBER", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("ENGINE", factory.createSqlType(SqlTypeName.VARCHAR, 64));
+        builder.add("TOTAL_EXTENTS", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("EXTENT_SIZE", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("INITIAL_SIZE", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("MAXIMUM_SIZE", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("AUTOEXTEND_SIZE", factory.createSqlType(SqlTypeName.BIGINT));
+        builder.add("EXTRA", factory.createSqlType(SqlTypeName.VARCHAR, 255));
         return builder.build();
     }
 
@@ -144,6 +188,50 @@ public class OnlyFullGroupBySqlModeTest {
                 () -> validate(NON_STRICT_GROUP_BY));
         Assertions.assertTrue(containsGroupError(ex),
                 "复位为缺省严格后同一查询应重新被拒，实际：" + ex);
+    }
+
+    /**
+     * D2b-B 补完腿（活库 e2e 判据②坐实的缺陷，免活库复现）：宽松会话不得止于校验放行——
+     * 校验器放行的裸列此前一路漏到 {@code SqlToRelConverter.createAggImpl} 的投影步，对聚合输出
+     * 越界引用抛 {@code IndexOutOfBoundsException}（validator 过了、converter 无从安放该列）。
+     * 修复后须真正可规划，且结果列名保持原列名（mysqldump 按结果集列名取列）。
+     */
+    @Test
+    public void lenientSessionNonStrictGroupByConvertsToRel() {
+        SessionSqlMode.setOnlyFullGroupBy(false);
+        RelRoot root = Assertions.assertDoesNotThrow(() -> validateAndConvert(TABLESPACES_SHAPE),
+                "宽松会话 i_s.FILES tablespaces 形态非严格 GROUP BY 须校验放行且可转换聚合计划（旧缺陷：createAggImpl IOOBE，活库判据②坐实）");
+        Assertions.assertEquals("TABLESPACE_NAME", root.rel.getRowType().getFieldNames().get(0));
+        Assertions.assertEquals("EXTRA", root.rel.getRowType().getFieldNames().get(1),
+                "包装后须保持原选择列列名（mysqldump 按结果集列名取列）");
+    }
+
+    /** 缺省严格会话仍在校验步被拒（走不到转换）——钉住改写只随宽松态生效的边界。 */
+    @Test
+    public void strictDefaultStillFailsBeforeConversion() {
+        RuntimeException ex = Assertions.assertThrows(RuntimeException.class,
+                () -> validateAndConvert(NON_STRICT_GROUP_BY));
+        Assertions.assertTrue(containsGroupError(ex),
+                "严格会话应在转换前的校验步抛 notGroupExpr，实际：" + ex);
+    }
+
+    /** validate + convert 全出生链复刻（同 DrdsSqlCompiler.getRelRoot:383-410，仅免优化器）。 */
+    private static RelRoot validateAndConvert(String sql) {
+        DrdsSqlWithParams drdsSql = DrdsRunnerHelper.preParse(sql, DEFAULT_SCHEMA);
+        SqlValidator validator = DrdsRunnerHelper.getSqlValidator(drdsSql, CATALOG_READER);
+        SQLStatement stmt = drdsSql.getParameterizedStatement();
+        MycatCalciteMySqlNodeVisitor visitor = new MycatCalciteMySqlNodeVisitor();
+        stmt.accept(visitor);
+        SqlNode sqlNode = visitor.getSqlNode();
+        SqlNode validated = validator.validate(sqlNode);
+        SqlToRelConverter converter = new SqlToRelConverter(
+                (rowType, queryString, schemaPath, viewPath) -> {
+                    throw new UnsupportedOperationException("no views in this harness");
+                },
+                validator, CATALOG_READER, DrdsSqlCompiler.newCluster(),
+                MycatCalciteSupport.config.getConvertletTable(),
+                MycatCalciteSupport.sqlToRelConverterConfig);
+        return converter.convertQuery(validated, false, true);
     }
 
     private static boolean containsGroupError(Throwable t) {

@@ -5490,6 +5490,49 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
       }
     }
 
+    // MYCAT CHANGE (D2b-B): with ONLY_FULL_GROUP_BY absent from the session's
+    // sql_mode, MySQL allows select items referencing not-grouped columns and
+    // returns an arbitrary value of the group for them. The lenient AggChecker gate
+    // lets such items pass validation, but the Calcite converter can only project
+    // the aggregate output, so a bare offender would crash createAggImpl with an
+    // out-of-range input ref (evidence: mysqldump's tablespaces query over the
+    // i_s.FILES emulation threw IndexOutOfBoundsException at RelBuilder.project_).
+    // Rewrite offending top-level select items into MAX(operand), which yields
+    // one of the group's values (MySQL's "arbitrary value" contract) and, unlike
+    // ANY_VALUE, pushes down to every backend flavor. Output names are unaffected:
+    // they were fixed in fieldList during expansion above. The rewrite goes to
+    // the ORIGINAL select list in place, because with identifierExpansion off
+    // (this fork's Config default) the expanded list below is never written back
+    // and the converter would keep seeing the bare offender. Scope: non-DISTINCT
+    // GROUP BY queries, select list only -- lenient references in HAVING/ORDER BY
+    // are not rewritten (no observed dump shape needs them; pinned as a known
+    // limitation in the D2b ledger).
+    if (!config.onlyFullGroupBy() && !select.isDistinct() && isAggregate(select)
+        && selectScope instanceof AggregatingSelectScope) {
+      final AggregatingSelectScope aggScope =
+          (AggregatingSelectScope) selectScope;
+      for (int i = 0; i < selectItems.size(); i++) {
+        final SqlNode item = selectItems.get(i);
+        final SqlNode operand =
+            item.getKind() == SqlKind.AS ? ((SqlCall) item).operand(0) : item;
+        if (SqlUtil.containsAgg(operand)
+            || (operand.getKind() == SqlKind.IDENTIFIER
+                && ((SqlIdentifier) operand).isStar())
+            || !aggScope.findsNotGroupedExpr(operand)) {
+          continue;
+        }
+        final SqlNode wrapped =
+            SqlStdOperatorTable.MAX.createCall(operand.getParserPosition(),
+                operand);
+        if (item.getKind() == SqlKind.AS) {
+          selectItems.set(i, ((SqlCall) item).getOperator().createCall(
+              item.getParserPosition(), wrapped, ((SqlCall) item).operand(1)));
+        } else {
+          selectItems.set(i, wrapped);
+        }
+      }
+    }
+
     // Create the new select list with expanded items.  Pass through
     // the original parser position so that any overall failures can
     // still reference the original input text.
