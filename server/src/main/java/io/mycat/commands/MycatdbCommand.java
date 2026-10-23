@@ -51,6 +51,7 @@ import io.mycat.sqlhandler.dcl.*;
 import io.mycat.sqlhandler.ddl.*;
 import io.mycat.sqlhandler.dml.*;
 import io.mycat.sqlhandler.dql.*;
+import io.mycat.util.MySQLDatabaseMetadata;
 import io.mycat.util.SqlTypeUtil;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.AsyncResult;
@@ -65,6 +66,8 @@ import java.sql.JDBCType;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -545,7 +548,7 @@ public enum MycatdbCommand {
 
     @NotNull
     public LinkedList<SQLStatement> parse(String text) {
-        text = text.trim();
+        text = unwrapVersionComments(text).trim();
         LinkedList<SQLStatement> resStatementList = new LinkedList<>();
         if (text.startsWith("begin") || text.startsWith("BEGIN")) {
             SQLStartTransactionStatement sqlStartTransactionStatement = new SQLStartTransactionStatement();
@@ -561,6 +564,49 @@ public enum MycatdbCommand {
             }
         }
         return parseMySQLString(text, resStatementList);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-54 D2b): MySQL 服务端 lexer 对版本注释 {@code /*!NNNNNN body *&#47;}
+     * 的语义是“自述版本达标则剥掉标记、把 body 当普通语句执行”；druid 把整条当纯注释解出
+     * 空语句表，mysqldump 预处理首语句 {@code /*!40100 SET @@SQL_MODE='' *&#47;} 因此被
+     * 空表→Query OK 分支静默吞掉（I-DEBT-57 现状），会话 sql_mode 未切宽松，后续
+     * i_s.FILES tablespaces 形态又被本地严格分组校验拒绝（活体 mysqldump stderr 铁证）。
+     * 本方法在 parse 前按真 MySQL 语义解包版本注释：版本号 MMSSDD 数值比较，未达标保留
+     * 注释原文；MariaDB 方言 {@code /*M!} 与非版本纯注释不触碰（I-DEBT-57 路径不变）。
+     */
+    public String unwrapVersionComments(String text) {
+        if (text.indexOf("/*!") < 0) {
+            // 快速路径：无版本注释标记，零开销返回
+            return text;
+        }
+        final int serverCode = serverVersionCode();
+        final Matcher m = VERSION_COMMENT_PATTERN.matcher(text);
+        final StringBuilder sb = new StringBuilder(text.length());
+        while (m.find()) {
+            final String replacement =
+                    Integer.parseInt(m.group(1)) <= serverCode ? m.group(2) : m.group(0);
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /** 版本注释：{@code /*!} 紧跟 1-6 位版本号（非 MariaDB 的 {@code M!} 字母前缀），非贪婪至首个 {@code *&#47;}。 */
+    private static final Pattern VERSION_COMMENT_PATTERN =
+            Pattern.compile("/\\*!(\\d{1,6})(.*?)\\*/", Pattern.DOTALL);
+
+    /** 自述版本数值（MMSSDD）：经 DI 取 VersionProfile 画像串；画像未就绪时保守取 5.7.0 地板。 */
+    private static int serverVersionCode() {
+        io.mycat.config.VersionProfile profile = null;
+        try {
+            profile = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class);
+        } catch (Throwable ignored) {
+            // DI 未就绪（如单测环境）：落地板版本
+        }
+        final MySQLDatabaseMetadata meta = MySQLDatabaseMetadata.parse(
+                profile != null ? profile.serverVersionString() : "5.7.0");
+        return meta.majorVersion() * 10000 + meta.minorVersion() * 100 + meta.microVersion();
     }
 
     @NotNull
