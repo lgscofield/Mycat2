@@ -29,9 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <li>{@code mariadbDriverAuthsEd25519Directly}——mariadb-java-client（Task 1 转 compile 的驱动）
  * 直连同用户成功；</li>
  * <li>{@code mycatCrudRoundTripOverEd25519Backend}——经 Mycat hint 注册 {@code jdbc:mariadb://} 数据源
- * （Task 2 显式驱动路由 + dbType=mariadb 经 jOOQ ParsingDataSource 包装腿），建库建表（mod_hash 2 分片）、
- * 插入、跨片读回，逐值与后端直连 oracle 对拍。</li>
+ * 但<b>不设 dbType</b>（{@code createConfig} 保持字段默认 "mysql"），故走 <b>plain Druid</b> 腿
+ * （{@code DruidDatasourceProvider} 中 {@code !"mysql".equalsIgnoreCase(dbType)} 为假，不进 jOOQ），
+ * 建库建表（mod_hash 2 分片）、插入、跨片读回，逐值与后端直连 oracle 对拍。</li>
  * </ol>
+ * <b>已知边界（非本测覆盖，登记为后续债务 I-AU-6b）</b>：显式 {@code dbType=mariadb} 会进入
+ * jOOQ {@code ParsingDataSource(SQLDialect.MARIADB)} 方言翻译腿。实测该腿拦截 Mycat 下发的物理
+ * DDL {@code CREATE DATABASE IF NOT EXISTS dbmX_N} 时抛 {@code org.jooq.impl.ParserException}
+ * （jOOQ MARIADB 解析器不认 MariaDB 专有 {@code CREATE DATABASE}），令 dbType=mariadb 后端建库即失败。
+ * 此为 SQL 方言腿的既有缺陷，与 ed25519 认证正交（认证由 URL scheme 驱动路由保证，判据③走 plain
+ * Druid 路径已端到端跑通），故不在本金标准内伪绿，单列债务跟踪。
+ * <p>
  * <b>测试床</b>：docker mariadb:10.11 于 3308（独立端口，绝不触碰 m1-mysql-a/b 的 3306/3307），
  * ed25519 用户 {@code e25519}（服务端插件 auth_ed25519.so 已 INSTALL）。Mycat 以
  * {@code -Dmycat.persona=MARIADB_10_11} classpath 直启（8066）。前缀 {@code dbm6} 独立，

@@ -162,11 +162,17 @@ public class DruidDatasourceProvider implements DatasourceProvider {
      * {@code jdbc:mariadb:} 时一律 mariadb 驱动；其余维持 dbType 原语义（不扩面）。
      */
     static String resolveDriverClass(String dbType, String url) {
-        if (url != null && DatasourceConfig.getDbTypeRaw(url) != null
-                && "mariadb".equalsIgnoreCase(DatasourceConfig.getDbTypeRaw(url))) {
+        // URL scheme 权威一次解析：压过字段默认 dbType="mysql" 对 mariadb 后端的遮蔽
+        String urlType = url == null ? null : DatasourceConfig.getDbTypeRaw(url);
+        if ("mariadb".equalsIgnoreCase(urlType)) {
             return driverClassFor("mariadb");
         }
-        return driverClassFor(dbType);
+        // 仅严格 jdbc:mysql:// + dbType=mysql 才钉 Connector/J；log4jdbc/cobar 等包装 URL
+        // （getDbTypeRaw 亦归 "mysql" 但驱动归属不同）交回 DriverManager 自动发现，不改既有行为。
+        if ("mysql".equalsIgnoreCase(dbType) && url != null && url.startsWith("jdbc:mysql:")) {
+            return driverClassFor("mysql");
+        }
+        return null;
     }
 
     /**

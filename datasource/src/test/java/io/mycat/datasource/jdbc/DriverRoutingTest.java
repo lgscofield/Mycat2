@@ -52,6 +52,23 @@ class DriverRoutingTest {
         assertNull(DruidDatasourceProvider.resolveDriverClass("clickhouse", "jdbc:clickhouse://localhost/x"));
     }
 
+    /**
+     * Review Finding 2（fix-forward）：{@code jdbc:log4jdbc:mysql://}/{@code jdbc:cobar://} 的
+     * getDbTypeRaw 也归 "mysql"，但驱动归属不同——不得被钉死 com.mysql.cj.jdbc.Driver，须交回
+     * DriverManager 自动发现（返回 null），否则把包装层 URL 交给原生驱动=改动前行为的回归。
+     * 严格 {@code jdbc:mysql://} + dbType=mysql 仍钉 Connector/J（Task 2 显式路由意图不变）。
+     */
+    @Test
+    void wrapperMysqlUrlsKeepAutoDiscoveryNotPinnedToConnectorJ() {
+        assertNull(DruidDatasourceProvider.resolveDriverClass("mysql", "jdbc:log4jdbc:mysql://localhost:3306/db1"),
+                "log4jdbc 包装 URL 不得被钉死 com.mysql.cj.jdbc.Driver");
+        assertNull(DruidDatasourceProvider.resolveDriverClass("mysql", "jdbc:cobar://localhost:3306/db1"),
+                "cobar 包装 URL 不得被钉死 com.mysql.cj.jdbc.Driver");
+        assertEquals("com.mysql.cj.jdbc.Driver",
+                DruidDatasourceProvider.resolveDriverClass("mysql", "jdbc:mysql://localhost:3306/db1"),
+                "严格 jdbc:mysql:// + dbType=mysql 仍显式钉 Connector/J");
+    }
+
     @Test
     void schemeDbTypeMismatchFailsLoud() {
         IllegalStateException e = assertThrows(IllegalStateException.class,
