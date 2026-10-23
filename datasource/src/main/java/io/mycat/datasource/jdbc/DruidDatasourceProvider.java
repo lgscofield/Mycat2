@@ -54,6 +54,16 @@ public class DruidDatasourceProvider implements DatasourceProvider {
         DruidDataSource datasource = new DruidDataSource();
         datasource.setPassword(password);
         datasource.setUsername(username);
+        // MYCAT CHANGE (I-AU-6): 显式驱动路由 + scheme/dbType 错配响亮报错。
+        // 不赌 fat-jar 里 ServiceLoader 描述文件的存活（shade 只排 *.SF/*.DSA/*.RSA，但 DriverManager
+        // 自动发现依赖 META-INF/services/java.sql.Driver，多驱动并存时取序不可控）；且 MariaDB 后端配
+        // jdbc:mysql:// URL 时 mysql-connector-j 连 ed25519 用户必败于 "Unable to load authentication
+        // plugin"，与其沉默到认证层，不如建池前指路。回归锁见 DriverRoutingTest。
+        checkUrlSchemeMatchesDbType(dbType, url);
+        String driverClassName = driverClassFor(dbType);
+        if (driverClassName != null) {
+            datasource.setDriverClassName(driverClassName);
+        }
         datasource.setUrl(url);
         datasource.setMaxWait(config.getMaxConnectTimeout());
         datasource.setMaxActive(maxCon);
@@ -125,6 +135,37 @@ public class DruidDatasourceProvider implements DatasourceProvider {
             finalDataSource = datasource;
         }
         return new JdbcDataSource(config, finalDataSource);
+    }
+
+    /**
+     * dbType → JDBC 驱动类的显式映射（I-AU-6）。仅钉 mysql/mariadb 两型——其余 dbType 返 null 维持
+     * "不干预、由 DriverManager 自动发现"现状（clickhouse 等自有入口，不在此扩面）。
+     */
+    static String driverClassFor(String dbType) {
+        if (dbType == null) {
+            return null;
+        }
+        switch (dbType.toLowerCase()) {
+            case "mariadb":
+                return "org.mariadb.jdbc.Driver";
+            case "mysql":
+                return "com.mysql.cj.jdbc.Driver";
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * dbType 与 URL scheme 错配校验（I-AU-6）：仅对已显式声明 mariadb 的 dbType 把关——MariaDB 后端
+     * 配 {@code jdbc:mysql://} 会被 getDbTypeRaw 判成 mysql 走 mysql-connector-j，连 client_ed25519
+     * 用户必沉默失败于认证层，故在建池前抛 IllegalStateException 指路正确形态。
+     * 其余组合（mysql dbType、非 mysql/mariadb dbType、null dbType）不改既有行为，放行。
+     */
+    static void checkUrlSchemeMatchesDbType(String dbType, String url) {
+        if ("mariadb".equalsIgnoreCase(dbType) && url != null && url.startsWith("jdbc:mysql:")) {
+            throw new IllegalStateException(
+                    "MariaDB 后端需 jdbc:mariadb:// URL + mariadb 驱动，实得 dbType=" + dbType + " url=" + url);
+        }
     }
 
     @Override
