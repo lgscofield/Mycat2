@@ -66,8 +66,6 @@ import java.sql.JDBCType;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -574,6 +572,11 @@ public enum MycatdbCommand {
      * i_s.FILES tablespaces 形态又被本地严格分组校验拒绝（活体 mysqldump stderr 铁证）。
      * 本方法在 parse 前按真 MySQL 语义解包版本注释：版本号 MMSSDD 数值比较，未达标保留
      * 注释原文；MariaDB 方言 {@code /*M!} 与非版本纯注释不触碰（I-DEBT-57 路径不变）。
+     *
+     * <p>词法感知（CodeReview Final Important 修复）：真 lexer 只在顶层语句态识别
+     * {@code /*!}，字符串字面量（'…'/"…"，含反斜杠转义与叠引号自转义）、反引号标识符、
+     * 普通块注释、{@code --}/{@code #} 行注释内的版本注释形态一律原样保留——否则
+     * dump 回灌面 {@code INSERT VALUES('/*!40100 hi*&#47;/')} 会被剥标记静默改值。
      */
     public String unwrapVersionComments(String text) {
         if (text.indexOf("/*!") < 0) {
@@ -581,20 +584,95 @@ public enum MycatdbCommand {
             return text;
         }
         final int serverCode = serverVersionCode();
-        final Matcher m = VERSION_COMMENT_PATTERN.matcher(text);
-        final StringBuilder sb = new StringBuilder(text.length());
-        while (m.find()) {
-            final String replacement =
-                    Integer.parseInt(m.group(1)) <= serverCode ? m.group(2) : m.group(0);
-            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        final int n = text.length();
+        final StringBuilder sb = new StringBuilder(n);
+        int i = 0;
+        while (i < n) {
+            final char c = text.charAt(i);
+            if (c == '\'' || c == '"' || c == '`') {
+                i = appendQuotedLiteral(text, i, sb);
+            } else if (c == '#' || (c == '-' && i + 1 < n && text.charAt(i + 1) == '-'
+                    && (i + 2 >= n || Character.isWhitespace(text.charAt(i + 2))))) {
+                i = appendToLineEnd(text, i, sb); // 行注释：原样拷贝至换行前（-- 须后接空白）
+            } else if (c == '/' && i + 1 < n && text.charAt(i + 1) == '*') {
+                i = appendComment(text, i, sb, serverCode);
+            } else {
+                sb.append(c);
+                i++;
+            }
         }
-        m.appendTail(sb);
         return sb.toString();
     }
 
-    /** 版本注释：{@code /*!} 紧跟 1-6 位版本号（非 MariaDB 的 {@code M!} 字母前缀），非贪婪至首个 {@code *&#47;}。 */
-    private static final Pattern VERSION_COMMENT_PATTERN =
-            Pattern.compile("/\\*!(\\d{1,6})(.*?)\\*/", Pattern.DOTALL);
+    /** 引号字面量整段原样拷贝：{@code q…q}；' 与 " 认反斜杠转义，各类引号认叠引号自转义；未闭合则吃至文末。 */
+    private static int appendQuotedLiteral(String text, int start, StringBuilder sb) {
+        final char q = text.charAt(start);
+        final boolean backslashEscapes = q == '\'' || q == '"';
+        sb.append(q);
+        int i = start + 1;
+        while (i < text.length()) {
+            final char c = text.charAt(i);
+            if (backslashEscapes && c == '\\' && i + 1 < text.length()) {
+                sb.append(c).append(text.charAt(i + 1));
+                i += 2;
+            } else if (c == q) {
+                if (i + 1 < text.length() && text.charAt(i + 1) == q) {
+                    sb.append(c).append(q);
+                    i += 2; // 叠引号自转义（'' / "" / ``），字符串态延续
+                } else {
+                    sb.append(c);
+                    return i + 1;
+                }
+            } else {
+                sb.append(c);
+                i++;
+            }
+        }
+        return i;
+    }
+
+    /** 行注释整段原样拷贝至换行前（不含 \n，主循环继续顶层扫描）；无换行则吃至文末。 */
+    private static int appendToLineEnd(String text, int start, StringBuilder sb) {
+        int nl = text.indexOf('\n', start);
+        if (nl < 0) {
+            nl = text.length();
+        }
+        sb.append(text, start, nl);
+        return nl;
+    }
+
+    /**
+     * 顶层 {@code /*…} 起始：达标记版本的 {@code /*!NNNNNN body *&#47;} 剥标记只留 body；
+     * 未达标整段（含标记）原样保留；{@code /*M!}、{@code /*!} 后无数字、普通块注释均整段原样
+     * 拷贝至首个 {@code *&#47;}（真 lexer 不嵌套）；未闭合吃至文末。
+     */
+    private static int appendComment(String text, int start, StringBuilder sb, int serverCode) {
+        final int n = text.length();
+        int k = start + 3; // /*! 之后
+        final int digitsStart = k;
+        while (k < n && k - digitsStart < 6 && Character.isDigit(text.charAt(k))) {
+            k++;
+        }
+        final boolean versionForm = k > digitsStart; // /*! 紧跟 1-6 位数字才属版本注释
+        if (!versionForm) {
+            final int plainClose = text.indexOf("*/", start + 2);
+            final int plainEnd = plainClose < 0 ? n : plainClose + 2;
+            sb.append(text, start, plainEnd);
+            return plainEnd;
+        }
+        final int code = Integer.parseInt(text.substring(digitsStart, k));
+        final int close = text.indexOf("*/", k);
+        if (close < 0) {
+            sb.append(text, start, n); // 未闭合：无锚可终结，整段原样保留
+            return n;
+        }
+        if (code <= serverCode) {
+            sb.append(text, k, close); // 解包：只留 body
+        } else {
+            sb.append(text, start, close + 2); // 未达标：含标记注释原文保留
+        }
+        return close + 2;
+    }
 
     /** 自述版本数值（MMSSDD）：经 DI 取 VersionProfile 画像串；画像未就绪时保守取 5.7.0 地板。 */
     private static int serverVersionCode() {
