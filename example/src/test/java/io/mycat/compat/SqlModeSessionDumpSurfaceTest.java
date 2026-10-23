@@ -120,14 +120,18 @@ public class SqlModeSessionDumpSurfaceTest {
         }
     }
 
-    /** 判据③（缺省严格）：默认严格会话上同形非严格 GROUP BY 仍应被拒（不同探针字面量→独立缓存键，确定性走自身编译）。 */
+    /** 判据③（缺省严格）：默认严格会话上同形非严格 GROUP BY 仍应被拒。缓存隔离坐实修正：
+     * MemPlanCache:69 以**参数化文本**为键，probeTag 字面量会被折成 '?' 失去隔离力（判据②
+     * 转换修复后编译成功入缓存，同形严格会话命中即免校验放行——S2 反串味的真复现）。
+     * 故改用换列序形态：标识符不进参数化，键必然独立，确定性走严格自身编译。 */
     @Test
     public void strictSessionStillRejectsNonStrictGroupBy() throws Exception {
         assumeInfraUp();
         try (Connection c = DriverManager.getConnection(PLAIN_URL, USER, PW)) {
             // 不 SET sql_mode：新会话 getSessionSqlMode()==null → 派生严格
             try {
-                runAndConsume(c, tablespacesNonStrictGroupBy("probe_strict"));
+                runAndConsume(c, "select EXTRA, TABLESPACE_NAME from information_schema.FILES"
+                        + " group by TABLESPACE_NAME");
                 fail("缺省严格会话应拒绝 tablespaces 形态非严格 GROUP BY");
             } catch (SQLException e) {
                 String msg = e.getMessage() == null ? "" : e.getMessage();
