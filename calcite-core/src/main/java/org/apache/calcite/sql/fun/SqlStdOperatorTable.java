@@ -1255,9 +1255,13 @@ public class SqlStdOperatorTable extends ReflectiveSqlOperatorTable {
 
   /**
    * <code>STDDEV</code> aggregate function.
+   *
+   * <p>MYCAT CHANGE (I-DEBT-61): 上游随 SQL 标准把裸 STDDEV 定成 STDDEV_SAMP（样本 ÷(N-1)）；
+   * MySQL/MariaDB 无后缀 STD()/STDDEV() 默认返<b>总体</b>（÷N）。本 fork 服务于 MySQL 代理，改判 STDDEV_POP，
+   * 令跨片本地归并（AggregateReduceFunctionsRule 按算子 kind 选分母）与真库一致。显式 STDDEV_SAMP 不变。
    */
   public static final SqlAggFunction STDDEV =
-      new SqlAvgAggFunction("STDDEV", SqlKind.STDDEV_SAMP);
+      new SqlAvgAggFunction("STDDEV", SqlKind.STDDEV_POP);
 
   /**
    * <code>VAR_POP</code> aggregate function.
@@ -1273,9 +1277,12 @@ public class SqlStdOperatorTable extends ReflectiveSqlOperatorTable {
 
   /**
    * <code>VARIANCE</code> aggregate function.
+   *
+   * <p>MYCAT CHANGE (I-DEBT-61)：同上，MySQL/MariaDB 裸 VARIANCE() 默认=总体（÷N），上游定为 VAR_SAMP。
+   * 改判 VAR_POP；显式 VAR_SAMP 不变。
    */
   public static final SqlAggFunction VARIANCE =
-      new SqlAvgAggFunction("VARIANCE", SqlKind.VAR_SAMP);
+      new SqlAvgAggFunction("VARIANCE", SqlKind.VAR_POP);
 
   public static final SqlBasicFunction BITCOUNT =
       SqlBasicFunction

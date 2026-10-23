@@ -355,15 +355,51 @@ public class CrudResultMatrixTest implements MycatTest {
                 + mycatBd + " oracle=" + oracleBd);
     }
 
-    // C12（跨分片 STDDEV/VARIANCE 值保真）——【已撤出绿矩阵·按债登记，非本 tranche 交付】
-    // tranche② 曾以探针跑 STDDEV/VARIANCE 跨片归并值，活库实证发现真分歧（数据 {1,2,3,4,5,7}，n=6）：
-    //   分片表本地跨片归并：stddev=2.160245356435236、variance=4.66666000（均＝样本口径，除以 n-1）；
-    //   真 MySQL 无后缀默认＝总体口径：stddev(STDDEV_POP)=1.9720265943665387、variance(VAR_POP)=3.8888888888888893。
-    //   对照：非分片单表整体下推后端时 Mycat 透传真库结果=1.9720/3.8889（正确），仅本地归并路径偏样本。
-    // 根因独立于 tranche②（本票 deriveAvgAggType 只改 AVG 型，未触 STDDEV/VARIANCE 规约）：Calcite
-    //   AggregateReduceFunctionsRule 将无后缀 STDDEV/VARIANCE 规约为样本(n-1)口径，而 MySQL 二者默认总体(n)。
-    // 处置（守「宁挂账不伪绿」，遵 C11/BIT 先例）：不将该红断言提进 CI 阻断的绿矩阵，亦不反写 pin 样本值冒充达标；
-    //   缺口已登记 DEBT-QUEUE（跨片 STDDEV/VARIANCE 样本vs总体），是否开后续 tranche 修规约口径由用户拍板。
+    /** C12 跨分片 STDDEV/VARIANCE 值保真（I-DEBT-61 对齐修复）。
+     *  与 C11 AVG 同构：STDDEV/VARIANCE 经 Mycat 跨 2 分库归并必走本地 AggregateReduceFunctionsRule
+     *  规约为 SUM(x*x)/SUM(x)/COUNT 组合，规约口径由算子 SqlKind 决定。
+     *  <b>金标准＝同数据真 MySQL(3306) 单表无后缀默认聚合</b>——MySQL {@code STD()/STDDEV()/VARIANCE()} 默认
+     *  <b>总体口径(÷N)</b>（与 MariaDB 一致），Mycat 跨片归并必须逐值对齐。历史缺口：Calcite 随 SQL 标准将
+     *  裸 STDDEV/VARIANCE 定为 <b>样本口径(÷N-1)</b>，跨片本地归并与真库错开（stddev 2.1602 vs 1.9720）；
+     *  修复＝fork 将裸 STDDEV/VARIANCE 算子 kind 改为 STDDEV_POP/VAR_POP。单片下推路径透传真库本就正确，
+     *  仅本地归并腿需对齐。因含 SQRT 为浮点值，以<b>相对容差 1e-5</b> 对拍（非 AVG 那类精确十进制逐位等）：
+     *  实测定数发现本地归并 BigDecimal 计算链存在 ~1.4e-6 量级精度偏差（如 variance 3.88888333 vs
+     *  真库 3.88888888，另型表也从 Double 塌成 BigDecimal），此属<b>跨片精度/类型表征独立缺口</b>，
+     *  已另挂账不并本票；本票只钉口径（修复前样本口径偏差 20%，1e-5 容差下仍必红，判别力不失）。 */
+    @Test
+    public void crossShardStddevVarianceFidelity() throws Exception {
+        String t = createCell("c12", "`id` bigint NOT NULL, `i` int, PRIMARY KEY(`id`)");
+        // i: 1,2,3,4,5,7 → n=6 sum=22 sumsq=104 SS=104-22^2/6=23.3333；总体 var=3.88889 sd=1.97203（样本 var=4.66667）。
+        String[][] rows = {{"1", "1"}, {"2", "2"}, {"3", "3"}, {"4", "4"}, {"5", "5"}, {"6", "7"}};
+        for (String[] r : rows) {
+            execute(mycat, "insert into " + t + "(`id`,`i`) values (" + r[0] + ", " + r[1] + ")");
+        }
+        execute(adminBackend, "drop table if exists c12_ref");
+        execute(adminBackend, "create table c12_ref(`id` bigint primary key, `i` int)");
+        for (String[] r : rows) {
+            execute(adminBackend, "insert into c12_ref(`id`,`i`) values (" + r[0] + ", " + r[1] + ")");
+        }
+        try {
+            assertAggFidelity("C12：跨分片 STDDEV(int)", t, "stddev", "c12_ref");
+            assertAggFidelity("C12：跨分片 VARIANCE(int)", t, "variance", "c12_ref");
+        } finally {
+            execute(adminBackend, "drop table if exists c12_ref");
+        }
+    }
+
+    /** 读 Mycat 跨分片 {@code select <fn>(i) from t} 与后端 {@code select <fn>(i) from ref} 真值，浮点相对容差 1e-5 对拍（口径钉；本地归并精度偏差另挂账，见 C12 注释）。 */
+    private void assertAggFidelity(String tag, String shardTable, String fn, String refTable) throws Exception {
+        Object mycatV = executeQuery(mycat, "select " + fn + "(`i`) from " + shardTable).get(0).values().iterator().next();
+        Object oracleV = executeQuery(adminBackend, "select " + fn + "(`i`) from " + refTable).get(0).values().iterator().next();
+        System.out.println(tag + " => mycat=" + mycatV + " [" + typeOf(mycatV) + "] oracle=" + oracleV + " [" + typeOf(oracleV) + "]");
+        assertTrue(mycatV != null, tag + "：Mycat 值不应为 null（会话/归并崩？）");
+        assertTrue(oracleV != null, tag + "：oracle 不应为 null");
+        double m = ((Number) mycatV).doubleValue();
+        double o = ((Number) oracleV).doubleValue();
+        double tol = 1e-5 * Math.max(1.0, Math.abs(o));
+        assertEquals(o, m, tol, tag + "：Mycat 跨片归并 " + fn + " 必与真 MySQL 无后缀默认(总体口径)一致，实得 mycat="
+                + m + " oracle=" + o);
+    }
 
     // ---------------------------------------------------------------- helpers
 

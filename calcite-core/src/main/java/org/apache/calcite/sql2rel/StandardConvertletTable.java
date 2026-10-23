@@ -352,13 +352,15 @@ public class StandardConvertletTable extends ReflectiveConvertletTable {
     registerOp(SqlStdOperatorTable.STDDEV_SAMP,
         new AvgVarianceConvertlet(SqlKind.STDDEV_SAMP));
     registerOp(SqlStdOperatorTable.STDDEV,
-        new AvgVarianceConvertlet(SqlKind.STDDEV_SAMP));
+        // MYCAT CHANGE (I-DEBT-61): MySQL 裸 STDDEV() 默认=总体，与 SqlStdOperatorTable.STDDEV kind 同改为 STDDEV_POP。
+        new AvgVarianceConvertlet(SqlKind.STDDEV_POP));
     registerOp(SqlStdOperatorTable.VAR_POP,
         new AvgVarianceConvertlet(SqlKind.VAR_POP));
     registerOp(SqlStdOperatorTable.VAR_SAMP,
         new AvgVarianceConvertlet(SqlKind.VAR_SAMP));
     registerOp(SqlStdOperatorTable.VARIANCE,
-        new AvgVarianceConvertlet(SqlKind.VAR_SAMP));
+        // MYCAT CHANGE (I-DEBT-61): MySQL 裸 VARIANCE() 默认=总体，与 SqlStdOperatorTable.VARIANCE kind 同改为 VAR_POP。
+        new AvgVarianceConvertlet(SqlKind.VAR_POP));
     registerOp(SqlStdOperatorTable.COVAR_POP,
         new RegrCovarianceConvertlet(SqlKind.COVAR_POP));
     registerOp(SqlStdOperatorTable.COVAR_SAMP,
