@@ -42,12 +42,13 @@
     <groupId>com.zaxxer</groupId>
     <artifactId>HikariCP</artifactId>
   </dependency>
-  <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
-  <!--<dependency>-->
-    <!--<groupId>org.mariadb.jdbc</groupId>-->
-    <!--<artifactId>mariadb-java-client</artifactId>-->
-    <!--<version>2.5.2</version>-->
-  <!--</dependency>-->
+  <!-- MYCAT CHANGE (I-AU-6): mariadb-java-client 由注释块转 compile 正式依赖——
+       MariaDB 后端(含 client_ed25519)必须能加载 org.mariadb.jdbc.Driver，mysql-connector-j 不支持该插件。
+       版本不写死，由根 pom dependencyManagement ${mariadb.connector.version}=3.5.3 提供（原注释块滞留的 2.5.2 作废）。 -->
+  <dependency>
+    <groupId>org.mariadb.jdbc</groupId>
+    <artifactId>mariadb-java-client</artifactId>
+  </dependency>
   <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
   <dependency>
     <groupId>com.alibaba</groupId>
