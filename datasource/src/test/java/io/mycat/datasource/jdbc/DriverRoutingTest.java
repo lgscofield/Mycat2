@@ -38,6 +38,20 @@ class DriverRoutingTest {
         assertNull(DruidDatasourceProvider.driverClassFor(null));
     }
 
+    /** dbType 字段默认 "mysql"(DatasourceConfig:29) 会遮蔽 URL 真相：jdbc:mariadb:// URL 必须按 scheme 路由 mariadb 驱动。 */
+    @Test
+    void urlSchemeWinsOverStaleDefaultDbType() {
+        assertEquals("org.mariadb.jdbc.Driver", DruidDatasourceProvider.resolveDriverClass("mysql",
+                "jdbc:mariadb://localhost:3308/mysql"));
+        // mysql URL + 默认 dbType = 现状不变；mariadb dbType 显式声明也保持 mariadb
+        assertEquals("com.mysql.cj.jdbc.Driver", DruidDatasourceProvider.resolveDriverClass("mysql",
+                "jdbc:mysql://localhost:3306/db1"));
+        assertEquals("org.mariadb.jdbc.Driver", DruidDatasourceProvider.resolveDriverClass("mariadb",
+                "jdbc:mariadb://localhost:3308/mysql"));
+        // 非 mysql/mariadb dbType 不扩面：走 driverClassFor 原语义
+        assertNull(DruidDatasourceProvider.resolveDriverClass("clickhouse", "jdbc:clickhouse://localhost/x"));
+    }
+
     @Test
     void schemeDbTypeMismatchFailsLoud() {
         IllegalStateException e = assertThrows(IllegalStateException.class,

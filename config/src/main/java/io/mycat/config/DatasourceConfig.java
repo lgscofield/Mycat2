@@ -168,7 +168,12 @@ public class DatasourceConfig implements KVObject{
     }
 
     public void setUrl(String url) {
-        if ("mysql".equalsIgnoreCase(getDbType()) && url != null) {
+        // MYCAT CHANGE (I-AU-6): 原判定 getDbType()=="mysql" 恒为真——字段默认 dbType="mysql"
+        // (L29) 使 getDbType() 的 URL 推导回退(L207 dbType==null)永不触发，任何 jdbc:mariadb://
+        // URL 都在 Connector/J ConnectionUrlParser 处炸 UnsupportedConnectionString，mariadb 后端
+        // 无法注册。改按 URL 实际 scheme 把关：仅真 mysql 系 URL 走 Connector/J 参数注入，
+        // mariadb 等原样透传（参数归各自驱动）。锁 DatasourceConfigUrlTest。
+        if (url != null && "mysql".equalsIgnoreCase(getDbTypeRaw(url))) {
             ConnectionUrlParser connectionUrlParser = ConnectionUrlParser.parseConnectionString(url);
             Map<String, String> properties = new HashMap<>(connectionUrlParser.getProperties());
             if (!properties.containsKey("useUnicode")) {

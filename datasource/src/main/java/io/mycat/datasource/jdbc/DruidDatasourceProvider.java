@@ -60,7 +60,7 @@ public class DruidDatasourceProvider implements DatasourceProvider {
         // jdbc:mysql:// URL 时 mysql-connector-j 连 ed25519 用户必败于 "Unable to load authentication
         // plugin"，与其沉默到认证层，不如建池前指路。回归锁见 DriverRoutingTest。
         checkUrlSchemeMatchesDbType(dbType, url);
-        String driverClassName = driverClassFor(dbType);
+        String driverClassName = resolveDriverClass(dbType, url);
         if (driverClassName != null) {
             datasource.setDriverClassName(driverClassName);
         }
@@ -153,6 +153,20 @@ public class DruidDatasourceProvider implements DatasourceProvider {
             default:
                 return null;
         }
+    }
+
+    /**
+     * URL scheme 优先的驱动解析（I-AU-6）：DatasourceConfig 字段默认 {@code dbType="mysql"}（L29）
+     * 遮蔽 URL 真相——未显式声明 dbType 的 mariadb 后端会拿到 {@code getDbType()=="mysql"}，若只按
+     * dbType 路由必错配 mariadb URL 进 mysql-connector-j（ed25519 认证沉默失败面）。故 URL 是
+     * {@code jdbc:mariadb:} 时一律 mariadb 驱动；其余维持 dbType 原语义（不扩面）。
+     */
+    static String resolveDriverClass(String dbType, String url) {
+        if (url != null && DatasourceConfig.getDbTypeRaw(url) != null
+                && "mariadb".equalsIgnoreCase(DatasourceConfig.getDbTypeRaw(url))) {
+            return driverClassFor("mariadb");
+        }
+        return driverClassFor(dbType);
     }
 
     /**
