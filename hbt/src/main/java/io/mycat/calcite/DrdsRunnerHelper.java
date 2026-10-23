@@ -378,9 +378,20 @@ public class DrdsRunnerHelper {
 
     public static Future<Void> runOnDrds(MycatDataContext dataContext,
                                          DrdsSqlWithParams drdsSqlWithParams, Response response) {
-        PlanImpl plan = getPlan(drdsSqlWithParams);
-        PlanImplementor planImplementor = getPlanImplementor(dataContext, response, drdsSqlWithParams);
-        return impl(plan, planImplementor);
+        // MYCAT CHANGE (D2b-B): 本地分组校验严格性跟随会话 sql_mode。runOnDrds 同步 getPlan
+        // （内含编译→getSqlValidator→AggChecker 校验）后才 impl 返异步 Future，校验必跑在
+        // 当前线程，与 getPlan 里 ParamHolder.CURRENT_THREAD_LOCAL 的同线程惯例一致——故在此
+        // 单一 SELECT 主入口编译前按会话派生 set、finally reset，避免线程复用（虚拟线程/池化）串味。
+        // 会话未 SET（getSessionSqlMode()==null）→ containsOnlyFullGroupBy 返 true=缺省严格，零行为变化。
+        SessionSqlMode.setOnlyFullGroupBy(
+                SqlModeTokens.containsOnlyFullGroupBy(dataContext.getSessionSqlMode()));
+        try {
+            PlanImpl plan = getPlan(drdsSqlWithParams);
+            PlanImplementor planImplementor = getPlanImplementor(dataContext, response, drdsSqlWithParams);
+            return impl(plan, planImplementor);
+        } finally {
+            SessionSqlMode.reset();
+        }
     }
 
     @NotNull
