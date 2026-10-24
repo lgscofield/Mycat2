@@ -687,14 +687,23 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
         SqlIdentifier dataTypeNode = (SqlIdentifier) convertToSqlNode(
                 new SQLIdentifierExpr(typeName));
 
-        int scale = -1;
+        // MYCAT CHANGE (I-DEBT-64): 哨兵值须对齐 Calcite RelDataType——PRECISION_NOT_SPECIFIED=-1、
+        // SCALE_NOT_SPECIFIED=Integer.MIN_VALUE（非 -1！）。单参 CHAR(n)/VARCHAR(n)/BINARY(n) 只有长度、无 scale，
+        // scale 必须留 SCALE_NOT_SPECIFIED，否则 SqlBasicTypeNameSpec.deriveType 误判"precision+scale 都指定"
+        // 走 DECIMAL 路并对 VARCHAR 触发 assert allowsPrecScale(true,true) 崩（validated:null）。
+        int scale = Integer.MIN_VALUE;
         int precision = -1;
 
         List<SQLExpr> arguments = dataType.getArguments();
         if (arguments != null && !arguments.isEmpty()) {
-            scale = ((SQLNumericLiteralExpr) arguments.get(0)).getNumber().intValue();
+            // MYCAT CHANGE (I-DEBT-64): druid 对 CHAR(n)/VARCHAR(n)/BINARY(n) 给 arguments=[n]（n 是长度），
+            // 对 DECIMAL(M,D) 给 arguments=[M,D]。第一参数恒是"长度/总精度"，应进 precision；第二参数（小数位）
+            // 才进 scale。旧码把 arguments[0] 误灌 scale、[1] 灌 precision：CHAR(n) 长度落 scale、precision=-1
+            // → 目标塌成 Calcite CHAR 缺省精度 1 → checkExpressionPadTruncate 截成 1 字符（cast(10 as char)="1"）；
+            // DECIMAL(M,D) 则 M/D 全反（cast(10 as decimal(10,2)) 目标 DECIMAL(2,10)）。
+            precision = ((SQLNumericLiteralExpr) arguments.get(0)).getNumber().intValue();
             if (arguments.size() > 1) {
-                precision = ((SQLNumericLiteralExpr) arguments.get(1)).getNumber().intValue();
+                scale = ((SQLNumericLiteralExpr) arguments.get(1)).getNumber().intValue();
             }
         }
         SqlNode sqlDataTypeSpec;
@@ -707,6 +716,15 @@ public class MycatCalciteMySqlNodeVisitor extends MySqlASTVisitorAdapter {
                 typeName = "VARCHAR";
             } else if ("UNSIGNED".equalsIgnoreCase(typeName)) {
                 typeName = "DECIMAL";
+            } else if ("CHAR".equalsIgnoreCase(typeName)) {
+                // MYCAT CHANGE (I-DEBT-64): MySQL CAST AS CHAR(n) 语义 = 截到 n 且【不右填充】、无长度 = 不限长，
+                // 恰是 Calcite VARCHAR（变长不 pad）语义；而 Calcite CHAR(n) 是定长右填充（pad=true），与真库相反
+                // （真库 cast('10' as char(10))="10"，Calcite CHAR(10) 会给 "10        "）。故把 cast 的字符串目标
+                // 归一为 VARCHAR：长度经上面 precision 修正带入，checkExpressionPadTruncate 走 TRUNCATE（不 pad），
+                // 无长度则 precision=-1 → 该方法 targetPrecision<0 直接放行（不限长）。结果列对外类型 CHAR→VARCHAR
+                // 与真 MySQL 上报 CAST AS CHAR 的变长串（var_string）一致，非劣化。MycatCastOverride.canonical 把
+                // CHAR/VARCHAR 同归 "STRING"，故该归一不改变选用的 X_TO_STRING 方法，仅去掉错误的 pad/截断。
+                typeName = "VARCHAR";
             }
             SqlTypeName sqlTypeName = SqlTypeName.valueOf(typeName);
             SqlBasicTypeNameSpec sqlBasicTypeNameSpec = new SqlBasicTypeNameSpec(sqlTypeName, precision, scale, null, SqlParserPos.ZERO);

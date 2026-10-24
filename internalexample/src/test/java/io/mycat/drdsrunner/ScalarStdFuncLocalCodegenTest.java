@@ -114,6 +114,38 @@ public class ScalarStdFuncLocalCodegenTest implements MycatTest {
     }
 
     /**
+     * I-DEBT-64 回归锁：本地求值路径 CAST 的目标类型表征必须与 MySQL/MariaDB 语义一致。
+     *
+     * <p>旧行为（{@code MycatCalciteMySqlNodeVisitor.visit(SQLCastExpr)} 把 {@code arguments[0]}
+     * 误灌 scale、{@code [1]} 灌 precision）：{@code CHAR(n)}/{@code VARCHAR(n)} 的长度 n 落进 scale、
+     * precision=-1 → 目标塌成 Calcite {@code CHAR(1)} → {@code checkExpressionPadTruncate} 按精度 1 把串
+     * 截成 1 字符（活库证 {@code cast(10 as char)="1"}）；{@code DECIMAL(M,D)} 则 M/D 全反
+     * （证 {@code cast(10 as decimal(10,2))} 目标 {@code DECIMAL(2,10)}）。正解=长度/第一参数进 precision、
+     * 第二参数进 scale，且 MySQL {@code CAST AS CHAR} 语义（截 n 不右填充、无长度不限长）= Calcite VARCHAR，
+     * 故 cast 字符串目标归一 VARCHAR。本锁钉住**机制面**（目标类型表征），活库差分锁钉**结果面**（逐值）。
+     */
+    @Test
+    public void castTargetTypeMatchesMysqlSemantics() {
+        // CHAR(n)/VARCHAR(n) 长度须进 precision，且按不填充的 VARCHAR 表征（非塌成 CHAR(1)）。
+        Assert.assertTrue("cast(1234 as char(10)) 目标应为 VARCHAR(10)（截 10 不 pad），实际计划："
+                        + planAndCodegen("select cast(1234 as char(10))"),
+                planAndCodegen("select cast(1234 as char(10))").contains("VARCHAR(10)"));
+        Assert.assertTrue("cast('abcdefghij' as char(3)) 目标应为 VARCHAR(3)，实际计划："
+                        + planAndCodegen("select cast('abcdefghij' as char(3))"),
+                planAndCodegen("select cast('abcdefghij' as char(3))").contains("VARCHAR(3)"));
+        // 无长度 CHAR：不限长、不截 1，须表征为 VARCHAR 而非 CHAR(1)。
+        String noLen = planAndCodegen("select cast('hello' as char)");
+        Assert.assertTrue("cast('hello' as char) 目标应为 VARCHAR（不限长），实际计划：" + noLen,
+                noLen.contains("VARCHAR"));
+        Assert.assertFalse("cast('hello' as char) 目标不得塌成 CHAR(1)（旧 bug 根因），实际计划：" + noLen,
+                noLen.contains("CHAR(1)"));
+        // DECIMAL(M,D)：precision/scale 不得颠倒。
+        Assert.assertTrue("cast(10 as decimal(10,2)) 目标应为 DECIMAL(10, 2)，实际计划："
+                        + planAndCodegen("select cast(10 as decimal(10,2))"),
+                planAndCodegen("select cast(10 as decimal(10,2))").contains("DECIMAL(10, 2)"));
+    }
+
+    /**
      * I-DEBT-39·tranche①（宽）回归锁：MySQL {@code /} 除法必须能本地落码，且出码/常量折叠走 Mycat 自定义实现。
      *
      * <p>旧行为：{@code select 1/0} 走内置 {@code SqlFunctions.divide} 整除路 → 常量折叠/落码抛
