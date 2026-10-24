@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -39,19 +38,25 @@ public class ResultSetMapping {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultSetMapping.class);
 
     /**
-     * I-DEBT-65 route(b)：DECIMAL/NUMERIC 结果值按**列声明 scale** 归一后再编码——短则补尾零、
-     * 长则 {@link RoundingMode#HALF_UP}（半舍远离零）舍入，与 MySQL/MariaDB「按列 decimals 渲染」一致。
-     * <p>本地求值腿（cast/算术/折叠字面量）常产出 scale-0 或超采样的 BigDecimal，而列元数据 scale 已由
-     * 类型推断（I-DEBT-64 后）正确表征；若不归一，客户端按字符串/尾零渲染即见 {@code "10"} 而真库 {@code "10.00"}
-     * （{@code BigDecimal.compareTo} 数值相等会静默掩盖该表征偏离）。{@code scale<0}（未声明）时原样返回；
-     * 对后端下推自带正确 scale 的列幂等。本函数为活库真实编码路径（{@link #concertToDirectTextResultSet}/
-     * {@link #concertToDirectBinaryResultSet}）——所有结果集经 ReceiverImpl 的 Observable 观察器统一落此。
+     * I-DEBT-65 route(b)（安全变体·仅补零不舍入截断）：DECIMAL/NUMERIC 结果值按**列声明 scale** 补齐尾零，
+     * 使本地求值产出的 scale-0 BigDecimal（如 {@code cast(10 as decimal(10,2))} → {@code "10"}）渲染为
+     * {@code "10.00"}，与 MySQL/MariaDB「按列 decimals 渲染」一致（{@code BigDecimal.compareTo} 数值相等会
+     * 静默掩盖该表征偏离，仅字符串/尾零渲染处可见）。
+     * <p><b>关键安全约束——绝不降 scale</b>：当 {@code value.scale() > scale} 时**原样返回、不 setScale**
+     * （不截断/不舍入）。因 Mycat 结果元数据 scale 对**计算/聚合列**（如 {@code avg(decimal(20,4))} 真值 scale=8
+     * 而元数据仅报源列 scale=4）会**低报**，无条件下采会把已正确的 BigDecimal 截成错值（活库 CI 实证：
+     * {@code avg(d)} 3.66666667 被截成 3.6667，{@code BigDecimal.compareTo} 由 0 变 1 → 值保真回归）。补零是
+     * 数值无损操作（仅追加尾零，{@code compareTo} 不变），可安全施加；降 scale 有损，交值生成腿（route(a)
+     * codegen 期对 CAST 目标真正 round）解决，不在编码缝强裁。{@code scale<0}（未声明）时原样返回。
+     * 本函数为活库真实编码路径（{@link #concertToDirectTextResultSet}/{@link #concertToDirectBinaryResultSet}）
+     * ——所有结果集经 ReceiverImpl 的 Observable 观察器统一落此。
      */
     public static BigDecimal scaleToColumn(BigDecimal value, int scale) {
-        if (value == null || scale < 0 || value.scale() == scale) {
+        if (value == null || scale < 0 || value.scale() >= scale) {
             return value;
         }
-        return value.setScale(scale, RoundingMode.HALF_UP);
+        // 仅在补零（升 scale）时施加——升 scale 恒精确、不触发 ArithmeticException，且数值 compareTo 不变。
+        return value.setScale(scale);
     }
 
     public static Function<Object[], byte[]> concertToDirectTextResultSet(MycatRowMetaData rowMetaData) {
@@ -210,9 +215,9 @@ public class ResultSetMapping {
                         }
                         case Types.DECIMAL:
                         case Types.NUMERIC: {
-                            // I-DEBT-65 route(b)：DECIMAL/NUMERIC 走文本 wire 时按列声明 scale 归一（补尾零/HALF_UP 舍入），
+                            // I-DEBT-65 route(b)（仅补零）：DECIMAL/NUMERIC 走文本 wire 时按列声明 scale 补尾零，
                             // 令本地求值产出的 scale-0 BigDecimal（如 cast(10 as decimal(10,2)) → "10"）渲染为 "10.00"，
-                            // 与真库逐字符对齐；落 default 的 Objects.toString 会丢尾零。
+                            // 与真库逐字符对齐；落 default 的 Objects.toString 会丢尾零。绝不降 scale（见 scaleToColumn）。
                             Object o = objects[columnIndex];
                             if (o == null) {
                                 row[rowIndex] = null;
@@ -245,8 +250,8 @@ public class ResultSetMapping {
                 } else {
                     int columnType = rowMetaData.getColumnType(i);
                     Object object = objects[i];
-                    // I-DEBT-65 route(b)：DECIMAL/NUMERIC 二进制走 lenenc 十进制串，先按列 scale 归一（补尾零/HALF_UP 舍入）再编码，
-                    // 否则 static getBytes 的 toString 会丢尾零（"10" 而非 "10.00"）。
+                    // I-DEBT-65 route(b)（仅补零）：DECIMAL/NUMERIC 二进制走 lenenc 十进制串，先按列 scale 补尾零再编码，
+                    // 否则 static getBytes 的 toString 会丢尾零（"10" 而非 "10.00"）。绝不降 scale（见 scaleToColumn）。
                     if ((columnType == Types.DECIMAL || columnType == Types.NUMERIC) && object instanceof BigDecimal) {
                         object = scaleToColumn((BigDecimal) object, rowMetaData.getScale(i));
                     }
