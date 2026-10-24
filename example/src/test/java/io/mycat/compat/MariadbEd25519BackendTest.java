@@ -38,7 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * DDL {@code CREATE DATABASE IF NOT EXISTS dbmX_N} 时抛 {@code org.jooq.impl.ParserException}
  * （jOOQ MARIADB 解析器不认 MariaDB 专有 {@code CREATE DATABASE}），令 dbType=mariadb 后端建库即失败。
  * 此为 SQL 方言腿的既有缺陷，与 ed25519 认证正交（认证由 URL scheme 驱动路由保证，判据③走 plain
- * Druid 路径已端到端跑通），故不在本金标准内伪绿，单列债务跟踪。
+ * Druid 路径已端到端跑通），故不在本金标准内伪绿，单列债务跟踪。<b>2026-10-24 已定性收口（用户拍板
+ * 不修，详 DEBT-QUEUE I-AU-6b）</b>：MariaDB 后端推荐形态=<b>本测所用</b> {@code jdbc:mariadb://} URL +
+ * dbType 缺省(=mysql) 走 plain Druid；显式 {@code dbType=mariadb} 方言腿列不推荐/未支持，除非未来出现
+ * 必须该形态才能覆盖的 DML 方言兼容需求，再另起专轮评估 DDL 透传豁免。
  * <p>
  * <b>测试床</b>：docker mariadb:10.11 于 3308（独立端口，绝不触碰 m1-mysql-a/b 的 3306/3307），
  * ed25519 用户 {@code e25519}（服务端插件 auth_ed25519.so 已 INSTALL）。Mycat 以
