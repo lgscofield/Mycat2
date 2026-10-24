@@ -22,6 +22,8 @@ import org.apache.calcite.avatica.util.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -35,6 +37,22 @@ import java.util.function.Function;
 
 public class ResultSetMapping {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultSetMapping.class);
+
+    /**
+     * I-DEBT-65 route(b)：DECIMAL/NUMERIC 结果值按**列声明 scale** 归一后再编码——短则补尾零、
+     * 长则 {@link RoundingMode#HALF_UP}（半舍远离零）舍入，与 MySQL/MariaDB「按列 decimals 渲染」一致。
+     * <p>本地求值腿（cast/算术/折叠字面量）常产出 scale-0 或超采样的 BigDecimal，而列元数据 scale 已由
+     * 类型推断（I-DEBT-64 后）正确表征；若不归一，客户端按字符串/尾零渲染即见 {@code "10"} 而真库 {@code "10.00"}
+     * （{@code BigDecimal.compareTo} 数值相等会静默掩盖该表征偏离）。{@code scale<0}（未声明）时原样返回；
+     * 对后端下推自带正确 scale 的列幂等。本函数为活库真实编码路径（{@link #concertToDirectTextResultSet}/
+     * {@link #concertToDirectBinaryResultSet}）——所有结果集经 ReceiverImpl 的 Observable 观察器统一落此。
+     */
+    public static BigDecimal scaleToColumn(BigDecimal value, int scale) {
+        if (value == null || scale < 0 || value.scale() == scale) {
+            return value;
+        }
+        return value.setScale(scale, RoundingMode.HALF_UP);
+    }
 
     public static Function<Object[], byte[]> concertToDirectTextResultSet(MycatRowMetaData rowMetaData) {
         int columnCount = rowMetaData.getColumnCount();
@@ -190,6 +208,22 @@ public class ResultSetMapping {
                             }
                             break;
                         }
+                        case Types.DECIMAL:
+                        case Types.NUMERIC: {
+                            // I-DEBT-65 route(b)：DECIMAL/NUMERIC 走文本 wire 时按列声明 scale 归一（补尾零/HALF_UP 舍入），
+                            // 令本地求值产出的 scale-0 BigDecimal（如 cast(10 as decimal(10,2)) → "10"）渲染为 "10.00"，
+                            // 与真库逐字符对齐；落 default 的 Objects.toString 会丢尾零。
+                            Object o = objects[columnIndex];
+                            if (o == null) {
+                                row[rowIndex] = null;
+                            } else if (o instanceof BigDecimal) {
+                                row[rowIndex] = TextConvertorImpl.INSTANCE
+                                        .convertBigDecimal(scaleToColumn((BigDecimal) o, rowMetaData.getScale(columnIndex)));
+                            } else {
+                                row[rowIndex] = Objects.toString(o).getBytes(StandardCharsets.UTF_8);
+                            }
+                            break;
+                        }
                         default:
                             Object object = objects[columnIndex];
                             row[rowIndex] = (object == null ? null : Objects.toString(object).getBytes(StandardCharsets.UTF_8));
@@ -209,7 +243,14 @@ public class ResultSetMapping {
                 if (objects[i] == null) {
                     bytes[i] = null;
                 } else {
-                    bytes[i] = BinaryResultSetResponse.getBytes(rowMetaData.getColumnType(i), objects[i]);
+                    int columnType = rowMetaData.getColumnType(i);
+                    Object object = objects[i];
+                    // I-DEBT-65 route(b)：DECIMAL/NUMERIC 二进制走 lenenc 十进制串，先按列 scale 归一（补尾零/HALF_UP 舍入）再编码，
+                    // 否则 static getBytes 的 toString 会丢尾零（"10" 而非 "10.00"）。
+                    if ((columnType == Types.DECIMAL || columnType == Types.NUMERIC) && object instanceof BigDecimal) {
+                        object = scaleToColumn((BigDecimal) object, rowMetaData.getScale(i));
+                    }
+                    bytes[i] = BinaryResultSetResponse.getBytes(columnType, object);
                 }
             }
             return MySQLPacketUtil.generateBinaryRow(bytes);
