@@ -178,7 +178,31 @@ RED 目视失败行：`expected:<4> but was:<0>`（decimal）、`expected:<6> bu
 **遗留项**（归后续专轮）：
 - **B1+R1**：`MycatCastOverride` DECIMAL 目标 `return null` + `MycatTypeSystem.roundingMode()=HALF_UP`——前序会话已验证离线出码锁+活库逐值差分（`cast(1.2345 as decimal(10,2))=1.23` 五档全绿），本轮不回revert；待另轮提 PR
 - **环境工程卫生**（非本债）：JDK 25 + Byte Buddy 不兼容导致 Mockito inline 测试需实验旗；属工程卫生，建议新开窄账或归 I-DEBT-56 同类
-- **server/internalexample 套本轮未跑**：server 模块自身在 HEAD 编译不过（`getConnectionId()` 未定义、`URISyntaxException` 未报），属 pre-existing infra，不属本 fix 引入。待修后补跑。
+- **server/internalexample 套本轮未跑**：server 模块自身在 HEAD 编译不过（`getConnectionId()` 未定义、`URISyntaxException` 未报），属 pre-existing infra，不属本 fix 引入。待修后补跑。（后继轮实测推翻：`mvn -pl server compile` RC=0，旧记录系 JDK 环境变量问题，见 §2.10 环境发现。）
+
+### 2.10 【B1+R1+Fix-Meta-2 落地 2026-10-25】三者合龙，cast 舍入面活库达标
+
+后继专轮（TDD）落地 §2.9 遗留项 B1+R1，过程中活库暴露并钉死 §2.8 因果链的**最后缺口**，追加 Fix-Meta-2：
+
+**B1+R1（RED→GREEN）**：
+- RED 目视：`MycatTypeSystemRoundingModeTest` `expected: <HALF_UP> but was: <DOWN>`；`ScalarStdFuncLocalCodegenTest` 新增 2 出码锁（`castDecimalTargetUsesForkRoundingLeg` 断 `decimalDecimalCast` 在场且 `decimalToDecimal` 缺席；`castDecimalRoundingModeBakedIsHalfUp` 断出码烘入 HALF_UP）失败。
+- GREEN：`MycatCastOverride.translate` 于 ANY 透传后加 `tgtName==DECIMAL → return null`（B1 让路 fork 带舍入转换腿）；`MycatTypeSystem.roundingMode()` 覆盖返 HALF_UP（R1）。新锁 6/6、hbt 全量 243/243 零回归。
+
+**活库复验暴 C11 回归红（§2.6 症状精确重现：mycat=3.6667 oracle=3.66666667）**——jar 内三 class hash 与本地编译一致，排除补丁未生效，坐实为真因果链缺口：
+
+**根因 = `common/.../util/MycatRowMetaDataImpl.getPrecision/getScale` 硬编码 0**。分片表列元数据有两条供给腿：① JDBC 腿 `convertfromDatabaseMetaData`（读 COLUMN_SIZE/DECIMAL_DIGITS，有精度标度）；② **DDL 解析腿**（schema 配置含 createTableSQL 文本时，`PrototypeService.getColumnInfo→SQL2ResultSetUtil.getMycatRowMetaData(MySqlCreateTableStatement)→MycatRowMetaDataImpl`），此腿 precision/scale 恒 0 → `SimpleColumnInfo(0,0)` → Fix-Meta 的 `precision>0` 守卫不触发 → DECIMAL 列仍塌 (19,0) → §2.8 链条复活 → C11 红。即 §2.8 「`SimpleColumnInfo` 携带 precision=20, scale=4」的前提**只对 JDBC 腿成立**。
+
+**Fix-Meta-2（RED→GREEN）**：`common` 新锁 `MycatRowMetaDataImplPrecisionScaleTest`（RED 目视 `expected:<20> but was:<0>` 等 2F + datetime 无参护栏绿）；GREEN 实现从列定义 `SQLDataType.getArguments()` 读整数字面量参数（首参=precision、次参=scale，无参/非整数表达式保守返 0 维持现状语义）。
+
+**修后活库实证全闭环**：
+- `CrudResultMatrixTest` **12/12 绿**，C11 `avg(d)=3.66666667 = oracle` 逐字对拍；
+- 差分探针 TEXT 16/17 + BINARY 6/6 全绿（唯一 FAIL=version() persona 预期差异）：tie 舍入 `cast(1.2355 as decimal(10,2))=1.24`、负数 `-1.24`、`cast(0.5 as decimal(10,0))=1`（HALF_UP 远离零）、补零防回退 `10→10.00`、`(10,4)→1.2345` 不缩、`10/3=3.3333`、metaScale 列头同步一致；
+- example 回归轴 A/B：compat 50T/2F（均 I-DEBT-41 存量红 bit 归并族）、sql 79T/1F/5E（any_value/WEEK 存量族）与基线**数字完全一致**，零新增红；common 43/43、hbt 243/243。
+- example 全量套（533T/8F/159E）：8F 与今晨基线全量（补丁前 jar）的 F 类名单逐名逐数一致；其中 HbtTest（`avg(id)` 组内显 `1.0000` 而断言整数态）与 VectorTest（断言 `5.0000` 实得 `5.0`）两红经 **git stash 产品码→重建基线 fat jar→重启 Mycat 复跑 A/B 实证均为存量红**（症状逐字符相同，与 B1/R1/FM2 无关；两者同属 I-DEBT-39·tranche② avg(bigint) DECIMAL(scale4) 口径族：真 MySQL `avg(bigint)`=DECIMAL scale4，HbtTest 断言应更新为 `1.0000`，VectorTest 实得 `5.0` 为另一独立缺口——待另票处置，本轮不扩域）。159E 签名全为 XA 池态/lock-wait/DUPID 环境族（本轮两次重启 Mycat + 多轮套跑致后端 XID 残留，板面 §I-DEBT-41 分诊行已定性），非产品新增回归。
+
+**环境发现（非本债，钉死为陷阱）**：新终端 `JAVA_HOME` 漂到 LibericaJDK-25 时，JDK 23+ **默认禁用隐式注解处理**，lombok 全面失效 → common 全量重编炸出 20+ 「找不到符号 getXxx()」假象（曾被误读为存量编译坏）。规矩：本仓一切 mvn 前必坐实 `JAVA_HOME=LibericaJDK-21-Full`。
+
+**裁定**：本债三改点组合 = Fix-Meta（已提交 bc60e5ab4）+ Fix-Meta-2 + B1+R1，I-DEBT-66 本地闭环；剩末次 CodeReview 门禁 + push + CI compat 矩阵全档绿后升 Evidenced-Done。
 
 ---
 
