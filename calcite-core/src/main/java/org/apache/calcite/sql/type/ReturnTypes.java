@@ -1473,11 +1473,23 @@ public abstract class ReturnTypes {
 
   public static final SqlReturnTypeInference AVG_AGG_FUNCTION = opBinding -> {
     final RelDataTypeFactory typeFactory = opBinding.getTypeFactory();
+    // MYCAT CHANGE (I-DEBT-63/I-DEBT-66): MySQL 的 STDDEV/STD/VARIANCE/VAR_POP/VAR_SAMP 恒返回
+    // 近似双精度(double)，绝不因整型入参塌成精确十进制；仅 AVG 沿用类型系统派生（整型→DECIMAL，
+    // 见 MycatTypeSystem.deriveAvgAggType / I-DEBT-39 tranche②）。deriveAvgAggType 被 AVG 与
+    // STDDEV/VAR 共用（其 javadoc 即言“AVG, STDDEV or VAR”），而它只拿得到入参、看不到算子 kind，
+    // 故 tranche② 的精确数值→DECIMAL 会连带把 STDDEV/VAR 也拖成 DECIMAL：跨片本地归并 reduceStddev
+    // 的 ÷N 经 Mycat 十进制除法(DECIMAL scale4)截断成 1.9720，与真 MySQL 全精度 1.9720265943665387
+    // 相对差 2.66e-5 越过 compat C12 的 1e-5 严容差（MySQL 档必红、MariaDB 因舍入放宽档恰好过）。此 kind
+    // 分派为唯一 kind 感知接缝——把浮点聚合钉回 DOUBLE/近似轨，与 AVG 精确十进制语义正交。
+    final SqlKind kind = opBinding.getOperator().kind;
     final RelDataType relDataType =
-        typeFactory.getTypeSystem().deriveAvgAggType(typeFactory,
-            opBinding.getOperandType(0));
+        (kind == SqlKind.STDDEV_POP || kind == SqlKind.STDDEV_SAMP
+            || kind == SqlKind.VAR_POP || kind == SqlKind.VAR_SAMP)
+            ? typeFactory.createSqlType(SqlTypeName.DOUBLE)
+            : typeFactory.getTypeSystem().deriveAvgAggType(typeFactory,
+                opBinding.getOperandType(0));
     if (opBinding.hasEmptyGroup() || opBinding.hasFilter()
-        || opBinding.getOperator().kind == SqlKind.STDDEV_SAMP) {
+        || kind == SqlKind.STDDEV_SAMP) {
       return typeFactory.createTypeWithNullability(relDataType, true);
     } else {
       return relDataType;
