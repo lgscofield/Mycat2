@@ -366,7 +366,21 @@ public class CalciteConvertors {
                 if (sqlTypeName == null) {
                     sqlTypeName = SqlTypeName.VARCHAR;
                 }
-                type = factory.createSqlType(sqlTypeName);
+                // I-DEBT-66 Fix-Meta：DECIMAL/NUMERIC 必须把 MySQL 列元数据的 precision/scale 透传给 Calcite，
+                // 否则 decimal(20,4) 被降成 Calcite 默认 DECIMAL(19,0)，下游 deriveAvgAggType 拿 scale=0 派生
+                // DECIMAL(19,4) 而非正确 DECIMAL(19,8)，触发跨片归并 AVG 的 reduceAvg 降 scale CAST（详见
+                // docs/superpowers/specs/2026-10-24-i-debt-66-cast-decimal-round-design.md §2.8）。
+                // precision 若超出 type system 声明的 max，clamp 到 max；scale 保留原值（本 bug 关键锚）。
+                if (sqlTypeName == SqlTypeName.DECIMAL
+                        && columnInfo.getPrecision() > 0
+                        && columnInfo.getScale() >= 0) {
+                    int maxPrecision = factory.getTypeSystem().getMaxPrecision(SqlTypeName.DECIMAL);
+                    int precision = Math.min(columnInfo.getPrecision(), maxPrecision);
+                    int scale = Math.min(columnInfo.getScale(), precision);
+                    type = factory.createSqlType(sqlTypeName, precision, scale);
+                } else {
+                    type = factory.createSqlType(sqlTypeName);
+                }
             }
             builder.add(columnInfo.getColumnName(), factory.createTypeWithNullability(type, columnInfo.isNullable()));
         }
