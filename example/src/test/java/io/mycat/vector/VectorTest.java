@@ -65,7 +65,12 @@ public class VectorTest implements MycatTest {
                 maps = executeQuery(mycatConnection, "SELECT avg(id) FROM `db1`.`vector` LIMIT 0, 1000; ");
 
                 // MYCAT CHANGE (I-DEBT-39·tranche②): deriveAvgAggType 精确数值改判 DECIMAL，AVG(bigint)
-                // 对齐 MySQL = DECIMAL(scale=div_precision_increment=4)，id 1..9 avg=5 → 5.0000（旧 DOUBLE 形态 5.0）。
+                // 对齐 MySQL = DECIMAL(scale=div_precision_increment=4)，id 1..9 avg=5 → 5.0000。
+                // ⚠ 本行处于 `/*+mycat:setVector{1}*/` 态，走 ordinate 向量化执行器（非 calcite codegen 腿）：
+                // AvgAggregateFunction 系 DoubleAccumulator（executor/.../aggregate/avg/AvgAggregateFunction.java:27,65-70,85-97，
+                // cairo MapValue 仅 LONG/DOUBLE 槽，无 DECIMAL 累加器 infra），sum=45.0/count=9 → 现抛出 "5.0"。
+                // 真库口径=DECIMAL scale4 应 5.0000，此为**未修的产品缺口红锁**（宁挂账不伪绿，绝不降级断言迁就现状）。
+                // DECIMAL 保真属 executor 表征链专轮 I-DEBT-67（待接）；引擎双轨现状锤钉于 AvgDecimalFidelityGapTest（knownGap 锚锁）。
                 Assert.assertEquals("[{avg(id)=5.0000}]",maps.toString());
 
                 maps = executeQuery(mycatConnection, "SELECT user_id FROM `db1`.`vector` group by user_id LIMIT 0, 1000; ");

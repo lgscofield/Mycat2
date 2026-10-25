@@ -112,10 +112,12 @@ public class HbtTest implements MycatTest {
             Assert.assertEquals("[{1=1}]", runHBT("unionAll(fromSql('prototype','select 1'),fromSql('prototype','select 1')).distinct()"));
 
             //groupBy
-            // MYCAT CHANGE (I-DEBT-39·tranche②): deriveAvgAggType 精确数值改判 DECIMAL 后，avg(id) 不再走 double
-            // 旧形态（原 1.0 / 9.99999999E8）；group by id 使每组单行、avg=id 精确，HBT assemble 序列化以整数态呈现。
-            Assert.assertEquals("[{id=1, $f1=1}, {id=999999999, $f1=999999999}]", runHBT("fromTable(db1,travelrecord).groupBy(keys(groupKey(`id`)),aggregating(avg(`id`))))"));
-            Assert.assertEquals("[{id=999999999, user_id=999, $f2=999999999}, {id=1, user_id=999, $f2=1}]", runHBT("fromTable(db1,travelrecord).groupBy(keys(groupKey(`id`,`user_id`)),aggregating(avg(`id`))))"));
+            // MYCAT CHANGE (I-DEBT-39·tranche② / 2026-10-25 断言口径订正): deriveAvgAggType 精确数值改判 DECIMAL 后，
+            // avg(id) 对齐真库=DECIMAL(scale=div_precision_increment=4)：后端真值对拍坐实逐组 avg(id)=1.0000/999999999.0000
+            // （m1 后端直查 `select id,avg(id) from db1.travelrecord group by id` 同形）。旧断言整数态系 tranche② 误把
+            // HBT 内部序列化形态当 MySQL 口径钉死，本次凭活库对拍订正为真值形态。
+            Assert.assertEquals("[{id=1, $f1=1.0000}, {id=999999999, $f1=999999999.0000}]", runHBT("fromTable(db1,travelrecord).groupBy(keys(groupKey(`id`)),aggregating(avg(`id`))))"));
+            Assert.assertEquals("[{id=999999999, user_id=999, $f2=999999999.0000}, {id=1, user_id=999, $f2=1.0000}]", runHBT("fromTable(db1,travelrecord).groupBy(keys(groupKey(`id`,`user_id`)),aggregating(avg(`id`))))"));
 
 
             Assert.assertEquals("[{$f0=1000000000}]", runHBT("fromTable(db1,travelrecord).groupBy(keys(groupKey()),aggregating(sum(`id`)))"));
