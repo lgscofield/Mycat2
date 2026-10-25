@@ -255,6 +255,15 @@ public class ResultSetMapping {
                     if ((columnType == Types.DECIMAL || columnType == Types.NUMERIC) && object instanceof BigDecimal) {
                         object = scaleToColumn((BigDecimal) object, rowMetaData.getScale(i));
                     }
+                    // I-DEBT-27：BINARY/VARBINARY/BLOB 等内部规范表示为 ByteString（见 BaseRowObservable 的
+                    // I-DEBT-8 归一不变式）。而 BinaryResultSetResponse.convertString 只认 byte[]，ByteString 会落
+                    // object.toString().getBytes()——ByteString.toString() 返回**十六进制 ASCII 串**（原始 [127,-1,...]
+                    // 变 "7fffffffffffffff"），沉默腐蚀二进制结果集的 BLOB 列（UserCaseTest#case14 实跑复现）。
+                    // 与文本腿（{@link #concertToDirectTextResultSet} 的 ByteString→getBytes 分支）对齐，先归一为裸
+                    // byte[] 再交编码，令二进制腿透传原始字节。
+                    if (object instanceof ByteString) {
+                        object = ((ByteString) object).getBytes();
+                    }
                     bytes[i] = BinaryResultSetResponse.getBytes(columnType, object);
                 }
             }
