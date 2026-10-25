@@ -65,6 +65,15 @@ public final class MycatCastOverride {
     if (srcName == SqlTypeName.ANY || tgtName == SqlTypeName.ANY) {
       return operand;
     }
+    // MYCAT CHANGE (I-DEBT-66 B1)：目标为 DECIMAL 的 CAST 一律让位 fork 原生带舍入的转换腿
+    // （RexToLixTranslator.getConvertExpression 的 DECIMAL 腿：逐源型产 *_DECIMAL_CAST_ROUNDING_MODE，
+    // 施加目标 precision/scale + typeSystem.roundingMode()）。旧 seam 的 *_TO_DECIMAL 矩阵（含
+    // decimalToDecimal 纯 identity）从不施加目标 scale：cast(1.2345 as decimal(10,2)) 得 1.2345（活库证
+    // 真 MySQL 应缩到 scale2）。聚合归并腿的伪降 scale CAST 已由 Fix-Meta
+    // （CalciteConvertors.getRelDataType 透传列精度标度）解除，本让路不再伤 C11（spec §2.8 定谳）。
+    if (tgtName == SqlTypeName.DECIMAL) {
+      return null;
+    }
 
     String src = canonical(srcName);
     // MYCAT CHANGE (I-DEBT-60 补全): getJavaClass 现把 TINYINT/SMALLINT/INTEGER 一律表征为 Long

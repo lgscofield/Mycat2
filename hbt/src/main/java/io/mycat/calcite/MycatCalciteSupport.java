@@ -668,6 +668,16 @@ public enum MycatCalciteSupport implements Context {
         }
 
         @Override
+        public java.math.RoundingMode roundingMode() {
+            // I-DEBT-66 R1：MySQL/MariaDB 的 CAST(… AS DECIMAL) 与算术降 scale 均为四舍五入（HALF_UP），
+            // 而非 RelDataTypeSystem.DEFAULT 的 DOWN（截断）：cast(1.2355 as decimal(10,2)) 真库为 1.24，
+            // DOWN 得 1.23。该模式在出码期经 typeFactory.getTypeSystem().roundingMode() 烘进
+            // fork 原生 *_DECIMAL_CAST_ROUNDING_MODE 调用（配合 MycatCastOverride 的 DECIMAL 目标让路，
+            // B1），并影响 ReduceDecimalsRule 等算术降 scale 路；与编码层 I-DEBT-65 的 HALF_UP 补零同源。
+            return java.math.RoundingMode.HALF_UP;
+        }
+
+        @Override
         public RelDataType deriveAvgAggType(RelDataTypeFactory typeFactory, RelDataType argumentType) {
             // I-DEBT-39·tranche②（聚合连带面）：MySQL AVG 口径——精确数值(INTEGER/BIGINT/DECIMAL)→
             // DECIMAL(p, 参数scale+div_precision_increment)，与 deriveDecimalDivideType/MysqlDivideFunction 同口径。

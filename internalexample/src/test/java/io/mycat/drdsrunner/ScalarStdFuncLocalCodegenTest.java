@@ -146,6 +146,41 @@ public class ScalarStdFuncLocalCodegenTest implements MycatTest {
     }
 
     /**
+     * I-DEBT-66 B1（让路面）回归锁：目标为 DECIMAL 的 CAST 必须走 fork 原生带舍入的转换腿
+     * （{@code Primitive.decimalDecimalCast}），不得再命中 Mycat 宽松矩阵的裸 identity
+     * {@code decimalToDecimal}（原样返回、从不施加目标 scale → {@code cast(1.2345 as decimal(10,2))}
+     * 得 {@code 1.2345}，活库证真 MySQL 应缩到 scale2）。
+     *
+     * <p>正解：{@code MycatCastOverride.translate} 对 DECIMAL 目标返回 {@code null} 让位，交回
+     * {@code RexToLixTranslator.getConvertExpression} 的 DECIMAL 腿（逐源型产 {@code *_DECIMAL_CAST_ROUNDING_MODE}
+     * 带 precision/scale/舍入模式调用）。Fix-Meta（{@code CalciteConvertors.getRelDataType} 透传列精度标度）
+     * 已解除聚合归并腿的伪降 scale CAST，使本让路不再伤 C11（spec §2.8 定谳）。
+     */
+    @Test
+    public void castDecimalTargetUsesForkRoundingLeg() {
+        String code = codegenSource("select cast(1.2345 as decimal(10,2))");
+        Assert.assertTrue("DECIMAL 目标 CAST 应出码走 fork decimalDecimalCast（带 p/s/舍入模式），实际码：" + code,
+                code.contains("decimalDecimalCast"));
+        Assert.assertFalse("DECIMAL 目标 CAST 不得再走裸 identity decimalToDecimal（不缩 scale 的旧 seam），实际码：" + code,
+                code.contains("decimalToDecimal"));
+    }
+
+    /**
+     * I-DEBT-66 R1（舍入模式面）回归锁：烘进 DECIMAL 目标 CAST 出码的舍入模式必须是 MySQL/MariaDB 的
+     * HALF_UP（四舍五入），而非 {@code RelDataTypeSystem.DEFAULT} 的 DOWN（截断）。
+     *
+     * <p>活库铁证（spec §2.5/§2.6）：{@code cast(1.2355 as decimal(10,2))} DOWN 得 {@code 1.23}，
+     * 真库（MySQL/MariaDB）为 {@code 1.24}。{@code MycatTypeSystem} 覆盖 {@code roundingMode()} 后，
+     * fork 出码期经 {@code typeFactory.getTypeSystem().roundingMode()} 烘进常量。
+     */
+    @Test
+    public void castDecimalRoundingModeBakedIsHalfUp() {
+        String code = codegenSource("select cast(1.2345 as decimal(10,2))");
+        Assert.assertTrue("DECIMAL 目标 CAST 出码须烘入 HALF_UP 舍入模式（MySQL 四舍五入），实际码：" + code,
+                code.contains("HALF_UP"));
+    }
+
+    /**
      * I-DEBT-39·tranche①（宽）回归锁：MySQL {@code /} 除法必须能本地落码，且出码/常量折叠走 Mycat 自定义实现。
      *
      * <p>旧行为：{@code select 1/0} 走内置 {@code SqlFunctions.divide} 整除路 → 常量折叠/落码抛
