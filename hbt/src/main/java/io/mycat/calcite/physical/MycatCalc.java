@@ -294,9 +294,13 @@ public class MycatCalc extends Calc implements MycatRel {
         final Result result =
                 implementor.visitChild(this, 0, child, pref);
 
-        final PhysType physType =
-                PhysTypeImpl.of(
-                        typeFactory, getRowType(), pref.prefer(result.format));
+        // MYCAT CHANGE (I-DEBT-59): stream 腿（Observable）行形态不变式——单列不得塌 SCALAR，
+        // 否则下方 OBSERVABLE_SELECT 的 .map 会直出可空裸标量，RxJava3 禁 null item → NPE。
+        // 上方 implement()（Enumerable 态）不沿用：Linq4j Enumerable 容 null。详见
+        // StreamMycatEnumerableRelImplementor#streamRowPhysType 与 spec
+        // 2026-10-26-i-debt-59-rx-nullable-scalar-container-row-design.md。
+        final PhysType physType = StreamMycatEnumerableRelImplementor.streamRowPhysType(
+                typeFactory, getRowType(), pref, result.format);
 
         Type inputJavaType = result.physType.getJavaRowType();
 

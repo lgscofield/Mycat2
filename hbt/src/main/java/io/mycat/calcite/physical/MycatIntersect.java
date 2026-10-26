@@ -19,7 +19,6 @@ import io.mycat.calcite.*;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.JavaRowFormat;
 import org.apache.calcite.adapter.enumerable.PhysType;
-import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
 import org.apache.calcite.linq4j.Ord;
 import org.apache.calcite.linq4j.tree.BlockBuilder;
 import org.apache.calcite.linq4j.tree.Expression;
@@ -79,14 +78,25 @@ public class MycatIntersect
     @Override
     public Result implement(MycatEnumerableRelImplementor implementor, Prefer pref) {
         final BlockBuilder builder = new BlockBuilder();
+        // MYCAT CHANGE (I-DEBT-59): intersect 不重录行（只转发保留下来的子元素），属透传型 rel：
+        // 声明必须逐字等于子节点实发形态，并以首个子形态归一其余子行；不得用三参 PhysTypeImpl.of
+        // 的二次 optimize，否则 stream 腿单列容器行塌回 SCALAR，终结端把 Object[] 再包一层。
+        JavaRowFormat targetFormat = null;
+        PhysType physType = null;
         Expression intersectExp = null;
         for (Ord<RelNode> ord : Ord.zip(inputs)) {
             EnumerableRel input = (EnumerableRel) ord.e;
             final Result result = implementor.visitChild(this, ord.i, input, pref);
+            if (targetFormat == null) {
+                targetFormat = result.format;
+                physType = StreamMycatEnumerableRelImplementor.passThroughPhysType(
+                        implementor.getTypeFactory(), getRowType(), targetFormat);
+            }
             Expression childExp =
                     toEnumerate(builder.append(
                             "child" + ord.i,
                             result.block));
+            childExp = result.physType.convertTo(childExp, targetFormat);
 
             if (intersectExp == null) {
                 intersectExp = childExp;
@@ -95,7 +105,7 @@ public class MycatIntersect
                         Expressions.call(intersectExp,
                                 BuiltInMethod.INTERSECT.method,
                                 Expressions.list(childExp)
-                                        .appendIfNotNull(result.physType.comparer())
+                                        .appendIfNotNull(physType.comparer())
                                         .append(Expressions.constant(all)));
             }
 
@@ -105,11 +115,6 @@ public class MycatIntersect
         }
 
         builder.add(intersectExp);
-        final PhysType physType =
-                PhysTypeImpl.of(
-                        implementor.getTypeFactory(),
-                        getRowType(),
-                        pref.prefer(JavaRowFormat.ARRAY));
         return implementor.result(physType, builder.toBlock());
     }
     @Override

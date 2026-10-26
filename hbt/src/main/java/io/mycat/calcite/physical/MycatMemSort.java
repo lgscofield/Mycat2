@@ -19,7 +19,6 @@ import io.mycat.calcite.*;
 import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.PhysType;
-import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.tree.BlockBuilder;
 import org.apache.calcite.linq4j.tree.Expression;
@@ -105,7 +104,13 @@ public class MycatMemSort
         final EnumerableRel child = (EnumerableRel) this.getInput();
         final Result result = implementor.visitChild(this, 0, child, pref);
 
-        final PhysType physType = PhysTypeImpl.of(
+        // MYCAT CHANGE (I-DEBT-59): 本 rel 是透传型（排序只转发子元素，不重录行），其 physType 声明
+        // 必须逐字等于子节点实发形态，禁二次 optimize：否则 stream 腿的单列容器行 Object[] 会被
+        // JavaRowFormat.optimize 塌成 SCALAR，使根 getElementType() 与实际元素不符，终结端
+        // MycatBindable.asObjectArray 把整个 Object[] 当成列值再包一层（活库铁证：
+        // select ... union all select ... limit 3 读到 [Ljava.lang.Object;@...）。子节点为 SCALAR
+        // （纯 Enumerable 腿）时声明不变，零漂移。详见 StreamMycatEnumerableRelImplementor#passThroughPhysType。
+        final PhysType physType = StreamMycatEnumerableRelImplementor.passThroughPhysType(
                 implementor.getTypeFactory(),
                 this.getRowType(),
                 result.format);

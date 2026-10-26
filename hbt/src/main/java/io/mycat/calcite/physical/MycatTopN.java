@@ -21,7 +21,6 @@ import io.mycat.calcite.MycatBindable;
 import org.apache.calcite.adapter.enumerable.EnumerableRel;
 import org.apache.calcite.adapter.enumerable.EnumerableRelImplementor;
 import org.apache.calcite.adapter.enumerable.PhysType;
-import org.apache.calcite.adapter.enumerable.PhysTypeImpl;
 import org.apache.calcite.linq4j.tree.BlockBuilder;
 import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.Expressions;
@@ -92,7 +91,10 @@ public class MycatTopN extends Sort implements MycatRel {
         final BlockBuilder builder = new BlockBuilder();
         final EnumerableRel child = (EnumerableRel) this.getInput();
         final Result result = implementor.visitChild(this, 0, child, pref);
-        final PhysType physType = PhysTypeImpl.of(
+        // MYCAT CHANGE (I-DEBT-59): 同 MycatMemSort——TopN 只取子节点元素（orderBy with fetch/offset），
+        // 不重录行，所以声明必须逐字沿用子节点形态、禁二次 optimize；否则 stream 腿容器行会在终结端
+        // 被多包一层（详见 StreamMycatEnumerableRelImplementor#passThroughPhysType）。
+        final PhysType physType = StreamMycatEnumerableRelImplementor.passThroughPhysType(
                 implementor.getTypeFactory(),
                 this.getRowType(),
                 result.format);
