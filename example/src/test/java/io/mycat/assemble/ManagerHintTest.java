@@ -128,11 +128,21 @@ public class ManagerHintTest implements MycatTest {
         }
     }
 
-    @Test(expected = java.sql.SQLException.class)
-    public void testErrorSyntax() throws Exception {
+    /**
+     * I-DEBT-57 口径订正（2026-10-26）：原预期 SQLException 钉的是 Mycat 旧错行为——纯注释语句
+     * （含非 Mycat hint 形或不可识别内容）被当空语句报 1064 syntax error。真 MySQL 8.0 直连实证
+     * （docker mysql:8.0）：`/* … *​/;` 与 `/* only a comment *​/` 均安静回 OK（rc=0），后续语句照常执行。
+     * Mycat 已随 I-DEBT-57（`MycatdbCommand` statements.isEmpty→sendOk，回归锁
+     * `ConnectionSmokeTest#commentOnlyQueryReturnsOkNotSyntaxError`）对齐该语义，本例旧预期即过时红
+     * （“Expected exception but nothing thrown”）。改按真库语义正向断言：OK 且连接存活可续查。
+     */
+    @Test
+    public void testCommentOnlyStatementReturnsOkNotSyntaxError() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
-            executeQuery(mycatConnection,
-                    "/* mycat:showConnections{}*/");
+            execute(mycatConnection, "/* mycat:showConnections{}*/");
+            // 连接存活探针：旧病（1064/断连）下此步必炸
+            List<Map<String, Object>> rows = executeQuery(mycatConnection, "select 1 as alive");
+            Assert.assertEquals(1, ((Number) rows.get(0).values().iterator().next()).intValue());
         }
     }
 
