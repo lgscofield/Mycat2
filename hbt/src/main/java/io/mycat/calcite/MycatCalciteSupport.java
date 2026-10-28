@@ -30,6 +30,8 @@ import io.mycat.calcite.resultset.CalciteRowMetaData;
 import io.mycat.calcite.sqlfunction.arith.MysqlDivideFunction;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
 import io.mycat.calcite.sqlfunction.datefunction.*;
+import io.mycat.calcite.sqlfunction.hashfunction.MD5Function;
+import io.mycat.calcite.sqlfunction.hashfunction.SHA1Function;
 import io.mycat.calcite.sqlfunction.infofunction.*;
 import io.mycat.calcite.sqlfunction.jsonfunction.SubGtFunction;
 import io.mycat.calcite.sqlfunction.lockfunction.MycatGetLockFunction;
@@ -485,8 +487,15 @@ public enum MycatCalciteSupport implements Context {
                             DayOfYearFunction.INSTANCE,
                             MycatGetLockFunction.INSTANCE,
                             MycatReleaseLockFunction.INSTANCE,
-                            MycatIsFreeLockFunction.INSTANCE
+                            MycatIsFreeLockFunction.INSTANCE,
+                            // MYCAT CHANGE (I-DEBT-32-FAMILY): 加密/哈希族。Calcite 的 MD5/SHA1 只存在于
+                            // SqlLibraryOperators（非 SqlStdOperatorTable），Mycat 算子表对这两个名字解析出 0 个算子，
+                            // 折算期残留 SqlUnresolvedFunction → 出码期 cannot translate call MD5(...)。
+                            MD5Function.INSTANCE,
+                            SHA1Function.INSTANCE
                     ).forEach(i -> build.put(i.getName(), i));
+                    // SHA 是 SHA1 的 MySQL 同义词, 需显式夺名。
+                    build.put("SHA", SHA1Function.INSTANCE);
                     build.put("CHARACTER_LENGTH", CharLengthFunction.INSTANCE);
                     build.put("LCASE", LowerFunction.INSTANCE);
                     build.put("UCASE", UpperFunction.INSTANCE);
