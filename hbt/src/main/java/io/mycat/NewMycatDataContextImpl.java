@@ -141,7 +141,7 @@ public abstract class NewMycatDataContextImpl implements NewMycatDataContext {
     }
 
 
-    public Integer getLock(String name, int timeout) {
+    public Integer getLock(String name, long timeout) {
         MycatDataContext context = getContext();
         return context.getLock(name, timeout);
     }

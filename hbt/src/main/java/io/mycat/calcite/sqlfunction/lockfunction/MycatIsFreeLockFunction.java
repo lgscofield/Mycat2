@@ -19,8 +19,10 @@ import org.apache.calcite.adapter.enumerable.RexImpTable;
 import org.apache.calcite.adapter.enumerable.RexToLixTranslator;
 import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.Expressions;
+import org.apache.calcite.linq4j.tree.Types;
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
 import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.runtime.NewMycatDataContext;
 import org.apache.calcite.sql.SqlFunctionCategory;
 import org.apache.calcite.sql.type.InferTypes;
 import org.apache.calcite.sql.type.OperandTypes;
@@ -39,8 +41,12 @@ public class MycatIsFreeLockFunction extends MycatSqlDefinedFunction {
 
     @Override
     public Expression implement(RexToLixTranslator translator, RexCall call, RexImpTable.NullAs nullAs) {
+        // I-DEBT-32-FAMILY·IS_FREE_LOCK 接线：同 GET_LOCK，动态参实参为 Object，
+        // 旧字符串名式在 NewMycatDataContext 找不到 isFreeLock(Object)（只有 isFreeLock(String)）。
+        // 显式 Types.lookupMethod + convert_ 到 String。
         List<Expression> argValueList = translator.translateList(call.getOperands(), nullAs);
         return Expressions.call(MycatBindable.ROOT,
-                "isFreeLock",argValueList.get(0));
+                Types.lookupMethod(NewMycatDataContext.class, "isFreeLock", String.class),
+                Expressions.convert_(argValueList.get(0), String.class));
     }
 }

@@ -40,8 +40,12 @@ public class MycatReleaseLockFunction extends MycatSqlDefinedFunction {
 
     @Override
     public Expression implement(RexToLixTranslator translator, RexCall call, RexImpTable.NullAs nullAs) {
+        // I-DEBT-32-FAMILY·RELEASE_LOCK 接线：与 GET_LOCK/IS_FREE_LOCK 同源，动态参实参表达式类型为 Object，
+        // 旧版 lookupMethod 定到 releaseLock(String) 却直传 Object 实参，生成代码时类型严格校验失败。
+        // 补 convert_ 到 String，令实参表达式类型对齐形参。
         List<Expression> argValueList = translator.translateList(call.getOperands(), nullAs);
         return Expressions.call(MycatBindable.ROOT,
-                Types.lookupMethod(NewMycatDataContext.class,"releaseLock",String.class),argValueList.get(0));
+                Types.lookupMethod(NewMycatDataContext.class,"releaseLock",String.class),
+                Expressions.convert_(argValueList.get(0), String.class));
     }
 }

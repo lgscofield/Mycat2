@@ -56,7 +56,7 @@ public interface NewMycatDataContext extends DataContext {
 
     public MycatDataContext getContext();
 
-    public Integer getLock(String name,int timeout);
+    public Integer getLock(String name,long timeout);
 
     public Integer releaseLock(String name);
 
