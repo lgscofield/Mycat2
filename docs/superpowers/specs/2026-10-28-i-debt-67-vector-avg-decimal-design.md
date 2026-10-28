@@ -1,6 +1,7 @@
 # I-DEBT-67 设计：ordinate 向量化执行器聚合链 DECIMAL 保真专轮（决策齐备·待落地）
 
-> 状态：**勘察收口 · 缝位全量枚举 · 决策齐备待专轮落地**（2026-10-28 本会话离线勘察，全部 file:line 凭当前 HEAD `037a141e9` 实读，非凭记录）。
+> 状态：**⚠ 已被 2026-10-28 落地活体轮 §6 推翻·真因重定位**（原 S1/S2/S3 缝位对 avg(id) 实测为死代码/错位；本 Spec §0-§5 仅作勘察历史留档，接手以 §6 为准）。
+> 原状态（已作废）：勘察收口 · 缝位全量枚举 · 决策齐备待专轮落地（2026-10-28 本会话离线勘察，全部 file:line 凭当前 HEAD 实读，非凭记录）。
 > 本 Spec 不随批落产品码——勘察证实横切面广（含逐列精度/标度表征缺失这一最深缝），按既定纪律"宁挂账不伪绿、不投机半修"，专轮据本 Spec 干净接手。
 
 ## 0. 债刻画（现状锤钉）
@@ -76,3 +77,37 @@
 
 - 上轮会话 Grep（ripgrep）对 DEBT-QUEUE.md 长 CJK 行假阴致"I-DEBT-64 缺行"误判，PowerShell Select-String 复核撤回；本轮全程以 Select-String/Read 双通道交叉。
 - `InnerType.java` L350 `case DECIMAL` 系 ColumnType→InnerType 映射（questdb 列型面），非 arrow 面，不影响 S4 结论。
+
+## 6. 落地活体轮勘误（2026-10-28·**决定性·推翻 §0-§5 前提**·接手以此为准）
+
+> 本节凭当前 HEAD 活体运行取证（本地起代理 8066 classpath 直启 JDK21 + prototypeDs→docker mariadb:10.11@3306），非静态推断。§0-§5 的 S1/S2/S3 据此作废。
+
+### 6.1 活体 RED 坐实
+`mvn -o -pl example test -Dtest=VectorTest#testBase` → `Tests run: 1, Failures: 1`，`VectorTest.testBase:74 expected:<[{avg(id)=5.0[000]}]> but was:<[{avg(id)=5.0[]}]>`。前置断言（vector() 序、count=9、max=9、min=1、sum=45）**全过**，仅 avg 失败——活体 infra 健康、缺口精确即 avg DECIMAL 保真、无连带破坏。
+
+### 6.2 真因（server 运行态计划日志取证·锤死）
+`setVector{1}` 下 `SELECT avg(id)` 的**实际物理计划**：
+```
+MycatProject(avg(id)=[CAST(/(CAST(CASE(=($1,0), null:BIGINT, $0)):DECIMAL(19,4), $1)):DECIMAL(19,4)])
+```
+即 **Calcite `ReduceAggregatesRule` 把 AVG 分解为 `SUM`(=$0)+`COUNT`(=$1) 两个聚合 + 外层除法 Project**。故 ordinate 向量引擎**根本不接收 AVG 累加器**——本会话据 §0-§3 实现的 `AvgDecimalAggregateFunction` + `ExecuteCompiler.avg(input,index)` 派发 + `CalciteCompiler` 传 input 对这条查询**全是死代码**（落地后活体复跑仍 `5.0`，遂整体 git revert，产品树已净回 HEAD）。
+
+### 6.3 真缝 = 向量腿端到端缺 DECIMAL 支持（非累加器问题）
+分解出的 `CAST(sum):DECIMAL / count` 除法在向量腿塌成 double，实证四处缺位：
+- **列读取**：`ExecuteCompiler.column()` L70-71 `case DECIMAL_TYPE: break;` → L94 `throw UnsupportedOperationException`——向量腿**无 DECIMAL 列读取器**。
+- **除法算子**：`RexConverter` L275-276 `case DIVIDE: executeCompiler.call("/", aeOperands)`——`/` 无 DECIMAL 语义，落 double。
+- **CAST-to-DECIMAL**：向量腿无 `CAST(...):DECIMAL(p,s)` 的十进制实现（计划里的 DECIMAL(19,4) cast 被降级/默吞为 double 域运算）。
+- **列头 scale 保真（独立子缝）**：`getMycatRelType(Schema)`（common/.../MycatRelDataType.java L47）用 3-arg `MycatField.of(name,mycatDataType,nullable)`，**不读 Arrow Decimal 的 precision/scale** → 即便值腿修对，wire 列头 scale 仍非 4（binary 协议下 Connector/J 按列头 scale 构 BigDecimal，会二次损坏；text 协议下值串自带 scale 侥幸幸存）。
+- 关联表征死根（原 S4 仍成立且更深）：全局 `ArrowTypes.DECIMAL_TYPE=Decimal(0,0,64)` scale0+非法位宽，`InnerType.from` 折叠逐列 p/s。
+
+### 6.4 债重定范围（远超原估）
+I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列读取器（`DecimalColumn` + `column()` DECIMAL case）+ `/` 的 DECIMAL 除法语义（对齐 calcite 腿 `MysqlDivideFunction`：值日志实证 codegen 腿已发 `integerDecimalCast(...,19,4,HALF_UP)` 正确 BigDecimal）+ `CAST→DECIMAL` 向量实现 + 逐列 `Decimal(p,s,128)` 表征贯通 + `getMycatRelType` 列头 scale 保真。**体量与风险远超原 §3 的 6-8 文件估计，属引擎算术子系统级改造，非窄首刀。**
+
+### 6.5 knownGap 锁对齐提示
+`AvgDecimalFidelityGapTest` 单元级钉 `AvgAggregateFunction` 全 DOUBLE——但 e2e 分解世界根本不用该类（AVG 被分解走）。此锚锁真实反映"单元类现状"却**锚错了 e2e 真路径**；专轮落地时应把锚锁与目标重定向到向量腿 decimal 除法（`/`）与列头 scale，而非 avg 累加器。`VectorTest:74` 目标红锁本身有效（活体已证其在正确位点失败）。
+
+### 6.6 语义活体确证（原 D1/D2 落地）
+`docker exec week-m80 mysql`（8.0）实测：`@@div_precision_increment=4`；`1/32=0.03125→0.0313`、`5/32=0.15625→0.1563`（HALF_EVEN 会得 0.0312/0.1562）→ **MySQL 除法舍入 = HALF_UP（远离零），scale=4**，钉死无悬念。向量腿 `/` 的 DECIMAL 实现须按此口径。
+
+### 6.7 本会话净态
+错位产品码已全部回退（`git checkout` 4 改 + `DeleteFile` 1 新），executor 已重编回 HEAD 类，探针代理已停，产品树 `git status` 干净。本轮净交付＝本 §6 活体勘误（把债从"假设有望的窄首刀"重定位为"已证实的引擎级 DECIMAL 算术子系统缺位"），避免了一次会误导后续专轮的伪绿提交。
