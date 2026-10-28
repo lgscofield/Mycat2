@@ -42,23 +42,11 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- MYCAT CHANGE (I-DEBT-32-FAMILY 工程卫生): MycatTest 基类已归位到合法
-                         io/mycat/drdsrunner/ 包路径, 解除 I-DEBT-② 遗留的"只编护栏测试"过窄收窄,
-                         恢复编译运行合法目录下全部离线回归锁(GSI/Procedure/Rx/ScalarStd/ScalarDate/护栏)。
-                         仍精确限定 include=io/mycat/drdsrunner/*.java: 非法单级带点目录
-                         io.mycat.drdsrunner/ 里 20 个旧测试暂不纳入编译(其整体重组另立专轮, 见 DEBT-QUEUE)。 -->
-                    <testIncludes>
-                        <testInclude>io/mycat/drdsrunner/*.java</testInclude>
-                    </testIncludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <!-- MYCAT CHANGE (I-DEBT-32-FAMILY 工程卫生·彻底重组收口): 非法单级带点目录
+         io.mycat.drdsrunner/ 里 20 个旧测试已全部归位到合法 io/mycat/drdsrunner/ 包路径,
+         坏目录已删除, I-DEBT-② 遗留的构建污染根因消除 → 移除 maven-compiler-plugin 的过窄
+         testIncludes 收窄, 恢复本模块全部离线回归锁的默认编译(GSI/Procedure/Rx/ScalarStd/
+         ScalarDate/护栏/Join/Bka/Union/View 等)。BkaJoinTest 8 例 BKA/CBO join 存量红
+         已方法级 @Ignore 隔离(见 DEBT-QUEUE I-DEBT-46/7C), 不冒充达标、勿删锁。 -->
 
 </project>
