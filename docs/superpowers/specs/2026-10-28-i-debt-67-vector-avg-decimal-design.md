@@ -122,6 +122,7 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
 | ② | `/`（DIVIDE）的 DECIMAL 除法语义（对齐 calcite 腿 `MysqlDivideFunction`：scale=div_precision_increment、HALF_UP） | ✅ **已落地转绿**（并入第二刀，见 §7.3） |
 | ③ | `CAST(x):DECIMAL(p,s)` 的向量腿十进制实现（§6.3 计划里的 `CAST($0):DECIMAL(19,4)` 现塌 double） | ✅ **已落地转绿**（并入第二刀，见 §7.3） |
 | ④ | 逐列 `Decimal(p,s,128)` 表征贯通 + `getMycatRelType` 列头 scale 保真（binary 协议下 Connector/J 按列头 scale 构值） | ✅ **已落地转绿**（经 `getOutputArrowType` 贯通，见 §7.3） |
+| 残留 | 向量态非终止小数 avg scale 保真 + `group by` 带键十进制均值写回（§7.3 挂账两子项） | ✅ **已活体验证 + 锁死，本债全绿关账**（见 §7.4） |
 
 ### 7.1 第一刀① 落地实录（2026-10-28·本会话）
 - **RED**（眼看失败）：新建离线锁 `executor/src/test/java/io/ordinate/engine/VectorLegDecimalColumnReaderTest`——对 `DECIMAL(19,4)` schema 调 `ExecuteCompiler.column(0, schema)`，实跑现 `java.lang.UnsupportedOperationException at ExecuteCompiler.column(ExecuteCompiler.java:93)`（十进制列读取器缺位，正是 §6.3 首条）；并断言读一个含 `1.2345` 的 `DecimalVector` 批应经 `VectorBatchRecord` 读回精确 `BigDecimal`（落地前 `getObject` 恒返 null 亦不可达）。
@@ -158,4 +159,20 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
   - 活体 `mvn -o -pl example test -Dtest=VectorTest` → `Tests run: 1, Failures: 0` / **`avg(id)=5.0000`**（红锺转绿，端到端证）。
   - `mvn -o -pl executor test` → `Tests run: 6, Failures: 0`（含新算术锁）。
   - hbt golden 护栏 `mvn -o -pl hbt -am test -Dtest=MysqlTypeSystemDivideTest,MysqlTypeSystemAvgTest,MysqlDivideFunctionTest,TypeRepresentationThreePathConsistencyTest,CalciteConvertorsRelDataTypeTest` → `Tests run: 48, Failures: 0` + BUILD SUCCESS。
-- **诚实边界（残留子项，不假关）**：本轮以 `VectorTest` 精确整除例（`avg(id)=10/2=5.0000`）为活体红锺转绿；**非终止小数 avg（如均值落 `1/3` 类）在向量态下的 scale 保真**，其除法 scale 取自 Calcite 结果 `RelDataType`（默认已由 `div_precision_increment` 推得），逻辑经 `VectorLegDecimalArithmeticTest` 单元锁＋hbt `MysqlTypeSystemDivideTest` 语义护栏覆盖，但**尚无向量态非终止小数的活体 e2e 例**。此作 I-DEBT-67 下一条待补验子项挂账（`group by` 带键态十进制均值写回 `GroupByKeyWithAggPlan` 面亦未单独活体覆盖）。主目标（无组 avg 塌型）已真关。
+- **诚实边界（残留子项，不假关）**：本轮以 `VectorTest` 精确整除例（id 1..9，`avg(id)=45/9=5.0000`）为活体红锺转绿；**非终止小数 avg（如均值落 `1/3` 类）在向量态下的 scale 保真**，其除法 scale 取自 Calcite 结果 `RelDataType`（默认已由 `div_precision_increment` 推得），逻辑经 `VectorLegDecimalArithmeticTest` 单元锁＋hbt `MysqlTypeSystemDivideTest` 语义护栏覆盖，但**尚无向量态非终止小数的活体 e2e 例**。此作 I-DEBT-67 下一条待补验子项挂账（`group by` 带键态十进制均值写回 `GroupByKeyWithAggPlan` 面亦未单独活体覆盖）。主目标（无组 avg 塌型）已真关。
+
+### 7.4 残留子项活体验收与摘账（2026-10-28·本会话·I-DEBT-67 全绿关账）
+
+承接 §7.3 挂账的两残留子项，本轮**起活体 infra 补验并落严格回归锁**，不砍产品码（第二刀②③④ 已覆盖，本轮为验证 + 锁定）。
+
+- **防下推假绿（关键前置）**：临时探针 `explain` 锤定——全表 `SELECT avg(id)` 的向量化计划为
+  `MycatProject(avg(id)=[CAST(/(CAST(CASE(=($1,0),null:BIGINT,$0)):DECIMAL(19,4),$1)):DECIMAL(19,4)])`，
+  下推后端的仅 `SELECT SUM(id),COUNT(*)`（跨 4 物理表 union all）——**除法确在本地向量 project 做**（表按 `mod_hash(id)` 跨 2 dbpartition，全局/逐组 avg 无法单条下推，avg-of-avg 错）。该 `DECIMAL(19,4)` project 形态仅第二刀后存在（砍前同形态投影 DOUBLE），故新锁无第二刀必红。
+- **活体实测（真实运行值）**：
+  - 全表非终止/终止混合数据（sum=48/count=5）→ `avg(id)=9.6000`（scale4 补零 ✓）。
+  - `GROUP BY gid` → `gid=1` 组 `{1,2,4}` sum7/count3 → **`avg(id)=2.3333`**（非终止，落到 scale4 十进制而非 double 长尾 ✓）；`gid=2` 组 `{10,31}` → `avg(id)=20.5000`（终止 ✓）。**带键十进制均值经 `GroupByKeyWithAggPlan` 写回正确**。
+- **落盘锁**：`example/.../vector/VectorTest.testVectorAvgDecimalResiduals`（新 `@Test`）——以分片表构造非终止 + 带键两组，严格断言 `[{avg(id)=9.6000}]` 与排序后 `[{gid=1, avg(id)=2.3333}, {gid=2, avg(id)=20.5000}]`（group 输出 hash 序不定，按 `gid` 排序去 flaky）。
+- **验绿**：`mvn -o -pl example test -Dtest=VectorTest` → `Tests run: 2, Failures: 0, Errors: 0`（`testBase` + 新残锁共存全绿）。
+- **本轮 delta 面**：仅新增 example 一个测试方法，**零产品码改动**（第二刀已覆盖两子项，运行态实证即证据）；executor/hbt 沿用 §7.3 已落 6/0/0、48/0/0。
+- **舍入口径说明**：`2.3333` 一例末位非边界（5th 位=3，HALF_UP/HALF_EVEN 同果），故本锁验的是 **scale 保真 + 非终止不泄漏 double**；**舍入方向（HALF_UP）已由 hbt `MysqlDivideFunctionTest`/`MysqlTypeSystemDivideTest`（`0.15625→0.1563` 边界）与 `VectorLegDecimalArithmeticTest` 单独锁死**，不在此构造 .xxx5 反例重复。
+- **结论**：I-DEBT-67 §7.3 两残留子项均已活体验证 + 回归锁定，**本债彻底摘账**（四刀①②③④ + 两残留子项全链路 e2e 实证）。
