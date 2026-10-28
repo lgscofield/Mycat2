@@ -111,3 +111,24 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
 
 ### 6.7 本会话净态
 错位产品码已全部回退（`git checkout` 4 改 + `DeleteFile` 1 新），executor 已重编回 HEAD 类，探针代理已停，产品树 `git status` 干净。本轮净交付＝本 §6 活体勘误（把债从"假设有望的窄首刀"重定位为"已证实的引擎级 DECIMAL 算术子系统缺位"），避免了一次会误导后续专轮的伪绿提交。
+
+## 7. 引擎级专轮拆刀进度（据 §6.3 四处缺位序拆，逐刀 TDD 独立可证）
+
+> 承 §6.4 债重定，I-DEBT-67 拆为四刀有序落地，每刀独立 RED→GREEN、独立不碰下一刀。
+
+| 刀 | 缝位 | 状态 |
+|---|---|---|
+| ① | 向量腿 DECIMAL **源列**读取器（`column()` + `DecimalColumn` + `VectorBatchRecord.getObject`） | ✅ **已落地转绿**（见 §7.1） |
+| ② | `/`（DIVIDE）的 DECIMAL 除法语义（对齐 calcite 腿 `MysqlDivideFunction`：scale=div_precision_increment、HALF_UP） | ⏳ 待落 |
+| ③ | `CAST(x):DECIMAL(p,s)` 的向量腿十进制实现（§6.3 计划里的 `CAST($0):DECIMAL(19,4)` 现塌 double） | ⏳ 待落 |
+| ④ | 逐列 `Decimal(p,s,128)` 表征贯通 + `getMycatRelType` 列头 scale 保真（binary 协议下 Connector/J 按列头 scale 构值） | ⏳ 待落 |
+
+### 7.1 第一刀① 落地实录（2026-10-28·本会话）
+- **RED**（眼看失败）：新建离线锁 `executor/src/test/java/io/ordinate/engine/VectorLegDecimalColumnReaderTest`——对 `DECIMAL(19,4)` schema 调 `ExecuteCompiler.column(0, schema)`，实跑现 `java.lang.UnsupportedOperationException at ExecuteCompiler.column(ExecuteCompiler.java:93)`（十进制列读取器缺位，正是 §6.3 首条）；并断言读一个含 `1.2345` 的 `DecimalVector` 批应经 `VectorBatchRecord` 读回精确 `BigDecimal`（落地前 `getObject` 恒返 null 亦不可达）。
+- **GREEN**（三处最小改动）：
+  1. 新增 `function/column/DecimalColumn.java`（implements `ScalarFunction,ColumnFunction`，`getType()=InnerType.DECIMAL_TYPE`，`getDecimal(rec)` 经 `rec.getObject()` 读回 BigDecimal，NULL 走 `isNull` 置标）；
+  2. `ExecuteCompiler.column()` `case DECIMAL_TYPE: break;`→`return DecimalColumn.newInstance(index);`；
+  3. `VectorBatchRecord.getObject()`：`instanceof DecimalVector` 时 `((DecimalVector)vector).getObject(index)` 读回（其余类型维持原 null 行为，非回归）。
+  4. **测试基建**：executor `pom.xml` 为 surefire forked JVM 常驻 `--add-opens=java.base/java.nio=ALL-UNNAMED`（Arrow netty 后端在 JDK17+ 分配 `DecimalVector` 的硬要求，使锁可复现；纯测试面，零产品语义变更）。
+- **验绿**：`mvn -o -pl executor test`（JAVA_HOME=LibericaJDK-21-Full）→ `Tests run: 2, Failures: 0, Errors: 0`（新锁 + `AvgDecimalFidelityGapTest` 皆绿）+ BUILD SUCCESS。
+- **诚实边界（关键）**：**本刀不让 `VectorTest` 的 `avg(id)` 目标红转绿**——`avg(id)` 源列是 BIGINT（走 `LongColumn`），其 DECIMAL 仅出现在外层 Project 的 `CAST/COUNT` 除法里，真 blocker 是 ②③④。本刀关掉的是"向量腿无法读任何 DECIMAL **源列**"这一独立真实缺口（如 `SELECT decimal_col FROM t /*+setVector{1}*/` 落地前必崩），是后续刀的承重前置。I-DEBT-67 整体**仍开放**，不假关。

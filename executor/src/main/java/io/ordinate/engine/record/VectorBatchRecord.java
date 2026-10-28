@@ -129,6 +129,11 @@ public class VectorBatchRecord implements Record {
 
     @Override
     public Object getObject(int columnIndex) {
+        FieldVector vector = this.vectorSchemaRoot.getVector(columnIndex);
+        if (vector instanceof DecimalVector) {
+            if (vector.isNull(index)) return null;
+            return ((DecimalVector) vector).getObject(index);
+        }
         return null;
     }
 

@@ -82,4 +82,19 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- Arrow 的 netty 内存后端在 JDK17+ 需 add-opens java.nio，否则 VectorSchemaRoot/DecimalVector
+                 分配即 Failed to initialize MemoryUtil。executor 向量腿测试（如 I-DEBT-67 列读取器锁）
+                 直构 Arrow 向量，故为 surefire forked JVM 常驻该开帧，使锁可复现。 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>--add-opens=java.base/java.nio=ALL-UNNAMED</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

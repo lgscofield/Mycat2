@@ -67,7 +67,7 @@ public class ExecuteCompiler {
             case DOUBLE_TYPE:
                 return DoubleColumn.newInstance(index);
             case DECIMAL_TYPE:
-                break;
+                return DecimalColumn.newInstance(index);
             case STRING_TYPE:
                 return StringColumn.newInstance(index);
             case BINARY_TYPE:
