@@ -48,12 +48,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <!-- I-DEBT-② 配套：临时收窄测试编译范围，只编译护栏测试。
-                         io.mycat.drdsrunner/ 点号目录 + io/mycat/drdsrunner/ 内其他旧测试均依赖
-                         MycatTest 基类（点号目录里已无法编译），待重组完成后恢复为 **/*.java。
-                         见 DEBT-QUEUE I-DEBT-②。-->
+                    <!-- MYCAT CHANGE (I-DEBT-32-FAMILY 工程卫生): MycatTest 基类已归位到合法
+                         io/mycat/drdsrunner/ 包路径, 解除 I-DEBT-② 遗留的"只编护栏测试"过窄收窄,
+                         恢复编译运行合法目录下全部离线回归锁(GSI/Procedure/Rx/ScalarStd/ScalarDate/护栏)。
+                         仍精确限定 include=io/mycat/drdsrunner/*.java: 非法单级带点目录
+                         io.mycat.drdsrunner/ 里 20 个旧测试暂不纳入编译(其整体重组另立专轮, 见 DEBT-QUEUE)。 -->
                     <testIncludes>
-                        <testInclude>io/mycat/drdsrunner/PushDownOptionalDefaultGuardrailTest.java</testInclude>
+                        <testInclude>io/mycat/drdsrunner/*.java</testInclude>
                     </testIncludes>
                 </configuration>
             </plugin>
