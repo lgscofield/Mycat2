@@ -25,6 +25,9 @@ import io.ordinate.engine.function.bind.IndexedParameterLinkFunction;
 import io.ordinate.engine.function.bind.SessionVariable;
 import io.ordinate.engine.function.bind.SessionVariableFunction;
 import io.ordinate.engine.function.bind.VariableParameterFunction;
+import io.ordinate.engine.function.decimal.CastToDecimalFunction;
+import io.ordinate.engine.function.decimal.DivDecimalFunction;
+import io.ordinate.engine.function.ScalarFunction;
 import io.ordinate.engine.function.constant.SymbolConstant;
 import io.ordinate.engine.schema.InnerType;
 import lombok.Getter;
@@ -273,11 +276,25 @@ public class RexConverter {
                 ae = executeCompiler.call("*", aeOperands);
                 break;
             case DIVIDE:
-                ae = executeCompiler.call("/", aeOperands);
+                if (call.getType().getSqlTypeName() == SqlTypeName.DECIMAL) {
+                    // 向量腿 DECIMAL 除法（I-DEBT-67 第二刀）：结果类型为十进制时接管，按逐列 scale
+                    // 走 BigDecimal 语义，避免被 convertColumnType 折成 double。
+                    ae = new DivDecimalFunction((ScalarFunction) aeOperands.get(0),
+                            (ScalarFunction) aeOperands.get(1),
+                            call.getType().getPrecision(), call.getType().getScale());
+                } else {
+                    ae = executeCompiler.call("/", aeOperands);
+                }
                 break;
             case CAST:
-                InnerType targetType = convertColumnType(call.getType());
-                ae = executeCompiler.cast(aeOperands.get(0), targetType);
+                if (call.getType().getSqlTypeName() == SqlTypeName.DECIMAL) {
+                    // 向量腿 CAST-to-DECIMAL（I-DEBT-67 第二刀）：携带 RelDataType 的逐列 precision/scale。
+                    ae = new CastToDecimalFunction((ScalarFunction) aeOperands.get(0),
+                            call.getType().getPrecision(), call.getType().getScale());
+                } else {
+                    InnerType targetType = convertColumnType(call.getType());
+                    ae = executeCompiler.cast(aeOperands.get(0), targetType);
+                }
                 break;
             case NOT:
                 ae = executeCompiler.call("not", aeOperands.get(0));

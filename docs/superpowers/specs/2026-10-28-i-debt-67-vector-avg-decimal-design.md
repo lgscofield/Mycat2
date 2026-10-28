@@ -119,9 +119,9 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
 | 刀 | 缝位 | 状态 |
 |---|---|---|
 | ① | 向量腿 DECIMAL **源列**读取器（`column()` + `DecimalColumn` + `VectorBatchRecord.getObject`） | ✅ **已落地转绿**（见 §7.1） |
-| ② | `/`（DIVIDE）的 DECIMAL 除法语义（对齐 calcite 腿 `MysqlDivideFunction`：scale=div_precision_increment、HALF_UP） | ⏳ 待落 |
-| ③ | `CAST(x):DECIMAL(p,s)` 的向量腿十进制实现（§6.3 计划里的 `CAST($0):DECIMAL(19,4)` 现塌 double） | ⏳ 待落 |
-| ④ | 逐列 `Decimal(p,s,128)` 表征贯通 + `getMycatRelType` 列头 scale 保真（binary 协议下 Connector/J 按列头 scale 构值） | ⏳ 待落 |
+| ② | `/`（DIVIDE）的 DECIMAL 除法语义（对齐 calcite 腿 `MysqlDivideFunction`：scale=div_precision_increment、HALF_UP） | ✅ **已落地转绿**（并入第二刀，见 §7.3） |
+| ③ | `CAST(x):DECIMAL(p,s)` 的向量腿十进制实现（§6.3 计划里的 `CAST($0):DECIMAL(19,4)` 现塌 double） | ✅ **已落地转绿**（并入第二刀，见 §7.3） |
+| ④ | 逐列 `Decimal(p,s,128)` 表征贯通 + `getMycatRelType` 列头 scale 保真（binary 协议下 Connector/J 按列头 scale 构值） | ✅ **已落地转绿**（经 `getOutputArrowType` 贯通，见 §7.3） |
 
 ### 7.1 第一刀① 落地实录（2026-10-28·本会话）
 - **RED**（眼看失败）：新建离线锁 `executor/src/test/java/io/ordinate/engine/VectorLegDecimalColumnReaderTest`——对 `DECIMAL(19,4)` schema 调 `ExecuteCompiler.column(0, schema)`，实跑现 `java.lang.UnsupportedOperationException at ExecuteCompiler.column(ExecuteCompiler.java:93)`（十进制列读取器缺位，正是 §6.3 首条）；并断言读一个含 `1.2345` 的 `DecimalVector` 批应经 `VectorBatchRecord` 读回精确 `BigDecimal`（落地前 `getObject` 恒返 null 亦不可达）。
@@ -139,3 +139,23 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
 - **传导链**：`convertToFunction(RexCall)` 的 `case CAST`（L278-280）`targetType = convertColumnType(call.getType())` → 计划里的 `CAST($0):DECIMAL(19,4)` 目标被折成 **DOUBLE_TYPE** → `ExecuteCompiler.cast(operand, DOUBLE_TYPE)` 投成 double；随后 `case DIVIDE`（L275-276）`call("/")` 两端均 double → 结果 double → 序列化 `5.0`。**故 avg 塌型根在类型映射枢纽，非除法算子本体。**
 - **不可盲翻（投机半修警示）**：单把 L356 改 `DECIMAL_TYPE` 会连带：①`cast()`（ExecuteCompiler L198-213）按 (源型→目标型) 查注册 "cast" 工厂，无 `cast(*:decimal)` 实现即直坠 L213 `throw`（另一种崩，非修复）；②`/` 需新增 DECIMAL 操作数语义（scale=`div_precision_increment`、HALF_UP，对齐 §6.6）；③输出列 schema 需携逐列 `Decimal(p,s)` + `getMycatRelType` 列头 scale 保真（②③④耦合）。故 ②③④ **必须作为一个 e2e 锚定的整体专轮**推进（活代理 VectorTest 现证 + hbt/golden 回归护栏），不可孤立改单点——重踩上一轮 avg 累加器"假设塌方死代码"覆辙。
 - **下一轮起手式**：起活代理 infra（本会话已沉淀可复用配方 `.mycat-home-e2e\launch.ps1` + fullcp classpath 直启）→ 以 `VectorTest` 为红锺，按序落 convertColumnType(DECIMAL 保留) + 十进制 cast 工厂族 + `/` decimal 除法(scale4/HALF_UP) + 逐列 Decimal(p,s) 输出/列头，每步活体现测防回归。
+
+### 7.3 第二刀②③④ 整体落地实录（2026-10-28·本会话·avg 端到端转绿）
+
+按 §7.2 起手式起活体 infra（docker 三容器在跑 + `launch.ps1` fullcp 直启 8066）→ 取活体真红 `VectorTest.testBase:74 expected 5.0000 but was 5.0`（含第一刀① 的当前 main 基线）为红锺，整体落 ②③④。
+
+**关键设计决策（订正 §7.2 起手式）**：不动全局 `convertColumnType`（爆炸半径太大），改为在 `RexConverter` 的 `case CAST`/`case DIVIDE` 内**按结果 `RelDataType.getSqlTypeName()==DECIMAL` 精确特化**，直接构造携带逐列 `precision/scale` 的十进制函数——把改动面严格锁在"向量腿十进制 CAST/除法"，非十进制路径一行不改（`getOutputArrowType()` 默认 == 旧 `getType().getArrowType()`）。
+
+- **最深发现（运行态锤定，比 §7.2 更准）**：Project 输出列 Arrow 类型 = `function.getType().getArrowType()`（`ExecuteCompiler.project` L573），`ExprVectorExpression` 构造同源（L39），而 `InnerType` 是枚举、`DECIMAL_TYPE.getArrowType()`＝全局 scale0 常量；且 `ExprVectorExpression.eval()` 的 `switch(getType())` **根本没有 `case DECIMAL_TYPE`**（第50-290行）→ 向量腿 DECIMAL 是"类型表征 + 求值分派"双重缺位。所幸 `ExprVectorExpression` 实为"按行调用 ScalarFunction"的向量封装（L49 `generateSink`＋`setPosition`＋`getXxx`），故补一个 DECIMAL 分支即按行正确写 `DecimalVector`（非 SIMD 但值正确）。另 `ResultWriterUtil` L259-262 早已支持 DECIMAL（读 `getObject`→`addDecimal`），且列头 scale 由 L172 `MycatRelDataType.getMycatRelType(outputSchema)` 从 Field 取——**只要输出 Schema Field 带 `Decimal(19,4)`，第四刀列头 scale 自动满足**（聚合 sum 走 BIGINT，`castToAggType`→SumLong，非 decimal，无 scale0 隐患）。
+- **GREEN（六处最小改动）**：
+  1. `Function.java`：加 `default ArrowType getOutputArrowType(){ return getType().getArrowType(); }`（逐列 scale 载体，默认等价旧行为）。
+  2. `ExecuteCompiler.project()` L573：`exprTypes[i] = function.getOutputArrowType();`（输出 schema/列头随逐列 scale）。
+  3. `ExprVectorExpression`：构造改 `super(function.getOutputArrowType())`；`eval()` 补 `case DECIMAL_TYPE` → `DecimalVector.setSafe(i, function.getDecimal(rec))`（NULL 走 `setNull`）。
+  4. `RexConverter`：`case CAST`/`case DIVIDE` 于结果型为 DECIMAL 时分派 `new CastToDecimalFunction(...)`/`new DivDecimalFunction(...)`（携 `call.getType()` 的 precision/scale），否则维持原 `cast()`/`call("/")`。
+  5. 新增 `function/decimal/CastToDecimalFunction`（`getType=DECIMAL_TYPE`，`getDecimal` 经 `DecimalValues.toBigDecimal` 读操作数后 `setScale(scale, HALF_UP)`，覆写 `getOutputArrowType`）、`DivDecimalFunction`（BigDecimal 除法 `scale=div_precision_increment`（缺则兜底 4）/HALF_UP、除零→NULL，MySQL 语义对齐 §6.6）、`DecimalValues`（公共助手）。
+  6. 新增离线锁 `VectorLegDecimalArithmeticTest`（4 测）：cast `setScale`+逐列 scale、除法 scale/HALF_UP、除零→NULL、`getArgs` 暴露操作数（活体精确整例之外的边界锁）。
+- **验绿（活体＋全量回归）**：
+  - 活体 `mvn -o -pl example test -Dtest=VectorTest` → `Tests run: 1, Failures: 0` / **`avg(id)=5.0000`**（红锺转绿，端到端证）。
+  - `mvn -o -pl executor test` → `Tests run: 6, Failures: 0`（含新算术锁）。
+  - hbt golden 护栏 `mvn -o -pl hbt -am test -Dtest=MysqlTypeSystemDivideTest,MysqlTypeSystemAvgTest,MysqlDivideFunctionTest,TypeRepresentationThreePathConsistencyTest,CalciteConvertorsRelDataTypeTest` → `Tests run: 48, Failures: 0` + BUILD SUCCESS。
+- **诚实边界（残留子项，不假关）**：本轮以 `VectorTest` 精确整除例（`avg(id)=10/2=5.0000`）为活体红锺转绿；**非终止小数 avg（如均值落 `1/3` 类）在向量态下的 scale 保真**，其除法 scale 取自 Calcite 结果 `RelDataType`（默认已由 `div_precision_increment` 推得），逻辑经 `VectorLegDecimalArithmeticTest` 单元锁＋hbt `MysqlTypeSystemDivideTest` 语义护栏覆盖，但**尚无向量态非终止小数的活体 e2e 例**。此作 I-DEBT-67 下一条待补验子项挂账（`group by` 带键态十进制均值写回 `GroupByKeyWithAggPlan` 面亦未单独活体覆盖）。主目标（无组 avg 塌型）已真关。

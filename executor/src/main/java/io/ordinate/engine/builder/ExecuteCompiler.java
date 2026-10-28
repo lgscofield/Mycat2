@@ -570,7 +570,7 @@ public class ExecuteCompiler {
             Function function = exprs.get(i);
             boolean constant = function.isConstant();
             boolean runtimeConstant = function.isRuntimeConstant();
-            exprTypes[i] = function.getType().getArrowType();
+            exprTypes[i] = function.getOutputArrowType();
             expressions[i] = new ExprVectorExpression(function);
         }
         Schema schema = SchemaBuilder.ofArrowType(exprTypes).toArrow();

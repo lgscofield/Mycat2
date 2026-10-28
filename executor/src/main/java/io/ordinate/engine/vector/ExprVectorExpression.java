@@ -27,6 +27,7 @@ import lombok.Getter;
 import org.apache.arrow.vector.*;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -36,7 +37,7 @@ public class ExprVectorExpression extends AbstractVectorExpression {
 
 
     public ExprVectorExpression(Function function) {
-        super(function.getType().getArrowType());
+        super(function.getOutputArrowType());
         this.function = function;
     }
 
@@ -160,6 +161,29 @@ public class ExprVectorExpression extends AbstractVectorExpression {
                         record.setPosition(i);
                         double value = function.getDouble(record);
                         valueVector.set(i, value);
+                    }
+                }
+                break;
+            }
+            case DECIMAL_TYPE:
+            {
+                DecimalVector valueVector = (DecimalVector) outputVector;
+                if (function.isNullableConstant()) {
+                    for (int i = 0; i < rowCount; i++) {
+                        record.setPosition(i);
+                        BigDecimal value = function.getDecimal(record);
+                        boolean isNull = function.isNull(record);
+                        if (isNull) {
+                            valueVector.setNull(i);
+                        } else {
+                            valueVector.setSafe(i, value);
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < rowCount; i++) {
+                        record.setPosition(i);
+                        BigDecimal value = function.getDecimal(record);
+                        valueVector.setSafe(i, value);
                     }
                 }
                 break;

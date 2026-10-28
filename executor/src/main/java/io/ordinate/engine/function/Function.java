@@ -22,6 +22,7 @@ import io.ordinate.engine.record.Record;
 import io.ordinate.engine.record.VectorBatchRecord;
 import io.ordinate.engine.schema.InnerType;
 import io.ordinate.engine.vector.VectorContext;
+import org.apache.arrow.vector.types.pojo.ArrowType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -173,6 +174,15 @@ public interface Function {
     }
 
     InnerType getType();
+
+    /**
+     * 该函数输出列的 Arrow 类型。默认等于 {@code getType().getArrowType()}（{@link InnerType}
+     * 枚举的全局标度，DECIMAL 即 scale0）。十进制 CAST/除法函数覆写此方法以携带逐列
+     * {@code Decimal(precision,scale)}，使 Project 输出 schema 与列头 scale 忠实（I-DEBT-67 第二刀）。
+     */
+    default ArrowType getOutputArrowType() {
+        return getType().getArrowType();
+    }
 
     default boolean isConstant() {
         return false;
