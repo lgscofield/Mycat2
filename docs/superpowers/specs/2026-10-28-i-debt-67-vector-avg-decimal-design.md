@@ -132,3 +132,10 @@ I-DEBT-67 真身 = **ordinate 向量腿整套 DECIMAL 支持栈**：十进制列
   4. **测试基建**：executor `pom.xml` 为 surefire forked JVM 常驻 `--add-opens=java.base/java.nio=ALL-UNNAMED`（Arrow netty 后端在 JDK17+ 分配 `DecimalVector` 的硬要求，使锁可复现；纯测试面，零产品语义变更）。
 - **验绿**：`mvn -o -pl executor test`（JAVA_HOME=LibericaJDK-21-Full）→ `Tests run: 2, Failures: 0, Errors: 0`（新锁 + `AvgDecimalFidelityGapTest` 皆绿）+ BUILD SUCCESS。
 - **诚实边界（关键）**：**本刀不让 `VectorTest` 的 `avg(id)` 目标红转绿**——`avg(id)` 源列是 BIGINT（走 `LongColumn`），其 DECIMAL 仅出现在外层 Project 的 `CAST/COUNT` 除法里，真 blocker 是 ②③④。本刀关掉的是"向量腿无法读任何 DECIMAL **源列**"这一独立真实缺口（如 `SELECT decimal_col FROM t /*+setVector{1}*/` 落地前必崩），是后续刀的承重前置。I-DEBT-67 整体**仍开放**，不假关。
+
+### 7.2 第二刀② 勘察：真枢纽定位（2026-10-28 本会话·当前代码实证，订正 §6.3）
+§6.3 旧表述称 ② 是"`RexConverter` L275 `/` 无 decimal 语义"——本轮实读当前 HEAD **推翻该定位**，真枢纽更上游、更单点：
+- **`RexConverter.convertColumnType(SqlTypeName)` L354-356**：`case DOUBLE: case DECIMAL: return InnerType.DOUBLE_TYPE;`——**向量腿把 DECIMAL 系统性折叠为 DOUBLE**。
+- **传导链**：`convertToFunction(RexCall)` 的 `case CAST`（L278-280）`targetType = convertColumnType(call.getType())` → 计划里的 `CAST($0):DECIMAL(19,4)` 目标被折成 **DOUBLE_TYPE** → `ExecuteCompiler.cast(operand, DOUBLE_TYPE)` 投成 double；随后 `case DIVIDE`（L275-276）`call("/")` 两端均 double → 结果 double → 序列化 `5.0`。**故 avg 塌型根在类型映射枢纽，非除法算子本体。**
+- **不可盲翻（投机半修警示）**：单把 L356 改 `DECIMAL_TYPE` 会连带：①`cast()`（ExecuteCompiler L198-213）按 (源型→目标型) 查注册 "cast" 工厂，无 `cast(*:decimal)` 实现即直坠 L213 `throw`（另一种崩，非修复）；②`/` 需新增 DECIMAL 操作数语义（scale=`div_precision_increment`、HALF_UP，对齐 §6.6）；③输出列 schema 需携逐列 `Decimal(p,s)` + `getMycatRelType` 列头 scale 保真（②③④耦合）。故 ②③④ **必须作为一个 e2e 锚定的整体专轮**推进（活代理 VectorTest 现证 + hbt/golden 回归护栏），不可孤立改单点——重踩上一轮 avg 累加器"假设塌方死代码"覆辙。
+- **下一轮起手式**：起活代理 infra（本会话已沉淀可复用配方 `.mycat-home-e2e\launch.ps1` + fullcp classpath 直启）→ 以 `VectorTest` 为红锺，按序落 convertColumnType(DECIMAL 保留) + 十进制 cast 工厂族 + `/` decimal 除法(scale4/HALF_UP) + 逐列 Decimal(p,s) 输出/列头，每步活体现测防回归。
