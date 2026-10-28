@@ -23,6 +23,9 @@ import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.type.SqlTypeName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MycatSqlDialect extends MysqlSqlDialect {
     /**
      * Creates a MysqlSqlDialect.
@@ -63,7 +66,22 @@ public class MycatSqlDialect extends MysqlSqlDialect {
     @Override
     public void unparseCall(SqlWriter writer, SqlCall call, int leftPrec, int rightPrec) {
         SqlOperator operator = call.getOperator();
+        // MYCAT CHANGE (I-DEBT-②): 被省略的可选尾操作数经 SqlCallBinding.operands() 物化成 DEFAULT、
+        // 逃入 RexCall，下推 rel→sql 会原样 emit 成 ", DEFAULT)"——MySQL 不接受函数实参位的 DEFAULT
+        // 关键字（1064）。此处仅在下推 deparse 出口截断尾部连续的 DEFAULT，只发实参；不触碰本地
+        // codegen 求值与类型推断（那些仍需完整 arity）。见 Spec §3/§5-A。
         if (operator instanceof MycatSqlDefinedFunction) {
+            List<SqlNode> operands = call.getOperandList();
+            int end = operands.size();
+            while (end > 0 && operands.get(end - 1).getKind() == SqlKind.DEFAULT) {
+                end--;
+            }
+            if (end < operands.size()) {
+                SqlCall trimmed = operator.createCall(SqlParserPos.ZERO,
+                        new ArrayList<>(operands.subList(0, end)));
+                operator.unparse(writer, trimmed, leftPrec, rightPrec);
+                return;
+            }
             operator.unparse(writer, call, leftPrec, rightPrec);
             return;
         }
