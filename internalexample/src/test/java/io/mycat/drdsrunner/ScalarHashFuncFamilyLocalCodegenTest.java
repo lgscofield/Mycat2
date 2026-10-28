@@ -90,6 +90,10 @@ public class ScalarHashFuncFamilyLocalCodegenTest implements MycatTest {
         probes.put("SHA1", "select SHA1(DATA_TYPE) from information_schema.columns");
         probes.put("SHA", "select SHA(DATA_TYPE) from information_schema.columns");
         probes.put("MD5(嵌套)", "select MD5(MD5(DATA_TYPE)) from information_schema.columns");
+        // SHA2 双参：真库 SHA2(str,0)=SHA2(str,256)，非法长度返 NULL；此处仅验本地可落码（值语义由值面锁钉）。
+        probes.put("SHA2(256)", "select SHA2(DATA_TYPE, 256) from information_schema.columns");
+        probes.put("SHA2(0)", "select SHA2(DATA_TYPE, 0) from information_schema.columns");
+        probes.put("SHA2(512)", "select SHA2(DATA_TYPE, 512) from information_schema.columns");
         List<String> red = new ArrayList<>();
         for (Map.Entry<String, String> e : probes.entrySet()) {
             try {

@@ -32,6 +32,7 @@ import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
 import io.mycat.calcite.sqlfunction.datefunction.*;
 import io.mycat.calcite.sqlfunction.hashfunction.MD5Function;
 import io.mycat.calcite.sqlfunction.hashfunction.SHA1Function;
+import io.mycat.calcite.sqlfunction.hashfunction.SHA2Function;
 import io.mycat.calcite.sqlfunction.infofunction.*;
 import io.mycat.calcite.sqlfunction.jsonfunction.SubGtFunction;
 import io.mycat.calcite.sqlfunction.lockfunction.MycatGetLockFunction;
@@ -492,7 +493,10 @@ public enum MycatCalciteSupport implements Context {
                             // SqlLibraryOperators（非 SqlStdOperatorTable），Mycat 算子表对这两个名字解析出 0 个算子，
                             // 折算期残留 SqlUnresolvedFunction → 出码期 cannot translate call MD5(...)。
                             MD5Function.INSTANCE,
-                            SHA1Function.INSTANCE
+                            SHA1Function.INSTANCE,
+                            // SHA2(str,len) 双参：Calcite 仅有单参 SHA256（library），Mycat 侧对 SHA2 无实现，
+                            // 同 found=0 证据链，此处补建（值语义见 SHA2Function，len=0→256、非法长度→NULL）。
+                            SHA2Function.INSTANCE
                     ).forEach(i -> build.put(i.getName(), i));
                     // SHA 是 SHA1 的 MySQL 同义词, 需显式夺名。
                     build.put("SHA", SHA1Function.INSTANCE);

@@ -67,4 +67,61 @@ public class MysqlHashFunctionTest {
         Assertions.assertEquals(MD5Function.md5("abc").toLowerCase(), MD5Function.md5("abc"));
         Assertions.assertEquals(SHA1Function.sha1("abc").toLowerCase(), SHA1Function.sha1("abc"));
     }
+
+    /**
+     * {@code SHA2(str, hashLength)} 语义，全部期望值取自真库 MySQL 8.0.46（docker week-m80, utf8mb4）实测，
+     * 且与 MariaDB 10.11（m1-mysql-a）逐值一致：
+     * <ul>
+     *   <li>224/256/384/512 → 对应摘要小写十六进制（长 56/64/96/128）；</li>
+     *   <li>len=0 视同 256（真库实测 {@code SHA2('abc',0)=SHA2('abc',256)}）；</li>
+     *   <li>非法长度（1/160/999/负）→ NULL；</li>
+     *   <li>非 ASCII 按 UTF-8 字节摘要（{@code SHA2('中文',256)=SHA2(CAST('中文' AS BINARY),256)} 同值）。</li>
+     * </ul>
+     */
+    @Test
+    public void sha2MatchesRealMysql() {
+        Assertions.assertEquals("23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7",
+                SHA2Function.sha2("abc", 224));
+        Assertions.assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+                SHA2Function.sha2("abc", 256));
+        Assertions.assertEquals("cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7",
+                SHA2Function.sha2("abc", 384));
+        Assertions.assertEquals("ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f",
+                SHA2Function.sha2("abc", 512));
+        Assertions.assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                SHA2Function.sha2("", 256));
+        // 真库 len=0 视同 256
+        Assertions.assertEquals(SHA2Function.sha2("abc", 256), SHA2Function.sha2("abc", 0));
+        // 非 ASCII 按 UTF-8 字节摘要
+        Assertions.assertEquals("72726d8818f693066ceb69afa364218b692e62ea92b385782363780f47529c21",
+                SHA2Function.sha2("中文", 256));
+    }
+
+    /** 非法摘要长度真库返回 NULL（MySQL 8.0.46 实测：1/160/999/负 均为 NULL）。 */
+    @Test
+    public void sha2InvalidLengthReturnsNull() {
+        Assertions.assertNull(SHA2Function.sha2("abc", 1));
+        Assertions.assertNull(SHA2Function.sha2("abc", 160));
+        Assertions.assertNull(SHA2Function.sha2("abc", 999));
+        Assertions.assertNull(SHA2Function.sha2("abc", -1));
+    }
+
+    /**
+     * NULL 入参：{@code SHA2(NULL,256)} 与 {@code SHA2('abc',NULL)} 真库(MySQL 8.0.46) 均返回 NULL。
+     * 注：MariaDB 10.11 对 {@code SHA2('abc',NULL)} 会把 NULL 长度回退为 256 而非 NULL，属版本 persona 发散；
+     * 本实现按北极星主口径对齐 MySQL（见 DEBT-QUEUE 族行残差登记）。
+     */
+    @Test
+    public void sha2NullArgumentReturnsNull() {
+        Assertions.assertNull(SHA2Function.sha2(null, 256));
+        Assertions.assertNull(SHA2Function.sha2("abc", null));
+    }
+
+    /** SHA2 摘要为小写十六进制，长度与位数/4 一致（256→64、512→128）。 */
+    @Test
+    public void sha2DigestHexWidthMatchesLength() {
+        Assertions.assertEquals(64, SHA2Function.sha2("abc", 256).length());
+        Assertions.assertEquals(128, SHA2Function.sha2("abc", 512).length());
+        Assertions.assertEquals(SHA2Function.sha2("abc", 256).toLowerCase(), SHA2Function.sha2("abc", 256));
+    }
 }
