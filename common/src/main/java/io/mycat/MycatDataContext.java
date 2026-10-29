@@ -3,6 +3,7 @@ package io.mycat;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.parser.SQLType;
 import io.mycat.beans.mycat.TransactionType;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.protocol.mysql.type.MySQLServerStatusFlags;
 import io.mycat.config.ServerConfig;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -84,6 +86,26 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
     void setServerCapabilities(int serverCapabilities);
 
     int getWarningCount();
+
+    /**
+     * I-DEBT-69 会话告警缓冲：追加一条诊断条件。
+     *
+     * <p>语义按 2026-10-29 活体真库探针（MySQL 8.0 / 5.7 / MariaDB 10.11 一致）钉死：
+     * 诊断区持“最近一条语句”的条件，同语句内多条按产生顺序累积，下一条语句入口清空；
+     * 缓冲存全量，{@code max_error_count} 只截断列表（读面行为），不截断计数。
+     */
+    void addWarning(WarningMessage warning);
+
+    /**
+     * 本语句已产生的诊断条件，按产生顺序；返回不可变视图，读面（SHOW WARNINGS）据此出行集。
+     */
+    List<WarningMessage> getWarnings();
+
+    /**
+     * 清空诊断条件缓冲。必须在每条客户端语句入口调用（等价真库“替换诊断区”），
+     * 但读回型诊断语句（SHOW WARNINGS 等）自身不得清空，否则读完即失。
+     */
+    void clearWarnings();
 
     long getLastInsertId();
 

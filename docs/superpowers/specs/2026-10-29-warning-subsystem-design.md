@@ -84,19 +84,40 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 ## 5. 语义决策（D1–D6，齐备可落地）
 
-- **D1 生命周期**：告警缓冲随"客户端语句"重置。MySQL：每条语句开始清空诊断区（除 `SHOW WARNINGS` 自身与部分只读命令不清）。落地=在语句执行入口 `clearWarnings()`；`SHOW WARNINGS`/`SHOW COUNT(*) WARNINGS`/`SELECT @@warning_count` 归类**不清缓冲**的读回语句。
-- **D2 计数同源**：`getWarningCount()` 权威值 = `min(缓冲总产生数, max_error_count 截断后)`。缓冲入队即计数，二者不各算各的。
-- **D3 顺序**：MySQL `SHOW WARNINGS` 顺序不保证严格插入序，但**客户端实测多为产生序**。本专轮采**产生插入序**（稳定、可测），跨片并集按 (Level 优先级 Error>Warning>Note, Code, 首次出现序) 稳定排序（D6）。诚实标注：与真库在极端并发下顺序或有出入，值集合一致优先。
-- **D4 `max_error_count`**：默认 64。入队超过则丢弃尾部并保持 `warning_count` = 实际可见行数（对齐 MySQL：`warning_count` 反映可见告警数）。作为可配置会话变量。
+- **D1 生命周期（2026-10-29 活体探针修正·原设想"读后清"被证伪）**：真库语义 = **诊断区只持"最近一条语句"的条件·每条新语句替换 DA**（证据：`SELECT 1/0; SELECT 5; SHOW WARNINGS` → **空行集**）；**`SHOW WARNINGS` 读后不清空**（证据：`SELECT 1/0; SHOW WARNINGS; SELECT @@warning_count` → **1**）。落地 = **每条语句入口 `clearWarnings()`**（等价"替换"·挂在 `MycatdbCommand.execute` L466 `putProcessStateMap(emptyMap)` 同一重置点旁），语句执行期累积本语句条件，**读面只读不清**。
+- **D2 计数同源（修正）**：`warning_count` = **本语句条件总数**，缓冲入队即计数、`getWarningCount()` 返回缓冲 size；**不乘加、不分两套**。真库证据：`SET max_error_count=1; SELECT 1/0,2/0,3/0` → `@@warning_count`=**3** ⇒ **计数不被 `max_error_count` 截断**。
+- **D3 顺序**：MySQL `SHOW WARNINGS` 顺序不保证严格插入序，但**客户端实测多为产生序**（活体单条件场景即产生序）。本专轮采**产生插入序**（稳定、可测），跨片并集按 (Level 优先级 Error>Warning>Note, Code, 首次出现序) 稳定排序（D6）。诚实标注：与真库在极端并发下顺序或有出入，值集合一致优先。
+- **D4 `max_error_count`（活体修正·严禁硬编码）**：**默认值版本相关** — 活体实测 **MySQL 8.0 = 1024 / MySQL 5.7 = 64 / MariaDB 10.11 = 64**。语义 = **截断只作用于列表**（`SHOW WARNINGS` 输出按会话 `max_error_count` 截尾），**不截计数**（见 D2）。故读面须取会话变量（并按 emulate 版本取默认），缓冲侧不截断。
+- **D4b 读面截断落点**：因 D4 属"列表侧行为"，截断实现于 Blade B 读面（`ShowWarningsSQLHandler`），而非 Blade A 缓冲入队处 — 保持缓冲存全量、`warning_count` 报全量的真库一致性。
 - **D5 后端透传计数兜底**：现有 `private int warningCount`（OK/EOF 出包已用）在后端捕获尚未落地（Blade D 前）时保留原语义；Blade D 后由缓冲计数统一覆盖，避免 `warning_count` 与明细两套来源打架。
 - **D6 跨片去重**：同一语句在多分片可能产生重复告警；并集按 `(Code, Message)` 去重保留首次。
 
 ---
 
-## 6. 实现前须核的小项（不阻塞 Spec，落刀时定）
-- druid `MySqlShowWarningsStatement` AST 是否暴露 `isCount()`/`getLimit()`（`.m2` 未定位到 jar，落 Blade B 时 `javap` 或在 handler 内按 `request.getAst()` 反射/文本判定确认）。
-- `SHOW WARNINGS` 三列的**精确 wire 类型/字符集**：`getShowWarningsColumns()` 既有定义即基准（勿新造列头，防 I-DEBT-45 列头保真家族回归）。
-- 后端告警捕获的**同连接取回**API 落点（Blade D：需拿到执行该语句的物理连接句柄，避免池化换连接）。
+## 6. 实现前须核的小项（**2026-10-29 落刀时全部取证消解**）
+- ~~druid `MySqlShowWarningsStatement` AST 是否暴露 `isCount()`/`getLimit()`~~ → **`javap` 实证存在**：`isCount()/setCount(boolean)/getLimit()/setLimit(SQLLimit)`，且该类 `extends MySqlStatementImpl implements MySqlShowStatement`，**并非 `SQLShowStatement`** ⇒ `MycatdbCommand` L511 的 `PUSH_SHOW && instanceof SQLShowStatement` 分支根本拦不到它；又因 `ServerConfig.java:85 pushShowOnPrototype=false`（默认·e2e/CI 无覆盖）+ `MycatdbCommand:135` 确已 `sqlHandlers.add(new ShowWarningsSQLHandler())` ⇒ **活路 = server handler**，收到的是 `VertxMySQLAuthHandler:100` 创建的客户端会话 context。
+- ~~`SHOW WARNINGS` 三列的精确 wire 类型~~ → 沿用既有 `getShowWarningsColumns()`（Level=VAR_STRING(253)/len 21/charset 33、Code=INT32(3)/len 4/flags 0x00a1、Message=VAR_STRING(253)/len 1536），未新造列头。**新增待核项**：`COUNT(*)` 形态单列 `@@session.warning_count` 的精确列元数据尚未用 `--column-type-info` 活体复核（暂沿用 Code 列 INT32 口径），已登记为 Blade D 差分项。
+- 后端告警捕获的**同连接取回**API 落点（Blade D 仍未做）。
+- **`max_error_count` 取值现状（2026-10-29 二次取证·修正本条原论证）**：`MySQLVariablesEnum:496 max_error_count(Type.BOTH)` 有变量名。取值**分两条装配路径**（`hbt/.../MysqlVariableServiceImpl.java:34-96`）：①**配了后端数据源** → 会话变量表由真库 `SHOW SESSION VARIABLES` 拉取（L44-51），**含 `max_error_count`**，值即后端真实版本口径（8.0=1024 / 5.7=64 / MariaDB=64），读面直接生效，**无需 Blade C**；②**无后端/嵌入兜底** → L53-95 那份静态表，**不含**此键，`getSessionVariable` 返回 `null` ⇒ 读面走 **`NO_TRUNCATION(-1)` 保守退化**，**不臆造**版本相关默认。
+  > 本条初稿写作"资源模板/会话变量表未见其默认值来源（全仓 grep 零命中）⇒ 取不到值"，**该论证只成立于路径②**，对路径①不成立 —— 已在落 Blade B 后复核并改正。Blade C 的正题相应**收窄**为：给兜底路径按 emulate 版本补默认值 + 支持 `SET max_error_count` 覆盖（不再是"让变量有值可读"）。
+  锁：`ShowWarningsMaxErrorCountTest` 5 例（null/非数字/抛异常 → 不截断；字符串数字/Number → 直取），并做**变异核验**（把退化返回值改成 64 → `Tests run: 5, Failures: 3`，证明锁会咬人）。
+- **同族缺陷登记（本专轮未动）**：`ShowErrorsSQLHandler` 同样 `setRows(Collections.emptyList())` 恒空；`SHOW ERRORS` 语义另含"只列 Error 级"与 `@@session.error_count`，需活体探针后再落，不臆造。已在入口判定 `isDiagnosticReadStatement` 中预留（防未来先清后读）。
+
+---
+
+## 6b. 落地进度（2026-10-29 本轮）
+
+| Blade | 状态 | 证据 |
+|---|---|---|
+| **A 地基** | ✅ 已落（离线自证） | 新增 `common/.../beans/mycat/WarningMessage.java`；`MycatDataContext` 加 `addWarning/getWarnings/clearWarnings`（**接口新增抽象方法的实现者波及面实测为 0**：全仓仅 2 个 `implements MycatDataContext`，均已实现）；`proxy/.../MycatDataContextImpl` 与 `server/.../JdbcMycatDataContext` 各挂缓冲，`getWarningCount()` 改为**缓冲 size 派生**（取证：`MycatDataContextEnum.WARNING_COUNT` 全仓零调用者、`dataContext.setWarningCount` 无生产写入点 ⇒ legacy int 是恒 0 死状态，派生计数安全且严格更优）；语句入口重置钩子挂 `MycatdbCommand.execute` 的 `putProcessStateMap(emptyMap)` 同一收口（`executeQuery:208` 与 `DefaultCommandHandler:213` 均汇入此路）。锁：`SessionWarningBufferTest` 4/0/0 + `MycatdbCommandDiagnosticResetTest` 2/0/0 |
+| **B 读面** | ✅ 已落（离线自证） | `ShowWarningsSQLHandler` 从缓冲真读，`buildWarningRows()` 纯函数承载 COUNT(*)/LIMIT/截断语义，`onExecute` 按 `isCount()` 分支列定义，`resolveMaxErrorCount()` 读会话变量并在取不到时保守退化。锁：`ShowWarningsRowBuilderTest` 9/0/0 + `ShowWarningsMaxErrorCountTest` 5/0/0（后者经**变异核验**确证会咬人） |
+| C 系统变量 | ⬜ 待做（范围已收窄） | 见上"取值现状"：有后端时变量本就可读，C 只剩兜底默认值 + `SET` 覆盖 |
+| D 后端告警捕获 | ⬜ 待做（需 infra） | 本轮 **无任何生产者**，故端到端尚不可见 → 诚实标 🟡 |
+| E 本地除零 Warning 1365 | ⬜ 待做 | 依赖 I-DEBT-39·残值语义前置 |
+
+**回归门（2026-10-29·`mvn -o -pl proxy,server -am test`，JAVA_HOME=Liberica JDK-21-Full）**：`BUILD SUCCESS`，14 模块合计 **377 tests / 0 failures / 0 errors / 0 skipped**（config 23、common 43、router 18、datasource 7、va 12、proxy 13、hbt 255、executor 6、server 100）。三枚新锁的 surefire 报告文件已逐个 `Test-Path` + 读正文实名核对（防"BUILD SUCCESS 但静默跑 0 测试"的伪绿）。全仓 `test-compile` 另已独立通过（19 模块）。
+
+> **本轮诚实边界**：Blade A+B 建的是"管道 + 读面"，**生产者一条也没接**（Blade D/E 才有真实告警进缓冲）。所以此刻 `SHOW WARNINGS` 在活体链路上仍返回空行集——缺陷的**根因面**（缓冲/同源计数/读面/生命周期）已闭环并可离线证明，**可见价值**待 D 刀。不得因 20 锁全绿就冒 Evidenced-Done。
 
 ---
 

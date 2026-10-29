@@ -26,6 +26,7 @@ import com.alibaba.druid.sql.parser.SQLType;
 import com.mysql.cj.util.LRUCache;
 import io.mycat.*;
 import io.mycat.beans.mycat.TransactionType;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.config.MycatServerConfig;
 import io.mycat.config.UserConfig;
@@ -60,6 +61,8 @@ public class MycatDataContextImpl implements MycatDataContext {
     private String lastMessage;
     private long affectedRows;
     private int warningCount;
+    // I-DEBT-69 Blade A：会话告警缓冲（诊断区）。warning_count 由缓冲派生，避免计数与 SHOW WARNINGS 明细两套来源。
+    private final List<WarningMessage> warnings = new ArrayList<>();
     private long lastInsertId;
     private int serverCapabilities;
     private int lastErrorCode;
@@ -104,6 +107,32 @@ public class MycatDataContextImpl implements MycatDataContext {
     public MycatDataContextImpl() {
         this.id = IDS.getAndIncrement();
         switchTransaction(TransactionType.DEFAULT);
+    }
+
+    /**
+     * I-DEBT-69 Blade A：warning_count 权威来源 = 本会话诊断缓冲条数（活体真库语义见接口注释）。
+     * 显式定义以覆盖 Lombok {@code @Getter} 对 {@code warningCount} 字段的生成；该 legacy 字段无生产写入点
+     * （{@code MycatDataContextEnum.WARNING_COUNT} 全仓零调用者），故改为派生计数不与既有 OK/EOF 出包逻辑冲突。
+     */
+    @Override
+    public int getWarningCount() {
+        return warnings.size();
+    }
+
+    @Override
+    public void addWarning(WarningMessage warning) {
+        Objects.requireNonNull(warning, "warning");
+        warnings.add(warning);
+    }
+
+    @Override
+    public List<WarningMessage> getWarnings() {
+        return Collections.unmodifiableList(warnings);
+    }
+
+    @Override
+    public void clearWarnings() {
+        warnings.clear();
     }
 
 

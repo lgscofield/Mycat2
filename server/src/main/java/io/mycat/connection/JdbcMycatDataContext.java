@@ -2,13 +2,21 @@ package io.mycat.connection;
 
 import io.mycat.*;
 import io.mycat.beans.mycat.TransactionType;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class JdbcMycatDataContext implements MycatDataContext {
+    // I-DEBT-69 Blade A：与 proxy 侧 MycatDataContextImpl 同构的诊断缓冲，保证 JDBC 本地通道语义一致。
+    private final List<WarningMessage> warnings = new ArrayList<>();
+
     @Override
     public long getSessionId() {
         return 0;
@@ -111,7 +119,22 @@ public class JdbcMycatDataContext implements MycatDataContext {
 
     @Override
     public int getWarningCount() {
-        return 0;
+        return warnings.size();
+    }
+
+    @Override
+    public void addWarning(WarningMessage warning) {
+        warnings.add(Objects.requireNonNull(warning, "warning"));
+    }
+
+    @Override
+    public List<WarningMessage> getWarnings() {
+        return Collections.unmodifiableList(warnings);
+    }
+
+    @Override
+    public void clearWarnings() {
+        warnings.clear();
     }
 
     @Override

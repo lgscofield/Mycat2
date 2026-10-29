@@ -26,7 +26,9 @@ import com.alibaba.druid.sql.ast.statement.SQLSelect;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.ast.statement.SQLShowStatement;
 import com.alibaba.druid.sql.ast.statement.SQLStartTransactionStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlShowErrorsStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlShowStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlShowWarningsStatement;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.parser.SQLParserUtils;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
@@ -453,6 +455,15 @@ public enum MycatdbCommand {
         return map;
     }
 
+    /**
+     * I-DEBT-69：读回型诊断语句判定。这类语句消费的是上一条语句留下的诊断区，
+     * 因此语句入口的重置钩子必须放过它们（详见 {@code SessionWarningBufferTest} 活体取证语义）。
+     */
+    static boolean isDiagnosticReadStatement(SQLStatement sqlStatement) {
+        return sqlStatement instanceof MySqlShowWarningsStatement
+                || sqlStatement instanceof MySqlShowErrorsStatement;
+    }
+
     public static Future<Void> execute(MycatDataContext dataContext, Response receiver, SQLStatement sqlStatement) {
 
 
@@ -464,6 +475,11 @@ public enum MycatdbCommand {
         MycatSQLLogMonitor logMonitor = MetaClusterCurrent.wrapper(MycatSQLLogMonitor.class);
         //////////////////////////////////////////////////////////////////////////////////////
         dataContext.putProcessStateMap(Collections.emptyMap());
+        // I-DEBT-69 Blade A：诊断区按语句替换（活体真库取证：SELECT 1/0; SELECT 5; SHOW WARNINGS → 空行集）。
+        // 读回型诊断语句（SHOW WARNINGS/ERRORS）入口不得清空，否则先清后读又退回恒空缺陷。
+        if (!isDiagnosticReadStatement(sqlStatement)) {
+            dataContext.clearWarnings();
+        }
         sqlStatement.setAfterSemi(false);//remove semi
         boolean existSqlResultSetService = MetaClusterCurrent.exist(SqlResultSetService.class);
         //////////////////////////////////apply transaction///////////////////////////////////
