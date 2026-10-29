@@ -108,19 +108,22 @@ trap cleanup EXIT
 wait_for_port "$MYCAT_HOST" "$MYCAT_PORT" 60 "Mycat 前端 $MYCAT_PORT" || { echo "启动日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
 
 # ---- 播种脚本（全类型含 bit(8) + 中文；写成 UTF-8 文件，走字节安全 < 喂入）----
-# CREATE DATABASE / CREATE TABLE 均显式 utf8mb4，两处各有独立根因（2026-10-19 取证）：
-#  (1) mysql:5.7 服务端默认字符集是 latin1（my.cnf 未抬），裸建库/建表会让列继承 latin1
-#      → 中文 INSERT 报 ERROR 1366（run@61eb56afa 三档全红=确定性）；8.x/MariaDB 各档显式声明为无操作，零副作用。
-#  (2) Mycat 的 SHOW CREATE **DATABASE** 仿真面会**丢弃库级字符集子句**（真二进制 dump 输出裸 `CREATE DATABASE dbdump;`，
-#      run@a4c398734 诊断坐实），故仅靠 CREATE DATABASE 声明不足以让**回灌到 latin1 默认靶**的表列保住 utf8mb4
-#      → 中文在 STEP4 读回落成 3F3F(??)。但 Mycat 的 SHOW CREATE **TABLE** 会**透传表级字符集**，
-#      故 CREATE TABLE 显式钉 utf8mb4 后 dump 保留该子句、回灌靶列即 utf8mb4、逐值保真（本地 my57 latin1 靶 probe57e 实测 PASS）。
-#      库级不透传属 Mycat 元数据仿真兼容缺口，另立产品债跟踪（见 DEBT-QUEUE I-DEBT-58），本步用表级子句绕过以背书往返金标准。
+# CREATE DATABASE 显式 utf8mb4（非绕过，是合法输入声明；2026-10-19 取证根因 (1)）：
+#  mysql:5.7 服务端默认字符集是 latin1（my.cnf 未抬），裸建库会让列继承 latin1
+#  → 中文 INSERT 报 ERROR 1366（run@61eb56afa 三档全红=确定性）；8.x/MariaDB 各档显式声明为无操作，零副作用。
+# ✅ 2026-10-29 撤除表级绕过（I-DEBT-58 收口复验）：曾根因 (2)=Mycat SHOW CREATE DATABASE 仿真面丢库级
+#  字符集，dump 出裸 `CREATE DATABASE dbdump;`，回灌 latin1 默认靶中文落 3F3F（run@a4c398734），当时
+#  `ed7795914` 以 CREATE TABLE 钉表级 utf8mb4 绕过。Design A 修复（`a38e6fa6f` 透传读回后端真实库定义）
+#  已随 CI 全档绿；本 seed 的 CREATE TABLE 已去掉表级 CHARACTER SET/COLLATE，dump 须靠库级子句保真
+#  ——即本步同时是 I-DEBT-58 的端到端复验网（撤绕过判据：5.7 档 STEP4 HEX(name)=E68EA2E99288 非 3F3F）。
+#  本地复演背书（2026-10-29，persona=MYSQL_5_7 + my57-3306 源 + 官方镜像默认 latin1 靶 tmp57lat:3317）：
+#  SHOW CREATE DATABASE 返 `CREATE DATABASE \`dbdump\` /*!40100 DEFAULT CHARACTER SET utf8mb4 */`（与真 5.7 逐字一致）、
+#  mysqldump 默认口径 rc=0、回灌 latin1 靶 rc=0、逐值全等（含中文 HEX/bit(8)/生列/NULL）。
 cat > "$SEED_SQL" <<'SQL'
 DROP DATABASE IF EXISTS dbdump;
 CREATE DATABASE dbdump CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE dbdump;
-CREATE TABLE t1 (id INT PRIMARY KEY, name VARCHAR(64), amount DECIMAL(10,2), ts DATETIME NULL, gen INT AS (id*2) STORED, b BIT(8), txt TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE t1 (id INT PRIMARY KEY, name VARCHAR(64), amount DECIMAL(10,2), ts DATETIME NULL, gen INT AS (id*2) STORED, b BIT(8), txt TEXT);
 INSERT INTO t1 (id,name,amount,ts,b,txt) VALUES (1,'探针',10.50,'2026-01-01 10:00:00',b'10101010','hello'),(2,'abc',20.75,NULL,b'00001111','plain');
 SQL
 
