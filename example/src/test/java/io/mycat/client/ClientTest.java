@@ -39,48 +39,44 @@ public class ClientTest implements MycatTest {
         }
     }
 
+    /**
+     * I-DEBT-29 离线面（不需 Docker/8066）：钉死 {@code @@global.x} reprint 后仍可再解析。
+     * 与 hbt {@code VariantReprintFidelityTest} 同根，此处锁 example 侧原 {@code testDBeaver}
+     * 崩溃点——修复前离线断言即抛 {@code ParserException: token VARIANT}，从未走到活体序列。
+     */
     @Test
-    public void testDBeaver() throws Exception {
-        /**
-         *
+    public void testDBeaverMetadataReprintFidelity() throws Exception {
+        DrdsSqlWithParams drdsSqlWithParams =
+                DrdsRunnerHelper.preParse("SELECT @@global.character_set_server, @@global.collation_server", null);
+        // 主断言：reprint 出的参数化文本必须能二次解析（原崩溃的那一步）。
+        drdsSqlWithParams.getParameterizedStatement();
+        // 字面锁：分隔逗号必须逐字符还原。
+        Assert.assertEquals("SELECT @@global.character_set_server, @@global.collation_server",
+                drdsSqlWithParams.getParameterizedSQL());
+    }
 
-         SELECT *
-         FROM information_schema.COLUMNS
-         WHERE TABLE_SCHEMA = 'db1'
-         AND TABLE_NAME = 'www'
-         ORDER BY ORDINAL_POSITION
-         *
-         *
-         */
-        DrdsSqlWithParams drdsSqlWithParams = DrdsRunnerHelper.preParse("SELECT @@global.character_set_server, @@global.collation_server", null);
-        Assert.assertEquals("SELECT @@global.character_set_server, @@global.collation_server", drdsSqlWithParams.getParameterizedSQL());
+    /**
+     * I-DEBT-29 活体面（需 8066 persona=MYSQL_5_7）：跑 DBeaver 元数据 12 条真实序列。
+     * 对招牌那条 {@code SELECT @@GLOBAL.character_set_server,@@GLOBAL.collation_server}
+     * 由哑断言升级为值断言——必须 1 行 2 列且两列非空（卖出"确实取回元数据"这门灯）。
+     */
+    @Test
+    public void testDBeaverMetadataSequenceLive() throws Exception {
         try (Connection mySQLConnection = getMySQLConnection(DB_MYCAT)) {
-//            Statement statement = mySQLConnection.createStatement();
-//            ResultSet resultSet = statement.executeQuery("SELECT * FROM `information_schema`.`CHARACTER_SETS` LIMIT 0, 1000; ");
-//            List<String> res = new ArrayList<>();
-//            while (resultSet.next()) {
-//                int columnCount = resultSet.getMetaData().getColumnCount();
-//                Object[] objects = new Object[columnCount];
-//                for (int i = 0; i < columnCount; i++) {
-//                    objects[i] = resultSet.getObject(i + 1);
-//                }
-//                String collect = Stream.of(objects).map(i -> {
-//                    if (i instanceof String) {
-//                        return "\"" + i + "\"";
-//                    }
-//                    return i.toString();
-//                }).collect(Collectors.joining(","));
-//                res.add("r.add(new Object[]{"+collect+"});");
-//            }
-//            System.out.println(String.join("",res));
-//            List<Map<String, Object>> show_collation = JdbcUtils.executeQuery(mySQLConnection, "SHOW COLLATION", Collections.emptyList());
-
             execute(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Main */ SET autocommit=1");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SELECT DATABASE()");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SHOW ENGINES");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SHOW CHARSET");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SHOW COLLATION");
-            executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SELECT @@GLOBAL.character_set_server,@@GLOBAL.collation_server");
+            // 招牌查询：由哑断言补成值断言。
+            List<Map<String, Object>> charsetCollation = executeQuery(mySQLConnection,
+                    "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SELECT @@GLOBAL.character_set_server,@@GLOBAL.collation_server");
+            Assert.assertEquals("全局 charset/collation 查询应恰好 1 行", 1, charsetCollation.size());
+            Map<String, Object> row = charsetCollation.get(0);
+            Assert.assertEquals("应恰好 2 列", 2, row.size());
+            List<Object> values = new ArrayList<>(row.values());
+            Assert.assertNotNull("第 1 列（character_set_server）不得为 null", values.get(0));
+            Assert.assertNotNull("第 2 列（collation_server）不得为 null", values.get(1));
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SHOW PLUGINS");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ SHOW VARIABLES LIKE 'lower_case_table_names'");
             executeQuery(mySQLConnection, "/* ApplicationName=DBeaver 21.2.5 - Metadata */ show databases");

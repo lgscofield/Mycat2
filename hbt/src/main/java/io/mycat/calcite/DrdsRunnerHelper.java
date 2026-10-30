@@ -7,6 +7,8 @@ import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLAllColumnExpr;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
+import com.alibaba.druid.sql.ast.expr.SQLVariantRefExpr;
+import com.alibaba.druid.sql.visitor.SQLASTVisitorAdapter;
 import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
 import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
@@ -63,6 +65,21 @@ public class DrdsRunnerHelper {
     }
 
     public static DrdsSqlWithParams preParse(SQLStatement sqlStatement, String defaultSchemaName) {
+        // I-DEBT-29 修法 A（reprint 属性归一）：druid 1.2.28 的 SQLVariantRefExpr.hasPrefixComma
+        // 初始化不对称——作用域名系统变量（@@global.x / @@x 走三参构造）从不赋值、缺省 false，
+        // 致 SQLASTOutputVisitor.printSelectList 把相邻 select 项间的 ", " 换成 " "（吞逗号），
+        // 本方法随后把该坏文本交 toString()/outputToParameterized 外发，下游再解析即抛
+        // ParserException: token VARIANT（DBeaver 元数据序列 charset/collation 全局变量查询即此）。
+        // 归一：遍历整棵 AST（不限 selectList，WHERE/SET/实参位同样可能命中）凡 variant 置
+        // hasPrefixComma=true，恢复"独立 select 项前置本就有逗号/下标 0 不需要逗号"的正确缺省。
+        // blast radius：该字段在 druid 内仅 printSelectList 一处读取，不涉参数计数/下推，单点幂等。
+        sqlStatement.accept(new SQLASTVisitorAdapter() {
+            @Override
+            public boolean visit(SQLVariantRefExpr x) {
+                x.setHasPrefixComma(true);
+                return true;
+            }
+        });
         List<Object> params = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         List<String> alias;

@@ -1,6 +1,7 @@
 # I-DEBT-29 元数据 GUI / DBeaver 专轮 · 设计 Spec
 
-> **状态**：Draft（待用户评审）
+> **状态**：✅ 已实现并本地收口（2026-10-30 · MYSQL_5_7 一档 · 本地 runtime-evidenced，CI 徽标待 push 另计）
+> **收口实证**：hbt `VariantReprintFidelityTest` 13/13 + hbt 全套 268/0/0；`ClientTest` 拆离线/活体后 6/0/0（起 8066 persona=MYSQL_5_7 活体真跑，值断言过）；example 全量 539/0F/5E（残留 5E=XaBackendConnectionTest 环境族·正交）；核心面 server/proxy/router/internalexample 全绿。修法 A 落 `DrdsRunnerHelper.preParse` 入口。看板 DEBT-QUEUE §1 I-DEBT-29 + PROGRESS §7 第六列/里程碑 M3 已回写。余 I-DEBT-29-EXT（6 档）。
 > **日期**：2026-10-30
 > **债务**：`DEBT-QUEUE.md` §1 **I-DEBT-29**（A 层 · §7 验收面第六列「元数据 GUI」）
 > **拆分票**：`I-DEBT-29-EXT`（其余 6 persona 档的元数据 GUI 扩面，本轮**不做**）
