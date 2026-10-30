@@ -57,7 +57,18 @@ public class VariantReprintFidelityTest {
                 // 11 session + global：[1] global → 吞（RED）
                 org.junit.jupiter.params.provider.Arguments.of("SELECT @@session.a, @@global.b", null),
                 // 12 三枚 global：两处均吞（RED）
-                org.junit.jupiter.params.provider.Arguments.of("SELECT @@global.a, @@global.b, @@global.c", null));
+                org.junit.jupiter.params.provider.Arguments.of("SELECT @@global.a, @@global.b, @@global.c", null),
+                // ---- I-DEBT-29-EXT 扩档：MariaDB 画像 GUI 实发形态（DBeaver 对 MariaDB 方言的
+                // sql_mode/字符集/排序规则全局变量组合）。修法 A 在解析层与 persona 正交，
+                // 本组预期即绿（守卫锁非冒充 RED）；摘修法 A 则 13/15/16 必红，判别力在 TDD 轮已核。
+                // 13 MariaDB 招牌：小写 global 双枚
+                org.junit.jupiter.params.provider.Arguments.of("select @@global.sql_mode, @@global.character_set_server", null),
+                // 14 MariaDB 混排：裸 + global（吞面同族）
+                org.junit.jupiter.params.provider.Arguments.of("SELECT @@collation_connection,@@GLOBAL.character_set_client", null),
+                // 15 大写 GLOBAL + 裸 + 大写 global 三枚（GUI 大小写混发形）
+                org.junit.jupiter.params.provider.Arguments.of("SELECT @@GLOBAL.max_allowed_packet, @@autocommit, @@global.sql_mode", null),
+                // 16 DBeaver MariaDB 元数据腿：global 双枚 + 字面量尾项
+                org.junit.jupiter.params.provider.Arguments.of("SELECT @@global.version_comment, @@global.version, 'x'", null));
     }
 
     @ParameterizedTest(name = "[{index}] {0}")

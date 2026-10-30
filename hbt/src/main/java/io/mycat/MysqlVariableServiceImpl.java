@@ -1,6 +1,7 @@
 package io.mycat;
 
 import io.mycat.api.collector.RowBaseIterator;
+import io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunction;
 import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.replica.ReplicaSelectorManager;
@@ -95,6 +96,13 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
             }
         }
 
+        // I-DEBT-29-EXT：version 键必须与握手 serverVersion / VERSION()（MycatVersionFunction）同源，
+        // 按 persona 宣称归一。后端拉表/模板都不含该归一：真值经 @@version 泄露后端版本
+        // （如 persona=MYSQL_5_7 却报 8.0.46），GUI 客户端读 @@version 判方言即踩空，
+        // 三宣称（握手/VERSION()/@@version）自相矛盾。单一权威取自 MycatVersionFunction.version()。
+        String personaVersion = MycatVersionFunction.version();
+        globalVariables.put("version", personaVersion);
+        sessionVariables.put("version", personaVersion);
     }
 
     @Override
