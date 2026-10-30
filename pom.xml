@@ -1046,6 +1046,15 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.14.1</version>
           <configuration>
+            <!-- 勿改用 release 参数形态（2026-10-30 实证定案）：javac 的 release 选项与本项必需的
+                 add-exports（java.base/sun.nio.ch）硬互斥。common 模块 MycatDirectByteBufferPool.java:19
+                 import sun.nio.ch.DirectBuffer（JDK21 里未导出），靠该 add-exports 才能在编译期可见；
+                 而一旦启用 release 即禁止再改系统模块可见性。同一段 DirectBuffer 探针实测：
+                 source 加 target 加 add-exports => rc=0；release 加 add-exports => rc=1（系统模块
+                 java.base 无法定位）；system 选项与 release 亦互斥。故保留 source/target 形态，接受
+                 「未与 source 21 一起设置系统模块的位置」这条 WARNING（JDK21 单版本构建下无实际危害：
+                 产物 class 版本 65 且只引用 JDK21 已存在的 API）。要彻底消警告须先让 common 不再 import
+                 sun.nio.ch.DirectBuffer，属独立改造，非本 pom 可解。 -->
             <source>21</source>
             <target>21</target>
             <encoding>UTF-8</encoding>
