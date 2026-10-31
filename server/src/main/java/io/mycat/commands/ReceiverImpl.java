@@ -204,9 +204,14 @@ public class ReceiverImpl implements Response {
                     String datasource = targetOrderList.get(i);
                     Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource);
                     if (i == 0) {
-                        outputs.add(VertxExecuter.runQueryOutputAsMysqlPayloadObject(connectionFuture, sql.toString(), detail.getParams()));
+                        // I-DEBT-69 Blade D 余项：SELECT 的后端诊断条件同样物化到会话缓冲（比 EOF/OK 早）。
+                        outputs.add(VertxExecuter.runQueryOutputAsMysqlPayloadObject(connectionFuture, sql.toString(), detail.getParams(),
+                                warnings -> warnings.forEach(dataContext::addWarning)));
                     } else {
-                        outputs.add(VertxExecuter.runQuery(connectionFuture, sql.toString(), Collections.emptyList(), null)
+                        outputs.add(VertxExecuter.runQuery(connectionFuture, sql.toString(), Collections.emptyList(), null,
+                                        meta -> {
+                                        }, () -> false,
+                                        warnings -> warnings.forEach(dataContext::addWarning))
                                 .map(row -> new MysqlObjectArrayRow(row)));
                     }
                 }

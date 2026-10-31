@@ -112,7 +112,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 | **A 地基** | ✅ 已落（离线自证） | 新增 `common/.../beans/mycat/WarningMessage.java`；`MycatDataContext` 加 `addWarning/getWarnings/clearWarnings`（**接口新增抽象方法的实现者波及面实测为 0**：全仓仅 2 个 `implements MycatDataContext`，均已实现）；`proxy/.../MycatDataContextImpl` 与 `server/.../JdbcMycatDataContext` 各挂缓冲，`getWarningCount()` 改为**缓冲 size 派生**（取证：`MycatDataContextEnum.WARNING_COUNT` 全仓零调用者、`dataContext.setWarningCount` 无生产写入点 ⇒ legacy int 是恒 0 死状态，派生计数安全且严格更优）；语句入口重置钩子挂 `MycatdbCommand.execute` 的 `putProcessStateMap(emptyMap)` 同一收口（`executeQuery:208` 与 `DefaultCommandHandler:213` 均汇入此路）。锁：`SessionWarningBufferTest` 4/0/0 + `MycatdbCommandDiagnosticResetTest` 2/0/0 |
 | **B 读面** | ✅ 已落（离线自证） | `ShowWarningsSQLHandler` 从缓冲真读，`buildWarningRows()` 纯函数承载 COUNT(*)/LIMIT/截断语义，`onExecute` 按 `isCount()` 分支列定义，`resolveMaxErrorCount()` 读会话变量并在取不到时保守退化。锁：`ShowWarningsRowBuilderTest` 9/0/0 + `ShowWarningsMaxErrorCountTest` 5/0/0（后者经**变异核验**确证会咬人） |
 | C 系统变量 | ✅ 已落（2026-10-31·离线 17 锁 + 8066 活体对拍） | 见下“Blade C 落地”。原范围：兜底默认值 + `SET` 覆盖；本次同时把 `@@warning_count` 的“读上一条”语义与 `@@session.*` 前缀归一补齐 |
-| D 后端告警捕获 | ✅ 已落（2026-10-31·JDBC 池 DML 路径·活体双向对拍） | 见下“Blade D 落地”。原范围：把后端语句产生的诊断条件物化进前端会话缓冲。本次覆盖 `UPDATE/INSERT`（含 `INSERT IGNORE`）且仅限 JDBC 数据源池；Query 路径 / NATIVE 协议池 / 分片 DML 仍挂 ⬜ |
+| D 后端告警捕获 | ✅ 已落（2026-10-31·JDBC 池 DML + Query 路径·活体双向对拍） | 见下“Blade D 落地”“Blade D 余项·Query 路径”。原范围：把后端语句产生的诊断条件物化进前端会话缓冲。本次覆盖 `UPDATE/INSERT`（含 `INSERT IGNORE`）与单目标 `SELECT`（均限 JDBC 数据源池）；NATIVE 协议池 / 分片 DML（`simpleUpdate`）/ 多目标 `SELECT` 仍挂 ⬜ |
 | E 本地除零 Warning 1365 | ⬜ 待做 | 依赖 I-DEBT-39·残值语义前置 |
 
 **回归门（2026-10-29·`mvn -o -pl proxy,server -am test`，JAVA_HOME=Liberica JDK-21-Full）**：`BUILD SUCCESS`，14 模块合计 **377 tests / 0 failures / 0 errors / 0 skipped**（config 23、common 43、router 18、datasource 7、va 12、proxy 13、hbt 255、executor 6、server 100）。三枚新锁的 surefire 报告文件已逐个 `Test-Path` + 读正文实名核对（防"BUILD SUCCESS 但静默跑 0 测试"的伪绿）。全仓 `test-compile` 另已独立通过（19 模块）。
@@ -137,7 +137,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 - 全量：`mvn -o -pl example -am test` → `BUILD SUCCESS`，**1078 tests / 0 failures / 0 errors / 37 skipped**（14:03 min；config 29、common 43、router 18、datasource 7、va 12、proxy 21、hbt 286、executor 6、server 109、example 547/37skip；protocol/replica/plug 无测试源码）。与上批 1061 基线相比恰 +17（本轮新锁 8+9）。
 - 活体（8066，`-Dmycat.persona=MARIADB_10_11`，后端 mysql 8.0）：`SELECT @@version, @@max_error_count, @@warning_count` → `10.11.8-MariaDB / 1024 / 0`；`SET max_error_count=1`→1；`65536`→65535；`-1`→0；`SET SESSION …=DEFAULT`→1024；`'abc'`→**ERROR 1232**；`SET max_error_count=1; SHOW WARNINGS` → 空行集。
 
-> **仍诚实挂 🟡 的理由**：Blade D（下节）只覆盖 JDBC 池的 DML 路径；Query 路径（如 `SELECT 1/0` 的 1365）、NATIVE 协议池、分片 DML、Note 级条件与 `SHOW ERRORS` 同族仍未接。
+> **仍诚实挂 🟡 的理由**：Blade D 已覆盖 JDBC 池的 DML 与单目标 Query 路径；NATIVE 协议池、分片 DML（`VertxExecuter.simpleUpdate`）、多目标 SELECT 的告警拼接、Note 级条件与 `SHOW ERRORS` 同族仍未接。
 
 ### Blade D 落地（2026-10-31）
 
@@ -150,7 +150,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 | `SET max_error_count=1;` 同上 | 列表 1 行（只留 row 1）、计数 2 | **逐字一致**（截列表不截计数） |
 | `SHOW WARNINGS` 连读两次 | 两次都返回同一行集（读后不清） | 一致 |
 | 无告警的 `INSERT` 后 `SHOW WARNINGS` | 空 | 空 |
-| `SELECT 1/0; SHOW WARNINGS` | 1 行 1365 | **空**（Query 路径未接，见下方边界） |
+| `SELECT 1/0 FROM t; SHOW WARNINGS` | 1 行 1365 | **逐字一致**（Blade D 余项落地后，见下节） |
 
 **改动**：
 1. `SqlResult` 增 `warnings` 列表 + `getWarningCount()` 派生计数；`of(affectRows, lastInsertId)` 保持兼容。
@@ -164,11 +164,39 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 - 活体：见上表，8066 与真库逐字一致。
 
 **仍未覆盖（诚实边界）**：
-- **Query 路径**：`SELECT`/`SHOW` 走 `MysqlPayloadObjectObserver` 流式出包，告警未在结束前采集 ⇒ `SELECT 1/0` 的 1365 不可见（实测 `SHOW WARNINGS` 空、`@@warning_count`=0）。
+- **多目标 Query**：`ReceiverImpl` 的 QUERY 分支在多数据源时已对第 2..n 个目标接线，但默认配置无分片表，**未做活体验证**（NO_DATA）。
 - **NATIVE 协议池**（`type=NATIVE`）：OK 包 warnings 字段未解析（`PacketUtil.decodeOkPacketPayload` 读完 statusFlags 即返回）。
 - **分片 DML**：`VertxExecuter.simpleUpdate` 路径不经 `ReceiverImpl`。
 - **Note 级条件**：JDBC `SQLWarning` 面不可见，统一标 `Warning`，不臆造级别。
 - `SHOW ERRORS` / `@@session.error_count` 同族未接。
+
+### Blade D 余项 · Query 路径落地（2026-10-31）
+
+**问题**：Blade D 只接了 DML。`SELECT` 走 `runQueryOutputAsMysqlPayloadObject` 流式出包，后端诊断链从未取走——`SELECT 1/0 FROM t` 在 8066 返回 NULL，但 `SHOW WARNINGS` 为空、`@@warning_count`=0（真库 1 行 1365）。
+
+**改动**：
+1. `MysqlCollector` 增 `default void onWarnings(List<WarningMessage>)`（默认空实现，不破既有采集器）。
+2. `NewMycatConnectionImpl.prepareQuery` 在 `Statement` 关闭前采集（无参 + 预编译两分支），**早于 `onComplete`**——保证前端 EOF/OK 的 warning 计数与本语句缓冲同源。
+3. `VertxExecuter`：`runQueryOutputAsMysqlPayloadObject` 增 4 参重载、`runQuery` 增 7 参重载，均带 `Consumer<List<WarningMessage>>` sink；旧签名委托空 sink，调用方零改动。
+4. `ReceiverImpl` 的 `QUERY/QUERY_MASTER` 分支把 sink 接到 `dataContext.addWarning`（首目标与后序目标都接）。
+
+**真库对照（MariaDB 10.11 直连 3306 vs Mycat 8066·persona=MARIADB_10_11·后端 mysql 8.0·JDBC 池·表 q1(a int)）**：
+
+| 序列 | 真库 | Mycat |
+|---|---|---|
+| `SELECT 1/0 FROM q1 LIMIT 1; SHOW WARNINGS` | 1 行 1365 `Division by 0` | **逐字一致**（列标签 `1 / 0` vs `1/0` 是既有 reprint 面，与告警无关） |
+| 同上后 `SELECT @@warning_count` | 1 | 1 |
+| `SELECT a/0 FROM q1 LIMIT 1; SHOW WARNINGS` | 1 行 1365 | **逐字一致** |
+| `--show-warnings`（读 EOF/OK 的 warning 计数字段） | `Warning (Code 1365): Division by 0` | **逐字一致** ⇒ 终结包计数也被点亮 |
+| `SELECT a/0 …; SELECT 1; SHOW WARNINGS` | 空、计数 0（诊断区被新语句替换） | 一致 |
+| `INSERT IGNORE` 截断两行（DML 回归） | 2 行 1265、计数 2 | 一致 |
+
+**证据**：
+- 离线：`QueryBackendWarningsTest`（hbt）3/0/0——JDBC 动态代理造“后端语句带告警链”的最小场景，覆盖无参/预编译两分支与无告警退化，并断言 sink 在 `onComplete` 之前收到；RED = 4 参重载缺失（编译失败）。
+- 定向：`mvn -o -pl common,proxy,hbt,server -am test` → **543 / 0 / 0 / 0**（hbt 286→289）。
+- 全量：`mvn -o -pl example -am test` → **1090 / 0F / 0E / 37 skip**（较上批 1087 恰 +3）。
+
+**仍未覆盖**：NATIVE 协议池（`OkCommand` 不解析 warnings 字段）、分片 DML（`VertxExecuter.simpleUpdate`）、多目标 SELECT 的 live 验证（已接线，无分片表 = NO_DATA）、Note 级条件、`SHOW ERRORS` / `@@session.error_count`。
 
 
 ---

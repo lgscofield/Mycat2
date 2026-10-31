@@ -37,6 +37,7 @@ import io.mycat.api.collector.MysqlPayloadObject;
 import io.mycat.api.collector.RowBaseIterator;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.RowMetaDataFidelity;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.calcite.CodeExecuterContext;
 import io.mycat.calcite.DrdsRunnerHelper;
 import io.mycat.calcite.ExecutorProvider;
@@ -843,6 +844,18 @@ public class VertxExecuter {
     public static Observable<MysqlPayloadObject> runQueryOutputAsMysqlPayloadObject(Future<NewMycatConnection> connectionFuture,
                                                                                     String sql,
                                                                                     List<Object> values) {
+        return runQueryOutputAsMysqlPayloadObject(connectionFuture, sql, values, warnings -> {
+        });
+    }
+
+    /**
+     * I-DEBT-69 Blade D 余项（Query 路径）：把后端 SELECT 的诊断条件在结果流结束前交给调用侧，
+     * 使其能进前端会话缓冲（SHOW WARNINGS）并参与 EOF/OK 的 warning 计数。
+     */
+    public static Observable<MysqlPayloadObject> runQueryOutputAsMysqlPayloadObject(Future<NewMycatConnection> connectionFuture,
+                                                                                    String sql,
+                                                                                    List<Object> values,
+                                                                                    Consumer<List<WarningMessage>> warningSink) {
         return Observable.create(emitter -> {
             // 单次终态门：onComplete/onError 只放行一次，防 double-terminal → Undeliverable。
             final AtomicBoolean terminated = new AtomicBoolean(false);
@@ -870,6 +883,11 @@ public class VertxExecuter {
                             if (terminated.compareAndSet(false, true)) {
                                 emitter.onComplete();
                             }
+                        }
+
+                        @Override
+                        public void onWarnings(List<WarningMessage> warnings) {
+                            warningSink.accept(warnings);
                         }
 
                         @Override
@@ -926,6 +944,17 @@ public class VertxExecuter {
                                                 MycatRowMetaData rowMetaDataArg,
                                                 Consumer<MycatRowMetaData> backendMetaSink,
                                                 Supplier<Boolean> planTrackDecode) {
+        return runQuery(connectionFuture, sql, values, rowMetaDataArg, backendMetaSink, planTrackDecode, warnings -> {
+        });
+    }
+
+    public static Observable<Object[]> runQuery(Future<NewMycatConnection> connectionFuture,
+                                                String sql,
+                                                List<Object> values,
+                                                MycatRowMetaData rowMetaDataArg,
+                                                Consumer<MycatRowMetaData> backendMetaSink,
+                                                Supplier<Boolean> planTrackDecode,
+                                                Consumer<List<WarningMessage>> warningSink) {
         return Observable.create(emitter -> {
             // 单次终态门：与 runQueryOutputAsMysqlPayloadObject 同构，防 double-terminal → Undeliverable。
             final AtomicBoolean terminated = new AtomicBoolean(false);
@@ -958,6 +987,11 @@ public class VertxExecuter {
                                 LOGGER.error("", e);
                                 throw e;
                             }
+                        }
+
+                        @Override
+                        public void onWarnings(List<WarningMessage> warnings) {
+                            warningSink.accept(warnings);
                         }
 
                         @Override

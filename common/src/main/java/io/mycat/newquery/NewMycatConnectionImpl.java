@@ -131,6 +131,8 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                             }
                             collector.onRow(objects);
                         }
+                        // I-DEBT-69 Blade D 余项：诊断条件属语句级状态，必须在 Statement 关闭前取走。
+                        collector.onWarnings(toWarningMessages(statement.getWarnings()));
                     }
                 } else {
                     try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);) {
@@ -153,6 +155,8 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                             }
                             collector.onRow(objects);
                         }
+                        // I-DEBT-69 Blade D 余项：预编译分支同构采集。
+                        collector.onWarnings(toWarningMessages(statement.getWarnings()));
                     }
                 }
 
