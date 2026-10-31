@@ -63,10 +63,10 @@ public class PersonaCollationsTest {
         Object[] general = find(rows, "utf8mb4_general_ci");
         assertNotNull(general, "5.7 应有 utf8mb4_general_ci");
         assertEquals("utf8mb4", general[1]);
-        assertEquals(45, general[2]);
+        assertEquals(45L, general[2]);
         assertEquals("Yes", general[3], "5.7 utf8mb4 默认 collation = utf8mb4_general_ci");
         assertEquals("Yes", general[4]);
-        assertEquals(1, general[5]);
+        assertEquals(1L, general[5]);
         assertEquals("PAD SPACE", general[6]);
         assertTrue(rows.stream().noneMatch(r -> String.valueOf(r[0]).contains("_0900_")),
                 "5.7 persona 不得广告 0900 系排序规则");
@@ -79,15 +79,15 @@ public class PersonaCollationsTest {
         List<Object[]> rows = PersonaCollations.collationRows(ServerPersona.MYSQL_8_0);
         Object[] def = find(rows, "utf8mb4_0900_ai_ci");
         assertNotNull(def, "8.0 应有 utf8mb4_0900_ai_ci");
-        assertEquals(255, def[2]);
+        assertEquals(255L, def[2]);
         assertEquals("Yes", def[3]);
-        assertEquals(0, def[5]);
+        assertEquals(0L, def[5]);
         assertEquals("NO PAD", def[6]);
         Object[] general = find(rows, "utf8mb4_general_ci");
         assertNotNull(general, "8.0 仍列 utf8mb4_general_ci(45)");
         assertEquals("", general[3], "8.0 中 general_ci 不再是默认");
         assertEquals("NO PAD", find(rows, "utf8mb4_0900_bin")[6]);
-        assertEquals(309, find(rows, "utf8mb4_0900_bin")[2]);
+        assertEquals(309L, find(rows, "utf8mb4_0900_bin")[2]);
     }
 
     /** MariaDB 11.4 persona：utf8mb4 默认仍 utf8mb4_general_ci(45)（官网：uca1400 默认是 11.5 起）；0900 别名行在场；utf8mb3 命名。 */
@@ -97,12 +97,12 @@ public class PersonaCollationsTest {
         assertEquals("Yes", find(rows, "utf8mb4_general_ci")[3], "MariaDB 11.4 utf8mb4 默认 = utf8mb4_general_ci");
         Object[] alias = find(rows, "utf8mb4_0900_ai_ci");
         assertNotNull(alias, "0900 系在 MariaDB 为 uca1400 别名行");
-        assertEquals(255, alias[2]);
+        assertEquals(255L, alias[2]);
         assertEquals("", alias[3], "别名行非默认");
         Object[] mb3bin = find(rows, "utf8mb3_bin");
         assertNotNull(mb3bin);
-        assertEquals(83, mb3bin[2], "MariaDB 官网：utf8mb3_bin Id=83");
-        assertEquals(46, find(rows, "utf8mb4_bin")[2], "MariaDB 官网：utf8mb4_bin Id=46");
+        assertEquals(83L, mb3bin[2], "MariaDB 官网：utf8mb3_bin Id=83");
+        assertEquals(46L, find(rows, "utf8mb4_bin")[2], "MariaDB 官网：utf8mb4_bin Id=46");
         assertTrue(rows.stream().noneMatch(r -> "utf8_general_ci".equals(r[0])),
                 "MariaDB 10.6+ 用 utf8mb3 命名，无 utf8_general_ci 行");
         assertTrue(rows.stream().noneMatch(r -> String.valueOf(r[0]).contains("uca1400")),
@@ -156,5 +156,25 @@ public class PersonaCollationsTest {
         List<Object[]> rows57 = on57.toList().blockingGet();
         assertTrue(rows57.stream().noneMatch(r -> String.valueOf(r[0]).contains("_0900_")),
                 "切回 5.7 persona 后 0900 系须消失（静态快照=旧缺陷）");
+    }
+
+    /**
+     * I-DEBT-29-EXT-CONN：DDL 整型槽位（COLLATIONS.ID/SORTLEN、CHARACTER_SETS.MAXLEN 均 bigint）
+     * 的物理行必须装箱为 Long——MycatRelDataTypeFactory.getJavaClass 对整型恒返回 boxed Long.class
+     * （I-DEBT-60 裁定），codegen 谓词生成 (Long) 无条件强转；仿表若装 Integer 则
+     * 「SELECT id FROM i_s.COLLATIONS WHERE id IS NOT NULL」类查询必 CCE（dotnet Connector/NET
+     * 在 MariaDB≥10.10 persona 连接期 LoadCharacterSets 即踩此路，reader["id"] 取空→DBNull→ToInt32 崩）。
+     */
+    @Test
+    public void integerTypedSlotsAreBoxedLong() {
+        for (ServerPersona persona : ServerPersona.values()) {
+            for (Object[] r : PersonaCollations.collationRows(persona)) {
+                assertTrue(r[2] instanceof Long, persona + ": COLLATIONS.ID 槽须 boxed Long，实为 " + r[2].getClass());
+                assertTrue(r[5] instanceof Long, persona + ": COLLATIONS.SORTLEN 槽须 boxed Long，实为 " + r[5].getClass());
+            }
+            for (Object[] cs : PersonaCollations.characterSetRows(persona)) {
+                assertTrue(cs[3] instanceof Long, persona + ": CHARACTER_SETS.MAXLEN 槽须 boxed Long，实为 " + cs[3].getClass());
+            }
+        }
     }
 }

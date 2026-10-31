@@ -42,7 +42,11 @@ public class ShowCharacterSetSQLHandler extends AbstractSQLHandler<MySqlShowChar
         List<String[]> projects = Arrays.asList(
                 new String[]{"CHARACTER_SET_NAME", "Charset"},//utf8
                 new String[]{"DESCRIPTION", "Description"},//UTF-8 Unicode
-                new String[]{"DEFAULT_COLLATE_NAME", "Default_collection"},//utf8mb4_0900_ai_ci
+                // I-DEBT-29-EXT-CONN：真库（MySQL 5.7/8.x、MariaDB 全系）SHOW CHARACTER SET 第三列表头均为
+                // "Default collation"；原别名 "Default_collection" 属自造表头（i_s 表列名 DEFAULT_COLLATE_NAME
+                // 不等于 SHOW 表头），按列名读取的客户端会取空。带空格别名按 ShowCollationSQLHandler 先例加反引号。
+                // 注：dotnet Connector/NET 的 DBNull 硬崩不在此列，而在 SHOW COLLATION 的 Id 列（见 I-DEBT-70）。
+                new String[]{"DEFAULT_COLLATE_NAME", "`Default collation`"},//utf8mb4_0900_ai_ci
                 new String[]{"MAXLEN", "Maxlen"});//4
         return generateSimpleSQL(projects,
                 "information_schema", "CHARACTER_SETS",

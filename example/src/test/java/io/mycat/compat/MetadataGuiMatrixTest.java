@@ -258,4 +258,34 @@ public class MetadataGuiMatrixTest implements MycatTest {
                             + "' 必须存在于其 SHOW COLLATION 行集（仿真面自洽）");
         }
     }
+
+    /**
+     * D4：SHOW CHARACTER SET 的<b>列头</b>必须与同版后端真库逐列一致。
+     * <b>I-DEBT-29-EXT-CONN 实证破口（2026-10-30 RED 目视）**：{@code ShowCharacterSetSQLHandler}
+     * 把第三列别名为 {@code Default_collection}——任何引擎（MySQL 5.7/8.x、MariaDB 全系）的真表头都是
+     * {@code Default collation}（i_s 表列名 DEFAULT_COLLATE_NAME 不等于 SHOW 表头），按列名读取的客户端会取空。
+     * 本格以直连同版后端为 oracle，专抓自造表头这类"三宣称之外的第四宣称"失真。
+     * <b>边界</b>：dotnet Connector/NET 的 {@code DBNull} 硬崩点<b>不在</b>此列，而在 {@code SHOW COLLATION}
+     * 的 {@code Id} 列（MariaDB uca1400 模板行，见 I-DEBT-70）；本格只钉表头保真，不冒充该崩的修复。
+     */
+    @Test
+    public void d4ShowCharacterSetHeadersMatchBackend() throws Exception {
+        assumeInfraUp();
+        guardBackendVersion();
+        List<String> backendHeaders;
+        List<String> mycatHeaders;
+        try (Connection b = DriverManager.getConnection(
+                "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&characterEncoding=utf8"
+                        + "&connectTimeout=3000&socketTimeout=30000&sslMode=DISABLED"
+                        + "&allowPublicKeyRetrieval=true", USER, PW)) {
+            backendHeaders = new ArrayList<>(executeQuery(b, "SHOW CHARACTER SET").get(0).keySet());
+        }
+        try (Connection c = DriverManager.getConnection(PLAIN_URL, USER, PW)) {
+            mycatHeaders = new ArrayList<>(executeQuery(c, "SHOW CHARACTER SET").get(0).keySet());
+        }
+        System.out.println("[MetadataGui] " + COMPAT_DB + " backend headers=" + backendHeaders
+                + " mycat headers=" + mycatHeaders);
+        assertEquals(backendHeaders, mycatHeaders,
+                "Mycat(" + COMPAT_DB + ") SHOW CHARACTER SET 列头必须与同版后端真库逐列一致（客户端按列名读取）");
+    }
 }

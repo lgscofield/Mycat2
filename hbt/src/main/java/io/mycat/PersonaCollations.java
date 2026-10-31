@@ -43,9 +43,11 @@ public final class PersonaCollations {
     private record CharsetSpec(String name, String defaultCollate, String description, int maxlen) {
     }
 
-    /** 列序对齐 COLLATIONS DDL：[NAME, CHARSET, ID, IS_DEFAULT, IS_COMPILED, SORTLEN, PAD_ATTRIBUTE]。 */
+    /** 列序对齐 COLLATIONS DDL：[NAME, CHARSET, ID, IS_DEFAULT, IS_COMPILED, SORTLEN, PAD_ATTRIBUTE]。
+     * I-DEBT-29-EXT-CONN：ID/SORTLEN 在 DDL 里是 bigint，codegen 谓词按 boxed Long 强转（I-DEBT-60 裁定），
+     * 故此处必须宽化为 long 装箱，装 Integer 会令 WHERE 整型列的查询必 CCE。 */
     private static Object[] row(Spec s) {
-        return new Object[]{s.name(), s.charset(), s.id(), s.isDefault() ? "Yes" : "", "Yes", s.sortLen(), s.pad()};
+        return new Object[]{s.name(), s.charset(), (long) s.id(), s.isDefault() ? "Yes" : "", "Yes", (long) s.sortLen(), s.pad()};
     }
 
     // ---- 三引擎一致基座：latin1 全 8 行 + ascii + binary（官网 SHOW COLLATION 示例逐行） ----
@@ -226,7 +228,8 @@ public final class PersonaCollations {
             case MARIADB_10_6, MARIADB_10_11, MARIADB_11_4 -> MARIADB_CHARSETS;
         };
         return specs.stream()
-                .map(s -> (Object[]) new Object[]{s.name(), s.defaultCollate(), s.description(), s.maxlen()})
+                // MAXLEN 在 DDL 里是 bigint，同 row()：整型槽恒 boxed Long（I-DEBT-29-EXT-CONN/I-DEBT-60）。
+                .map(s -> (Object[]) new Object[]{s.name(), s.defaultCollate(), s.description(), (long) s.maxlen()})
                 .toList();
     }
 
