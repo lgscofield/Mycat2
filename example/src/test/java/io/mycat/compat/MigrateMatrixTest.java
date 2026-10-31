@@ -91,7 +91,14 @@ public class MigrateMatrixTest implements MycatTest {
             output.setSchemaName("db1");
             output.setTableName("mig_dst");
 
-            execute(connection, MigrateHint.create("matrixNormalToNormal", input, output).build());
+            // MIGRATE 返回本次任务行（含 ID）；必须按 ID 精确跟踪，不能按 name + contains 判
+            // （I-DEBT-73：MigrateUtil.schedulers 只增不减，同名历史任务会让判定失真——
+            //  实测曾出现 src=63 而 dst=11/14 就已判 COMPLETE=1）。
+            List<Map<String, Object>> started = executeQuery(connection,
+                    MigrateHint.create("matrixNormalToNormal", input, output).build());
+            assertFalse(started.isEmpty(), "MIGRATE 应返回本次任务行");
+            Object taskId = started.get(0).get("ID");
+            assertNotNull(taskId, "MIGRATE 返回值须含本次任务 ID");
 
             // 轮询完成（超时 10s）
             long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10);
@@ -99,13 +106,14 @@ public class MigrateMatrixTest implements MycatTest {
             while (System.currentTimeMillis() < deadline) {
                 Thread.sleep(200);
                 List<Map<String, Object>> tasks = executeQuery(connection, MigrateListHint.create().build());
-                String res = tasks.toString();
-                if (res.contains("NAME=matrixNormalToNormal") && res.contains("COMPLETE=1")) {
-                    complete = true;
+                complete = tasks.stream().anyMatch(t -> taskId.equals(t.get("ID"))
+                        && t.get("COMPLETE") instanceof Number
+                        && ((Number) t.get("COMPLETE")).intValue() == 1);
+                if (complete) {
                     break;
                 }
             }
-            assertTrue(complete, "迁移应在 10s 内完成，MigrateList 应显示 COMPLETE=1");
+            assertTrue(complete, "迁移应在 10s 内完成，MigrateList 应显示本次任务 COMPLETE=1: id=" + taskId);
 
             // 验证目标表行数
             long srcCount = countRows(connection, "db1", "mig_src");
