@@ -385,15 +385,64 @@ public class VertxUpdateExecuter {
     }
 
     private static void handleEmptyWhereSharding(SQLStatement statement, List<VertxExecuter.EachSQL> res, List<Object> params, ShardingTable shardingTable) {
-        handleTargets(statement.clone(), res, params, shardingTable.getBackends());
+        handleTargets(cloneForShard(statement), res, params, shardingTable.getBackends());
         for (ShardingIndexTable indexTable : shardingTable.getIndexTables()) {
-            handleTargets(statement.clone(), res, params, indexTable.getBackends());
+            handleTargets(cloneForShard(statement), res, params, indexTable.getBackends());
         }
     }
 
-    private static void handleTargets(SQLStatement statement, List<VertxExecuter.EachSQL> res, List<Object> params, List<Partition> partitions) {
+    /**
+     * I-DEBT-74：分片改写用的语句副本。druid 1.2.28 的 {@code SQLUpdateStatement.clone()} 降型为通用
+     * 语句且不复制 mysql 私有的 ignore/lowPriority（{@code MySqlUpdateStatement} 未覆写 clone，
+     * 对照 {@code MySqlDeleteStatement} 自行复制了 ignore），而 {@code IGNORE}/{@code LOW_PRIORITY}
+     * 只由 {@code MySqlOutputVisitor.visit(MySqlUpdateStatement)} 按字段打印，降型形态永不输出
+     * ⇒ 每片物理 SQL 丢子句。修法 = clone 后把源语句的标志回写；回写不通胀 reparse（属性不随
+     * 文本传播），故标志直取自源语句。
+     */
+    static SQLStatement cloneForShard(SQLStatement statement) {
+        SQLStatement copy = statement.clone();
+        return restoreMysqlUpdateFlags(copy, statement);
+    }
+
+    /**
+     * 把源 {@code MySqlUpdateStatement} 的 ignore/lowPriority 标志回写到目标副本；目标被 druid
+     * 降型为通用 {@code SQLUpdateStatement} 时无法就地升型（无 setIgnore），改由属性标记 +
+     * 重新解析升回 MySql 类型，调用方以返回值为准；标志全空/目标非 Update 形态时零扰动。
+     * 返回“有效副本”（可能与入参同一对象，也可能为升型后的新对象），供渲染文本的调用点使用。
+     */
+    static SQLStatement restoreMysqlUpdateFlags(SQLStatement target, SQLStatement source) {
+        if (!(source instanceof MySqlUpdateStatement)) {
+            return target;
+        }
+        MySqlUpdateStatement mySqlSource = (MySqlUpdateStatement) source;
+        boolean ignore = mySqlSource.isIgnore();
+        boolean lowPriority = mySqlSource.isLowPriority();
+        if (!ignore && !lowPriority) {
+            return target;
+        }
+        if (target instanceof MySqlUpdateStatement) {
+            MySqlUpdateStatement mySqlTarget = (MySqlUpdateStatement) target;
+            mySqlTarget.setIgnore(ignore || mySqlTarget.isIgnore());
+            mySqlTarget.setLowPriority(lowPriority || mySqlTarget.isLowPriority());
+            return mySqlTarget;
+        }
+        if (target instanceof SQLUpdateStatement) {
+            // 降型副本：属性标记只活在本次 AST，reparse 后从源语句取标志回写。
+            SQLUpdateStatement plain = (SQLUpdateStatement) target;
+            plain.putAttribute("mycat.mysql.update.ignore", ignore);
+            plain.putAttribute("mycat.mysql.update.lowPriority", lowPriority);
+            MySqlUpdateStatement reparsed =
+                    (MySqlUpdateStatement) SQLUtils.parseSingleMysqlStatement(plain.toString());
+            reparsed.setIgnore(ignore);
+            reparsed.setLowPriority(lowPriority);
+            return reparsed;
+        }
+        return target;
+    }
+
+    static void handleTargets(SQLStatement statement, List<VertxExecuter.EachSQL> res, List<Object> params, List<Partition> partitions) {
         for (Partition partition : partitions) {
-            SQLStatement eachSql = statement.clone();
+            SQLStatement eachSql = cloneForShard(statement);
             SQLExprTableSource eachTableSource = convertToFromExprDatasource(eachSql);
             eachTableSource.setExpr(partition.getTable());
             eachTableSource.setSchema(partition.getSchema());
@@ -401,10 +450,10 @@ public class VertxUpdateExecuter {
         }
     }
 
-    private static void handleNormal(SQLStatement statement, List<VertxExecuter.EachSQL> res, List<Object> params, NormalTable table) {
+    static void handleNormal(SQLStatement statement, List<VertxExecuter.EachSQL> res, List<Object> params, NormalTable table) {
         NormalTable normalTable = table;
         Partition partition = normalTable.getDataNode();
-        SQLStatement eachSql = statement.clone();
+        SQLStatement eachSql = cloneForShard(statement);
         SQLExprTableSource eachTableSource = convertToFromExprDatasource(eachSql);
         eachTableSource.setExpr(partition.getTable());
         eachTableSource.setSchema(partition.getSchema());

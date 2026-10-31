@@ -261,6 +261,22 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 **诚实边界**：生产诊断缓冲当前**只有 Warning 级来源**（JDBC `toWarningMessages` 统一标 Warning，见 Blade D），故活体 `SHOW ERRORS` 实际恒空、`@@error_count` 恒 0——这与真库「无 error 场景」逐项一致；Error 级过滤逻辑的正确性由 `ShowErrorsRowBuilderTest`（造 `Level=="Error"` 夹具）离线锁住，非依赖活体产 Error。已知独立偏差：`SELECT 1/0`（无 from）经代理 `@@warning_count`=0 而真库=1，系 Mycat 本地表达式求值不产 1365（**Blade E·本地除零生产者**，正交，非本批）。I-DEBT-69 整体仍 🟡：NATIVE 协议池 / 多目标 SELECT 活体 / Blade E / 分片 UPDATE 活体（受 I-DEBT-74 挡）仍未接，本刀仅关闭「`SHOW ERRORS` / `@@error_count` 同族读面」这一项，不冒 Evidenced-Done。
 
 
+### Blade D 余项 · 分片 UPDATE 告警活体受 I-DEBT-74 挡 → 本刀收口（2026-11-01）
+
+**缘起**：Blade D 分片 DML 告警接线时，`INSERT IGNORE` 跨片已闭环，但分片 `UPDATE IGNORE` 经代理报 **ERROR 1406** 而非真库 warning 1265，差异只在「经分片改写」这一跳——立钉 I-DEBT-74。本刀即闭此债，顺带解掉 I-DEBT-69 「分片 UPDATE 告警活体」挂账。
+
+**根因（druid 1.2.28 sources 三要素坐实）**：`VertxUpdateExecuter` 每片用 `statement.clone()` 造语句；`MySqlUpdateStatement` **未覆写 clone**，继承的 `SQLUpdateStatement.clone()` 降型为通用语句且不复制 mysql 私有 `ignore`/`lowPriority`；`MySqlOutputVisitor.visit(MySqlUpdateStatement)` 只按 MySql 型字段的 `IGNORE`——降型形态走不到该重载，永不输出 ⇒ 分片物理 SQL 丢 IGNORE，真库 1265 被代理升级成 1406。对照 `MySqlDeleteStatement.clone()` 自行复制 ignore ⇒ **DELETE 无此症**，修复面收窄到 UPDATE。
+
+**修法（TDD）**：新锁 `hbt ShardUpdateIgnoreFidelityTest` 5 锁（根因定性锁钉裸 clone 确实丢 IGNORE+降型、`handleNormal`/`handleTargets` seam 行为锁、`LOW_PRIORITY` 同根锁、`plainUpdateStaysPlain` 负面锁、多片逐片保真锁）；RED 根因测断言实得 `[UPDATE wlk SET note = ? WHERE id = ?]`。GREEN：`VertxUpdateExecuter` 新增 `cloneForShard`+`restoreMysqlUpdateFlags`（MySql 目标就地 set；被降型时属性标记+reparse 升回 `MySqlUpdateStatement` 再回写 `ignore`/`lowPriority`；标志全空零扰动），`handleTargets/handleNormal/handleEmptyWhereSharding` 全改走该 seam。GREEN 5/0/0、hbt 294→299。
+
+**活体（8066 persona=MARIADB_10_11·后端 MySQL 8.0.46 直连 3306 同数据·VARCHAR(8) 写超长判据）**：跨片 `UPDATE IGNORE … IN(1,2)`→2×warning 1265（修前 ERROR 1406）、单片/normal 各 1×1265、无 IGNORE 仍 ERROR 1406 不误伤、M3 三行跨两片 `IN(1,2,3)`→3×1265（告警逐行回传）；物理 SQL 直证 `sql:UPDATE IGNORE dbig74_0.shg_0`。⇒ **I-DEBT-69「分片 UPDATE 告警活体」挂账就此闭环**。
+
+**全量护栏**：`mvn -o -pl example -am test` → BUILD SUCCESS·**1118 / 0F / 0E / 37 skip**（基线 1113 恰 +5）。注：本轮 example e2e（`BackendAuthMatrixTest` 等）需 8066 代理在线。
+
+**新立 I-DEBT-75（需专轮）**：多目标 SELECT 告警拼接活体补证时咬出跨片 fan-out 下推把 `1 DIV (id-1)` 渲染成 `CAST(INT(..))` 非法 MySQL 语法→ERROR 1064（矩阵钉界：同构 UNION 绿 / 单片 div 绿 / 跨片 div 红 / 跨片 `id+0` 绿，真库 `CAST(x AS INT)` 直跑同签名 1064）。属 codegen/方言渲染深债，不并入本刀；多目标 SELECT 告警拼接活体仍 NO_DATA（被 75 挡）。
+
+**诚实边界**：根因在 druid 上游，本修法是 Mycat 侧补偿层（非 fork），上游修复时定性锁咬红提醒拆补偿；分片告警的 `at row N` 为各后端局部行序（代理 `1,1,2` vs 真库全局 `1,2,3`），属分片告警行序语义、随 I-DEBT-69 继续挂。I-DEBT-69 整体仍 🟡（NATIVE 协议池 / 多目标 SELECT 活体·被 75 挡 / Blade E / 分片告警行序），不冒 Evidenced-Done。
+
 ---
 
 ## 7. 护栏与回归（每刀必跑）
