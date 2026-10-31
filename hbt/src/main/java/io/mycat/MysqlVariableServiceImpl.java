@@ -6,6 +6,7 @@ import io.mycat.datasource.jdbc.datasource.DefaultConnection;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
 import io.mycat.replica.ReplicaSelectorManager;
 import io.mycat.protocol.codec.NameMap;
+import io.mycat.util.MySQLDatabaseMetadata;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
@@ -89,6 +90,10 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
             sessionVariables.put("innodb_lock_wait_timeout","50");
             sessionVariables.put("interactive_timeout","28800");
 
+            // I-DEBT-69 Blade C：兜底表原不带 max_error_count，SHOW SESSION VARIABLES 缺行、
+            // SELECT @@max_error_count 回 NULL；按 persona 补真库默认值（下方循环同步到 global）。
+            sessionVariables.put("max_error_count", defaultMaxErrorCount());
+
 
             /////////////////////////////////////default////////////////////////////////////////////////////////////////
             for (Map.Entry<String, Object> entry : sessionVariables.entrySet()) {
@@ -103,6 +108,18 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
         String personaVersion = MycatVersionFunction.version();
         globalVariables.put("version", personaVersion);
         sessionVariables.put("version", personaVersion);
+    }
+
+    /**
+     * I-DEBT-69 Blade C：按 persona 宣称给出 {@code max_error_count} 真库默认值。
+     * 活体钉死（2026-10-31）：MySQL 5.7 → 64；MySQL 8.0/8.4/9.0 → 1024；MariaDB 10.6/10.11/11.4 → 64。
+     */
+    private static String defaultMaxErrorCount() {
+        MySQLDatabaseMetadata metadata = MySQLDatabaseMetadata.parse(MycatVersionFunction.version());
+        if ("MariaDB".equals(metadata.productName())) {
+            return "64";
+        }
+        return metadata.majorVersion() >= 8 ? "1024" : "64";
     }
 
     @Override
@@ -128,7 +145,28 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
 
     @Override
     public Object getSessionVariable(String name) {
+        // I-DEBT-69 Blade C：生产读腿会传 "@@session.max_error_count"（ShowWarningsSQLHandler），
+        // NameMap 只做大小写不敏感、不剥前缀，故与 getGlobalVariable 对齐剥去 @@ / session. / local.。
+        name = normalizeSessionName(name);
         return fixValue(name, sessionVariables.get(name, false));
+    }
+
+    private static String normalizeSessionName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String t = name;
+        while (t.startsWith("@@")) {
+            t = t.substring(2);
+        }
+        String lower = t.toLowerCase();
+        if (lower.startsWith("session.")) {
+            return t.substring("session.".length());
+        }
+        if (lower.startsWith("local.")) {
+            return t.substring("local.".length());
+        }
+        return t;
     }
 
     @Override

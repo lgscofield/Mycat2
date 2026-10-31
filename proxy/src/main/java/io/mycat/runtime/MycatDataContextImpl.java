@@ -79,6 +79,9 @@ public class MycatDataContextImpl implements MycatDataContext {
     private boolean readOnly = false;
     // I-DEBT-54 D2b-A：会话 sql_mode 原始串（去引号），Lombok @Getter/@Setter 生成访问器覆盖接口 default。
     private String sessionSqlMode;
+    // I-DEBT-69 Blade C：上一条语句的诊断区条数（clearWarnings 时归档）+ 会话级 max_error_count 覆盖值。
+    private int previousWarningCount;
+    private Integer sessionMaxErrorCount;
 
     public int multiStatementSupport = 0;
     private String charsetSetResult;
@@ -132,6 +135,9 @@ public class MycatDataContextImpl implements MycatDataContext {
 
     @Override
     public void clearWarnings() {
+        // I-DEBT-69 Blade C：语句入口"替换诊断区"时把旧条数归档，供 @@warning_count 读"上一条语句"；
+        // 本语句产生的条件不参与本次读取（真库：SELECT 1/0; SELECT @@warning_count → 1）。
+        previousWarningCount = warnings.size();
         warnings.clear();
     }
 
@@ -212,6 +218,19 @@ public class MycatDataContextImpl implements MycatDataContext {
                 if (mode != null) {
                     return mode;
                 }
+            }
+            // I-DEBT-69 Blade C：诊断区两变量在会话域内取值，不得溢出到变量服务的静态模板。
+            if (t.equals("warning_count")) {
+                return getPreviousWarningCount();
+            }
+            if (t.equals("max_error_count")) {
+                Integer override = getSessionMaxErrorCount();
+                if (override != null) {
+                    return override;
+                }
+                // 未 SET：后端拉表真值 / 无后端 persona 兜底值；按去前缀后的名字查，
+                // 否则 "@@session.max_error_count" 这种生产入参会因带前缀而查不中。
+                return MetaClusterCurrent.wrapper(MysqlVariableService.class).getSessionVariable(t);
             }
         }
         if (target.contains("autocommit")) {

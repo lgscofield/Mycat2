@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class JdbcMycatDataContext implements MycatDataContext {
     // I-DEBT-69 Blade A：与 proxy 侧 MycatDataContextImpl 同构的诊断缓冲，保证 JDBC 本地通道语义一致。
     private final List<WarningMessage> warnings = new ArrayList<>();
+    // I-DEBT-69 Blade C：与 proxy 侧同构——上一条语句条数归档 + 会话级 max_error_count 覆盖。
+    private int previousWarningCount;
+    private Integer sessionMaxErrorCount;
 
     @Override
     public long getSessionId() {
@@ -44,7 +47,39 @@ public class JdbcMycatDataContext implements MycatDataContext {
 
     @Override
     public <T> T getVariable(boolean global, String target) {
+        if (!global && target != null) {
+            String t = target.toLowerCase();
+            while (t.startsWith("@@")) {
+                t = t.substring(2);
+            }
+            if (t.startsWith("session.")) {
+                t = t.substring("session.".length());
+            } else if (t.startsWith("local.")) {
+                t = t.substring("local.".length());
+            }
+            if (t.equals("warning_count")) {
+                return (T) Integer.valueOf(previousWarningCount);
+            }
+            if (t.equals("max_error_count") && sessionMaxErrorCount != null) {
+                return (T) sessionMaxErrorCount;
+            }
+        }
         return null;
+    }
+
+    @Override
+    public int getPreviousWarningCount() {
+        return previousWarningCount;
+    }
+
+    @Override
+    public Integer getSessionMaxErrorCount() {
+        return sessionMaxErrorCount;
+    }
+
+    @Override
+    public void setSessionMaxErrorCount(Integer maxErrorCount) {
+        this.sessionMaxErrorCount = maxErrorCount;
     }
 
     @Override
@@ -134,6 +169,7 @@ public class JdbcMycatDataContext implements MycatDataContext {
 
     @Override
     public void clearWarnings() {
+        previousWarningCount = warnings.size();
         warnings.clear();
     }
 

@@ -47,6 +47,21 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
     default void setSessionSqlMode(String sqlMode) {
     }
 
+    // I-DEBT-69 Blade C：@@warning_count 读的是"上一条语句"结束时的诊断区条数（活体真库：
+    // SELECT 1/0; SELECT @@warning_count → 1，而本语句产生的条件不参与本次读取），
+    // 故 clearWarnings() 在语句入口须把旧条数归档到这里，再由 @@warning_count 读归档值。
+    default int getPreviousWarningCount() {
+        return 0;
+    }
+
+    // I-DEBT-69 Blade C：会话级 max_error_count 覆盖值（null = 未 SET，回落变量服务默认值）。
+    default Integer getSessionMaxErrorCount() {
+        return null;
+    }
+
+    default void setSessionMaxErrorCount(Integer maxErrorCount) {
+    }
+
     default int serverStatus() {
         MySQLServerStatusFlags.Builder builder = MySQLServerStatusFlags.builder();
         if (isAutocommit()) {

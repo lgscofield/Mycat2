@@ -2,6 +2,7 @@ package io.mycat;
 
 import com.alibaba.druid.sql.SQLUtils;
 import io.mycat.beans.mycat.TransactionType;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 
 import java.util.Objects;
 
@@ -22,6 +23,27 @@ public class MySQLVariablesUtil {
                     mode = mode.substring(1, mode.length() - 1);
                 }
                 dataContext.setSessionSqlMode(mode);
+            }
+        } else if (target.toLowerCase().contains("max_error_count")) {
+            // I-DEBT-69 Blade C：会话级覆盖值。真库边界（2026-10-31 活体 mysql 8.4.11 / mariadb 11.4.13 一致）：
+            // 65536 → 65535、-1 → 0（clamp 到 [0,65535]，不报错）；'abc' → ERROR 1232。
+            String raw = value;
+            if (raw.length() >= 2 && raw.charAt(0) == '\'' && raw.charAt(raw.length() - 1) == '\'') {
+                raw = raw.substring(1, raw.length() - 1);
+            }
+            if ("default".equalsIgnoreCase(raw.trim())) {
+                dataContext.setSessionMaxErrorCount(null);
+            } else {
+                int parsed;
+                try {
+                    parsed = Integer.parseInt(raw.trim());
+                } catch (NumberFormatException e) {
+                    // 真库 8.4.11 实拍：SET max_error_count='abc' → ERROR 1232（ER_WRONG_TYPE_FOR_VAR），
+                    // 旧行为是 1105 + Java 异常文本，客户端按 errorCode 分支会判错。
+                    throw new MycatException(MySQLErrorCode.ER_WRONG_TYPE_FOR_VAR,
+                            "Incorrect argument type to variable 'max_error_count'");
+                }
+                dataContext.setSessionMaxErrorCount(Math.max(0, Math.min(65535, parsed)));
             }
         } else if (target.equalsIgnoreCase("transaction_policy")) {
             if ("proxy".equalsIgnoreCase(value)) {

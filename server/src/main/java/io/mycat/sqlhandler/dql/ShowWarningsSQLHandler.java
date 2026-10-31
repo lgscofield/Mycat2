@@ -108,8 +108,9 @@ public class ShowWarningsSQLHandler extends AbstractSQLHandler<MySqlShowWarnings
     }
 
     /**
-     * 读会话 {@code max_error_count}。取不到（变量尚未接入 persona 默认值·Blade C 范畴）时
-     * 返回 {@link #NO_TRUNCATION}，不臆造 64/1024 这类版本相关默认值。
+     * 读会话 {@code max_error_count}（I-DEBT-69 Blade C 起由会话覆盖/persona 兜底默认值提供，
+     * 真库口径：MySQL 8.x=1024、5.7=64、MariaDB=64）。取不到（如桩 context）时仍返回
+     * {@link #NO_TRUNCATION} 保守退化，不臆造截断点。
      */
     static int resolveMaxErrorCount(MycatDataContext dataContext) {
         Object value;

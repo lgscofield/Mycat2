@@ -111,13 +111,34 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 |---|---|---|
 | **A 地基** | ✅ 已落（离线自证） | 新增 `common/.../beans/mycat/WarningMessage.java`；`MycatDataContext` 加 `addWarning/getWarnings/clearWarnings`（**接口新增抽象方法的实现者波及面实测为 0**：全仓仅 2 个 `implements MycatDataContext`，均已实现）；`proxy/.../MycatDataContextImpl` 与 `server/.../JdbcMycatDataContext` 各挂缓冲，`getWarningCount()` 改为**缓冲 size 派生**（取证：`MycatDataContextEnum.WARNING_COUNT` 全仓零调用者、`dataContext.setWarningCount` 无生产写入点 ⇒ legacy int 是恒 0 死状态，派生计数安全且严格更优）；语句入口重置钩子挂 `MycatdbCommand.execute` 的 `putProcessStateMap(emptyMap)` 同一收口（`executeQuery:208` 与 `DefaultCommandHandler:213` 均汇入此路）。锁：`SessionWarningBufferTest` 4/0/0 + `MycatdbCommandDiagnosticResetTest` 2/0/0 |
 | **B 读面** | ✅ 已落（离线自证） | `ShowWarningsSQLHandler` 从缓冲真读，`buildWarningRows()` 纯函数承载 COUNT(*)/LIMIT/截断语义，`onExecute` 按 `isCount()` 分支列定义，`resolveMaxErrorCount()` 读会话变量并在取不到时保守退化。锁：`ShowWarningsRowBuilderTest` 9/0/0 + `ShowWarningsMaxErrorCountTest` 5/0/0（后者经**变异核验**确证会咬人） |
-| C 系统变量 | ⬜ 待做（范围已收窄） | 见上"取值现状"：有后端时变量本就可读，C 只剩兜底默认值 + `SET` 覆盖 |
+| C 系统变量 | ✅ 已落（2026-10-31·离线 17 锁 + 8066 活体对拍） | 见下“Blade C 落地”。原范围：兜底默认值 + `SET` 覆盖；本次同时把 `@@warning_count` 的“读上一条”语义与 `@@session.*` 前缀归一补齐 |
 | D 后端告警捕获 | ⬜ 待做（需 infra） | 本轮 **无任何生产者**，故端到端尚不可见 → 诚实标 🟡 |
 | E 本地除零 Warning 1365 | ⬜ 待做 | 依赖 I-DEBT-39·残值语义前置 |
 
 **回归门（2026-10-29·`mvn -o -pl proxy,server -am test`，JAVA_HOME=Liberica JDK-21-Full）**：`BUILD SUCCESS`，14 模块合计 **377 tests / 0 failures / 0 errors / 0 skipped**（config 23、common 43、router 18、datasource 7、va 12、proxy 13、hbt 255、executor 6、server 100）。三枚新锁的 surefire 报告文件已逐个 `Test-Path` + 读正文实名核对（防"BUILD SUCCESS 但静默跑 0 测试"的伪绿）。全仓 `test-compile` 另已独立通过（19 模块）。
 
-> **本轮诚实边界**：Blade A+B 建的是"管道 + 读面"，**生产者一条也没接**（Blade D/E 才有真实告警进缓冲）。所以此刻 `SHOW WARNINGS` 在活体链路上仍返回空行集——缺陷的**根因面**（缓冲/同源计数/读面/生命周期）已闭环并可离线证明，**可见价值**待 D 刀。不得因 20 锁全绿就冒 Evidenced-Done。
+> **本轮诚实边界**：Blade A+B 建的是“管道 + 读面”，**生产者一条也没接**（Blade D/E 才有真实告警进缓冲）。所以此刻 `SHOW WARNINGS` 在活体链路上仍返回空行集——缺陷的**根因面**（缓冲/同源计数/读面/生命周期）已闭环并可离线证明，**可见价值**待 D 刀。不得因 20 锁全绿就冒 Evidenced-Done。
+
+### Blade C 落地（2026-10-31）
+
+**真库活体钉死（先取证后写码）**：
+- `@@max_error_count` 默认值七档：MySQL 5.7.44=**64**、8.0.46/8.4.11/9.0.1=**1024**、MariaDB 10.6.28/10.11.19/11.4.13=**64**。
+- `SET` 边界（8.4.11 与 11.4.13 一致）：`0`→0、`65535`→65535、`65536`→**65535（clamp）**、`-1`→**0（clamp）**、`'abc'`→**ERROR 1232**。
+- 诊断区语义：`SELECT 1/0; SELECT @@warning_count` → **1**（`@@warning_count` 读的是**上一条**语句结束时的条数，本语句产生的条件不参与）；`SELECT 1/0; SELECT @@warning_count; SHOW WARNINGS` → 列表**空**；`SHOW WARNINGS` 读后不清。
+
+**改动**：
+1. `MycatDataContext` 加三枚 default：`getPreviousWarningCount()`（默认 0）/ `getSessionMaxErrorCount()`（默认 null）/ `setSessionMaxErrorCount(Integer)`（no-op），不破既有 2 个实现。
+2. `MycatDataContextImpl.clearWarnings()` 改为**先归档后清空**（`previousWarningCount = warnings.size()`），`getVariable(false, …)` 归一前缀后直返 `warning_count`→归档值、`max_error_count`→会话覆盖值（未覆盖则按去前缀名查变量服务）。`JdbcMycatDataContext` 同构。
+3. `MySQLVariablesUtil.setVariable` 加 `max_error_count` 分支：`DEFAULT` 清覆盖、数值 clamp `[0,65535]`、非数字抛 `MycatException(1232, "Incorrect argument type to variable 'max_error_count'")`。`SetSQLHandler` 新增 `catch (MycatException)` 带码出包（此前 1105 + Java 异常文本，客户端按 errorCode 分支会判错）。
+4. `MysqlVariableServiceImpl`：兜底表补 `max_error_count`（`defaultMaxErrorCount()` 按 persona：MariaDB→64、MySQL major≥8→1024、否则 64）；`getSessionVariable` 补前缀归一（生产读腿传 `@@session.max_error_count`，NameMap 原先查不中 → null）。
+
+**证据**：
+- 离线：新增 `MycatDataContextWarningVariableTest` 8/0/0（proxy）、`MysqlVariableServiceImplMaxErrorCountTest` 9/0/0（hbt）；先跑红（proxy 5 个 CCE + 1 个异常类型不符，hbt 9 个 null）再落码；改完后定向回归（含 `ShowWarnings*` 既有锁）proxy 15/0/0、server 16/0/0。
+- 全量：`mvn -o -pl example -am test` → `BUILD SUCCESS`，**1078 tests / 0 failures / 0 errors / 37 skipped**（14:03 min；config 29、common 43、router 18、datasource 7、va 12、proxy 21、hbt 286、executor 6、server 109、example 547/37skip；protocol/replica/plug 无测试源码）。与上批 1061 基线相比恰 +17（本轮新锁 8+9）。
+- 活体（8066，`-Dmycat.persona=MARIADB_10_11`，后端 mysql 8.0）：`SELECT @@version, @@max_error_count, @@warning_count` → `10.11.8-MariaDB / 1024 / 0`；`SET max_error_count=1`→1；`65536`→65535；`-1`→0；`SET SESSION …=DEFAULT`→1024；`'abc'`→**ERROR 1232**；`SET max_error_count=1; SHOW WARNINGS` → 空行集。
+
+> **仍诚实挂 🟡 的理由**：D/E 未做，缓冲里**没有生产者**，所以端到端 `SHOW WARNINGS` 依旧空；C 只是把客户端的变量读腿与 `SET` 边界对齐真库。另：`SHOW ERRORS` 与 `@@session.error_count` 仍未接（同族债）。
+
 
 ---
 

@@ -23,6 +23,7 @@ import com.alibaba.druid.sql.ast.statement.SQLAssignItem;
 import com.alibaba.druid.sql.ast.statement.SQLSetStatement;
 import io.mycat.MySQLVariablesUtil;
 import io.mycat.MycatDataContext;
+import io.mycat.MycatException;
 import io.mycat.sqlhandler.AbstractSQLHandler;
 import io.mycat.sqlhandler.SQLRequest;
 import io.mycat.Response;
@@ -118,6 +119,10 @@ public class SetSQLHandler extends AbstractSQLHandler<SQLSetStatement> {
                 }
             }
             return response.sendOk();
+        }catch (MycatException e){
+            // 带 MySQL 错误码的异常（如 max_error_count 类型错 → 1232）必须原样出包，
+            // 否则 sendError(Throwable) 会把编码抹成 1105 + Java 异常文本。
+            return response.sendError(e.getMessage(), e.getErrorCode());
         }catch (Throwable throwable){
             return response.sendError(throwable);
         }
