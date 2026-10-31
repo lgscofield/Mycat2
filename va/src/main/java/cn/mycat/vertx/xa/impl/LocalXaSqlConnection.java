@@ -70,37 +70,48 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
             return (Future.succeededFuture());
         }
         if (localSqlConnection != null && map.isEmpty()) {
-            return localSqlConnection.update("commit;")
-                    .transform(event -> {
-                        Future<Void> closeFuture = localSqlConnection.close();
+            NewMycatConnection curLocalSqlConnection = localSqlConnection;
+            return curLocalSqlConnection.update("commit;").transform(event -> {
+                if (event.failed()) {
+                    // 提交失败不能静默还池：Druid 只对 underlyingAutoCommit=false 的连接做 recycle 回滚，
+                    // 而本事务是用 SQL begin; 开的，直接 close 会把未回滚的事务（含行锁）送回池（I-DEBT-72）。
+                    LOGGER.error("local commit occurs exception", event.cause());
+                    Throwable cause = event.cause();
+                    return rollback().transform(unused -> Future.failedFuture(cause));
+                }
+                Future<Void> closeFuture = curLocalSqlConnection.close();
 
-                        inTranscation = false;
-                        xid = null;
-                        localSqlConnection = null;
+                inTranscation = false;
+                xid = null;
+                localSqlConnection = null;
 
-                        return closeFuture;
-                    }).mapEmpty();
+                return closeFuture;
+            }).mapEmpty();
         }
         if (inTranscation && localSqlConnection != null) {
             NewMycatConnection curLocalSqlConnection = localSqlConnection;
-            return super.commitXa((coordinatorLog) -> curLocalSqlConnection.update(
+            Future<Void> xaCommit = super.commitXa((coordinatorLog) -> curLocalSqlConnection.update(
                             "REPLACE INTO mycat.xa_log (xid) VALUES('" + curXid + "');").mapEmpty())
                     .compose((Function<Void, Future<Void>>) o -> {
                         return curLocalSqlConnection.update("commit;").compose(unused -> {
                             return curLocalSqlConnection.update("delete from mycat.xa_log where xid = '" + curXid + "'").mapEmpty();
                         });
-                    }).mapEmpty()
-                    .transform(o -> {
-                        if (o.failed()){
-                            LOGGER.error("xa commit occurs exception",o.cause());
-                        }
-                        Future<Void> closeFuture = curLocalSqlConnection.close();
-
-                        inTranscation = false;
-                        xid = null;
-                        localSqlConnection = null;
-                        return closeFuture;
                     }).mapEmpty();
+            return xaCommit.transform(o -> {
+                if (o.failed()) {
+                    // 失败即回滚：把已 PREPARE 的参与者 XA ROLLBACK 掉、本地连接 rollback; 后再弃用，
+                    // 并把原始失败如实上报——既不报成功，也不把持锁连接还池（I-DEBT-72）。
+                    LOGGER.error("xa commit occurs exception", o.cause());
+                    Throwable cause = o.cause();
+                    return rollback().transform(unused -> Future.failedFuture(cause));
+                }
+                Future<Void> closeFuture = curLocalSqlConnection.close();
+
+                inTranscation = false;
+                xid = null;
+                localSqlConnection = null;
+                return closeFuture;
+            }).mapEmpty();
         } else {
             throw new AssertionError();
         }
@@ -148,7 +159,9 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
         }
         if (localSqlConnection != null && map.isEmpty()) {
             return localSqlConnection.update("rollback;").transform(unused -> {
-                LOGGER.error("", unused.cause());
+                if (unused.failed()) {
+                    LOGGER.error("local rollback occurs exception", unused.cause());
+                }
                 localSqlConnection.abandonConnection();
 
                 inTranscation = false;

@@ -60,9 +60,13 @@ public class XaLogImplTest {
     }
 
     @BeforeEach
-    public  void before() {
+    public  void before() throws SQLException {
         connectionMap.put("ds1", XaTestSuite.getMySQLConnection(DB1));
         connectionMap.put("ds2", XaTestSuite.getMySQLConnection(DB2));
+        // I-DEBT-71：本类不走 XaTestSuite 构造器，协调者日志表需自行前置（产品同源 DDL）。
+        for (Connection connection : connectionMap.values()) {
+            XaTestSuite.initSchema(connection);
+        }
     }
 
     @AfterEach

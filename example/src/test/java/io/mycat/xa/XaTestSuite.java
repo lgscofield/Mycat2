@@ -74,6 +74,15 @@ public abstract class XaTestSuite {
     }
 
     private void extracteInitSql(Connection mySQLConnection) throws SQLException {
+        initSchema(mySQLConnection);
+    }
+
+    /**
+     * 测试床前置：业务表 db1.travelrecord + 协调者日志表 mycat.xa_log。<p>
+     * xa_log 的 DDL 与产品 {@code XaLogImpl.readXARecoveryLog()} 同源——真机上该表由 Mycat 启动过程创建，
+     * 而单测没有那一步：{@code LocalXaSqlConnection.commit()} 会先于创建方跑（I-DEBT-71）。
+     */
+    static void initSchema(Connection mySQLConnection) throws SQLException {
         JdbcUtils.execute(mySQLConnection, "CREATE DATABASE IF NOT EXISTS db1;");
         JdbcUtils.execute(mySQLConnection, "CREATE TABLE IF NOT EXISTS db1.`travelrecord` (\n" +
                 "  `id` bigint NOT NULL AUTO_INCREMENT,\n" +
@@ -85,6 +94,9 @@ public abstract class XaTestSuite {
                 "  PRIMARY KEY (`id`),\n" +
                 "  KEY `id` (`id`)\n" +
                 ") ENGINE=InnoDB  DEFAULT CHARSET=utf8");
+        JdbcUtils.execute(mySQLConnection, "CREATE DATABASE IF NOT EXISTS `mycat`;");
+        JdbcUtils.execute(mySQLConnection, "CREATE TABLE IF NOT EXISTS `mycat`.`xa_log`" +
+                "(`xid` bigint PRIMARY KEY NOT NULL) ENGINE=InnoDB;");
     }
 
 
