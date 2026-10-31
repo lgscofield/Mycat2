@@ -54,6 +54,13 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
         return 0;
     }
 
+    // I-DEBT-69 Blade D 余项：@@error_count 读上一条语句结束时的 Error 级条件数（活体真库：
+    // 纯告警语句后 @@error_count=0，含 Error 的语句后为 Error 条数）。与 @@warning_count（全量）
+    // 解耦，故 clearWarnings() 归档时须按 Level 分别计。
+    default int getPreviousErrorCount() {
+        return 0;
+    }
+
     // I-DEBT-69 Blade C：会话级 max_error_count 覆盖值（null = 未 SET，回落变量服务默认值）。
     default Integer getSessionMaxErrorCount() {
         return null;

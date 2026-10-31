@@ -81,6 +81,8 @@ public class MycatDataContextImpl implements MycatDataContext {
     private String sessionSqlMode;
     // I-DEBT-69 Blade C：上一条语句的诊断区条数（clearWarnings 时归档）+ 会话级 max_error_count 覆盖值。
     private int previousWarningCount;
+    // I-DEBT-69 Blade D 余项：上一条语句的 Error 级条件数（clearWarnings 按 Level 归档），供 @@error_count 读腿。
+    private int previousErrorCount;
     private Integer sessionMaxErrorCount;
 
     public int multiStatementSupport = 0;
@@ -137,8 +139,21 @@ public class MycatDataContextImpl implements MycatDataContext {
     public void clearWarnings() {
         // I-DEBT-69 Blade C：语句入口"替换诊断区"时把旧条数归档，供 @@warning_count 读"上一条语句"；
         // 本语句产生的条件不参与本次读取（真库：SELECT 1/0; SELECT @@warning_count → 1）。
+        // I-DEBT-69 Blade D 余项：同时按 Level 归档 Error 条数，供 @@error_count 读腿（真库纯告警→0）。
         previousWarningCount = warnings.size();
+        previousErrorCount = countErrorLevel(warnings);
         warnings.clear();
+    }
+
+    /** Error 级条件计数（其余 Level 不计），与 SHOW ERRORS 过滤口径一致。 */
+    private static int countErrorLevel(List<WarningMessage> ws) {
+        int c = 0;
+        for (WarningMessage w : ws) {
+            if ("Error".equals(w.getLevel())) {
+                c++;
+            }
+        }
+        return c;
     }
 
 
@@ -222,6 +237,11 @@ public class MycatDataContextImpl implements MycatDataContext {
             // I-DEBT-69 Blade C：诊断区两变量在会话域内取值，不得溢出到变量服务的静态模板。
             if (t.equals("warning_count")) {
                 return getPreviousWarningCount();
+            }
+            // I-DEBT-69 Blade D 余项：@@error_count 在会话域内取上一条语句的 Error 级条数，
+            // 不得溢出到变量服务的静态模板（否则 SELECT @@error_count 会落到模板串/NULL，与真库 0/正整数不一致）。
+            if (t.equals("error_count")) {
+                return getPreviousErrorCount();
             }
             if (t.equals("max_error_count")) {
                 Integer override = getSessionMaxErrorCount();

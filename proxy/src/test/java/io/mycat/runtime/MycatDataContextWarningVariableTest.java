@@ -82,6 +82,61 @@ class MycatDataContextWarningVariableTest {
         return new WarningMessage("Warning", 1365, "Division by 0");
     }
 
+    private static WarningMessage dataTooLong() {
+        return new WarningMessage("Error", 1406, "Data too long for column");
+    }
+
+    /** 真库取证（MySQL 8.0.46 / MariaDB 10.11.19）：纯告警语句后 @@error_count=0（非 NULL）。 */
+    @Test
+    void errorCountZeroForWarningOnlyPreviousStatement() {
+        Ctx ctx = new Ctx();
+        ctx.addWarning(div0());
+        ctx.clearWarnings();
+
+        Assertions.assertEquals(0,
+                ((Number) ctx.getVariable(false, "@@error_count")).intValue(),
+                "上一条只有 Warning → @@error_count 必须为 0");
+        Assertions.assertEquals(0,
+                ((Number) ctx.getVariable(false, "@@session.error_count")).intValue(),
+                "带 session 前缀同源");
+    }
+
+    /** 上一条语句含 1 个 Error 级 → @@error_count 读归档的 Error 级计数，与 warning_count（全量）解耦。 */
+    @Test
+    void errorCountReadsPreviousStatementErrorLevelOnly() {
+        Ctx ctx = new Ctx();
+        ctx.addWarning(div0());        // Warning
+        ctx.addWarning(dataTooLong()); // Error
+        ctx.clearWarnings();
+
+        Assertions.assertEquals(1,
+                ((Number) ctx.getVariable(false, "@@error_count")).intValue(),
+                "@@error_count 只计 Error 级，不受 Warning/Note 影响");
+        Assertions.assertEquals(2,
+                ((Number) ctx.getVariable(false, "@@warning_count")).intValue(),
+                "对照：@@warning_count 仍取全部条件数，二者互不污染");
+    }
+
+    /** 本语句执行期新增的 Error 不参与本次 @@error_count（与 warning_count 读腿同构）。 */
+    @Test
+    void currentStatementErrorsDoNotFeedErrorCountVariable() {
+        Ctx ctx = new Ctx();
+        ctx.clearWarnings();
+        ctx.addWarning(dataTooLong());
+
+        Assertions.assertEquals(0,
+                ((Number) ctx.getVariable(false, "@@error_count")).intValue(),
+                "新语句产生的 Error 不得喂给本语句的 @@error_count");
+    }
+
+    /** 无前置语句时 @@error_count 为 0，而不是回落变量服务或抛空。 */
+    @Test
+    void errorCountIsZeroWithoutPreviousStatement() {
+        Ctx ctx = new Ctx();
+        Assertions.assertEquals(0,
+                ((Number) ctx.getVariable(false, "@@error_count")).intValue());
+    }
+
     /** 上一条语句结束时 1 条 → 新语句入口归档后，@@warning_count 读 1（真库 D 用例）。 */
     @Test
     void warningCountReadsPreviousStatementCount() {

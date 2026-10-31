@@ -18,6 +18,8 @@ public class JdbcMycatDataContext implements MycatDataContext {
     private final List<WarningMessage> warnings = new ArrayList<>();
     // I-DEBT-69 Blade C：与 proxy 侧同构——上一条语句条数归档 + 会话级 max_error_count 覆盖。
     private int previousWarningCount;
+    // I-DEBT-69 Blade D 余项：上一条语句 Error 级条件数，供 @@error_count 读腿，与 proxy 侧同构。
+    private int previousErrorCount;
     private Integer sessionMaxErrorCount;
 
     @Override
@@ -60,6 +62,10 @@ public class JdbcMycatDataContext implements MycatDataContext {
             if (t.equals("warning_count")) {
                 return (T) Integer.valueOf(previousWarningCount);
             }
+            // I-DEBT-69 Blade D 余项：@@error_count 取上一条语句 Error 级条数，不得回落为 null（真库返 0/正整数）。
+            if (t.equals("error_count")) {
+                return (T) Integer.valueOf(previousErrorCount);
+            }
             if (t.equals("max_error_count") && sessionMaxErrorCount != null) {
                 return (T) sessionMaxErrorCount;
             }
@@ -70,6 +76,11 @@ public class JdbcMycatDataContext implements MycatDataContext {
     @Override
     public int getPreviousWarningCount() {
         return previousWarningCount;
+    }
+
+    @Override
+    public int getPreviousErrorCount() {
+        return previousErrorCount;
     }
 
     @Override
@@ -170,6 +181,14 @@ public class JdbcMycatDataContext implements MycatDataContext {
     @Override
     public void clearWarnings() {
         previousWarningCount = warnings.size();
+        // I-DEBT-69 Blade D 余项：同时按 Level 归档 Error 条数，供 @@error_count 读腿（真库纯告警→0）。
+        int errCount = 0;
+        for (WarningMessage w : warnings) {
+            if ("Error".equals(w.getLevel())) {
+                errCount++;
+            }
+        }
+        previousErrorCount = errCount;
         warnings.clear();
     }
 

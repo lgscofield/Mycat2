@@ -228,6 +228,39 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 **仍未覆盖 / 新发现**：分片 `UPDATE IGNORE` 的告警**无法活体验证**，因为另有独立缺陷（本刀活体副产物）→ **I-DEBT-74**：`VertxUpdateExecuter.handleTargets` 用 `statement.clone()` 造每片语句，而 druid 1.2.28 的 `MySqlUpdateStatement.clone()` 降级为 `SQLUpdateStatement` 并**丢 `ignore` 标志**（离线取证：parse→`UPDATE IGNORE …`，clone→`UPDATE …`），于是代理把真库的 warning 1265 升级成 ERROR 1406；同语句打 normal 表（单目标路径）仍为告警，坐实差异只在"经分片改写"这一跳。属 SQL 改写保真面，不并入本刀。其余未覆盖：NATIVE 协议池、多目标 SELECT 的 live 验证、Note 级条件、`SHOW ERRORS` / `@@session.error_count`。
 
 
+### Blade D 余项 · SHOW ERRORS / @@error_count 同族读面落地（2026-10-31）
+
+**问题**：§6b 各刀收口时把「`SHOW ERRORS` / `@@session.error_count` 同族未接」作为诚实边界挂账（见上节 L104 同族登记 + L228 未覆盖清单）。`ShowErrorsSQLHandler` 原为假空 stub（`setRows(Collections.emptyList())`），`@@error_count` 读腿缺失——与已接线的 `SHOW WARNINGS` / `@@warning_count` 不对称。本刀补齐该同族读面，可自包含、无需另起专轮。
+
+**活体取证（直连真库·MySQL 8.0.46@3306 与 MariaDB 10.11.19@3308 双档一致）**：
+- `SELECT 1/0`（纯 Warning 1365）后 → `SHOW WARNINGS` 出 Warning 行；`SHOW ERRORS` = **空**；`@@warning_count`=1、`@@error_count`=**0**。
+- 产 Error 的语句（无 db → 1046 No database selected）后 → `SHOW ERRORS` 出 `Error | 1046`；**`SHOW WARNINGS` 亦含该 Error 行**（真库 SHOW WARNINGS **不过滤** Error，坐实本批「不动 SHOW WARNINGS」的既有不过滤行为正确）；`@@error_count`=1。
+- `SHOW COUNT(*) WARNINGS` 列头 = `@@session.warning_count`；`SHOW COUNT(*) ERRORS` 列头 = `@@session.error_count`，值 = Error 级条数（纯告警 → 0）。
+
+**契约裁定**：
+1. `SHOW ERRORS` = 会话缓冲按 `Level=="Error"` **过滤**后构造行集（与 SHOW WARNINGS「不过滤」相反）；`COUNT(*)` 形态单列单行、活体列头 `@@session.error_count`、值 = Error 级总数。
+2. 先按 Level 过滤，**再**受 `max_error_count` 截断与 `LIMIT o,n` 切片（切片发生在 Error 子集上）；`COUNT(*)` 不受截断（计数与列表解耦，沿用 Blade B/C 口径）。
+3. `@@error_count` = 上一条语句结束时的 Error 级条件数，读腿走新增的 `previousErrorCount`；`clearWarnings()` 归档时按 Level **分别计**（`previousWarningCount`=全量 size、`previousErrorCount`=Error 级计数），两条互不污染。
+4. 读面只读不清（`MycatdbCommand.isDiagnosticReadStatement` 早已含 `MySqlShowErrorsStatement`，入口不清空，SHOW ERRORS 后仍可读到上一条缓冲）。
+
+**改动（4 生产文件）**：
+- `common/.../MycatDataContext.java`：接口加 `default int getPreviousErrorCount(){return 0;}`（与既有 `getPreviousWarningCount` 对称）。
+- `proxy/.../runtime/MycatDataContextImpl.java`：加 `previousErrorCount` 字段（类级 `@Getter` 自动生访问器）；`clearWarnings()` 追加 `previousErrorCount = countErrorLevel(warnings)`；新增 private `countErrorLevel`；`getVariable` 加 `error_count` 分支返回 `getPreviousErrorCount()`（**关键：必须在会话域内取值，不得溢出到变量服务的静态模板串，否则 `SELECT @@error_count` 落到模板串/NULL**）。
+- `server/.../connection/JdbcMycatDataContext.java`：无 Lombok ⇒ 手动加 `previousErrorCount` 字段 + `getPreviousErrorCount()` override + `getVariable` 的 `error_count` 分支 + `clearWarnings()` 分级归档。
+- `server/.../sqlhandler/dql/ShowErrorsSQLHandler.java`：从假空 stub 全量重写——`buildErrorRows` 纯函数（Error 过滤 + COUNT/LIMIT/截断），`onExecute` 按 `isCount()` 分支列定义（COUNT 用活体列头 `@@session.error_count`，普通形态沿用 `getShowErrorsColumns()`），复用同包 `ShowWarningsSQLHandler.resolveMaxErrorCount`（`NO_TRUNCATION=-1` 保守退化）。
+
+**RED（先看红）**：
+- 新建 `ShowErrorsRowBuilderTest`（server）10 测（过滤/纯告警空/COUNT/计数不截断/列表截断/LIMIT 取小/偏移切片/越界/负数哨兵），先加最小 stub `buildErrorRows` 返 `emptyList` 令其可编译并观察红。
+- `MycatDataContextWarningVariableTest`（proxy）追加 4 枚 error_count 测 → 实测 4 枚 `ClassCastException: String cannot be cast to Number`（`error_count` 落到变量服务模板串 `SESSION_TEMPLATE` 而非会话整数），权威坐实缺读腿。
+- 新建 `JdbcMycatDataContextErrorCountTest`（server）4 测，同 proxy 语义但直接 `new JdbcMycatDataContext()`。
+
+**GREEN 验证**：定向 proxy `MycatDataContextWarningVariableTest` **12/0F/0E**、server `JdbcMycatDataContextErrorCountTest` **4/0F/0E** + `ShowErrorsRowBuilderTest` **10/0F/0E**（RED 4 CCE → 全过，闭环）。全量 `mvn -o -pl example -am test` → **BUILD SUCCESS（17:12 min）· 1113 tests / 0F / 0E / 37 skip**（逐模块：config 29、common 49、router 18、datasource 7、va 12、proxy 25、hbt 294、executor 6、server 126、example 547/37skip；较上批基线 1095 恰 **+18** = server +14（builder 10 + JDBC 4）+ proxy +4（error_count），零回归）。
+
+**活体对拍（本批范围·8066 persona=MARIADB_10_11·后端 8.0）**：代理端 `SHOW ERRORS` → 空、`SELECT @@warning_count, @@error_count` → `0 | 0`、`SHOW COUNT(*) ERRORS` → 列头 `@@session.error_count` 值 0，与真库逐项一致。
+
+**诚实边界**：生产诊断缓冲当前**只有 Warning 级来源**（JDBC `toWarningMessages` 统一标 Warning，见 Blade D），故活体 `SHOW ERRORS` 实际恒空、`@@error_count` 恒 0——这与真库「无 error 场景」逐项一致；Error 级过滤逻辑的正确性由 `ShowErrorsRowBuilderTest`（造 `Level=="Error"` 夹具）离线锁住，非依赖活体产 Error。已知独立偏差：`SELECT 1/0`（无 from）经代理 `@@warning_count`=0 而真库=1，系 Mycat 本地表达式求值不产 1365（**Blade E·本地除零生产者**，正交，非本批）。I-DEBT-69 整体仍 🟡：NATIVE 协议池 / 多目标 SELECT 活体 / Blade E / 分片 UPDATE 活体（受 I-DEBT-74 挡）仍未接，本刀仅关闭「`SHOW ERRORS` / `@@error_count` 同族读面」这一项，不冒 Evidenced-Done。
+
+
 ---
 
 ## 7. 护栏与回归（每刀必跑）
