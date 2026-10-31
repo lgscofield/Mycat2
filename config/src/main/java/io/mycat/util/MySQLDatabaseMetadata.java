@@ -10,6 +10,9 @@ public class MySQLDatabaseMetadata {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MySQLDatabaseMetadata.class);
 
+    /** Connector/J 自述串常见的历史兼容前缀；新版 MariaDB（10.x/11.x）自述串不带它。 */
+    private static final String LEGACY_MARIADB_PREFIX = "5.5.5-";
+
     private final String fullVersion;
     private final String productName;
     private final int majorVersion;
@@ -38,7 +41,11 @@ public class MySQLDatabaseMetadata {
         String productName = isMariaDb ? "MariaDB" : "MySQL";
 
         String versionToken = null;
-        int versionTokenStartIdx = isMariaDb ? 6 : 0; // MariaDB server version is by default prefixed by "5.5.5-"
+        // 早期实现假定 MariaDB 一律带 "5.5.5-" 前缀、固定从下标 6 起切；而 ServerPersona 的
+        // MariaDB 默认串形如 "10.11.8-MariaDB"，切出来只剩单段残余（4/8/空），
+        // 解析抛数组越界后被 catch 吞掉、留下半截伪版本。故改为“前缀确实存在才跳过”。
+        int versionTokenStartIdx = (isMariaDb && serverVersion.startsWith(LEGACY_MARIADB_PREFIX))
+                ? LEGACY_MARIADB_PREFIX.length() : 0;
         int versionTokenEndIdx = versionTokenStartIdx;
         while (versionTokenEndIdx < len) {
             char c = serverVersion.charAt(versionTokenEndIdx);
@@ -50,7 +57,7 @@ public class MySQLDatabaseMetadata {
         }
         if (versionToken == null) {
             // if there's no '-' char
-            versionToken = serverVersion;
+            versionToken = serverVersion.substring(versionTokenStartIdx);
         }
 
         // we assume the server version tokens follows the syntax: ${major}.${minor}.${micro}

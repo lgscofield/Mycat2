@@ -79,6 +79,12 @@ public enum MycatdbCommand {
     final static Logger logger = LoggerFactory.getLogger(MycatdbCommand.class);
     static final ImmutableClassToInstanceMap<SQLHandler> sqlHandlerMap;
 
+    /** MariaDB 版本注释自身轨道下沿：注释号 ≥ 此值才与 MariaDB 自身 MMSSDD 比较。 */
+    private static final int MARIA_DB_OWN_TRACK_MIN_CODE = 100000;
+
+    /** MariaDB 版本注释 MySQL 兼容轨道上限（活库实测：50699 执行，50700 起跳过）。 */
+    private static final int MARIA_DB_MYSQL_COMPAT_MAX_CODE = 50699;
+
     static {
         ImmutableClassToInstanceMap.Builder<SQLHandler> builder = ImmutableClassToInstanceMap.builder();
         try {
@@ -586,8 +592,9 @@ public enum MycatdbCommand {
      * 空语句表，mysqldump 预处理首语句 {@code /*!40100 SET @@SQL_MODE='' *&#47;} 因此被
      * 空表→Query OK 分支静默吞掉（I-DEBT-57 现状），会话 sql_mode 未切宽松，后续
      * i_s.FILES tablespaces 形态又被本地严格分组校验拒绝（活体 mysqldump stderr 铁证）。
-     * 本方法在 parse 前按真 MySQL 语义解包版本注释：版本号 MMSSDD 数值比较，未达标保留
-     * 注释原文；MariaDB 方言 {@code /*M!} 与非版本纯注释不触碰（I-DEBT-57 路径不变）。
+     * 本方法在 parse 前按真服务端语义解包版本注释，未达标保留注释原文；MariaDB 方言
+     * {@code /*M!} 与非版本纯注释不触碰（I-DEBT-57 路径不变）。达标判定见
+     * {@link #versionCommentSatisfied(int, MySQLDatabaseMetadata)}：MySQL 单轨，MariaDB 双轨。
      *
      * <p>词法感知（CodeReview Final Important 修复）：真 lexer 只在顶层语句态识别
      * {@code /*!}，字符串字面量（'…'/"…"，含反斜杠转义与叠引号自转义）、反引号标识符、
@@ -599,7 +606,7 @@ public enum MycatdbCommand {
             // 快速路径：无版本注释标记，零开销返回
             return text;
         }
-        final int serverCode = serverVersionCode();
+        final MySQLDatabaseMetadata meta = serverMetadata();
         final int n = text.length();
         final StringBuilder sb = new StringBuilder(n);
         int i = 0;
@@ -611,7 +618,7 @@ public enum MycatdbCommand {
                     && (i + 2 >= n || Character.isWhitespace(text.charAt(i + 2))))) {
                 i = appendToLineEnd(text, i, sb); // 行注释：原样拷贝至换行前（-- 须后接空白）
             } else if (c == '/' && i + 1 < n && text.charAt(i + 1) == '*') {
-                i = appendComment(text, i, sb, serverCode);
+                i = appendComment(text, i, sb, meta);
             } else {
                 sb.append(c);
                 i++;
@@ -662,7 +669,7 @@ public enum MycatdbCommand {
      * 未达标整段（含标记）原样保留；{@code /*M!}、{@code /*!} 后无数字、普通块注释均整段原样
      * 拷贝至首个 {@code *&#47;}（真 lexer 不嵌套）；未闭合吃至文末。
      */
-    private static int appendComment(String text, int start, StringBuilder sb, int serverCode) {
+    private static int appendComment(String text, int start, StringBuilder sb, MySQLDatabaseMetadata meta) {
         final int n = text.length();
         int k = start + 3; // /*! 之后
         final int digitsStart = k;
@@ -682,7 +689,7 @@ public enum MycatdbCommand {
             sb.append(text, start, n); // 未闭合：无锚可终结，整段原样保留
             return n;
         }
-        if (code <= serverCode) {
+        if (versionCommentSatisfied(code, meta)) {
             sb.append(text, k, close); // 解包：只留 body
         } else {
             sb.append(text, start, close + 2); // 未达标：含标记注释原文保留
@@ -690,17 +697,38 @@ public enum MycatdbCommand {
         return close + 2;
     }
 
-    /** 自述版本数值（MMSSDD）：经 DI 取 VersionProfile 画像串；画像未就绪时保守取 5.7.0 地板。 */
-    private static int serverVersionCode() {
+    /**
+     * 版本注释达标判定（活库实测口径，2026-10-31）：
+     *
+     * <ul>
+     *   <li>MySQL：单轨，注释号 ≤ 自述 MMSSDD 即执行；</li>
+     *   <li>MariaDB：双轨。注释号 ≥ {@value #MARIA_DB_OWN_TRACK_MIN_CODE} 时按 MariaDB 自身
+     *       版本码比较；小于该值时走 MySQL 兼容轨道，实测上限 50699——mariadb 10.6.28 /
+     *       10.11.19 / 11.4.13 三版一致，50699 执行、50700 起一律跳过（50700/80000/90000 均
+     *       不执行）。若只按数值比较，{@code /*!80000 … *&#47;} 会被错误解包。</li>
+     * </ul>
+     */
+    private static boolean versionCommentSatisfied(int code, MySQLDatabaseMetadata meta) {
+        final int serverCode = meta.majorVersion() * 10000 + meta.minorVersion() * 100 + meta.microVersion();
+        if (code > serverCode) {
+            return false;
+        }
+        if (!"MariaDB".equals(meta.productName())) {
+            return true;
+        }
+        return code >= MARIA_DB_OWN_TRACK_MIN_CODE || code <= MARIA_DB_MYSQL_COMPAT_MAX_CODE;
+    }
+
+    /** 自述版本元数据：经 DI 取 VersionProfile 画像串；画像未就绪时保守取 5.7.0 地板。 */
+    private static MySQLDatabaseMetadata serverMetadata() {
         io.mycat.config.VersionProfile profile = null;
         try {
             profile = MetaClusterCurrent.wrapper(io.mycat.config.VersionProfile.class);
         } catch (Throwable ignored) {
             // DI 未就绪（如单测环境）：落地板版本
         }
-        final MySQLDatabaseMetadata meta = MySQLDatabaseMetadata.parse(
+        return MySQLDatabaseMetadata.parse(
                 profile != null ? profile.serverVersionString() : "5.7.0");
-        return meta.majorVersion() * 10000 + meta.minorVersion() * 100 + meta.microVersion();
     }
 
     @NotNull
