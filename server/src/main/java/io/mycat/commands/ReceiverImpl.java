@@ -18,6 +18,7 @@ import cn.mycat.vertx.xa.XaSqlConnection;
 import io.mycat.*;
 import io.mycat.api.collector.*;
 import io.mycat.beans.mycat.MycatRowMetaData;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.beans.resultset.ResultSetWriter;
 import io.mycat.beans.resultset.SimpleBinaryWriterImpl;
 import io.mycat.beans.resultset.SimpleTextWriterImpl;
@@ -213,23 +214,30 @@ public class ReceiverImpl implements Response {
             }
             case UPDATE:
             case INSERT:
-                List<Future<long[]>> updateInfoList = new ArrayList<>(targetOrderList.size());
+                List<Future<SqlResult>> updateInfoList = new ArrayList<>(targetOrderList.size());
                 for (int i = 0; i < targetOrderList.size(); i++) {
                     String datasource = targetOrderList.get(i);
                     Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource);
                     if (detail.getExecuteType() == INSERT) {
-                        updateInfoList.add(VertxExecuter.runInsert(connectionFuture, sql.toString(), detail.getParams()));
+                        updateInfoList.add(connectionFuture.flatMap(c -> c.insert(sql.toString(), detail.getParams())));
                     } else {
-                        updateInfoList.add(VertxExecuter.runUpdate(connectionFuture, sql.toString(), detail.getParams()));
+                        updateInfoList.add(connectionFuture.flatMap(c -> c.update(sql.toString(), detail.getParams())));
                     }
                 }
                 CompositeFuture all = CompositeFuture.join((List) updateInfoList)
                         .onSuccess(unused -> dataContext.getTransactionSession().closeStatementState());
-                return all.map(u -> {
-                    List<long[]> list = all.list();
-                    return list.stream().reduce(new long[]{0, 0}, (o, o2) -> new long[]{o[0] + o2[0], o[1] + o2[1]});
-                }).flatMap(result -> {
-                    return sendOk(result[0], result[1]);
+                return all.<List<SqlResult>>map(u -> all.list()).flatMap(list -> {
+                    long affectedRow = 0;
+                    long lastInsertId = 0;
+                    for (SqlResult sqlResult : list) {
+                        affectedRow += sqlResult.getAffectRows();
+                        lastInsertId += sqlResult.getLastInsertId();
+                    }
+                    // I-DEBT-69 Blade D：后端诊断条件物化到前端会话缓冲，比 writeOk 早。
+                    for (WarningMessage warning : collectBackendWarnings(list)) {
+                        dataContext.addWarning(warning);
+                    }
+                    return sendOk(affectedRow, lastInsertId);
                 });
             default:
                 throw new IllegalStateException("Unexpected value: " + detail.getExecuteType());
@@ -287,6 +295,22 @@ public class ReceiverImpl implements Response {
         return count < this.stmtSize;
     }
 
+    /**
+     * I-DEBT-69 Blade D：多个后端结果各自的诊断条件按处理顺序拼接。
+     * 前端一条 DML 可能拆到多个数据源，任一后端产生的告警都属于本语句。
+     */
+    static List<WarningMessage> collectBackendWarnings(List<SqlResult> results) {
+        if (results == null || results.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<WarningMessage> warnings = new ArrayList<>();
+        for (SqlResult result : results) {
+            if (result != null) {
+                warnings.addAll(result.getWarnings());
+            }
+        }
+        return warnings;
+    }
 
     public static class MysqlPayloadObjectObserver implements Observer<MysqlPayloadObject> {
         private final Promise<Void> promise;

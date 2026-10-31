@@ -34,7 +34,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static io.mycat.beans.mycat.MycatDataType.BINARY;
@@ -499,12 +501,14 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                 }
                 long affectRows;
                 long lastInsertId = 0;
+                List<WarningMessage> warnings = Collections.emptyList();
                 if (params.isEmpty()) {
                     try (Statement statement = connection.createStatement();) {
                         onSend();
                         affectRows = statement.executeUpdate(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS);
                         onRev();
                         lastInsertId = getLastInsertId(statement);
+                        warnings = toWarningMessages(statement.getWarnings());
                     }
                 } else {
                     if (isClickHouse()) {
@@ -515,6 +519,7 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                             affectRows = statement.executeUpdate(paramize);
                             onRev();
                             lastInsertId = 0;
+                            warnings = toWarningMessages(statement.getWarnings());
                         }
                     } else {
                         try (PreparedStatement preparedStatement = connection.prepareStatement(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
@@ -526,12 +531,14 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                             affectRows = preparedStatement.executeUpdate();
                             onRev();
                             lastInsertId = getLastInsertId(preparedStatement);
+                            warnings = toWarningMessages(preparedStatement.getWarnings());
                         }
                     }
                 }
                 SqlResult sqlResult = new SqlResult();
                 sqlResult.setAffectRows(affectRows);
                 sqlResult.setLastInsertId(lastInsertId);
+                sqlResult.setWarnings(warnings);
                 return Future.succeededFuture(sqlResult);
             } catch (Exception e) {
                 LOGGER.error("", e);
@@ -545,6 +552,28 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
 
     private boolean isClickHouse() {
         return dbType!=null && dbType.toString().contains("clickhouse");
+    }
+
+    /**
+     * I-DEBT-69 Blade D：把 JDBC 的 {@link SQLWarning} 链映射为诊断条件列表。
+     *
+     * <p>必须在 {@code Statement} 关闭前调用（驱动可能在 close 后丢弃告警）。
+     * 用身份集合防自环：个别驱动会返回 next 指向自身的链，直接 while 会死循环。
+     * 级别统一标 "Warning"——JDBC 不暴露 Note 级条件，不做臆造。
+     */
+    static List<WarningMessage> toWarningMessages(SQLWarning warning) {
+        if (warning == null) {
+            return Collections.emptyList();
+        }
+        List<WarningMessage> messages = new ArrayList<>();
+        Set<SQLWarning> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        SQLWarning current = warning;
+        while (current != null && seen.add(current)) {
+            String message = current.getMessage();
+            messages.add(new WarningMessage("Warning", current.getErrorCode(), message == null ? "" : message));
+            current = current.getNextWarning();
+        }
+        return messages;
     }
 
 
@@ -570,12 +599,14 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                 }
                 long affectRows;
                 long lastInsertId = 0;
+                List<WarningMessage> warnings = Collections.emptyList();
                 if (params.isEmpty()) {
                     try (Statement statement = connection.createStatement();) {
                         onSend();
                         affectRows = statement.executeUpdate(sql);
                         onRev();
                         lastInsertId = 0;
+                        warnings = toWarningMessages(statement.getWarnings());
                     }
                 } else {
                     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -587,11 +618,13 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
                         affectRows = preparedStatement.executeUpdate();
                         onRev();
                         lastInsertId = 0;
+                        warnings = toWarningMessages(preparedStatement.getWarnings());
                     }
                 }
                 SqlResult sqlResult = new SqlResult();
                 sqlResult.setAffectRows(affectRows);
                 sqlResult.setLastInsertId(lastInsertId);
+                sqlResult.setWarnings(warnings);
                 return Future.succeededFuture(sqlResult);
             } catch (Exception e) {
                 LOGGER.error("", e);
