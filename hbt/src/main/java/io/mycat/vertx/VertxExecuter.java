@@ -72,6 +72,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Function;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -93,6 +94,22 @@ public class VertxExecuter {
         return simpleUpdate(context, insert, false, onlyFirstSum, (Iterable<EachSQL>) eachSQLs);
     }
 
+    /**
+     * I-DEBT-69 Blade D 余项（分片 DML 路径）：按 EachSQL 序号把各片诊断条件写进前端会话缓冲。
+     * 失败片没有槽位值，自然跳过（语句以错误包收尾时，诊断区由错误本身占据）。
+     */
+    private static void flushShardWarnings(MycatDataContext context, AtomicReferenceArray<List<WarningMessage>> warningSlots) {
+        for (int i = 0; i < warningSlots.length(); i++) {
+            List<WarningMessage> warnings = warningSlots.get(i);
+            if (warnings == null) {
+                continue;
+            }
+            for (WarningMessage warning : warnings) {
+                context.addWarning(warning);
+            }
+        }
+    }
+
     public static Future<long[]> simpleUpdate(MycatDataContext context, boolean insert, boolean xa, boolean onlyFirstSum, Iterable<EachSQL> eachSQLs) {
         Function<Void, Future<long[]>> function = new Function<Void, Future<long[]>>() {
             final long[] sum = new long[]{0, 0};
@@ -102,20 +119,32 @@ public class VertxExecuter {
                 XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
                 ConcurrentHashMap<String, Future<NewMycatConnection>> map = new ConcurrentHashMap<>();
                 final AtomicBoolean firstRequest = new AtomicBoolean(true);
+                // I-DEBT-69 Blade D 余项（分片 DML 路径）：一条语句拆成多条分片 SQL 并行下发，各片后端的
+                // 诊断条件先按 EachSQL 序号入槽，join 之后统一按序进会话缓冲——顺序须随 SQL 而非随完成次序；
+                // 且必须赶在返回 future 完成前落定，调用侧的 response.sendOk 才能取到 OK 包 warning 计数。
+                List<EachSQL> eachSQLList = new ArrayList<>();
                 for (EachSQL eachSQL : eachSQLs) {
+                    eachSQLList.add(eachSQL);
+                }
+                AtomicReferenceArray<List<WarningMessage>> warningSlots = new AtomicReferenceArray<>(eachSQLList.size());
+                for (int i = 0; i < eachSQLList.size(); i++) {
+                    final int index = i;
+                    EachSQL eachSQL = eachSQLList.get(index);
 
                     String target = context.resolveDatasourceTargetName(eachSQL.getTarget(), true);
                     String sql = eachSQL.getSql();
                     List<Object> params = eachSQL.getParams();
 
                     Future<NewMycatConnection> connectionFuture = map.computeIfAbsent(target, s -> transactionSession.getConnection(target));
-                    Future<long[]> future;
+                    Future<SqlResult> future;
                     if (insert) {
-                        future = VertxExecuter.runInsert(connectionFuture, sql, params);
+                        future = connectionFuture.flatMap(c -> c.insert(sql, params));
                     } else {
-                        future = VertxExecuter.runUpdate(connectionFuture, sql, params);
+                        future = connectionFuture.flatMap(c -> c.update(sql, params));
                     }
-                    Future<NewMycatConnection> returnConnectionFuture = future.map((Function<long[], Void>) longs2 -> {
+                    Future<NewMycatConnection> returnConnectionFuture = future.map((Function<SqlResult, Void>) result -> {
+                        warningSlots.set(index, result.getWarnings());
+                        long[] longs2 = result.toLongs();
                         if (!onlyFirstSum) {
                             synchronized (sum) {
                                 sum[0] = sum[0] + longs2[0];
@@ -130,7 +159,10 @@ public class VertxExecuter {
                     map.put(target, returnConnectionFuture);
                 }
                 List<Future<NewMycatConnection>> futures = new ArrayList<>(map.values());
-                return CompositeFuture.join((List) futures).map(sum);
+                return CompositeFuture.join((List) futures).<long[]>map(v -> {
+                    flushShardWarnings(context, warningSlots);
+                    return sum;
+                });
             }
         };
         if (xa) {

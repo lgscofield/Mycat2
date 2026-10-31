@@ -200,6 +200,33 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 **仍未覆盖**：NATIVE 协议池（`OkCommand` 不解析 warnings 字段）、分片 DML（`VertxExecuter.simpleUpdate`）、多目标 SELECT 的 live 验证（已接线，无分片表 = NO_DATA）、Note 级条件、`SHOW ERRORS` / `@@session.error_count`。
 
+### Blade D 余项 · 分片 DML 路径落地（2026-10-31）
+
+**问题**：Blade D 的 DML 只覆盖单目标（经 `ReceiverImpl`）。分片 INSERT/UPDATE 走 `VertxExecuter.simpleUpdate`，其内部 `runInsert/runUpdate` 把 `SqlResult` 直接 `.map` 成 `long[]`——后端诊断条件在链上被丢弃 ⇒ 跨片语句的告警恒空。
+
+**活体取证（改前）**：经 8066（persona=MARIADB_10_11，后端 MySQL 8.0.46@3306）对分片表 `db1.wlk` 执行 `INSERT IGNORE INTO wlk VALUES(1,'abcdef'),(2,'ghijkl')` → `Query OK, 2 rows affected`，但 `SHOW WARNINGS` = **Empty set**、`@@warning_count` = **0**；回读值 `abc`/`ghi`（确已截断），物理分布 `wlk_0=0, wlk_1=1, wlk_2=1, wlk_3=0`（两行落两片）。真值应为 2 条 1265。
+
+**infra 前置（零手工配置）**：分片表直接经 8066 用 DDL 子句建立——Mycat 解析 `DBPARTITION BY mod_hash(id) DBPARTITIONS 2 / TBPARTITION BY mod_hash(id) TBPARTITIONS 2` 自动生成分片配置（落 `server/target/.mycat-home/schemas/db1.schema.json`，`mappingFormat=c${targetIndex}/db1_${dbIndex}/wlk_${index}`）并创建 4 张物理表。**单数据源即可按库分片，无需第二 datasource、无需手改 JSON。**
+
+**改动**（`hbt/src/main/java/io/mycat/vertx/VertxExecuter.java`，仅 `simpleUpdate(…, Iterable<EachSQL>)` 一处）：
+1. 先把 `eachSQLs` 物化为 `List`，按 EachSQL 序号开 `AtomicReferenceArray<List<WarningMessage>>` 槽位；
+2. 每片执行由 `runUpdate/runInsert`（丢告警）改为直接 `connectionFuture.flatMap(c -> c.insert/update(sql, params))` 取回 `SqlResult`，在 `map` 里 `warningSlots.set(index, result.getWarnings())`；影响行数累加、`onlyFirstSum`、连接归还链与 `CompositeFuture.join` **原样保留**；
+3. `join` 之后新增 `flushShardWarnings`，**按序号**把各片告警写入 `context.addWarning`；位置仍在返回 future 完成之前 ⇒ 调用侧 `simpleUpdate(...).eventually(closeStatementState).flatMap(r -> response.sendOk(...))` 的 OK 包 warning 计数取得到。
+
+**两条契约（各有独立断言，且都做过失效检验）**：
+- *顺序 = SQL 顺序而非完成顺序*：分片并行下发、完成次序不确定。夹具用 vertx `Promise` 让分片 1 先于分片 0 落地，断言缓冲仍是 row1→row2。**变异检验**：临时把 flush 改成"每片完成即追加"，该锁立刻变红（实测得 `row2, row1`）⇒ 断言非空转。
+- *时序 = 早于 `sendOk`*：断点挂在 `simpleUpdate` 返回 future 的 `onSuccess` 上（先挂观测点、再放行后端），若 flush 落在完成之后则取不到。
+
+**证据**：
+- 离线：`ShardUpdateWarningsTest`（hbt）5/0/0——RED = 4 例断言"期望告警但实得 `[]`"（第 5 例为无告警负向对照，天然绿）；JDK 动态代理造 `MycatDataContext` / `XaSqlConnection`+`TransactionSession` / `NewMycatConnection`，不连库、不 mock 被测码。覆盖多 target、乱序完成、同 target 多语句、UPDATE 分支、无告警退化。注意 `getTransactionSession()` 返回类型是 `TransactionSession` 而 `simpleUpdate` 向下转型 `XaSqlConnection` ⇒ 夹具代理必须同时实现两接口。
+- 活体（改后）：同表同语句 → `SHOW WARNINGS` 2 行 1265、`@@warning_count` = **2**。绕过代理分别在 `db1_0.wlk_1`、`db1_1.wlk_2` 直跑同一条单行 `INSERT IGNORE`，两片真值逐字均为 `Warning | 1265 | Data truncated for column 'a' at row 1` ⇒ 代理侧两条 = 两片各一，计数与明细同源。
+- 定向：`mvn -o -pl common,proxy,hbt,server -am test` → **548 / 0F / 0E / 0 skip**（hbt 289→294，恰 +5）。
+- 全量：`mvn -o -pl example -am test` → BUILD SUCCESS（14:11 min）：前 9 模块 29+49+18+7+12+21+294+6+112 = 548 / 0F / 0E / 0 skip（hbt 289→294 恰 +5），example 547 / 0F / 0E / 37 skip，合计 1095 / 0F / 0E / 37 skip（上批基线 1090，恰 +5）
+
+**全量首跑的 3 枚红 = 启动工件缺陷（非本刀回归）**：首跑全量为 `547 / 0F / 3E / 37 skip`，红在 `SwapBufferTest#test2`、`VectorTest#testBase`、`VectorTest#testVectorAvgDecimalResiduals`，客户端异常均为 `java.sql.SQLException: Can not read response from server. Expected to read 4 bytes, read 0 bytes before connection was unexpectedly lost.`，且 `VectorTest` 耗时 2003 s。代理端日志给出首因：紧随 `SELECT arrow` 抛 `java.lang.RuntimeException: Failed to initialize MemoryUtil. You must start Java with --add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED`（`MemoryUtil.<clinit>:140` → `BaseFixedWidthVector.initValidityBuffer`），即代理端 Arrow 分配崩致连接被关，客户端只看到连接丢失。仓库内早有明文要求该参数：`ci/run-example.sh:31-33` 注释「Arrow 18（「vector()」算子用其堆外内存）在 JDK17+ 必需，否则 VectorTest 挂死」、`ci/verify-mysqldump-binary-roundtrip.sh:102`、`ci/verify-old-connector.sh:68`、`executor/pom.xml:87-94`（surefire fork 常驻该开帧），以及 `.superpowers/start-server.ps1` 的标准 argList；I-DEBT-59 spec L196 亦记过同款「基线代理启动未带 `--add-opens` …（启动工件，非代码）」。**根因：本轮为活体复验手工重启 8066 时漏传该参数。** 坐实实验：带 `--add-opens=java.base/java.nio=ALL-UNNAMED` + `-Duser.timezone=Asia/Shanghai` 重启代理后，同两类定向复跑 → `SwapBufferTest` 1/0/0（3.404 s）+ `VectorTest` 2/0/0（4.221 s）= **3 / 0F / 0E / BUILD SUCCESS**，挂死耗时 2003 s 塌回 4.2 s——挂起与连接丢失正是该崩溃的指纹。仓库根 `start.bat` 内容停留在 JDK8 时代、无这些参数，不可作为启动参考。
+
+**仍未覆盖 / 新发现**：分片 `UPDATE IGNORE` 的告警**无法活体验证**，因为另有独立缺陷（本刀活体副产物）→ **I-DEBT-74**：`VertxUpdateExecuter.handleTargets` 用 `statement.clone()` 造每片语句，而 druid 1.2.28 的 `MySqlUpdateStatement.clone()` 降级为 `SQLUpdateStatement` 并**丢 `ignore` 标志**（离线取证：parse→`UPDATE IGNORE …`，clone→`UPDATE …`），于是代理把真库的 warning 1265 升级成 ERROR 1406；同语句打 normal 表（单目标路径）仍为告警，坐实差异只在"经分片改写"这一跳。属 SQL 改写保真面，不并入本刀。其余未覆盖：NATIVE 协议池、多目标 SELECT 的 live 验证、Note 级条件、`SHOW ERRORS` / `@@session.error_count`。
+
 
 ---
 
