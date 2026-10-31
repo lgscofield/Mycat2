@@ -141,7 +141,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 ### Blade D 落地（2026-10-31）
 
-**真库对照（MariaDB 10.11 直连 3306 vs Mycat 8066·persona=MARIADB_10_11·后端 mysql 8.0·JDBC 池）**：
+**真库对照（真库直连 3306 = MySQL 8.0.46 vs Mycat 8066·persona=MARIADB_10_11·后端同一 3306·JDBC 池）**：
 
 | 序列 | 真库 | Mycat |
 |---|---|---|
@@ -180,7 +180,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 3. `VertxExecuter`：`runQueryOutputAsMysqlPayloadObject` 增 4 参重载、`runQuery` 增 7 参重载，均带 `Consumer<List<WarningMessage>>` sink；旧签名委托空 sink，调用方零改动。
 4. `ReceiverImpl` 的 `QUERY/QUERY_MASTER` 分支把 sink 接到 `dataContext.addWarning`（首目标与后序目标都接）。
 
-**真库对照（MariaDB 10.11 直连 3306 vs Mycat 8066·persona=MARIADB_10_11·后端 mysql 8.0·JDBC 池·表 q1(a int)）**：
+**真库对照（真库直连 3306 = MySQL 8.0.46 vs Mycat 8066·persona=MARIADB_10_11·后端同一 3306·JDBC 池·表 q1(a int)）**：
 
 | 序列 | 真库 | Mycat |
 |---|---|---|
@@ -190,6 +190,8 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 | `--show-warnings`（读 EOF/OK 的 warning 计数字段） | `Warning (Code 1365): Division by 0` | **逐字一致** ⇒ 终结包计数也被点亮 |
 | `SELECT a/0 …; SELECT 1; SHOW WARNINGS` | 空、计数 0（诊断区被新语句替换） | 一致 |
 | `INSERT IGNORE` 截断两行（DML 回归） | 2 行 1265、计数 2 | 一致 |
+
+**口径订正（2026-10-31 实测）**：3306 实为 MySQL 8.0.46（直连 `select version()` 取证），MariaDB 10.11.19 在 3308；上节原写「MariaDB 10.11 直连 3306」标签有误。两库对下列两例（1265 截断、1365 除零）输出逐字相同（3308 抽检同），对照结论不变。
 
 **证据**：
 - 离线：`QueryBackendWarningsTest`（hbt）3/0/0——JDBC 动态代理造“后端语句带告警链”的最小场景，覆盖无参/预编译两分支与无告警退化，并断言 sink 在 `onComplete` 之前收到；RED = 4 参重载缺失（编译失败）。
