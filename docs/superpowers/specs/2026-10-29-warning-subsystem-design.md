@@ -275,6 +275,8 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 **新立 I-DEBT-75（需专轮）**：多目标 SELECT 告警拼接活体补证时咬出跨片 fan-out 下推把 `1 DIV (id-1)` 渲染成 `CAST(INT(..))` 非法 MySQL 语法→ERROR 1064（矩阵钉界：同构 UNION 绿 / 单片 div 绿 / 跨片 div 红 / 跨片 `id+0` 绿，真库 `CAST(x AS INT)` 直跑同签名 1064）。属 codegen/方言渲染深债，不并入本刀；多目标 SELECT 告警拼接活体仍 NO_DATA（被 75 挡）。
 
+**【2026-11-02 I-DEBT-75 收口 + 解锁探针精确再定性（本格仍未闭）】**：I-DEBT-75 已落地（`MycatSqlDialect.unparseCall` 把 `/INT` 渲染为 MySQL 原生中缀 `DIV`，离线下推锁 `PushDownDivUnparseFidelityTest` 2 绿 + 8066 新 jar 跨片 DIV UNION 活体逐格与直连 oracle 全等·零 1064，详见 spec `2026-11-02-i-debt-75-pushdown-div-unparse-design.md` §6）。但据此重跑多目标 SELECT 告警拼接对拍（`probe-i69-multitarget-localcast.txt`）**证伪“1064 消除即可续跑”的旧假设**：`select id, cast(note as signed) from shg`（无 shard key 全片扫描）经代理返**原串 `abc/xyz`**（oracle 返 `0/0`）、`SHOW WARNINGS` 空、`@@warning_count`=0；而单片命中 `where id=1`（下推后端）则正确返 `0` + `Warning 1292`。即 **跨片 fan-out 下计算型投影由 Mycat 本地引擎求值（非逐 target 下推）**，本地不产 1292/1365 → 多目标后端告警恒不存在 → 「多目标 SELECT 告警拼接」活体格**实被新立 I-DEBT-76（跨片计算投影本地求值保真）挡**，非仅被 1064 挡，仍 ⬜ NO_DATA（诚实挂账不冒 Evidenced）。
+
 **诚实边界**：根因在 druid 上游，本修法是 Mycat 侧补偿层（非 fork），上游修复时定性锁咬红提醒拆补偿；分片告警的 `at row N` 为各后端局部行序（代理 `1,1,2` vs 真库 `1,2,3`），属分片告警行序语义、随 I-DEBT-69 继续挂。I-DEBT-69 整体仍 🟡（NATIVE 协议池 / 多目标 SELECT 活体·被 75 挡 / Blade E / 分片告警行序），不冒 Evidenced-Done。
 
 

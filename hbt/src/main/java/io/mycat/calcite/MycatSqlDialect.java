@@ -66,6 +66,23 @@ public class MycatSqlDialect extends MysqlSqlDialect {
     @Override
     public void unparseCall(SqlWriter writer, SqlCall call, int leftPrec, int rightPrec) {
         SqlOperator operator = call.getOperator();
+        // MYCAT CHANGE (I-DEBT-75): 整数除算子 DIVIDE_INTEGER/CHECKED_DIVIDE_INTEGER 的算子名字面量是
+        // "/INT"，SqlBinaryOperator 默认 unparse 按名逐字 emit 成中缀 "a /INT b"，跨片 rel→sql 重渲染时
+        // MySQL 把 '/' 后的 INT 当保留字/函数解析 → 1064（scratch/proxy-t75-out.txt 活体钉死）。
+        // 下推出口改渲染成 MySQL 原生中缀 DIV（向零截断、除零返 NULL，与用户原写 div 语义全等；
+        // 非 FLOOR——FLOOR 负数向负无穷截断，-3/2 得 -2 ≠ MySQL -3 DIV 2 得 -1，语义不等价）。
+        // 仅在下推 deparse 出口生效，不触碰本地 codegen 求值与类型推断（那些仍用完整 "/INT" 算子）。
+        // 按算子名判（覆盖 DIVIDE_INTEGER 与同名 CHECKED_DIVIDE_INTEGER），不用单例 ==（防规划期实例降型漏判）。
+        if ("/INT".equals(operator.getName()) && call.operandCount() == 2) {
+            final SqlWriter.Frame frame = writer.startList(SqlWriter.FrameTypeEnum.SIMPLE);
+            call.operand(0).unparse(writer, leftPrec, operator.getLeftPrec());
+            writer.setNeedWhitespace(true);
+            writer.sep("DIV");
+            writer.setNeedWhitespace(true);
+            call.operand(1).unparse(writer, operator.getRightPrec(), rightPrec);
+            writer.endList(frame);
+            return;
+        }
         // MYCAT CHANGE (I-DEBT-②): 被省略的可选尾操作数经 SqlCallBinding.operands() 物化成 DEFAULT、
         // 逃入 RexCall，下推 rel→sql 会原样 emit 成 ", DEFAULT)"——MySQL 不接受函数实参位的 DEFAULT
         // 关键字（1064）。此处仅在下推 deparse 出口截断尾部连续的 DEFAULT，只发实参；不触碰本地
