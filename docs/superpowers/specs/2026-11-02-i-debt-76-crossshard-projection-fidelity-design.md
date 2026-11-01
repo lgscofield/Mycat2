@@ -41,3 +41,18 @@
 - ✅ 活体症状复现（单片对 / 跨片值+类型+诊断三背离）。
 - ⬜ 未改任何生产码（宁挂账不伪绿：在 A/B 主攻方向裁定 + 归并路径执行落点钉死前，不冒进 RED 锁）。
 - ⬜ I-DEBT-69「多目标 SELECT 告警拼接」活体格仍被本格挡（诚实维持 NO_DATA）。
+
+## 6. 窄取证定案（2026-11-02·用户选「先窄取证再定」）——分歧缩到 deparse 层单点
+再跑 `i76-probe.log` 的三格对照，拿到**决定性同构对比**：跨片 cast 与跨片 div 的**计划形态完全相同**（均 `MycatView.MYCAT2.[](relNode=LocalProject#…)`），但 fragment 出码分叉：
+- **算术 `/` 正常进 fragment**：`select id, 1/(id-1)` → `SELECT shg.id, (? / (shg.id - ?)) AS q FROM db1_0.shg_0 union all …`（表达式保留）。
+- **CAST 不进 fragment**：`select id, cast(note as signed)` → `SELECT shg.id, shg.note AS n …`（只剩基列+别名，CAST 丢）。
+⇒ 问题**不是**全局下推决策差异（A  feared 的大重写），**而是 Mycat 自有 rel→sql 转换器 `io.mycat.calcite.RelToSqlConverter`（`hbt/.../calcite/RelToSqlConverter.java`，非 calcite-core 版）对投影内 `RexCall(CAST, col)` 的出码不对称**：
+- `visit(Project)`/`visit(Calc)` 逐投影项走 `builder.context.toSql(program, ref)`（L318/L560）；
+- 该 `toSql` 落到 `RexToSqlNodeConverterImpl.convertCall`（`calcite-core/.../rex/RexToSqlNodeConverterImpl.java:60-67`）：**无 convertlet 即 `return null`**；
+- 算术有标准 convertlet（转成 infix `/`），**CAST 无对应 convertlet → 转换回退/降级为操作数列引用**，故 CAST 静默丢失（`MycatImplementor` 对 NULL 字面量有 `castNullType`，但对非 NULL 列的 CAST 未特化）。
+
+### 6.1 窄定的修法候选（比 §3 的 A/B 都小得多）
+- **Narrow-A（主攻·deparse 侧让 CAST 下推）**：在 Mycat 的 rel→sql 转换路径为投影内 `RexCall(CAST)` 补 convertlet/特化，像算术一样把 `cast(x AS type)` 渲进 fragment（MySQL 目标型用 SIGNED 等合法类型）。效果=跨片与单片统一、后端算 cast→值/类型/诊断全回真库、顺带解锁 I-DEBT-69。离线可锁：断言跨片 cast fragment **含** `CAST(`/`SIGNED`（当前不含即 RED）。
+- **Narrow-B（次选·runtime 侧）**：若非 NULL 列的 CAST 被有意判为「本地腿」（LocalProject 应在归并执行），则修归并真正执行 LocalProject transform + 本地 cast 对齐 MySQL（非数值→0 且产 1292）。面比原 B 小，但仍涉求值器 + 诊断接线。
+### 6.2 待进 RED→GREEN 前最后一钉
+Narrow-A 的风险=把本应本地的 CAST 强推下推是否伤其他不可下推型（DECIMAL 精度/字符集）；Narrow-B 的风险=归并路径执行落点未定位。**下一步取证**：确认 `SqlImplementor.Context.toSql` 对 `convertCall==null` 的确切回退行为（回退成 field 引用 vs 抛错），据此在 Narrow-A/Narrow-B 定一。本轮止于取证（用户选「先窄取证」），零改生产。
