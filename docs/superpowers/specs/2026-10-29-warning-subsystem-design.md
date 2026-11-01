@@ -113,7 +113,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 | **B 读面** | ✅ 已落（离线自证） | `ShowWarningsSQLHandler` 从缓冲真读，`buildWarningRows()` 纯函数承载 COUNT(*)/LIMIT/截断语义，`onExecute` 按 `isCount()` 分支列定义，`resolveMaxErrorCount()` 读会话变量并在取不到时保守退化。锁：`ShowWarningsRowBuilderTest` 9/0/0 + `ShowWarningsMaxErrorCountTest` 5/0/0（后者经**变异核验**确证会咬人） |
 | C 系统变量 | ✅ 已落（2026-10-31·离线 17 锁 + 8066 活体对拍） | 见下“Blade C 落地”。原范围：兜底默认值 + `SET` 覆盖；本次同时把 `@@warning_count` 的“读上一条”语义与 `@@session.*` 前缀归一补齐 |
 | D 后端告警捕获 | ✅ 已落（2026-10-31·JDBC 池 DML + Query 路径·活体双向对拍） | 见下“Blade D 落地”“Blade D 余项·Query 路径”。原范围：把后端语句产生的诊断条件物化进前端会话缓冲。本次覆盖 `UPDATE/INSERT`（含 `INSERT IGNORE`）与单目标 `SELECT`（均限 JDBC 数据源池）；NATIVE 协议池 / 分片 DML（`simpleUpdate`）/ 多目标 `SELECT` 仍挂 ⬜ |
-| E 本地除零 Warning 1365 | ⬜ 待做 | 依赖 I-DEBT-39·残值语义前置 |
+| E 本地除零 Warning 1365 | ⬜ 单立专轮（§6e 承重取证已落：活路径=向量腿、真值表钉界、三坑定位，未接生产者） | 落点伸入值求值热路径，与告警缓冲正交；单发射/线程安全/三腿覆盖需活体重锤 |
 
 **回归门（2026-10-29·`mvn -o -pl proxy,server -am test`，JAVA_HOME=Liberica JDK-21-Full）**：`BUILD SUCCESS`，14 模块合计 **377 tests / 0 failures / 0 errors / 0 skipped**（config 23、common 43、router 18、datasource 7、va 12、proxy 13、hbt 255、executor 6、server 100）。三枚新锁的 surefire 报告文件已逐个 `Test-Path` + 读正文实名核对（防"BUILD SUCCESS 但静默跑 0 测试"的伪绿）。全仓 `test-compile` 另已独立通过（19 模块）。
 
@@ -307,6 +307,65 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 **RED 锁清单**：① `recordStatementError` 数据面行为锁（Error 级入缓冲/null 兜底/wc·ec 归档联动）；② server `VertxSessionErrorDiagnosticTest`（仿 `VertxSessionCloseGuardTest` 构造：两重载 → DA 含 `Error|code|msg`；close 守卫后仍写 DA）；③ proxy NIO default 锁（`MySQLProxyServerSession` 最小 fake/mock，isConnected false/true 均写 DA）。
 
 **状态**：✅ **已落地（2026-11-01）**。RED 9 锁（先红因正确：数据面 3 + server VertxSession 3 + proxy NIO default 3）→ GREEN 三处 chokepoint 接线 9/9 全绿 → 活体对拍（8066·**VERTX 链实证**：unknown schema Error 进 DA、wc/ec=1/1、`SHOW ERRORS` 过滤生效、下条 clean 语句替换 0/0、ERR 包行为不变，scratch/probe-8066-out.txt）→ 全量护栏 **1127/0F/0E**（基线 1118 恰 +9=本刀三测试类；example 段 547/37skip 与基线逐格一致，persona=MARIADB_10_11 对齐后）。诚实边界：① 后端原生码（1062/1406）经代理透传进 DA 的活体格未打穿（.mycat-home 无 db1 路由配置；离线锁已锁「带码重载→DA 同码」同一 chokepoint，挂活体余格）；② 错误码映射债（真库 1146 被代理回 1105/code 0）另立挂账；③ MariaDB Error 驻留分档偏差按已取证挂账不变。全量首跑挂起已根因定性：**代理 stdout 经 PowerShell Tee 管道、消费端回收后管道满致 JVM 级停摆（纯环境陷阱，与本刀代码无关，jhsdb SA 栈全线程空闲坐实）**，改直接文件重定向后一次通过。
+
+**订正（2026-11-01 刀1）**：上句诚实边界①「后端原生码透传活体格未打穿」**已打穿（零改生产）**：活跃 home=`server/target/.mycat-home` 已有 db1.schema.json（base 库落 prototypeDs=MySQL 8.0.46），受控探针 probe-ctl.sql 双跑对拍（scratch/probe-ctl-3306.txt vs probe-ctl-8066.txt）：1062 重复键 / INSERT 1406 / UPDATE 1406 三格代理均 `Error|同码|详情` 进 DA、wc/ec=1/1、`SHOW ERRORS` 透传、clean 语句替换 0/0，与真库逐格一致（SQL state HY000 vs 23000/22001、1406 消息 `Data truncation:` 前缀属既有错误码/状态映射债，不属本刀）。方法学教训：首批探针的 DA「恒空」是客户端伪影（同 session 首格即查才见真值），取证须排除中间语句污染。
+
+### 6d. Blade G：NATIVE 协议池 OK 包告警（刀 2，2026-11-01 契约裁定）
+
+**断链取证（当前代码 file:line）**：`DatasourceConfig.DatasourceType.NATIVE/NATIVE_JDBC` → `MycatMySQLManagerImpl:72-86` 建 native 池 → `VertxMycatConnectionPool.update:240-257` → `io.mycat.mysqlclient.VertxConnection.update:66-91` → `OkCommand.handle0:63-65`：`PacketUtil.decodeOkPacketPayload:57-67` 注内注释坐实「simplify … not used for now」，读完 statusFlags 即返，**OK 包 warnings 字段（协议第 4 段，2 bytes）不解析**，`SqlResult.of(affectRows, lastInsertId)` 恒空告警 → `VertxExecuter:146 warningSlots` / `ReceiverImpl.collectBackendWarnings:242` 机制在 NATIVE 池收不到明细 → 前端 DA 空、OK 计数 0（JDBC 池 `statement.getWarnings()` 腿已由 Blade D 接好）。
+
+**裁定（定谳 (i) 取明细往返，否决 (ii) 仅计数合成假条目）**：`SqlResult` 「计数由列表派生」契约（SqlResult.java:16-22 + SqlResultWarningsTest 锁）是防「计数与明细各算各的」的既有裁定，合成假条目（编造 code/message）=伪造诊断，违反宁挂账不伪绿铁律；且真库在 NATIVE 型 datasource 下 `SHOW WARNINGS` 有真明细，仅计数方案 DA 明细永远失真。方案：OK 包 warnings>0 时，在**同一后端连接归还前的串行队列**上补一条 `SHOW WARNINGS` 往返取真明细（代价：仅告警路径 +1 RTT，零告警主路径扰动 0）；明细到手后计数仍由列表派生，契约不破。
+**实现落点**：① `PacketUtil` 新增 warnings 字段读取（`ReadView.readFinished()` 防截断，残长不足 2 字节退 0）；② `OkCommand` 透传计数；③ `VertxConnection.update()`：中间 promise 拦截完成，`count>0` 则 `future` 链上接 `queryAsObjectArray("SHOW WARNINGS")`（Level/Code/Message 三列 → `WarningMessage`）重构 SqlResult；往返失败降级空列表 + warn 日志，不阻主路；连接归还时序由 `VertxMycatConnectionPool.update` 的 onComplete 在本 future 完成后才触发 close/recycle 保证。
+**边界（挂账）**：结果集 EOF 的 warnings 字段（NATIVE 池 SELECT 腿 `QueryCommand:114`）不入本刀（协议面同根、需主路延迟换明细另一笔 trade-off，随残格继续挂）。
+**RED 锁清单**：① `PacketUtilOkWarningsTest`（warnings 字段解析/截断退化）；② `VertxConnectionWarningDetailTest`（vertx NetServer 假后端：握手后 DML 回 OK(warnings=2)→SHOW WARNINGS 回 2 行→断言 SqlResult 携 2 条明细；warnings=0 不发起二次往返；往返失败降级）；③ 活体：e2e 建 NATIVE 型 datasource（BackendAuthMatrixTest hint 姿势）+ INSERT IGNORE 截断 → 前端 DA/OK 计数与真库对拍。
+
+**GREEN 落地（2026-11-01）**：改生产 4 文件（`PacketUtil.decodeOkPacketWarnings` / `SqlResult.backendWarningCount` / `OkCommand.handle0` 透传 / `VertxConnection.update()` 告警明细回折）+ `ReadView.readable()`。关键设计纠偏：首版「直装 handler 的 owned-connection 查询腿」在 `OkCommand.handle0` 同步栈内重入换 handler → SHOW WARNINGS 响应腿不被接手 → 超时；改回生产已验证的**串行队列链式**（队尾 future 只等 DML，明细往返作队列下一条命令接力）。RED 三锁 → GREEN 9/9（`PacketUtilOkWarningsTest`3 / `NativeWarningsConverterTest`3 / `VertxConnectionWarningDetailTest`3）。
+
+**活体确认（2026-11-02·含一个真缺陷抓修）**：
+- 配 NATIVE 姿势教训：直接改 `.mycat-home/datasources/prototypeDs.datasource.json` 的 `type=NATIVE` **不存活**——Mycat 开机从打包默认模板再生（重启回写 JDBC），DML 仍走 `NewMycatConnectionImpl`（JDBC 腿）。**一等杠杆 = 启动参 `-Dserver=native`**（`MycatCore:121` → `FORCE_NATIVE_DATASOURCE=true` → `MycatMySQLManagerImpl:61-69` 把所有 datasource 含 JDBC 型升格 NATIVE_JDBC）。另：native 腿须表**经代理建**才登记 handler（直连 3306 建的表经代理报 `tableHandler is null`）。
+- 真 native 腿 engage 铁证（proxy-native.log）：无 `falling back to JDBC` 告警 + `io.mycat.mysqlclient` 命中 + `OkCommand.send sql:INSERT IGNORE` → `VertxConnection.query` → 代理自发 `SHOW WARNINGS` 收到 Level/Code/Message 三列响应。
+- **活体抓 bug**：native 代理 `SHOW WARNINGS` 的 Level/Message 与 oracle 逐字对，但 **Code=0**（真库=1265）。根因：真库 Code 列是数值列（charset 63），`StringArrayDecoder.convert` 对 charset 63 走 `byteToByte` 返回装箱 **`Byte[]`**（非 String）→ 离线未捕获（假后端用 VARCHAR charset 33 发 String）→ 活体 `String.valueOf(Byte[])` 得 `[Ljava.lang.Byte;@` → parseInt 退 0。**典型离线测形不成、活体格才抵获**。
+- 修复：`VertxConnection` 新增 `cellText(Object)` 单元格还原（`Byte[]`/`byte[]`→UTF-8 字符串，其余 String.valueOf），`convertNativeWarningRows` 全走它；RED 新增两锁 `decodesByteArrayCellsFromRealNumericCodeColumn`（Byte[] 形态 Code=1265）/`decodesPrimitiveByteArrayCells`（byte[]），converter 测试 3→5。
+- **复验定案**：重打 jar（含 fix）+ `-Dserver=native` 重启 → 经代理重建表登记 handler → `INSERT IGNORE` 紧跟 `SHOW WARNINGS`：**8066 native 代理 = `Warning | 1265 | Data truncated for column 'v' at row 1`**，与 3306 oracle **逐格一致**（Code 不再为 0）→ 刀2 NATIVE 腿端到端真确认（非仅离线），探针 scratch/probe-bladeG-8066-native-fixed.txt。
+
+**状态**：✅ **Evidenced（含活体，2026-11-02）**。诚实边界：结果集 EOF warnings（`QueryCommand:114`，NATIVE SELECT 腿）不入本刀，继续挂账。
+
+
+### 6e. Blade E：本地求值除零 Warning 1365（2026-11-01 承重取证 → 裁定单立专轮）
+
+**缘起**：Blade D 后端捕获已把 `SELECT 1/0 FROM <后端表>` 的告警对拍齐（后端自产 1365，代理转发）。缺口 = **纯本地求值**的除零（无表常量 / 跨片本地归并计算），Mycat 自己算出 NULL 却不产 1365 → `@@warning_count`/`SHOW WARNINGS` 失真。
+
+**活体真值（MySQL 8.0.46@3306 直连，scratch/probe-bladeE-sem-3306.txt）——精确产告警条件**：
+
+| 表达式 | 结果 | warning_count |
+|---|---|---|
+| `1/0` | NULL | **1** |
+| `0/0` | NULL | **1** |
+| `NULL/0` | NULL | **0** |
+| `1/NULL` | NULL | **0** |
+| `1.0/0` | NULL | **1** |
+| `1 DIV 0` | NULL | **1** |
+
+→ 契约：**除数为真零 AND 被除数非 NULL** 才产 `Warning 1365 "Division by 0"`；每次求值产一条（逐列各计，`SELECT 1/0,5/0` → wc=2，scratch/probe-bladeE-3306.txt）；被除数为 NULL 短路不产、除数为 NULL 不产。
+
+**当前代理实况（scratch/probe-bladeE-8066.txt，运行中旧 jar）**：`SELECT 1/0` → NULL（值语义已对，I-DEBT-39·残 tranche）、wc=0；`SELECT 1/0,5/0` → wc=0。值面对、告警面缺 → 坐实本格即 Blade E（非值语义债）。
+
+**求值腿取证（当前代码 file:line）——活 8066 投影走向量引擎 io.ordinate，非 calcite codegen**：
+- 活路径装配：`MycatCore:146` 注册 `ExecutorProviderImpl.INSTANCE`；`ExecutorProviderImpl.prepare:49-78` → `CalciteCompiler.convert` → `RexConverter` 函数树 → `factory.execute(rootContext)`。
+- 除零落点两腿：`RexConverter` `case DIVIDE`（L282-287）——结果 DECIMAL → `DivDecimalFunction`（`getDecimal:56-66` 除零返 NULL）；否则 `executeCompiler.call("/")` → `DivDoubleFunctionFactory.DivDoubleFunc`（`getDouble:48-55`）。整型 `1/0` 走 DECIMAL 腿；`DIV` 是另一算子（`DIVIDE_INTEGER`）须另接。
+- **本地不折叠常量算术**：`MycatRexExecutor.reduce:50-67` 仅做动态参解析 + DNF/AND-OR 谓词化简，非 OR 形态原样返 `constExp`（L59）→ `SELECT 1/0` 的 DIVIDE 不被折成字面量，运行期确有 `DivDecimalFunction.getDecimal` 被逐行调用。
+- 会话注入既有缝：`ExecutorProviderImpl:67-70` 执行前对 `rexConverter.getSessionVariableFunctionMap()` 逐个 `setSession(newMycatDataContext.getContext())`；`NewMycatDataContext.getContext():57` 暴露真实 `MycatDataContext`（`SessionVariableFunction` 已示范此模式）。
+- 另一引擎（calcite codegen `MysqlDivideFunction`/`remapOperator`，经 `RexToLixTranslator.visitCall:1512` janino bindable 路）与本告警落点是否同源，待专轮厘清。
+
+**裁定：Blade E = 需单立专轮，不并入本刀批。** 权衡（落点伸入值求值热路径，与告警缓冲子系统正交；spec 原注 L81 已判属独立 tranche）：
+- **正确性三坑**，均需活体重锤逐一钉死、非离线可担保：① **单发射**——`getDecimal` 是否每格恰调一次（抑或 `isNull` 旁路重复调 → 双计 wc）；② **线程安全**——`MycatDataContextImpl.warnings` 是裸 `ArrayList`，跨并行分片归并本地求值时并发 `addWarning` 竞态（Blade D 靠 join 后 `flushShardWarnings` 规避，本刀若从求值函数内直写须先并发化缓冲 or 改 join 后 flush）；③ **覆盖一致**——decimal/double/DIV 三腿 + 与下推后端 Blade D 不双计（下推时后端产、本地不产；本地归并反之）。
+- 会话缓冲跨并行 worker 写入次序对 `SHOW WARNINGS` 行序的影响需记分（真库并行行序本就不保证）。
+- 任一处理失当即产伪绿或数据竞态，违「宁挂账不伪绿」。
+
+**专轮起手清单（供未来）**：活体插桩钉「`SELECT 1/0` 运行期是否真进 `DivDecimalFunction.getDecimal` 且每格一次」→ 定「warning 缓冲并发化 or join 后 flush」→ 逐腿（decimal/double/DIV）按上真值表 RED→GREEN → NATIVE/JDBC/下推/本地归并四形态对拍 wc 与行序。
+
+**状态**：⬜ 单立专轮挂账（本刀批仅完成承重取证 + 真值钉界 + 落点定位，未接生产者，不冒 Done）。
+
 
 ---
 

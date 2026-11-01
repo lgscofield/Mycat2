@@ -17,6 +17,13 @@ public class SqlResult {
      */
     private List<WarningMessage> warnings = Collections.emptyList();
 
+    /**
+     * I-DEBT-69 Blade G（刀2）：后端 OK 包原始告警计数（协议第 4 段）。
+     * 仅作 NATIVE 池明细往返回路的触发源与对账记录，不参与派生计数；
+     * 行数与计数不一致时如实保留行数，绝不合成假条目补差。
+     */
+    private int backendWarningCount;
+
     public int getWarningCount() {
         return getWarnings().size();
     }

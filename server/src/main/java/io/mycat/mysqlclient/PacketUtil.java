@@ -66,6 +66,26 @@ public class PacketUtil {
         return new Packets.OkPacket((int) affectedRows, lastInsertId, serverStatusFlags);
     }
 
+    /**
+     * I-DEBT-69 Blade G（刀2）：解析 OK 包第 4 段 warnings（PROTOCOL_41 定长 2 字节）。
+     *
+     * <p>既有 {@code decodeOkPacketPayload} 注释自证丢弃该字段，导致 NATIVE 型
+     * datasource 的 DML 告警计数在代理侧整体失踪。本方法按协议正解独立解析：
+     * header(1) + affectedRows/lastInsertId(lenenc) + status(定长 2)，残长不足 2 字节
+     * 或提前 EOF（旧协议无此段）一律退化 0，绝不反抛。
+     */
+    public static int decodeOkPacketWarnings(Buffer payload) {
+        ReadView readView = new ReadView(payload);
+        readView.skipInReading(1);
+        readView.readLenencInt();
+        readView.readLenencInt();
+        readView.readFixInt(2);
+        if (readView.readFinished() || readView.readable() < 2) {
+            return 0;
+        }
+        return (int) readView.readFixInt(2);
+    }
+
     public static byte writeQueryText(NetSocket socket,String text){
         socket.write(Buffer.buffer( MySQLPacketUtil.generateComQueryPacket(text)));
         return (byte) 0;

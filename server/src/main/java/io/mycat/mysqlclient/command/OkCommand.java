@@ -62,7 +62,10 @@ public class OkCommand extends VertxMySQLPacketClientResolver implements Command
                 default: {
                     Packets.OkPacket okPacket = PacketUtil.decodeOkPacketPayload(payload);
                     serverstatus = okPacket.serverStatusFlags();
-                    promise.tryComplete(SqlResult.of(okPacket.affectedRows(), okPacket.lastInsertId()));
+                    SqlResult sqlResult = SqlResult.of(okPacket.affectedRows(), okPacket.lastInsertId());
+                    // I-DEBT-69 Blade G（刀2）：OK 包第 4 段 warnings 透传为计数源，明细由连接层回路按需补齐
+                    sqlResult.setBackendWarningCount(PacketUtil.decodeOkPacketWarnings(payload));
+                    promise.tryComplete(sqlResult);
                     break;
                 }
             }

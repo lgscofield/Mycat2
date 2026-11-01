@@ -179,6 +179,11 @@ public class ReadView implements MySQLPayloadReadView {
         return index >= this.buffer.length();
     }
 
+    /** 当前读索引之后尚可读的字节数（供可选段的边界守卫）。 */
+    public int readable() {
+        return this.buffer.length() - index;
+    }
+
     @Override
     public float readFloat() {
         int tmp = index;
