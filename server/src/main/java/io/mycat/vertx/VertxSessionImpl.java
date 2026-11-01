@@ -152,15 +152,22 @@ public class VertxSessionImpl implements VertxSession {
 
     @Override
     public Future<Void> writeErrorEndPacketBySyncInProcessError() {
+        int errorCode = mycatDataContext.getLastErrorCode();
+        String message = mycatDataContext.getLastMessage();
+        // I-DEBT-69 Blade F：凡回客户端 ERR_Packet 的语句级失败必进会话诊断区（Error 级，
+        // 活体 C1 wc/ec 计入）；写入不受下方 socket 写守卫影响，真库诊断与投递成败无关。
+        mycatDataContext.recordStatementError(errorCode, message);
         return writeBytes(MySQLPacketUtil.generateError(
-                mycatDataContext.getLastErrorCode(),
-                mycatDataContext.getLastMessage(),
+                errorCode,
+                message,
                 getCapabilities()
         ), true);
     }
 
     @Override
     public Future<Void> writeErrorEndPacketBySyncInProcessError(int errorCode) {
+        // 同上：诊断写入先于投递，与 ERR 包同源同码。
+        mycatDataContext.recordStatementError(errorCode, mycatDataContext.getLastMessage());
         return writeBytes(MySQLPacketUtil.generateError(
                 errorCode,
                 mycatDataContext.getLastMessage(),

@@ -275,7 +275,38 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 **新立 I-DEBT-75（需专轮）**：多目标 SELECT 告警拼接活体补证时咬出跨片 fan-out 下推把 `1 DIV (id-1)` 渲染成 `CAST(INT(..))` 非法 MySQL 语法→ERROR 1064（矩阵钉界：同构 UNION 绿 / 单片 div 绿 / 跨片 div 红 / 跨片 `id+0` 绿，真库 `CAST(x AS INT)` 直跑同签名 1064）。属 codegen/方言渲染深债，不并入本刀；多目标 SELECT 告警拼接活体仍 NO_DATA（被 75 挡）。
 
-**诚实边界**：根因在 druid 上游，本修法是 Mycat 侧补偿层（非 fork），上游修复时定性锁咬红提醒拆补偿；分片告警的 `at row N` 为各后端局部行序（代理 `1,1,2` vs 真库全局 `1,2,3`），属分片告警行序语义、随 I-DEBT-69 继续挂。I-DEBT-69 整体仍 🟡（NATIVE 协议池 / 多目标 SELECT 活体·被 75 挡 / Blade E / 分片告警行序），不冒 Evidenced-Done。
+**诚实边界**：根因在 druid 上游，本修法是 Mycat 侧补偿层（非 fork），上游修复时定性锁咬红提醒拆补偿；分片告警的 `at row N` 为各后端局部行序（代理 `1,1,2` vs 真库 `1,2,3`），属分片告警行序语义、随 I-DEBT-69 继续挂。I-DEBT-69 整体仍 🟡（NATIVE 协议池 / 多目标 SELECT 活体·被 75 挡 / Blade E / 分片告警行序），不冒 Evidenced-Done。
+
+
+### Blade F · 生产者③：Error 级诊断生产者（语句失败收敛，2026-11-01 承重轮开轮）
+
+**缘起**：§6b 各刀反复声明「生产诊断缓冲当前只有 Warning 级来源」——活体 `SHOW ERRORS` 恒空、`@@error_count` 恒 0，读腿（Error 过滤/分级归档/COUNT/LIMIT）全有离线锁但**喂不饱**。本刀接通 Error 级生产者，是 I-DEBT-69 承重轮的腿拆分首刀。
+
+**静态断链取证（当前代码 file:line）**：
+- 全仓 `new WarningMessage(...)` 生产点唯一：`common/.../NewMycatConnectionImpl.java:575-578`（JDBC SQLWarning 链，硬标 `"Warning"`，本质正确不动）。
+- VERTX 活路径语句错误出口 `server/.../mycatmysql/MycatVertxMySQLHandler.java:314-334`（recover）+ 335-338（catch Throwable）：只 `setLastMessage` + `writeErrorEndPacketBySyncInProcessError(code)`，**从不写会话诊断缓冲**。
+- NIO 活路径同型：`DefaultCommandHandler` / `ReceiverImpl.sendError:82-87` 只 setLastMessage。
+- 结论：凡回客户端 ERR_Packet 的语句级 Error 都不进 DA → `SHOW WARNINGS/ERRORS`、`@@error_count` 对失败语句全部失真（vs 真值 C1：真库必须出 `Error|1062`）。
+
+**单点收敛取证（ERR 包出客户端仅三处，`generateError(` 全仓调用面钉死）**：
+1. `server/.../vertx/VertxSessionImpl.java:153-160`（无参重载，code 取 `mycatDataContext.getLastErrorCode()`）；
+2. `server/.../vertx/VertxSessionImpl.java:162-169`（带码重载）——二者覆盖 VERTX 链全部语句失败；
+3. `proxy/.../session/MySQLProxyServerSession.java:92-102` default `writeErrorEndPacketBySyncInProcessError(int)`（无参 default L80-82 委托它）——覆盖 NIO 链。
+   旁路排除：`VertxMySQLAuthHandler:325` 直写 ER_ACCESS_DENIED 发生在会话 DA 建立前（真 MySQL 登录失败亦无会话诊断区可谈）→ 不入契约域；`ErrorPacketImpl` 各 new 点均为**后端收包解析**或 `generateError` 内部构造，非前端独立出口。
+
+**活体真值表（C1-C9 + D0-D7，MySQL 8.0.46@3306 / MariaDB 10.11.19@3308 双档，scratch/probe*.txt 留证）**：
+- 双档一致：① 语句级失败必进 DA（Error 级，wc=1/ec=1，`SHOW WARNINGS` 不过滤含 Error）；② 失败语句**替换**整个诊断区——同语句此前截断告警与先前语句告警均被弃（C2/C7：只剩 Error 行）；③ `INSERT IGNORE` 把 Error 降级为 Warning 级（C4/C6：wc≥1/ec=0，走告警路径非本刀域）；④ 再次失败替换为新 Error（D6）。
+- **双档分叉（本批新发现）**：失败后「干净语句」对 DA 的处理——MySQL 8.0 **每条语句无条件替换**（D1-D3 一条纯 SELECT 即清 0/0）；MariaDB 10.11 Error 诊断区**跨只读语句驻留**（D1-D3 恒 1/1），直到下一条数据修改/产出新诊断的语句才替换（D4/D7 清 0/0）；而成功语句告警（C5）两档均一条即清。
+
+**契约裁定（D7'**）**：以 **MySQL 8.0 档为基准**实现——既有语句入口 `MycatdbCommand:482-488 clearWarnings()`（每条非诊断读语句替换）本就是 MySQL 语义，零冲突；本刀只补「Error 进 DA」的生产半边，读腿（previousErrorCount 归档 / `error_count` 分支 / `ShowErrorsSQLHandler`）**全复用零改**。MariaDB 驻留差异记为**已取证分档偏差**挂账（代理同时满足两档需后端方言感知，非本刀）。落点=三处 chokepoint 收敛、单一数据面入口：
+- `common/.../MycatDataContext.java` 新增 default `recordStatementError(int errorCode, String message)`：构造 `new WarningMessage("Error", errorCode, message==null?"":message)` 并 `addWarning`（null 兜底因 WarningMessage 对 message requireNonNull）。
+- VERTX：`VertxSessionImpl` 两重载在 generateError 前调 `mycatDataContext.recordStatementError(...)`——**置于写守卫之外**（close 后 socket no-op 但 DA 仍写，真库诊断与投递无关）；无参重载 code=`getLastErrorCode()`。
+- NIO：`MySQLProxyServerSession` default(int) 调 `getDataContext().recordStatementError(errorCode, getLastMessage())`，同样**移出 `isConnected` 守卫**。`MycatVertxMySQLHandler:333` 带 0 码兜底路径与 ERR 包同源照录（不另映射）。
+- 去重不做（单语句单出口，YAGNI）；auth 旁路不接。
+
+**RED 锁清单**：① `recordStatementError` 数据面行为锁（Error 级入缓冲/null 兜底/wc·ec 归档联动）；② server `VertxSessionErrorDiagnosticTest`（仿 `VertxSessionCloseGuardTest` 构造：两重载 → DA 含 `Error|code|msg`；close 守卫后仍写 DA）；③ proxy NIO default 锁（`MySQLProxyServerSession` 最小 fake/mock，isConnected false/true 均写 DA）。
+
+**状态**：✅ **已落地（2026-11-01）**。RED 9 锁（先红因正确：数据面 3 + server VertxSession 3 + proxy NIO default 3）→ GREEN 三处 chokepoint 接线 9/9 全绿 → 活体对拍（8066·**VERTX 链实证**：unknown schema Error 进 DA、wc/ec=1/1、`SHOW ERRORS` 过滤生效、下条 clean 语句替换 0/0、ERR 包行为不变，scratch/probe-8066-out.txt）→ 全量护栏 **1127/0F/0E**（基线 1118 恰 +9=本刀三测试类；example 段 547/37skip 与基线逐格一致，persona=MARIADB_10_11 对齐后）。诚实边界：① 后端原生码（1062/1406）经代理透传进 DA 的活体格未打穿（.mycat-home 无 db1 路由配置；离线锁已锁「带码重载→DA 同码」同一 chokepoint，挂活体余格）；② 错误码映射债（真库 1146 被代理回 1105/code 0）另立挂账；③ MariaDB Error 驻留分档偏差按已取证挂账不变。全量首跑挂起已根因定性：**代理 stdout 经 PowerShell Tee 管道、消费端回收后管道满致 JVM 级停摆（纯环境陷阱，与本刀代码无关，jhsdb SA 栈全线程空闲坐实）**，改直接文件重定向后一次通过。
 
 ---
 

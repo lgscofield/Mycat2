@@ -90,6 +90,9 @@ public interface MySQLProxyServerSession<T extends Session<T>> extends MySQLServ
      */
     @Override
     default PromiseInternal<Void> writeErrorEndPacketBySyncInProcessError( int errorCode) {
+        // I-DEBT-69 Blade F：语句级失败先落会话诊断区（Error 级，与 ERR 包同源同码，活体 C1），
+        // 再受投递守卫——真库语义里诊断与 socket 投递成败无关（连接未走通也要能 SHOW ERRORS）。
+        getDataContext().recordStatementError(errorCode, getLastMessage());
         if (channel().isConnected()){
             setLastErrorCode(errorCode);
             switchMySQLServerWriteHandler();

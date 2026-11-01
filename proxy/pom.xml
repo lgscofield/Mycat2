@@ -52,6 +52,12 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- I-DEBT-69 Blade F：NIO 错误出口 default 方法接线锁需 mock 会话接口（版本走根 pom 管理） -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 

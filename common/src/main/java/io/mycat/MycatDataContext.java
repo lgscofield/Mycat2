@@ -129,6 +129,18 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
      */
     void clearWarnings();
 
+    /**
+     * Blade F（I-DEBT-69）：语句失败回 ERR_Packet 时追加一条 Error 级诊断条件。
+     *
+     * <p>活体真值（2026-11-01 双档探针 C1/C2/D0）：凡语句级失败必进诊断区（Error 级，
+     * wc/ec 各计入），与 ERR 包同源同码；message 为 null 时兜底空串（WarningMessage 对
+     * message requireNonNull）。
+     */
+    default void recordStatementError(int errorCode, String message) {
+        // 活体 C1：失败语句的 Error 与 ERR 包同源同码；null 消息兜底空串，错误出口自身不得反抛 NPE。
+        addWarning(new WarningMessage("Error", errorCode, message == null ? "" : message));
+    }
+
     long getLastInsertId();
 
     void setLastInsertId(long s);
