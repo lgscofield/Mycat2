@@ -1,6 +1,6 @@
 # I-DEBT-76 跨片计算投影本地求值保真——取证与修法叉路（Spec 先行·未定案）
 
-状态：**🔴 取证完成·机制钉死·修法待裁**（2026-11-02·I-DEBT-75 解锁探针副产物立案）
+状态：**🟢 Narrow-A 已落地（值+类型保真达成）**（2026-11-02·取证→窄定→RED→GREEN→护栏 1138→活体对拍；跨片告警回传留 I-DEBT-69）
 分类：C（引擎/codegen·跨片下推决策 + 本地归并求值）
 对齐北极星：M2 无缝 SELECT + §7 真库行为一致性（值保真 + 诊断保真）
 
@@ -54,5 +54,41 @@
 ### 6.1 窄定的修法候选（比 §3 的 A/B 都小得多）
 - **Narrow-A（主攻·deparse 侧让 CAST 下推）**：在 Mycat 的 rel→sql 转换路径为投影内 `RexCall(CAST)` 补 convertlet/特化，像算术一样把 `cast(x AS type)` 渲进 fragment（MySQL 目标型用 SIGNED 等合法类型）。效果=跨片与单片统一、后端算 cast→值/类型/诊断全回真库、顺带解锁 I-DEBT-69。离线可锁：断言跨片 cast fragment **含** `CAST(`/`SIGNED`（当前不含即 RED）。
 - **Narrow-B（次选·runtime 侧）**：若非 NULL 列的 CAST 被有意判为「本地腿」（LocalProject 应在归并执行），则修归并真正执行 LocalProject transform + 本地 cast 对齐 MySQL（非数值→0 且产 1292）。面比原 B 小，但仍涉求值器 + 诊断接线。
-### 6.2 待进 RED→GREEN 前最后一钉
-Narrow-A 的风险=把本应本地的 CAST 强推下推是否伤其他不可下推型（DECIMAL 精度/字符集）；Narrow-B 的风险=归并路径执行落点未定位。**下一步取证**：确认 `SqlImplementor.Context.toSql` 对 `convertCall==null` 的确切回退行为（回退成 field 引用 vs 抛错），据此在 Narrow-A/Narrow-B 定一。本轮止于取证（用户选「先窄取证」），零改生产。
+## 6.2 最后一钉（2026-11-02·决定性·**推翻** §6 的 convertCall 假设）
+直接读 Mycat 自有 deparse 出口 `hbt/.../io/mycat/calcite/SqlImplementor.java` 的 `Context.toSql`（`visit(Project)`/`visit(Calc)` 逐投影项即走此方法，**不经** calcite-core 的 `RexToSqlNodeConverterImpl.convertCall`——§6 的 convertlet 假设作废）。CAST 有专门分支 L834-866：
+```java
+if (ignoreCast) { return nodeList.get(0); }          // 默认 false（ServerConfig:72），不命中
+else if (call.getOperands().size() == 1) {
+    RexNode rexNode = call.getOperands().get(0);
+    if (族(源)==族(目标)) return nodeList.get(0);      // (a) 同族冗余 cast→丢，无害
+    if (rexNode instanceof RexDynamicParam) return nodeList.get(0); // (b) 丢
+    if (rexNode instanceof RexInputRef)     return nodeList.get(0); // (c) 丢 ← 命中：note 是列引用
+    if (rexNode instanceof RexLocalRef)     return nodeList.get(0); // (d) 丢
+}
+nodeList.add(dialect.getCastSpec(call.getType());    // 只有走到这里才保留 CAST
+```
+**对照上游** `calcite-core/.../rel/rel2sql/SqlImplementor.java:907-935`：除 CURSOR/`ignoreCast`/UNKNOWN 外**一律** `nodeList.add(castNonNull(dialect.getCastSpec(...)))` 保留 CAST——上游**没有** (b)(c)(d) 三个早退。
+**裁定**：(a) 已在同族时 return，故 (b)(c)(d) **只在族不同时触发** = 专门丢弃跨族承重 CAST（varchar→signed 等）。这是 hbt 影子副本相对上游的**纯分歧 bug**（非「有意本地腿」，LocalProject 在归并路径本就不执行）。删除 (b)(c)(d) 即回归上游、保留跨族 CAST 下推。
+### 6.3 定案：Narrow-A（deparse 侧·削减 fork 分歧·可离线锁 + 活体验）
+- 落点①：`SqlImplementor.java:850-864` 删去 (b)(c)(d) 三早退（保留 (a) 同族丢弃以控回归）。跨族列引用 CAST 落到 L865 `dialect.getCastSpec`。
+- 落点②：`MycatSqlDialect.getCastSpec`（现仅 BOOLEAN→SIGNED）需为整数族（`cast(... as signed)` 目标 INTEGER/BIGINT）渲染 MySQL/MariaDB 合法型（`SIGNED`，对齐单片原文），否则 `super` 出的裸 `INTEGER/BIGINT` 可能被后端 CAST 拒。
+- 离线 RED 锁：跨片 `cast(note as signed)` 的 fragment 断言**含** `CAST(`/`SIGNED`（当前只剩 `shg.note AS n`→RED）。活体对拍：跨片全扫描应回 `0` + `1292`（与 oracle/单片同），值+类型+诊断三保真。
+- 风险/回归面：触及所有跨片投影 deparse；删分歧=向上游对齐，同族丢弃仍保留。全量护栏 + 活体兜底。
+本钉为纯读侧取证，零改生产。下一步进 RED→GREEN。
+
+## 7. RED→GREEN 收口（2026-11-02·已落地·值+类型保真达成）
+**离线锁** `internalexample/.../drdsrunner/CrossShardCastPushdownFidelityTest.java`（mode=local，经 `drds.dispatch`+`PlanImpl.specificSql` 取下推 fragment）：
+- **RED**（修复前）：`cast(note as signed)` 全扫描 fragment = ``SELECT `shg`.`id`, `shg`.`note` AS `n` FROM db1_0.shg_0 …``——CAST 被丢、只剩基列+别名（坐实 §6.2 L858 RexInputRef 早退）。
+- **GREEN**（修复后）：两处生产改动后断言 `contains("CAST(")` + `contains("SIGNED")` 均过，`MVN_EXIT=0`。坐实下推渲染为合法的 `CAST(… AS SIGNED)`。
+
+**生产改动（两处·均 MYCAT CHANGE 注释钉档）**：
+1. `hbt/.../io/mycat/calcite/SqlImplementor.java` CAST 分支：删除 (b)RexDynamicParam/(c)RexInputRef/(d)RexLocalRef 三个跨族早退（保留同族冗余丢弃分支付），跨族列引用 CAST 落到 `dialect.getCastSpec`。**= 向 Calcite 上游对齐、削减 hbt 影子副本分歧。**
+2. `hbt/.../io/mycat/calcite/MycatSqlDialect.getCastSpec`：整数族（`SqlTypeFamily.INTEGER`，含 BOOLEAN）统一渲染 MySQL/MariaDB CAST 合法的 `SIGNED`（原仅 BOOLEAN→SIGNED），避免 `super` 直出裸 `INTEGER/BIGINT` 被后端 CAST 拒（1064）。
+
+**全量护栏**：`mvn -o -pl example -am test` = **1138 / 0F / 0E / 37skip**，与 I-DEBT-75 基线逐格全等，**零回归**（`scratch/i76-guardrail.log`）。（新离线锁在 internalexample，不在 example -am reactor 内，由 `run-i76-red.ps1` 单跑绿。）
+
+**活体对拍**（重打 fat jar MVN_EXIT=0 + 重启 8066 persona=MARIADB_10_11、后端 m1-mysql-a@3306 MySQL 8.0；`scratch/live-i76-cast.sql` vs `oracle-i76-cast.sql`）：
+- **值保真 + 结果类型保真已回归真库**：跨片全扫描 `cast(note as signed)` 从修复前的原串 `abc/xyz/123` → 现为 **`1→0 / 2→0 / 3→123`**，与 oracle 直连逐格全等；单片 id=1 仍 `0`+1292；普通投影 abc/xyz/123、算术下推 11/12/13 回归护栏均干净。
+- **诊断保真（跨片告警回传）仍未达成→属 I-DEBT-69 独立格**：跨片 `@@warning_count`=0（单片有 1292），即后端逐片已**产出** 1292（本修复解锁其前提），但代理跨片归并未将多后端连接告警汇入会话 DA。与 §3/§4 所述一致：本修复采 Narrow-A 不要求本地引擎造诊断；跨片告警拼接 = I-DEBT-69（现已不再被 76 阻断，前提就绪）。
+
+**北极星对齐**：M2 无缝 SELECT + §7 真库行为一致性中的**值保真 + 类型保真**子项已拿回；诊断保真（跨片告警）显式留给 I-DEBT-69，不伪绿。

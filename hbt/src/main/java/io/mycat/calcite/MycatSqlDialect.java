@@ -21,6 +21,7 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.*;
 import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.type.SqlTypeFamily;
 import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.util.ArrayList;
@@ -45,7 +46,13 @@ public class MycatSqlDialect extends MysqlSqlDialect {
 
     @Override
     public SqlNode getCastSpec(RelDataType type) {
-        if (type.getSqlTypeName() == SqlTypeName.BOOLEAN) {
+        // MYCAT CHANGE (I-DEBT-76): MySQL/MariaDB 的 CAST 目标类型表不含裸 INTEGER/BIGINT（合法整型为 SIGNED/UNSIGNED），
+        // super 直出 SqlTypeName 名（如 BIGINT）会被后端 CAST 拒（1064）。整数族统一渲染 MySQL 原生 SIGNED，
+        // 与单片 cast(x as signed) 原文直通语义全等（向零截断、非数值→ 0 + 1292）。配合 SqlImplementor 保留跨族
+        // 列引用 CAST 下推后，跨片与单片行为一致。BOOLEAN 原有特化一并归入此整数族分支。
+        final SqlTypeName typeName = type.getSqlTypeName();
+        if (typeName == SqlTypeName.BOOLEAN
+                || typeName.getFamily() == SqlTypeFamily.INTEGER) {
             return new SqlDataTypeSpec(
                     new SqlAlienSystemTypeNameSpec(
                             "SIGNED",

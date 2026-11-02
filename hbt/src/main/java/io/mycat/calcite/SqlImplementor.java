@@ -852,15 +852,14 @@ public abstract class SqlImplementor {
                                     if (rexNode.getType().getSqlTypeName().getFamily() == call.getType().getSqlTypeName().getFamily()) {
                                         return nodeList.get(0);
                                     }
-                                    if (rexNode instanceof RexDynamicParam) {
-                                        return nodeList.get(0);
-                                    }
-                                    if (rexNode instanceof RexInputRef) {
-                                        return nodeList.get(0);
-                                    }
-                                    if (rexNode instanceof RexLocalRef) {
-                                        return nodeList.get(0);
-                                    }
+                                    // MYCAT CHANGE (I-DEBT-76): 上游 Calcite（calcite-core/.../rel/rel2sql/SqlImplementor
+                                    // 的 CAST 分支）除 ignoreCast/UNKNOWN 外一律 nodeList.add(getCastSpec(...)) 保留 CAST，
+                                    // 本 hbt 影子副本曾额外加 (b)RexDynamicParam/(c)RexInputRef/(d)RexLocalRef 三个「操作数是
+                                    // 列引用/参数就无条件返回操作数、丢弃 CAST」的早退。因上面同族分支已在源=目标族时 return，
+                                    // 这三个早退只在**跨族**时才可能触发——即专门丢弃 cast(varchar AS signed) 这类承重 CAST，
+                                    // 把它降级成裸列引用（跨片全扫描 cast(note as signed) 下推只剩 `shg.note AS n`，值/类型/诊断
+                                    // 三背离真库，活体已钉死）。删除即回归上游：跨族列引用 CAST 落到下方 getCastSpec 渲进 fragment，
+                                    // 交后端逐片求值 → 与单片原文直通同向。同族冗余 cast 丢弃（上一行）仍保留以控回归面。
                                 }
                                 nodeList.add(dialect.getCastSpec(call.getType()));
                             }
