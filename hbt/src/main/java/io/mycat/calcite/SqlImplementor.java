@@ -852,6 +852,21 @@ public abstract class SqlImplementor {
                                     if (rexNode.getType().getSqlTypeName().getFamily() == call.getType().getSqlTypeName().getFamily()) {
                                         return nodeList.get(0);
                                     }
+                                    // MYCAT CHANGE (I-DEBT-77): 反向回归收口（系 I-DEBT-76 删跨族早退的副作用）。
+                                    // I-DEBT-76 为保住 cast(varchar AS signed) 这类承重跨族 CAST 下推，删除了 (b)(c)(d)
+                                    // 三个「操作数是列引用/参数即丢弃 CAST」的早退；但隐式 coercion 注入的
+                                    // CAST(binary AS VARCHAR)（见 calcite-core MycatSqlDefinedFunction.mycatCoerceOperands：
+                                    // LENGTH/OCTET_LENGTH/SUBSTRING 等函数声明 CHARACTER 形参，校验期为 BINARY 列就地包 CAST）
+                                    // 与本要保留的 CAST 在 Rex 层同形、一并被保留下推 → 跨片 fragment 出码
+                                    // length(CAST(b AS CHAR))，MySQL LENGTH() 对含 0x00 的 utf8 串返 NULL，背离直连裸
+                                    // length(b) 的字节数（活体 BinaryRepresentationFidelityDifferentialTest#shape3 钉死）。
+                                    // 此方向（源族=BINARY、目标族=CHARACTER）与 I-DEBT-76 要保的「源=CHARACTER、目标=INTEGER」
+                                    // 天然不相交，靠类型族方向精确剥离：撤销这枚有损字节→字符串 coercion，下推裸 binary，
+                                    // 交后端按 MySQL 原生字节语义求值（与单片原文直通同向）。
+                                    if (rexNode.getType().getSqlTypeName().getFamily() == SqlTypeFamily.BINARY
+                                            && call.getType().getSqlTypeName().getFamily() == SqlTypeFamily.CHARACTER) {
+                                        return nodeList.get(0);
+                                    }
                                     // MYCAT CHANGE (I-DEBT-76): 上游 Calcite（calcite-core/.../rel/rel2sql/SqlImplementor
                                     // 的 CAST 分支）除 ignoreCast/UNKNOWN 外一律 nodeList.add(getCastSpec(...)) 保留 CAST，
                                     // 本 hbt 影子副本曾额外加 (b)RexDynamicParam/(c)RexInputRef/(d)RexLocalRef 三个「操作数是
