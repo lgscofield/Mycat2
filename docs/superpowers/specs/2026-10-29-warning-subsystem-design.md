@@ -369,6 +369,43 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 **状态**：⬜ 单立专轮挂账（本刀批仅完成承重取证 + 真值钉界 + 落点定位，未接生产者，不冒 Done）。
 
 
+### 6f. Blade D 余项 · 跨片 SELECT 告警回传（Calcite 路径 warningSink 断链）（2026-11-02）
+
+**缘起**：I-DEBT-76（跨片计算投影值+类型保真）收口后，跨片全扫描 `select id, cast(note as signed) from shg` 活体已返 `0/0/123` 与直连 oracle 逐格全等——即**后端已真正算 cast 并逐行产 Warning 1292**（截断 `'abc'/'xyz'`）。本修解锁了「多目标/跨片 SELECT 告警拼接」活体格的前提（后端有真告警可拼），但活体 `@@warning_count` 跨片仍 =0（单片有 1292）→ 后端告警没汇入会话 DA。本格即此残口。
+
+**开轮取证推翻两个旧假设**（不信任既有记录，含本仓 L278 旧注）：
+1. **推翻「跨片 SELECT 告警未接线」**：`server/.../commands/ReceiverImpl.java:206-216` QUERY 分支两腿**均已**接 `warnings -> warnings.forEach(dataContext::addWarning)`（i==0 走 `runQueryOutputAsMysqlPayloadObject`，i>0 走 `runQuery` 末位 warningSink）。——但 ReceiverImpl 是**原文本多目标（gpattern）路径**，不是跨片计算投影实际走的 Calcite 路径。
+2. **推翻「跨片计算投影本地求值不产 1292」**（L278 旧注，已被 I-DEBT-76 收口证伪）：现 CAST 已下推 fragment、后端算并产 1292。
+
+**真根因（当前代码 file:line 钉死）**：跨片计算投影 SELECT 走 **Calcite 执行路径**（I-DEBT-76 的 fragment 下推正发生在此路），其 per-fragment 查询落在 `hbt/.../io/mycat/AsyncMycatDataContextImpl.java:376`（`SqlMycatDataContextImpl.getObservableList`，merge 与 merge-sort 两条跨片路都经此，见基类 `getObservable(String)` L416-417 `Observable.merge` 与 L394-398 `subscribeOn(computation)+orderedMerge` 皆调 `getObservableList`）。该处调的是 **6 参 `VertxExecuter.runQuery`**（`..., planTrackDecode`，无 warningSink 实参），它委托 7 参重载时传 **`warnings -> {}` 空实现**（`VertxExecuter.java:973-980`）。故 collector 的 `onWarnings`（来自 `NewMycatConnectionImpl.prepareQuery` L135/L159 `collector.onWarnings(toWarningMessages(statement.getWarnings()))`，SELECT 流式读完结果集后确实返回 1292，已由单片 C1 坐实）触发的是 no-op sink → 后端告警**在 Calcite 路被静默丢弃**。对照单片命中 `where id=1` 走原文本直通 ReceiverImpl（sink 已接）→ 1292 可见。分叉同源 I-DEBT-76（单片直通 / 跨片下推）。
+
+**并发证据（修法须连带线程安全）**：跨片各 fragment 观测在 `Schedulers.computation()`（L395）/`Observable.merge`（L417）上**并发订阅**，多 datasource 时各自独立连接 → `warningSink.accept` 并发触发 → 直接 `dataContext.addWarning` 并发写 `MycatDataContextImpl.warnings`（裸 `ArrayList` L65）→ **数据竞态**。既有 spec L363/L280 已点名此患并给出两路（「并发化缓冲 or join 后 flush」）；DML 分片路用 `flushShardWarnings`（`VertxExecuter.java:101`）join 后串行折叠规避，SELECT 流式 merge 无同类「join 后」缝。**裁定取「并发化缓冲 + 直接 sink」**：把会话诊断缓冲改线程安全，同时**硬化 ReceiverImpl QUERY 流式 addWarning 的既有同型竞态**（多目标并发时本已存在）。
+
+**修法（Narrow·两处生产）**：
+1. `AsyncMycatDataContextImpl.java:376` lambda 体改调 **7 参 `runQuery`**，末位传 `warnings -> warnings.forEach(dataContext::addWarning)`（本类已持 `MycatDataContext dataContext` L351/356，与 ReceiverImpl QUERY 同式）。
+2. `MycatDataContextImpl.warnings`（L65）由 `new ArrayList<>()` 改 `new CopyOnWriteArrayList<>()`（读多写少、add/clear/size/iterate 全线程安全；本类 L186 已有同型用法），`getWarnings()` 的 `unmodifiableList` 包装与既有读腿零改。
+
+**范围与挂账（守「活体铁证坐实落点才改生产」）**：
+- 本刀仅接 `SqlMycatDataContextImpl:376`（C2 活体坐实路径）。
+- 同形另两处——`HbtMycatDataContextImpl:335`（瞬态表扫描）、`MycatSQLTableLookup:277`（BKA join lookup，planTrackDecode 恒 true）——亦走 6 参 no-op sink，但本会话无活体告警靶覆盖 → **诚实挂账不投机改**（缓冲线程安全已由 ② 兜底，接 sink 留后续有靶时补）。
+- **行序诚实边界**：并发 merge 下跨片告警全局次序不保证，与既有 spec L280/L364「分片告警行序随真库并行本就不保证」同笔挂账；本刀判据只锁**计数与集合成员**，不锁跨片精确行序。
+
+**RED→GREEN→护栏→活体（计划）**：
+- RED：`example` 活体行为锁 `CrossShardWarningRelayTest`——2 分片 mod_hash varchar 表灌 `'abc'/'xyz'/'123'`，跨片全扫描 `select cast(note as signed) from t`（经 Calcite 路）后断言会话 `@@warning_count`/`SHOW WARNINGS` 见 1292（当前 =0/空即红）；单片命中对照绿（回归护栏）。
+- GREEN：上述两处生产改动 → 重打 fat jar + 重启 8066 → 活体锁转绿。
+- 全量护栏 `mvn -o -pl example -am test`：基线 1138 + 本刀新锁，零回归。
+- 活体对拍：跨片 cast 告警数/成员与直连 oracle 对（单片 C1 已 1292，跨片补齐）。
+
+**北极星对齐**：M2 无缝 SELECT 的**诊断保真**子项（跨片后端告警回传会话 DA）；值/类型保真由 I-DEBT-76 拿回，本刀补上诊断半边，不留伪绿。
+
+**🟢 落地结果（2026-11-02）**：
+- **GREEN**：三处生产改动已落并复核——① `AsyncMycatDataContextImpl.java:376` lambda 末位传 `warnings -> warnings.forEach(dataContext::addWarning)`（6 参→7 参 runQuery）；② `proxy/MycatDataContextImpl.java:65` `warnings` → `CopyOnWriteArrayList`；③ `server/JdbcMycatDataContext.java:18` 同改 COW。
+- **活体行为锁**：`example/.../compat/CrossShardWarningRelayTest`（重打 fat jar + 重启 8066 后）RED 取证 oracle `@@warning_count`=2 vs 代理 0 / `SHOW WARNINGS` 空 → **GREEN 2/0/0**（跨片 SELECT 告警计数 + `SHOW WARNINGS` 含 1292 均达成）。
+- **全量护栏 `mvn -o -pl example -am test`（不带 `-Dcompat.db`，规范姿势）定案**：example **`Tests run: 549, Failures: 1, Errors: 0, Skipped: 37`**（549 = 基线 547 + 本刀 2 新锁）。唯一红 = `BinaryRepresentationFidelityDifferentialTest#shape3_localComputedOverBinary`（L210）——**非本刀回归**，系 I-DEBT-76 删三跨族早退后 `length(binary)` 被下推成 `length(CAST(.. AS CHAR))`→含 0x00 返 NULL 的反向回归，另立 **I-DEBT-77** 待专轮。`MetadataGuiMatrixTest` 不带 compat.db 时 6 格全 skip（NO_DATA 守卫），坐实带 `-Dcompat.db` 首跑时 p1 红为 persona 串档伪红。**本刀零新增回归**。
+- **护栏姿势教训（固化）**：`run-i69-full2` 用 `mvn ... *>&1 | Out-File` + `$ErrorActionPreference='Stop'` 时，mvn 末尾 SLF4J stderr 被当异常抛、`Out-File` 缓冲不刷盘 → 输出全丢（仅 3.1KB 头）且残留孤儿 mvn；改用 `cmd /c "mvn ... >> log 2>&1"` 原生重定向（即时刷盘、不受 PS 管道/Stop 影响）方得可取证计数。改产品后护栏须先确认代理已加载新 jar。
+- **诚实挂账（不阻本刀收口）**：跨片告警行序并发 merge 下不保证（仅锁计数/成员）；同形 no-op sink `HbtMycatDataContextImpl:335`（瞬态表）、`MycatSQLTableLookup:277`（BKA lookup）无活体靶，留后续有靶时补。
+
+
 ---
 
 ## 7. 护栏与回归（每刀必跑）

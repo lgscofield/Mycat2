@@ -15,7 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class JdbcMycatDataContext implements MycatDataContext {
     // I-DEBT-69 Blade A：与 proxy 侧 MycatDataContextImpl 同构的诊断缓冲，保证 JDBC 本地通道语义一致。
-    private final List<WarningMessage> warnings = new ArrayList<>();
+    // Blade D 余项：同 MycatDataContextImpl——跨片并发归并下 addWarning 多线程写，改线程安全列表。
+    private final List<WarningMessage> warnings = new java.util.concurrent.CopyOnWriteArrayList<>();
     // I-DEBT-69 Blade C：与 proxy 侧同构——上一条语句条数归档 + 会话级 max_error_count 覆盖。
     private int previousWarningCount;
     // I-DEBT-69 Blade D 余项：上一条语句 Error 级条件数，供 @@error_count 读腿，与 proxy 侧同构。

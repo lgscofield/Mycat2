@@ -62,7 +62,10 @@ public class MycatDataContextImpl implements MycatDataContext {
     private long affectedRows;
     private int warningCount;
     // I-DEBT-69 Blade A：会话告警缓冲（诊断区）。warning_count 由缓冲派生，避免计数与 SHOW WARNINGS 明细两套来源。
-    private final List<WarningMessage> warnings = new ArrayList<>();
+    // Blade D 余项：跨片 SELECT/多目标并发归并时各 fragment 在 computation 线程并发 addWarning（见
+    // AsyncMycatDataContextImpl getObservable subscribeOn/merge），裸 ArrayList 有数据竞态 → 改写时复制列表，
+    // add/clear/size/iterate 全线程安全，读腿（getWarnings unmodifiable 视图、getWarningCount）零改。
+    private final List<WarningMessage> warnings = new java.util.concurrent.CopyOnWriteArrayList<>();
     private long lastInsertId;
     private int serverCapabilities;
     private int lastErrorCode;

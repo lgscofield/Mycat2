@@ -373,7 +373,11 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             boolean share = mycatRelDatasourceSourceInfo.refCount > 0;
             List<Observable<Object[]>> observables = getObservables((view
                             .apply(dataContext.getMergeUnionSize(), mycatRelDatasourceSourceInfo.getSqlTemplate(), sqlMap, drdsSqlWithParams.getParams())), mycatRelDatasourceSourceInfo.getColumnInfo(),
-                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta, this::isPlanTrackDecode)
+                    // I-DEBT-69 Blade D 余项：跨片 SELECT 走此 Calcite merge 路径，逐 fragment 后端诊断条件须汇入会话 DA。
+                    // 旧状走 6 参 runQuery → 委托 7 参时传 warnings -> {} 空 sink（VertxExecuter:979），后端已产的 1292/1365
+                    // 被静默丢弃（单片原文本直通 ReceiverImpl 有 sink 故可见）。补 7 参末位 warningSink，与 ReceiverImpl QUERY 同式。
+                    (sessionConnection, sql, extractParams, calciteRowMetaData) -> VertxExecuter.runQuery(sessionConnection, sql, extractParams, calciteRowMetaData, this::publishBackendRowMeta, this::isPlanTrackDecode,
+                            warnings -> warnings.forEach(dataContext::addWarning))
             );
             if (share) {
                 observables = observables.stream().map(i -> i.share()).collect(Collectors.toList());
