@@ -1,6 +1,6 @@
 # I-DEBT-76 跨片计算投影本地求值保真——取证与修法叉路（Spec 先行·未定案）
 
-状态：**🟢 Narrow-A 已落地（值+类型保真达成）**（2026-11-02·取证→窄定→RED→GREEN→护栏 1138→活体对拍；跨片告警回传留 I-DEBT-69）
+状态：**✅ 全绿收口（值+类型保真 Narrow-A 已落地 `f0a7fb564`；诊断腿=跨片告警回传已随 I-DEBT-69 `c8156a566`（JDBC 池）+ NATIVE SELECT 腿 `a2e81f11b` 闭环）**（2026-11-02 取证→窄定→RED→GREEN→护栏 1138→活体对拍；2026-11-03 对当前 HEAD 叠 77/78/B 后重做取证复核转正·见 §8）
 分类：C（引擎/codegen·跨片下推决策 + 本地归并求值）
 对齐北极星：M2 无缝 SELECT + §7 真库行为一致性（值保真 + 诊断保真）
 
@@ -92,3 +92,13 @@ nodeList.add(dialect.getCastSpec(call.getType());    // 只有走到这里才保
 - **诊断保真（跨片告警回传）仍未达成→属 I-DEBT-69 独立格**：跨片 `@@warning_count`=0（单片有 1292），即后端逐片已**产出** 1292（本修复解锁其前提），但代理跨片归并未将多后端连接告警汇入会话 DA。与 §3/§4 所述一致：本修复采 Narrow-A 不要求本地引擎造诊断；跨片告警拼接 = I-DEBT-69（现已不再被 76 阻断，前提就绪）。
 
 **北极星对齐**：M2 无缝 SELECT + §7 真库行为一致性中的**值保真 + 类型保真**子项已拿回；诊断保真（跨片告警）显式留给 I-DEBT-69，不伪绿。
+
+## 8. 2026-11-03 取证复核转正收口（B 专轮紧接执行·零新生产码·行首 🔴→✅）
+
+承用户「A、B、C 按顺序逐个完善」，C=本格。B（I-DEBT-69 NATIVE SELECT 腿）收口后紧接对 I-DEBT-76 做**不臆信旧记录**的当前 HEAD 复核。铁证四钉：
+
+1. **静态代码**（读当前 `hbt/.../io/mycat/calcite/SqlImplementor.java` + `MycatSqlDialect.java`）：CAST 分支现仅存同族丢弃（L852-854），§6.2 所述 (b)RexDynamicParam/(c)RexInputRef/(d)RexLocalRef 三跨族早退确已删除并带 `MYCAT CHANGE (I-DEBT-76)` 注释钉档；I-DEBT-78（`90dfa9bfc`）已移除 I-DEBT-77 的 BINARY→CHAR 方向剥离分支，跨族 CAST 一律落到 L870 `dialect.getCastSpec(call.getType())`；`MycatSqlDialect.getCastSpec` 整数族（`SqlTypeFamily.INTEGER` 含 BOOLEAN）渲 `SIGNED` 在位。⇒ **76 的修存活于后续 77/78/B 三刀之后**。
+2. **离线锁重跑**：`mvn -o -pl internalexample -am test -Dtest=CrossShardCastPushdownFidelityTest` → **Tests run: 1, Failures: 0, Errors: 0, BUILD SUCCESS, MVN_EXIT=0**（断言跨片 `cast(note as signed)` 下推 fragment 含 `CAST(` + `SIGNED`·日志 `scratch/i76-offline-lock.log`）。
+3. **活体诊断腿闭环**（本债 (b) 面「多目标 SELECT 告警拼接」之阻塞已解除）：跨片告警回传随 `c8156a566`（I-DEBT-69 Blade D 余项·Calcite 路径 warningSink 接线·JDBC 池）落地；NATIVE datasource SELECT 腿 EOF warnings 随 `a2e81f11b`（I-DEBT-69 NATIVE SELECT 腿三刀）落地。native 8066（`-Dserver=native`·载 `a2e81f11b` 修复 jar）复跑 `CrossShardWarningRelayTest` → **2/0/0 GREEN**（日志 `scratch/i69-live-native.log`），跨片全扫描 `cast(note as signed)` 的后端 1292 现汇入会话 DA、与直连 oracle 计数/成员逐格一致。
+
+**定案**：对跨片计算投影，值保真 + 类型保真（§7 Narrow-A）+ 诊断保真（§7 留待 I-DEBT-69，现已落）三者已**全链回归真库**，本债主体与唯一下游依赖皆收口 → DEBT-QUEUE 行首 🔴→✅、本 spec 状态行升 ✅。**无剩余实现项**（诚实划界：Blade E 本地求值除零 1365 属 I-DEBT-39·残 / I-DEBT-69 独立格，非本债；本债采 Narrow-A 本就不要求本地引擎造诊断）。
