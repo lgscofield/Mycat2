@@ -68,6 +68,9 @@ public class MycatDataContextImpl implements MycatDataContext {
     private final List<WarningMessage> warnings = new java.util.concurrent.CopyOnWriteArrayList<>();
     private long lastInsertId;
     private int serverCapabilities;
+    // I-DEBT-70 刀 1：前端握手 CLIENT_CONNECT_ATTRS 段（AuthPacket 解析所得），会话生命周期事实。
+    // Lombok @Getter/@Setter 覆盖接口 default（空表）；未宣告/未下发即空表，行为同日。
+    private Map<String, String> clientConnectAttrs = new HashMap<>();
     private int lastErrorCode;
     private static final String state = "HY000";
     private String sqlState = state;

@@ -52,6 +52,15 @@ public class ShowCollationSQLHandler extends AbstractSQLHandler<MySqlShowCollati
                 }
             }
             if (okOnPrototype) {
+                // I-DEBT-70 刀 3：身份门。对面是 Connector/NET、persona 与后端都是会按 old_mode 分档渲染的
+                // MariaDB ≥10.11 时，透传回来的恒为「模板档」（184 行 uca1400_* 的 Charset/Id 为 NULL），
+                // MySql.Data 会在 Convert.ToInt32(reader["Id"]) 撞 DBNull 崩。此时改为借后端连接让真库自己
+                // 把「物化档」渲染出来、原列原序回前端。任一步不成立或失败，一律回落今日透传——绝不比现状差。
+                CollationMaterialization.Snapshot snapshot = fetchMaterializedSnapshot(dataContext,
+                        mySqlShowCollationStatement.toString(), jdbcConnectionManager);
+                if (snapshot != null) {
+                    return response.sendResultSet(snapshot.toBuilder().build());
+                }
                 return response.proxySelect(Collections.singletonList(MetadataManager.getPrototype()), mySqlShowCollationStatement.toString(), Collections.emptyList());
             }
         }catch (Throwable throwable){
@@ -61,6 +70,34 @@ public class ShowCollationSQLHandler extends AbstractSQLHandler<MySqlShowCollati
         }
         String sql = toNormalSQL(request.getAst());
         return DrdsRunnerHelper.runOnDrds(dataContext, DrdsRunnerHelper.preParse(sql, dataContext.getDefaultSchema()), response);
+    }
+
+    /**
+     * I-DEBT-70 刀 3：身份门判定 + 物化档取数。返回 {@code null} 表示「不该物化」或「物化不可用」，
+     * 调用方必须回落到今日透传路径。响应动作留给调用方，以免把「已回结果」与「返回值为空」混为一谈。
+     */
+    private CollationMaterialization.Snapshot fetchMaterializedSnapshot(MycatDataContext dataContext, String sql,
+            JdbcConnectionManager jdbcConnectionManager) {
+        try {
+            if (!CollationMaterialization.shouldMaterialize(dataContext.getClientConnectAttrs(),
+                    PersonaCollations.currentPersona())) {
+                return null;
+            }
+            CollationMaterialization.Snapshot snapshot;
+            try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype())) {
+                // 后端串档（persona 说 MariaDB、物理连接实为 MySQL 或旧版）时不设 old_mode：无从物化。
+                if (!CollationMaterialization.supportsOldModeSeal(connection.getRawConnection())) {
+                    return null;
+                }
+                snapshot = CollationMaterialization.fetchSnapshot(connection.getRawConnection(), sql);
+            }
+            return snapshot;
+        } catch (Throwable throwable) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("materialize {} failed, fallback to passthrough", sql, throwable);
+            }
+            return null;
+        }
     }
 
     private String toNormalSQL(MySqlShowCollationStatement ast) {

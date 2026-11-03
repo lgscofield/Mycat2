@@ -41,6 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static io.mycat.protocol.mysql.type.MySQLErrorCode.ER_ACCESS_DENIED_ERROR;
@@ -159,6 +161,9 @@ public class MySQLClientAuthHandler implements NIOHandler<MycatSession> {
             mycat.setServerCapabilities(auth.getCapabilities());
             mycat.setIsolation(MySQLIsolation.REPEATED_READ);
             mycat.setCharset(characterSet);
+            // I-DEBT-70 刀 1：attrs 此前读了即弃（局部变量），现落到会话态供身份门判定；null 归一为空表。
+            mycat.getDataContext().setClientConnectAttrs(attrs == null ? Collections.emptyMap()
+                    : Collections.unmodifiableMap(new HashMap<>(attrs)));
             finished = true;
             mycatSessionManager.initCommandDispatcher(mycat);
             mycat.writeOkEndPacket();

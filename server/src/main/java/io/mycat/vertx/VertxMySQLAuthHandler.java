@@ -294,6 +294,11 @@ public class VertxMySQLAuthHandler implements Handler<Buffer> {
         mycatDataContext.setAutoCommit(true);
         mycatDataContext.setIsolation(MySQLIsolation.REPEATED_READ);
         mycatDataContext.setCharsetIndex(authPacket.getCharacterSet());
+        // I-DEBT-70 刀 1：留存前端连接属性到会话态（供 SHOW COLLATION 身份门判定对面是谁）。
+        // 客户端未下发（未协商 CLIENT_CONNECT_ATTRS）时 AuthPacket 里是 null ⇒ 归一为空表，行为同日。
+        mycatDataContext.setClientConnectAttrs(
+                authPacket.getClientConnectAttrs() == null ? java.util.Collections.emptyMap()
+                        : java.util.Collections.unmodifiableMap(new java.util.HashMap<>(authPacket.getClientConnectAttrs())));
         MycatVertxMysqlSession vertxSession = new MycatVertxMysqlSession(mycatDataContext, socket, this.mycatSessionManager);
         socket.handler(new VertxMySQLPacketResolver(socket, new MycatVertxMySQLHandler(vertxSession)));
         vertxSession.setPacketId(lastWrittenSeq);

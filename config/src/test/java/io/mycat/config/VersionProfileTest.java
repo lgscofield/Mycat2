@@ -20,8 +20,26 @@ public class VersionProfileTest {
         assertEquals("mysql_native_password", p.authPlugin());
         // 能力位 = 基础掩码 + 由档案推导的 CLIENT_DEPRECATE_EOF（5.7.33 ≥ 5.7.5 → 含该位）。
         // 服务字节零回归：此前该位由启动期全局 static 在 VertxMycatServer 叠加，现改由档案自带，同字节。
+        // I-DEBT-70 刀 1 有意变更：基础掩码不含 CLIENT_CONNECT_ATTRS（MySQLServerCapabilityFlags:201 仍注释，
+        // 免波及其余消费方），由工厂在画像装配点叠加该位 ⇒ 等式右侧须带它。
         assertEquals(MySQLServerCapabilityFlags.getDefaultServerCapabilities()
-                | MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF, p.capabilityMask());
+                | MySQLServerCapabilityFlags.CLIENT_DEPRECATE_EOF
+                | MySQLServerCapabilityFlags.CLIENT_CONNECT_ATTRS, p.capabilityMask());
+    }
+
+    /**
+     * I-DEBT-70 刀 1：握手必须广告 CLIENT_CONNECT_ATTRS，否则客户端从不下发连接属性，
+     * Mycat 便无从知道对面是谁——Connector/NET 的 uca1400 物化档身份门（E5/E8）永远打不开。
+     * 真 MySQL 5.6+/MariaDB 均广告该位，宣告属"更"保真而非自造。
+     * RED：当前 getDefaultServerCapabilities() 里该位被注释（MySQLServerCapabilityFlags:201）。
+     */
+    @Test
+    public void personasAdvertiseConnectAttrs() {
+        for (ServerPersona persona : ServerPersona.values()) {
+            VersionProfile p = VersionProfileFactory.of(persona, null);
+            assertTrue((p.capabilityMask() & MySQLServerCapabilityFlags.CLIENT_CONNECT_ATTRS) != 0,
+                    persona + " 应广告 CLIENT_CONNECT_ATTRS");
+        }
     }
 
     @Test

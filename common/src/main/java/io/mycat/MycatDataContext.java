@@ -107,6 +107,20 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
 
     void setServerCapabilities(int serverCapabilities);
 
+    /**
+     * I-DEBT-70 刀 1：前端握手 CLIENT_CONNECT_ATTRS 段携带的连接属性（{@code _client_name} 等）。
+     *
+     * <p>未宣告该能力位、或客户端未下发的会话恒为空表（default 实现即今日行为，零回归）。
+     * 值语义按真库实测（E5/E8）：键 {@code _client_name} 与 {@code "mysql-connector-net"} 为
+     * 大小写敏感的全等比较，MariaDB 服务端据此决定是否种 {@code NO_NULL_COLLATION_IDS}。
+     */
+    default Map<String, String> getClientConnectAttrs() {
+        return java.util.Collections.emptyMap();
+    }
+
+    default void setClientConnectAttrs(Map<String, String> clientConnectAttrs) {
+    }
+
     int getWarningCount();
 
     /**

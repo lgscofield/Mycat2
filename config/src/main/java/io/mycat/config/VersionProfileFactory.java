@@ -46,6 +46,10 @@ public final class VersionProfileFactory {
         if (tlsMode != null && tlsMode.advertisesClientSsl()) {
             capabilityMask |= MySQLServerCapabilityFlags.CLIENT_SSL;
         }
+        // I-DEBT-70 刀 1：广告 CLIENT_CONNECT_ATTRS——本仓支持的全部 persona（MySQL 5.7+/MariaDB 10.6+）
+        // 真库自身都宣告该位（≥5.6 起），不宣告才是失真：客户端因此从不下发连接属性，Mycat 便无从知道
+        // 对面是谁，Connector/NET 的 uca1400 物化档身份门（真库按 _client_name 种位）永远打不开。
+        capabilityMask |= MySQLServerCapabilityFlags.CLIENT_CONNECT_ATTRS;
         // I-AU-5：握手宣称的默认认证插件按 persona 驱动——8.0/8.4/9.x → caching_sha2_password，
         // 其余（5.7 / MariaDB 各档，后端无该插件）→ mysql_native_password。前端握手须同时支持两插件。
         String authPlugin = switch (persona) {
