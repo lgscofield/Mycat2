@@ -154,8 +154,17 @@ public abstract class MycatSqlDefinedFunction extends SqlFunction implements Cal
         if (super.checkOperandTypes(callBinding, false)) {
             return true;
         }
-        if (mycatCoerceOperands(callBinding)) {
-            return super.checkOperandTypes(callBinding, throwOnFailure);
+        mycatCoerceOperands(callBinding);
+        if (super.checkOperandTypes(callBinding, false)) {
+            return true;
+        }
+        // MYCAT CHANGE (I-DEBT-78): A-2 源侧免 coercion——CHARACTER 形参 × BINARY 实参方向不再包
+        // 隐式 CAST(b AS VARCHAR)（见 mycatCoerceOperands 同向 skip），残余不匹配若全为此方向则直接
+        // 放行，计划树保持裸 BINARY 操作数 → 跨片 deparse 天然无 CAST（后端 MySQL 原生字节语义），
+        // 且隐式/显式 CAST 在 Rex 层不再同形，根治 I-DEBT-77 方向剥剥离无法区分显式 cast 的残留。
+        // 保守门：仅 Mycat 自定义函数；固定参数量；其余不匹配一律回退原严格校验（拒得比原先不宽）。
+        if (mycatBinaryOverCharacterTolerated(callBinding)) {
+            return true;
         }
         return super.checkOperandTypes(callBinding, throwOnFailure);
     }
@@ -188,11 +197,63 @@ public abstract class MycatSqlDefinedFunction extends SqlFunction implements Cal
                     || SqlTypeUtil.canCastFrom(targetType, operandType, false)) {
                 continue;
             }
+            // MYCAT CHANGE (I-DEBT-78): CHARACTER 形参 × BINARY 实参 = MySQL 原生字节语义方向，
+            // 不包 coercion CAST，交由 mycatBinaryOverCharacterTolerated 直接放行（源侧免 coercion）。
+            if (targetName.getFamily() == SqlTypeFamily.CHARACTER
+                    && SqlTypeUtil.isBinary(operandType)) {
+                continue;
+            }
             final SqlNode cast = SqlStdOperatorTable.CAST.createCall(SqlParserPos.ZERO, operand,
                     SqlTypeUtil.convertTypeToSpec(targetType));
             sqlCall.setOperand(i, cast);
             anyCast = true;
         }
         return anyCast;
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-78)：严格校验已败且 coercion 已尽力后的宽容终检——逐 operand 分类：
+     * 相等（含刚被包 CAST 修正的）/同族（checker 本就接受）/ANY目标/空型 一律放行；
+     * CHARACTER 形参 × BINARY 实参 为容忍方向（须至少出现一次才构成宽容理由）；
+     * 其余任何不匹配 → 不容忍（回退严格报错）。只宽不拒：本方法仅在严格路已败后作为额外放行通道，
+     * 不改变原有报错行为。
+     */
+    private boolean mycatBinaryOverCharacterTolerated(SqlCallBinding callBinding) {
+        if (function == null) {
+            return false;
+        }
+        final RelDataTypeFactory typeFactory = callBinding.getTypeFactory();
+        final List<RelDataType> paramTypes = function.getParameters().stream()
+                .map(o -> o.getType(typeFactory))
+                .map(t -> toSql(typeFactory, t))
+                .collect(Util.toImmutableList());
+        final SqlCall sqlCall = callBinding.getCall();
+        if (sqlCall.operandCount() != paramTypes.size()) {
+            return false;
+        }
+        boolean anyTolerated = false;
+        for (int i = 0; i < paramTypes.size(); i++) {
+            final SqlNode operand = sqlCall.operand(i);
+            if (operand.getKind() == SqlKind.ARGUMENT_ASSIGNMENT) {
+                return false;
+            }
+            final RelDataType targetType = paramTypes.get(i);
+            final SqlTypeName targetName = targetType.getSqlTypeName();
+            final RelDataType operandType = callBinding.getOperandType(i);
+            if (operandType == null || targetName == SqlTypeName.ANY || targetName == SqlTypeName.NULL) {
+                continue;
+            }
+            if (SqlTypeUtil.equalSansNullability(typeFactory, operandType, targetType)
+                    || operandType.getSqlTypeName().getFamily() == targetName.getFamily()) {
+                continue;
+            }
+            if (targetName.getFamily() == SqlTypeFamily.CHARACTER
+                    && SqlTypeUtil.isBinary(operandType)) {
+                anyTolerated = true;
+                continue;
+            }
+            return false;
+        }
+        return anyTolerated;
     }
 }

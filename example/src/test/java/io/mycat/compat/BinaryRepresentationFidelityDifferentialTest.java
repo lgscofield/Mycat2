@@ -240,6 +240,37 @@ public class BinaryRepresentationFidelityDifferentialTest implements MycatTest {
         assertEquals(true, benign, "I-DEBT-35【④字面量】Mycat 回读 hex 字面量字节须与直连一致，实得 " + actual);
     }
 
+    @Test
+    public void shape5_crossShardExplicitCastChar() throws Exception {
+        // I-DEBT-78 活体显式 cast 值保真锁（系 77 spec §5「显式跨片 cast(binary AS char) 被方向剥离连带
+        // 误剥」残留转正的值侧对拍）：A-2 移除 deparse 方向剥离分支 + 源侧免隐式 coercion 后，跨片显式
+        // cast(b as char) 应保留 CAST 下推、逐片交后端 MySQL 原生求值，代理结果值与直连真库一致。
+        // 仅比对数据行值（排除首行 #types 列头——计算列头类型名属 I-DEBT-45 列头家族，非本锁命题）。
+        String mycatSql = "select id, cast(b as char) as c from tb2 order by id";
+        String directSql = "select id, cast(b as char) as c from " + PROBE_DB + ".tb order by id";
+        List<String> exp = valueRowsOnly(rows(adminBackend, directSql));
+        List<String> act = valueRowsOnly(rows(mycat, mycatSql));
+        System.out.println("\n=========== I-DEBT-78 显式 cast 值对拍【⑤跨片 cast(b as char)】 ===========");
+        System.out.println("期望(直连真 MySQL 8.0)：" + exp);
+        System.out.println("实际(经 Mycat)        ：" + act);
+        boolean benign = exp.equals(act);
+        System.out.println("VERDICT[⑤跨片显式cast] = " + (benign ? "自洽(benign)" : "错位(live-gap)"));
+        System.out.println("=================================================================");
+        assertEquals(exp, act, "I-DEBT-78【⑤跨片显式 cast(b as char)】Mycat 值须与直连真库一致（显式 CAST 未被误剥）");
+    }
+
+    /** 丢弃 rows() 结果里的列头诊断行（#types 开头），仅留数据行值，行序无关多重集。 */
+    private static List<String> valueRowsOnly(List<String> rows) {
+        List<String> v = new ArrayList<>();
+        for (String r : rows) {
+            if (!r.startsWith("#types:")) {
+                v.add(r);
+            }
+        }
+        Collections.sort(v);
+        return v;
+    }
+
     /** 逻辑 drop 不级联物理分库，直连后端按前缀 purge（抄自差分测范式，probe 私有）。 */
     private void purgePhysical() throws Exception {
         purgePhysicalOn(DB1, SCHEMA);

@@ -126,4 +126,21 @@ public class CrossShardBinaryLengthPushdownFidelityTest {
                 + "（MySQL LENGTH(CAST(含0x00的utf8串))→NULL，背离真库字节数）；实际: " + pushdown,
                 upper.contains("CAST("));
     }
+
+    /**
+     * 显式 cast 保留锁（I-DEBT-78·A-2 源侧免 coercion·77 spec §5 残留转正）：用户手写的跨片
+     * {@code cast(b as char)} 系真实语法意图，deparse 必须保留 {@code CAST(.. AS CHAR)} 交后端
+     * 逐片求值（utf8 解码语义），不得被「方向剥离」权宜分支连带误剥成裸 binary。
+     * 当前（候选 A 的 77 剥离分支尚在，隐式/显式 Rex 同形不可区分）必红；A-2 落地（源侧不再
+     * 注入隐式 CAST + 剥离分支移除）后转绿。姿势同 {@link #crossShardLengthOverBinaryMustNotPushdownCoercionCast}。
+     */
+    @Test
+    public void crossShardExplicitCastOverBinaryMustKeepCastInPushdownSql() {
+        String pushdown = pushdownSql("select id, cast(b as char) as c from shgb order by id");
+        String upper = pushdown.toUpperCase();
+        System.out.println("[I-DEBT-78] 显式 cast(binary AS CHAR) 下推 fragment 实串:\n" + pushdown);
+        Assert.assertTrue("跨片显式 cast(b as char) 的下推 fragment 必须保留 CAST 包裹"
+                + "（显式语法意图，交后端按 utf8 解码求值，不得被 coercion 方向剥离连带误伤）；实际: " + pushdown,
+                upper.contains("CAST("));
+    }
 }

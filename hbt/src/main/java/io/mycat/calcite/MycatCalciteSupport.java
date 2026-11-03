@@ -210,6 +210,15 @@ public enum MycatCalciteSupport implements Context {
                         return new TypeCoercionImpl(typeFactory, validator) {
                             @Override
                             public RelDataType implicitCast(RelDataType in, SqlTypeFamily expected) {
+                                // MYCAT CHANGE (I-DEBT-78): BINARY 实参 × CHARACTER 形参 = MySQL 原生字节语义方向，
+                                // 宣告该方向不参与隐式 coercion（返 null），使 FamilyOperandTypeChecker 的 TypeCoercion 腿
+                                // （calcite-core FamilyOperandTypeChecker:168 builtinFunctionCoercion）不再在校验期为
+                                // length(b)/substring(b,..) 等注入 CAST(b AS VARCHAR)——计划树保持裸 BINARY → 跨片 deparse
+                                // 天然无 CAST（交后端按字节算），且隐式/显式 CAST 在 Rex 层不再同形。该方向的宽松放行由
+                                // MycatSqlDefinedFunction.mycatBinaryOverCharacterTolerated 专腿承接（仅 Mycat 自定义函数）。
+                                if (SqlTypeUtil.isBinary(in) && expected == SqlTypeFamily.CHARACTER) {
+                                    return null;
+                                }
                                 if (in.getSqlTypeName() == SqlTypeName.BOOLEAN && SqlTypeFamily.NUMERIC == expected) {
                                     return super.factory.createSqlType(SqlTypeName.TINYINT);
                                 }
