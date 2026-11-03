@@ -1,7 +1,7 @@
 <#
 .I-DEBT-79 刀①：本地收口护栏的固定入口（durable，替代散落的 scratch/*.ps1 手敲命令）
 .SYNOPSIS
-  ci/run-example-guard.ps1 -Persona MYSQL_8_0 [-Modules server,example] [-GateOnly] [-SkipRestart]
+  ci/run-example-guard.ps1 -Persona MYSQL_8_0 [-Modules server,example] [-Test <类或方法>] [-GateOnly] [-SkipRestart]
 .DESCRIPTION
   为什么需要它（实测根因，非推断）：example 全套是**跨进程 JDBC 客户端**连外部 8066
   （example/pom.xml:155、MycatTest.java:30-33），而 8066 是长命有状态进程——上一段活体取证用
@@ -15,7 +15,8 @@
     3) posture gate：前端 select version() 必须落在 persona 宣称的版本族；
        后端取**磁盘态** prototypeDs.datasource.json 的 url host:port 直连取 version()，
        引擎族（MySQL vs MariaDB）必须与 persona 一致
-    4) 跑 mvn -o -B -pl <Modules> -am test（-am 硬要求：不带会从本地仓库取上游 jar，引入第二变量）
+    4) 跑 mvn -o -B -pl <Modules> -am test（-am 硬要求：不带会从本地仓库取上游 jar，引入第二变量）；
+       给 -Test 时追加 -Dtest=<值> -Dsurefire.failIfNoSpecifiedTests=false，用于 I-DEBT-80 那类隔离取证
 limitations
   - gate 拦不住"只改内存的热重绑"（磁盘态仍是干净的）；那种脏态由第 1 步 kill+restart 结构性消除。
     故 -SkipRestart 仅供取证观察，此时第 3 步的后端腿反映的是磁盘态而非进程内存态，务必自行判断可信度。
@@ -30,6 +31,7 @@ param(
     [string]$BackendContainer = 'm1-mysql-a',
     [string]$DsName = 'prototypeDs',
     [string]$JdkHome = '',
+    [string]$Test = '',
     [switch]$AllowAnyJdk,
     [switch]$GateOnly,
     [switch]$KeepRunning,
@@ -176,8 +178,14 @@ try {
 
     # --- 4) 全量护栏 ---
     $log = "$REPO\target\ci-guard\guard-$(Get-Date -Format yyyyMMdd-HHmmss).log"
-    Write-Output ("MVN -o -B -pl " + $Modules + " -am test  →  " + $log)
-    mvn -o -B -pl $Modules -am test *>&1 | Out-File -Encoding utf8 $log
+    $mvnArgs = @('-o', '-B', '-pl', $Modules, '-am', 'test')
+    if ($Test) {
+        # 取证用：只跑指定类/方法，仍保留 persona 白名单门 + JDK 门 + 姿态门 + finally 收尾
+        $mvnArgs += "-Dtest=$Test"
+        $mvnArgs += '-Dsurefire.failIfNoSpecifiedTests=false'
+    }
+    Write-Output ("MVN " + ($mvnArgs -join ' ') + "  →  " + $log)
+    mvn @mvnArgs *>&1 | Out-File -Encoding utf8 $log
     Write-Output ("MVN_EXIT=" + $LASTEXITCODE)
     Write-Output '=== 汇总（各模块）==='
     Get-Content $log | Select-String -Pattern '^\[(INFO|ERROR)\] Tests run:.*(Failures|Errors)' | ForEach-Object { $_.Line }
