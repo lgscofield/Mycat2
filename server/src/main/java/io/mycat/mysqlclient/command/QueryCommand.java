@@ -37,6 +37,8 @@ public class QueryCommand<T> extends VertxMySQLPacketClientResolver implements C
     private ObservableEmitter<T> emitter;
     private boolean close;
     private int serverstatus;
+    // I-DEBT-69·残 NATIVE SELECT 腿：终止包解码出的 warnings 计数（供连接层判定是否接力 SHOW WARNINGS）
+    private int warningCount;
 
     public QueryCommand(NetSocket socket, String text, VertxPoolConnectionImpl.Config config, Decoder<T> decoder, ObservableEmitter<T> emitter) {
         super(socket, 0);
@@ -112,6 +114,8 @@ public class QueryCommand<T> extends VertxMySQLPacketClientResolver implements C
                         handleErrorPacketPayload(payload);
                     } else if (first == EOF_PACKET_HEADER && payload.length() < 0xFFFFFF) {
                         serverstatus = PacketUtil.decodeOkPacketPayload(payload).serverStatusFlags();
+                        // I-DEBT-69·残 NATIVE SELECT 腿：终止包 warnings 计数解码（明细由连接层接力 SHOW WARNINGS）
+                        warningCount = PacketUtil.decodeEofPacketWarnings(payload, config.isClientDeprecateEof());
                         close = true;
                         onEnd();
                         emitter.onComplete();

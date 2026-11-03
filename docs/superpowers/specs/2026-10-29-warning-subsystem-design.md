@@ -318,7 +318,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 
 **裁定（定谳 (i) 取明细往返，否决 (ii) 仅计数合成假条目）**：`SqlResult` 「计数由列表派生」契约（SqlResult.java:16-22 + SqlResultWarningsTest 锁）是防「计数与明细各算各的」的既有裁定，合成假条目（编造 code/message）=伪造诊断，违反宁挂账不伪绿铁律；且真库在 NATIVE 型 datasource 下 `SHOW WARNINGS` 有真明细，仅计数方案 DA 明细永远失真。方案：OK 包 warnings>0 时，在**同一后端连接归还前的串行队列**上补一条 `SHOW WARNINGS` 往返取真明细（代价：仅告警路径 +1 RTT，零告警主路径扰动 0）；明细到手后计数仍由列表派生，契约不破。
 **实现落点**：① `PacketUtil` 新增 warnings 字段读取（`ReadView.readFinished()` 防截断，残长不足 2 字节退 0）；② `OkCommand` 透传计数；③ `VertxConnection.update()`：中间 promise 拦截完成，`count>0` 则 `future` 链上接 `queryAsObjectArray("SHOW WARNINGS")`（Level/Code/Message 三列 → `WarningMessage`）重构 SqlResult；往返失败降级空列表 + warn 日志，不阻主路；连接归还时序由 `VertxMycatConnectionPool.update` 的 onComplete 在本 future 完成后才触发 close/recycle 保证。
-**边界（挂账）**：结果集 EOF 的 warnings 字段（NATIVE 池 SELECT 腿 `QueryCommand:114`）不入本刀（协议面同根、需主路延迟换明细另一笔 trade-off，随残格继续挂）。
+**边界（挂账）**：结果集 EOF 的 warnings 字段（NATIVE 池 SELECT 腿 `QueryCommand:114`）不入本刀（协议面同根、需主路延迟换明细另一笔 trade-off，随残格继续挂）。→ **✅ 2026-11-03 已收口**：由专轮 spec `2026-11-03-i-debt-69-native-select-eof-warnings-design.md` 落刀（`PacketUtil.decodeEofPacketWarnings` + `QueryCommand.warningCount` + `VertxConnection.query(…,IntConsumer)` + `VertxMycatConnectionPool.prepareQuery` SELECT 腿接力 SHOW WARNINGS），离线 4/0/0 + 活体 native L1 对拍 2/0/0（负向对照 pristine native=2F 坐实归因）。
 **RED 锁清单**：① `PacketUtilOkWarningsTest`（warnings 字段解析/截断退化）；② `VertxConnectionWarningDetailTest`（vertx NetServer 假后端：握手后 DML 回 OK(warnings=2)→SHOW WARNINGS 回 2 行→断言 SqlResult 携 2 条明细；warnings=0 不发起二次往返；往返失败降级）；③ 活体：e2e 建 NATIVE 型 datasource（BackendAuthMatrixTest hint 姿势）+ INSERT IGNORE 截断 → 前端 DA/OK 计数与真库对拍。
 
 **GREEN 落地（2026-11-01）**：改生产 4 文件（`PacketUtil.decodeOkPacketWarnings` / `SqlResult.backendWarningCount` / `OkCommand.handle0` 透传 / `VertxConnection.update()` 告警明细回折）+ `ReadView.readable()`。关键设计纠偏：首版「直装 handler 的 owned-connection 查询腿」在 `OkCommand.handle0` 同步栈内重入换 handler → SHOW WARNINGS 响应腿不被接手 → 超时；改回生产已验证的**串行队列链式**（队尾 future 只等 DML，明细往返作队列下一条命令接力）。RED 三锁 → GREEN 9/9（`PacketUtilOkWarningsTest`3 / `NativeWarningsConverterTest`3 / `VertxConnectionWarningDetailTest`3）。
@@ -330,7 +330,7 @@ Mycat 是**多后端连接池薄代理**，MySQL 告警是**单 mysqld 会话（
 - 修复：`VertxConnection` 新增 `cellText(Object)` 单元格还原（`Byte[]`/`byte[]`→UTF-8 字符串，其余 String.valueOf），`convertNativeWarningRows` 全走它；RED 新增两锁 `decodesByteArrayCellsFromRealNumericCodeColumn`（Byte[] 形态 Code=1265）/`decodesPrimitiveByteArrayCells`（byte[]），converter 测试 3→5。
 - **复验定案**：重打 jar（含 fix）+ `-Dserver=native` 重启 → 经代理重建表登记 handler → `INSERT IGNORE` 紧跟 `SHOW WARNINGS`：**8066 native 代理 = `Warning | 1265 | Data truncated for column 'v' at row 1`**，与 3306 oracle **逐格一致**（Code 不再为 0）→ 刀2 NATIVE 腿端到端真确认（非仅离线），探针 scratch/probe-bladeG-8066-native-fixed.txt。
 
-**状态**：✅ **Evidenced（含活体，2026-11-02）**。诚实边界：结果集 EOF warnings（`QueryCommand:114`，NATIVE SELECT 腿）不入本刀，继续挂账。
+**状态**：✅ **Evidenced（含活体，2026-11-02）**。诚实边界：结果集 EOF warnings（`QueryCommand:114`，NATIVE SELECT 腿）不入本刀——**已于 2026-11-03 由专轮 `2026-11-03-i-debt-69-native-select-eof-warnings-design.md` 收口**（NATIVE SELECT 腿 EOF warnings 接力，离线 + native 活体 L1 全绿）。
 
 
 ### 6e. Blade E：本地求值除零 Warning 1365（2026-11-01 承重取证 → 裁定单立专轮）

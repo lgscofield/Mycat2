@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 
 
 @Getter
@@ -177,7 +178,18 @@ public class VertxConnection {
         return query(sql, new ByteArrayDecoder());
     }
 
-    public synchronized <T> Observable<T> query(String sql, Decoder<T> decoder) {
+    public <T> Observable<T> query(String sql, Decoder<T> decoder) {
+        // 既有单出口：不关心 per-query 告警计数（含 SHOW WARNINGS 接力自身，防递归）。
+        return query(sql, decoder, count -> {
+        });
+    }
+
+    /**
+     * I-DEBT-69·残 NATIVE SELECT 腿（刀2）：在既有串行 {@code future} 队列上执行 SELECT，
+     * 于结果流收尾（{@code onEnd}）时把终止包解出的 warnings 计数交回调用侧，供池腿判定是否接力
+     * {@code SHOW WARNINGS} 取明细。以 per-query 回调交付，避免连接级共享可变字段跨语句串扰。
+     */
+    public synchronized <T> Observable<T> query(String sql, Decoder<T> decoder, IntConsumer warningCountReceiver) {
         logger.debug("VertxConnection{}:netSocket{}", this.hashCode(), netSocket.hashCode());
         return Observable.create(emitter -> {
             synchronized (VertxConnection.this) {
@@ -191,6 +203,8 @@ public class VertxConnection {
                                 QueryCommand<T> queryCommand = new QueryCommand(netSocket, sql, config, decoder, emitter) {
                                     @Override
                                     public void onEnd() {
+                                        // getWarningCount() 属本匿名实例（刀1b 已暴露），先交计数再收尾。
+                                        warningCountReceiver.accept(getWarningCount());
                                         super.onEnd();
                                         promise.tryComplete();
                                     }

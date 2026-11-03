@@ -86,6 +86,44 @@ public class PacketUtil {
         return (int) readView.readFixInt(2);
     }
 
+    /**
+     * I-DEBT-69·残 NATIVE SELECT 腿：解析结果集终止包（EOF/OK）携带的 warnings 计数。
+     *
+     * <p>终止包有两种形，取决于连接是否协商 {@code CLIENT_DEPRECATE_EOF}（本代理经
+     * {@code ConnectHandler} 对全目标 persona 默认置位，故多为 OK 形）：
+     * <ul>
+     *   <li>{@code deprecateEof=true}：OK-body 形 {@code 0xFE + affected_rows(lenenc) +
+     *       last_insert_id(lenenc) + status(fixint 2) + warnings(fixint 2)}——warnings 在 status 后；</li>
+     *   <li>{@code deprecateEof=false}：经典 EOF 形 {@code 0xFE + warnings(fixint 2) + status(fixint 2)}
+     *       ——warnings 在 status 前。</li>
+     * </ul>
+     * 残长不足 2 字节或提前 EOF 一律退化 0，绝不反抛。仅取计数，明细由连接层同串行队列接力
+     * {@code SHOW WARNINGS} 补齐（承重复绿禁令：计数不得合成明细）。
+     */
+    public static int decodeEofPacketWarnings(Buffer payload, boolean deprecateEof) {
+        ReadView readView = new ReadView(payload);
+        readView.skipInReading(1); // skip packet header 0xFE
+        if (deprecateEof) {
+            if (readView.readFinished()) {
+                return 0;
+            }
+            readView.readLenencInt(); // affected_rows
+            if (readView.readFinished()) {
+                return 0;
+            }
+            readView.readLenencInt(); // last_insert_id
+            if (readView.readable() < 2) {
+                return 0;
+            }
+            readView.readFixInt(2);   // status_flags
+        }
+        // 两种形走到此处：deprecate 时余下为 warnings；经典 EOF 时紧接 header 即 warnings。
+        if (readView.readFinished() || readView.readable() < 2) {
+            return 0;
+        }
+        return (int) readView.readFixInt(2);
+    }
+
     public static byte writeQueryText(NetSocket socket,String text){
         socket.write(Buffer.buffer( MySQLPacketUtil.generateComQueryPacket(text)));
         return (byte) 0;

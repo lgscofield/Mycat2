@@ -43,6 +43,7 @@ import org.apache.arrow.vector.VectorSchemaRoot;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class VertxMycatConnectionPool implements NewMycatConnection {
@@ -133,19 +134,39 @@ public class VertxMycatConnectionPool implements NewMycatConnection {
             };
             Promise<Void> promise = Promise.promise();
             onSend();
-            Observable<Object[]> query = connection.query(sql, objectArrayDecoder);
+            // I-DEBT-69·残 NATIVE SELECT 腿（刀3）：主 SELECT 收尾时捕获终止包 warnings 计数。
+            AtomicInteger warningCount = new AtomicInteger(0);
+            Observable<Object[]> query = connection.query(sql, objectArrayDecoder, warningCount::set);
             query.subscribe(objects -> collector.onRow(objects),
                     throwable -> {
                         promise.tryFail(throwable);
                         collector.onError(throwable);
                     },
                     () -> {
-                        onRev();
-                        promise.tryComplete();
-                        collector.onComplete();
+                        // warnings>0：在同一串行队列、连接归还前接力 SHOW WARNINGS 取真明细（镜像 Blade G），
+                        // 明细必须先于 onComplete（MysqlCollector 契约）；取不到如实空、绝不按计数合成。
+                        // warnings==0：短路，零扰动。promise 延后到接力结束，令 queryCloseFuture 覆盖明细腿。
+                        if (warningCount.get() > 0) {
+                            connection.queryAsObjectArray("SHOW WARNINGS").toList().subscribe(rows -> {
+                                collector.onWarnings(VertxConnection.convertNativeWarningRows(rows));
+                                finishPrepareQuery(promise, collector);
+                            }, error -> {
+                                // 往返失败降级：主 SELECT 已成，不得拖垮；明细如实为空，绝不合成（镜像 update() L110）。
+                                finishPrepareQuery(promise, collector);
+                            });
+                        } else {
+                            finishPrepareQuery(promise, collector);
+                        }
                     });
             return promise.future();
         });
+    }
+
+    /** I-DEBT-69·残 NATIVE SELECT 腿：SELECT 流（含可选告警接力）收尾——归还前落定，promise 后 collector.onComplete。 */
+    private void finishPrepareQuery(Promise<Void> promise, MysqlCollector collector) {
+        onRev();
+        promise.tryComplete();
+        collector.onComplete();
     }
 
     @Override
