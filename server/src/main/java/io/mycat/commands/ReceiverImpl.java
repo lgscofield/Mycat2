@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -227,22 +228,17 @@ public class ReceiverImpl implements Response {
                 // I-DEBT-84 (D-B')：登记本条命令在途的物理连接，供语句超时 deadline 触发时 force-close，
                 // 解困阻塞在 socket read 上的 IOExecutor worker 并作废连接不入池（否则=客户端解挂却泄漏线程/连接）。
                 List<NewMycatConnection> inFlight = Collections.synchronizedList(new ArrayList<>());
+                // deadline 已触发 ⇒ 快照 force-close 已跑完，此后才借到的连接必须即刻弃用（否则=孤儿）。
+                AtomicBoolean statementTimedOut = new AtomicBoolean(false);
                 for (int i = 0; i < targetOrderList.size(); i++) {
                     String datasource = targetOrderList.get(i);
-                    Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource);
+                    Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource)
+                            .map(c -> registerInFlight(c, inFlight, statementTimedOut));
                     if (detail.getExecuteType() == INSERT) {
                         updateInfoList.add(connectionFuture
-                                .map(c -> {
-                                    inFlight.add(c);
-                                    return c;
-                                })
                                 .flatMap(c -> c.insert(sql.toString(), detail.getParams())));
                     } else {
                         updateInfoList.add(connectionFuture
-                                .map(c -> {
-                                    inFlight.add(c);
-                                    return c;
-                                })
                                 .flatMap(c -> c.update(sql.toString(), detail.getParams())));
                     }
                 }
@@ -264,7 +260,7 @@ public class ReceiverImpl implements Response {
                 // I-DEBT-84：UPDATE/INSERT 在 sendOk 前不向客户端写任何字节 ⇒ 超时以 3013 走 recover 发合法 ERR，协议安全。
                 // （SELECT 流式腿须与 observer 的 resultStarted 纪律协同，另列后续子改动，见 spec §D / DEBT-QUEUE。）
                 return StatementDeadline.withDeadline(statementLeg, statementDeadlineMillis(targetOrderList), () -> {
-                    forceCloseInFlight(inFlight);
+                    forceCloseInFlight(inFlight, statementTimedOut);
                     return Future.succeededFuture();
                 });
             }
@@ -381,10 +377,31 @@ public class ReceiverImpl implements Response {
     }
 
     /**
+     * I-DEBT-84：登记一条借到的连接。若语句 deadline 已经触发（快照 force-close 已跑完），
+     * 这条“迟到”的连接不会被任何后续回收路径看到——池等待/`maxWait` 计时与 deadline 竞态时
+     * 可达（I-DEBT-80 同款“客户端解挂却泄漏线程+连接”签名），故直接弃用而非入登记表。
+     */
+    private NewMycatConnection registerInFlight(NewMycatConnection c, List<NewMycatConnection> inFlight,
+                                                AtomicBoolean statementTimedOut) {
+        if (statementTimedOut.get()) {
+            try {
+                c.abandonConnection();
+            } catch (Throwable t) {
+                LOGGER.warn("statement deadline force-close of late-arrived connection failed", t);
+            }
+            return c;
+        }
+        inFlight.add(c);
+        return c;
+    }
+
+    /**
      * I-DEBT-84：对本条命令在途的物理连接逐个 force-close（弃用不入池），使阻塞在 socket read
      * 上的 IOExecutor worker 抛错解困。单个失败只记日志，不影响其余回收与向客户端报错。
+     * 先置超时标记，再扫快照，缩小“登记与超时”之间的竞态窗口。
      */
-    private void forceCloseInFlight(List<NewMycatConnection> inFlight) {
+    private void forceCloseInFlight(List<NewMycatConnection> inFlight, AtomicBoolean statementTimedOut) {
+        statementTimedOut.set(true);
         for (NewMycatConnection c : inFlight) {
             try {
                 c.abandonConnection();

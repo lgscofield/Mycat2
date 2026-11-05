@@ -33,15 +33,52 @@ if [ -n "${MYCAT_PERSONA:-}" ]; then PERSONA_ARG="-Dmycat.persona=${MYCAT_PERSON
 java $PERSONA_ARG --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
 trap 'kill $MYCAT_PID 2>/dev/null || true' EXIT
 
-# 2) 轮询前端 8066 就绪（最多 60s），替代旧 CI 不稳定的 sleep 10s
+# 2) 轮询前端 8066 就绪（最多 60s），替代旧 CI 不稳定的 sleep 10s。
+#    I-DEBT-79 刀②：就绪判据从「TCP 可连」升级为「读到握手包首字节」——端口开了但服务端尚未
+#    初始化完成（配置/心跳线程未就绪）时，纯 TCP 判据会放行测试，制造首批用例连接失败的假红。
 ready=0
 for i in $(seq 1 60); do
-  if (exec 3<>"/dev/tcp/127.0.0.1/8066") 2>/dev/null; then
-    exec 3<&- 3>&-; ready=1; break
+  # 读 5 字节：4 字节包长 + 1 字节序列号；首字节 >0 才算真握手包（包长小端编码，首字节为长度低位）
+  hs=$(timeout 6 bash -c 'exec 3<>/dev/tcp/127.0.0.1/8066; dd bs=1 count=5 <&3 2>/dev/null' | od -An -tu1 | tr -s ' \t' ' ' | sed 's/^ *//')
+  if [ -n "$hs" ]; then
+    set -- $hs
+    if [ "${3:-0}" -gt 0 ] 2>/dev/null; then ready=1; break; fi
   fi
   sleep 1
 done
-[ "$ready" = 1 ] || { echo "Mycat 8066 未就绪"; exit 1; }
+[ "$ready" = 1 ] || { echo "Mycat 8066 未就绪（未读到握手首字节）"; exit 1; }
+# settle：握手包能读≠配置/心跳全部就绪，留初始化时间（本地 guard 同口径实测取 15s）
+sleep 15
+
+# 2b) I-DEBT-79 刀②：posture gate —— MYCAT_PERSONA 一旦设定，就必须被 select version() 证实。
+#     真根因（实测）：-Dmycat.persona 拼错时 PersonaOverride 只记 WARN 并**静默回退**缺省画像，
+#     于是「这一档画像」被当成「另一档」测过去 = 假绿（历史上真踩过两次：MYSQL_9_0→5.7、
+#     旧元数据矩阵对 mariadb 三档一律盖 MYSQL_5_7）。此处 fail 的是 CI step 本身，不是测试语义。
+#     未设 MYCAT_PERSONA 的四件套步保持缺省画像，不做版本断言（避免改动既有绿门禁的语义）。
+if [ -n "${MYCAT_PERSONA:-}" ] && command -v mysql >/dev/null 2>&1; then
+  case "$MYCAT_PERSONA" in
+    MYSQL_5_7) want_ver='^5\.7\.' ;;
+    MYSQL_8_0) want_ver='^8\.0\.' ;;
+    MYSQL_8_4) want_ver='^8\.4\.' ;;
+    MYSQL_9_X) want_ver='^9\.' ;;
+    MARIADB_10_6) want_ver='^10\.6\..*MariaDB' ;;
+    MARIADB_10_11) want_ver='^10\.11\..*MariaDB' ;;
+    MARIADB_11_4) want_ver='^11\.4\..*MariaDB' ;;
+    *) echo "ABORT(posture): 非法 MYCAT_PERSONA='$MYCAT_PERSONA'（白名单见 config/ServerPersona.java）"; exit 1 ;;
+  esac
+  # --get-server-public-key：非 TLS 下 caching_sha2 full-auth 必需，否则 ERROR 2061（仪器坑非产品坑）
+  got_ver=$(mysql --protocol=tcp -h127.0.0.1 -P8066 -uroot -p123456 --get-server-public-key \
+      -N -B -e 'select version()' 2>/dev/null || echo "")
+  echo "POSTURE(persona=$MYCAT_PERSONA) front(8066)=[$got_ver]"
+  [ -n "$got_ver" ] || { echo "ABORT(posture): 经 8066 读不到 select version()"; exit 1; }
+  if ! echo "$got_ver" | grep -qE "$want_ver"; then
+    echo "ABORT(posture): 前端 version()='$got_ver' 不在 $MYCAT_PERSONA 宣称的族 $want_ver";
+    echo "  ⇒ persona 被静默回退/拼错，这一档会被测成另一档（假绿），拒绝跑测"; exit 1
+  fi
+  echo "POSTURE OK"
+elif [ -n "${MYCAT_PERSONA:-}" ]; then
+  echo "WARN(posture): 无 mysql 客户端，跳过 persona 版本证实（仅握手首字节判据生效）"
+fi
 
 # 3) 只跑 example 模块测试（含兼容冒烟 ConnectionSmokeTest），不加 -am 以免
 #    reactor 连带跑上游模块测试；上游产物由前置 `mvn install` 落入本地仓库。

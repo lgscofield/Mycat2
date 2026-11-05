@@ -37,7 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * I-DEBT-84（D-B'）：{@code ReceiverImpl.execute()} 的 UPDATE/INSERT 腿在语句超时 deadline 触发时
  * 必须（1）以 {@code MycatException(3013)} 界住客户端，（2）对登记在途的物理连接调用
- * {@code abandonConnection()} 做 force-close（先回收再报错）。
+ * {@code abandonConnection()} 做 force-close（先回收再报错），且（3）deadline 之后才借到的
+ * “迟到”连接同样必须即刻弃用（否则逃过快照 = I-DEBT-80 同款孤儿签名）。
  *
  * <p>本锁覆盖 to "接线契约"（deadline 触发→force-close 被调用→客户端有界拿 3013），用 Mockito +
  * {@link MetaClusterCurrent} 注入假 {@code JdbcConnectionManager} 与永不完成的假连接，不连真库、不起服务。
@@ -46,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ReceiverStatementDeadlineForceCloseTest {
 
     private static final String RESOLVED_DS = "ds0";
+    /** 第二条 DS：专用于“deadline 已触发后连接才借到”的迟到竞态场景。 */
+    private static final String RESOLVED_DS_LATE = "dsLate";
     private static final long STATEMENT_TIMEOUT_MILLIS = 120L;
 
     private Map<Class, Object> savedContext;
@@ -71,6 +74,10 @@ public class ReceiverStatementDeadlineForceCloseTest {
         cfg.setStatementTimeout(STATEMENT_TIMEOUT_MILLIS);
         Map<String, DatasourceConfig> configMap = new HashMap<>();
         configMap.put(RESOLVED_DS, cfg);
+        DatasourceConfig cfgLate = new DatasourceConfig();
+        cfgLate.setName(RESOLVED_DS_LATE);
+        cfgLate.setStatementTimeout(STATEMENT_TIMEOUT_MILLIS);
+        configMap.put(RESOLVED_DS_LATE, cfgLate);
         JdbcConnectionManager manager = Mockito.mock(JdbcConnectionManager.class);
         Mockito.when(manager.getConfigAsMap()).thenReturn(configMap);
         MetaClusterCurrent.register(JdbcConnectionManager.class, manager);
@@ -89,7 +96,6 @@ public class ReceiverStatementDeadlineForceCloseTest {
 
         xa = Mockito.mock(Both.class);
         Mockito.when(xa.getConnection(RESOLVED_DS)).thenReturn(Future.succeededFuture(fakeConn));
-
         dataContext = Mockito.mock(MycatDataContext.class);
         Mockito.when(dataContext.isInTransaction()).thenReturn(false);
         Mockito.when(dataContext.isAutocommit()).thenReturn(true);
@@ -132,5 +138,61 @@ public class ReceiverStatementDeadlineForceCloseTest {
                 ((MycatException) ex.getCause()).getErrorCode(), "超时须报 3013");
         assertEquals(1, abandonCounter.get(),
                 "deadline 触发须对登记的在途连接 force-close 恰好一次");
+    }
+
+    /**
+     * I-DEBT-84 子项①：deadline 触发后连接才被池借出（池等待/`maxWait` 与 deadline 竞态），
+     * 该迟到连接不在 force-close 快照里，必须靠超时标记即刻弃用，否则=解挂客户端却泄漏线程+连接。
+     */
+    @Test
+    public void testLateArrivedConnectionAfterDeadlineIsAbandoned() throws Exception {
+        Promise<NewMycatConnection> lateBorrow = Promise.promise();
+        final NewMycatConnection[] lateHolder = new NewMycatConnection[1];
+        final AtomicInteger lateAbandonCounter = new AtomicInteger(0);
+        Mockito.when(xa.getConnection(RESOLVED_DS_LATE)).thenAnswer(inv -> {
+            NewMycatConnection late = Mockito.mock(NewMycatConnection.class);
+            lateHolder[0] = late;
+            // 迟到连接同样“永不完成”，模拟 worker 卡在 socket read；弃用即解困。
+            Promise<SqlResult> lateBlocking = Promise.promise();
+            Mockito.when(late.update(Mockito.anyString(), Mockito.anyList()))
+                    .thenReturn(lateBlocking.future());
+            Mockito.doAnswer(a -> {
+                lateAbandonCounter.incrementAndGet();
+                return null;
+            }).when(late).abandonConnection();
+            return lateBorrow.future();
+        });
+        // 两个逻辑表各自路由到不同 DS：第一个立即借到、第二个的借出由 lateBorrow 手动控制。
+        Mockito.when(dataContext.resolveDatasourceTargetName(Mockito.eq("tblA"), Mockito.anyBoolean()))
+                .thenReturn(RESOLVED_DS);
+        Mockito.when(dataContext.resolveDatasourceTargetName(Mockito.eq("tblB"), Mockito.anyBoolean()))
+                .thenReturn(RESOLVED_DS_LATE);
+
+        ReceiverImpl receiver = new ReceiverImpl(session, 2, false);
+        ExplainDetail detail = ExplainDetail.create(ExecuteType.UPDATE,
+                java.util.Arrays.asList("tblA", "tblB"), "UPDATE db1.t SET v=v+1 WHERE id=1", null,
+                Collections.emptyList());
+
+        ExecutionException ex = null;
+        try {
+            receiver.execute(detail).toCompletionStage().toCompletableFuture().get(3, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            ex = e;
+        }
+        assertTrue(ex != null, "永不完成的 update 必须被语句 deadline 掐成失败");
+        assertInstanceOf(MycatException.class, ex.getCause());
+        assertEquals(MycatErrorCode.ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT,
+                ((MycatException) ex.getCause()).getErrorCode(), "超时须报 3013");
+        assertEquals(1, abandonCounter.get(), "首条在途连接须在 deadline 时被 force-close");
+        assertTrue(lateHolder[0] != null,
+                "诊断：迟到 DS 的 getConnection 应已被调用（未见连接 mock）");
+        assertEquals(0, lateAbandonCounter.get(),
+                "deadline 已触发但迟到连接尚未借到——此时不应有弃用动作");
+
+        // 迟到：deadline 之后连接才借到，必须即刻弃用（不在快照里，靠超时标记兜住）。
+        lateBorrow.tryComplete(lateHolder[0]);
+        Thread.sleep(100L);
+        assertEquals(1, lateAbandonCounter.get(),
+                "deadline 之后才借到的连接必须即刻 force-close，否则成孤儿");
     }
 }
