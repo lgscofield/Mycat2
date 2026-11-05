@@ -268,4 +268,11 @@ R5 绿（如实定性：排空腿成败不进 `closeStatementState` 公开结果
 /H2（双清 use-after-close）/H3（`:233` 冗余应删）待 §4 活体五格取证判决（**不推理定性，承 I-DEBT-80 教训**）。
 Spec `2026-11-05-i-debt-82-xa-writepath-drain-design.md`；取证属较大新工作，**先交付 spec + 订正待用户过目再定是否投跑测**。
 
+**✅ 2026-11-05（G 轮）I-DEBT-82 五格活体取证收口⇒ 定性 H1 by-design（未改生产码）**：用户拍板“完整五格取证”后，
+用硬化护栏起代理（persona 8.0.34）+ 直驱 `set transaction_policy='xa'` autocommit UPDATE 打 Mycat(8066)，以 `showDataSources` 池计数取证：
+格 A(单条) ActiveCount 0→**0**；格 E(500 写) `CreateCount` 恒 **1**（零新增物理连接=无孤儿，I-DEBT-80 泄漏签名缺席）；
+格 C(200 组 SELECT+UPDATE) `Use==Close` +400；格 D(摸除 `:233` #1 重打 jar 复跑) 与 #1 在场**逐指标完全等价**。
+⇒ **H2（双清 use-after-close）实测否证、H3（#1 可删）反证为“删与不删无差异”**，判决 **H1**：`:233` fire-and-forget 冗余但无害，排空由 `:256` awaited 腿唯一正确负责。
+**收口=不改生产码**（删 #1 属零功能收益·有回归面的工程卫生，不抵成本）；取证脚本 `.superpowers/sdd/2026-11-05-i-debt-82-forensics/`；格 D 临时源码补丁已 `git checkout` 回退（dirtyFiles=0）并重打 jar 回正。**下一个开工位**回摆到 G1（单条归还超时兜底）。待用户拍板项不变。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。

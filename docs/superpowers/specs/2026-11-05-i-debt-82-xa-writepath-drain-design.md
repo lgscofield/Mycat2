@@ -1,6 +1,6 @@
 # I-DEBT-82 · XA 写路径 closeStatementState 被调两次（fire-forget #1 + awaited #2）—— Spec 先行
 
-> **状态**：🔴 待取证（本文件仅立机制与取证协议，**未下任何"要不要改码"的结论**）。
+> **状态**：✅ 已取证收口（2026-11-05 五格活体⇒ **H1 by-design**，详 §7；**未改生产码**）。
 > **分层**：C（引擎地基 / 生产稳健交界，与"无缝替代"招牌 A 层正交，承 I-DEBT-80/81 资源泄漏族）。
 > **前置**：承 I-DEBT-81（已本地收口并 commit，不 push）。I-DEBT-81 把 `BaseXaSqlConnection.closeStatementState()`
 > 从"排空腿丢在 onComplete 里不等待"改成"用 `Promise<Void> drained` 真等 `clearConnections()` 排空"。
@@ -112,3 +112,34 @@ DEBT-QUEUE L252-254 与 I-DEBT-81 spec §6 曾把 G2 记为：
   因它**推翻了我上一轮"写路径不等排空"的定性**；是否投入取证跑测由用户裁定。
 - 待用户既有拍板项不变（不因此票解锁）：I-DEBT-79 刀②（CI PR 门）、刀③（abort→NO_DATA）、connector 矩阵 CI 化。
 - 若取证定性 H1（by-design），则在 DEBT-QUEUE 就地追加订正关闭，**不改生产码、不制造回归**。
+
+---
+
+## §7 五格实测结果与定性（2026-11-05 活体取证 · 判决 = H1 by-design）
+
+**仪器**：`ci/run-example-guard.ps1 -Persona MYSQL_8_0 -GateOnly -KeepRunning`（三档后端 start+ping 门 + posture 门，
+persona 报 8.0.34）起代理；直驱 `set transaction_policy='xa'` + autocommit UPDATE 打向 Mycat(8066) schema `db1.i82t`→`prototypeDs`(3306)；
+读数用 `/*+ mycat:showDataSources{} */` 的池计数（`ActiveCount`=USE_CON 借出、`CreateCount`=累计物理连接、`Use/Close`=借/还次数）。
+脚本 `​.superpowers/sdd/2026-11-05-i-debt-82-forensics/{q8066,cell,smoke}.ps1`。
+
+| 格 | 负载 | ActiveCount | CreateCount | Use/Close | 异常 |
+|---|---|---|---|---|---|
+| A | 单条 autocommit XA UPDATE | 0→**0**（写后同会话即刻回落） | 1→1 | +1/+1 | 无 |
+| E | 同会话 500 条 UPDATE | 0→**0** | 1→**1**（写 500 零新增） | +500/+500 | 无 |
+| C | 200 组 SELECT+UPDATE 交叠 | 0→**0** | 1→**1** | +400/+400 | 无 |
+| D | 摘除 `:233` #1 重打 jar 复跑 E/C | 0→**0** | 2→**2** | +500/+500、+400/+400 | 无 |
+
+**判决 = H1（良性冗余·by-design）**：
+1. **无泄漏**：I-DEBT-80 的泄漏签名是 `CreateCount`/后端 `Threads` 随语句单调爬升（孤儿连接另起物理会话）；本票 500× 写入
+   `CreateCount` **恒定**（同一条池化连接复用 500 次），`ActiveCount` 每条写完即归 0 ⇒ 写路径连接被 awaited 腿（`:256`）正确归还。
+2. **无 use-after-close 竞态（否证 H2）**：读写交叠 200 轮 + 单会话 500 写，`Use==Close`（借还严格配对），
+   未见对已归还连接二次操作、无池记账损坏、proxy 日志零相关异常（仅往轮失败 DDL 探针的噪声，早于负载时刻）。
+3. **H3 反证（格 D）**：摘掉 `:233` fire-and-forget 后，逐指标与保留时**完全一致** ⇒ `#1` 对可观测资源行为**无影响**
+   （`#2` awaited 排空先跑完并 `removeAll` 快照，`#1` 的二次 `closeStatementState` 见 `extraConnections` 已空即 no-op）。
+
+**收口决定**：**不改生产码**（`:233` 冗余但无害，删除它属 H3 工程卫生，无功能收益且有回归面，收益不抵成本）。本票以 **H1 by-design 关闭**。
+**残留低优先卫生候选**（不阻塞、不立开码票）：`:233` 的 fire-and-forget 可归并为单行注释说明「排空由 :256 唯一负责」防后人误读为“不等排空”。
+
+**取证诚实项**：格 B（多 datasource 分片写同库二次借 `BaseXaSqlConnection:105-108`）因所用 schema 为单数据源未**单独**仪表；
+但 autocommit 路由下每条写均经 `LocalXaSqlConnection:145-148` 进 `extraConnections`，格 C 已在同会话内 400 次借用覆盖“多条入 extraConnections”形态，
+泄漏签名（CreateCount 增长）在格 C/E 缺席 ⇒ 格 B 由等价性覆盖，未伪称已独立跑。
