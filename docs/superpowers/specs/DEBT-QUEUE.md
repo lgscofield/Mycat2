@@ -298,4 +298,8 @@ promise 仅在阻塞 handler 返回时完成；客户端响应排在语句 Futur
 **但界不了卡在读上的 IOExecutor 线程/物理连接**（除非 timer 里**强制 close socket**，否则每次超时泄漏一线程+一连接=重回 I-DEBT-80 孤儿签名）。故完整方案=deadline + 强制 close 两件。
 Spec `2026-11-05-i-debt-84-statement-deadline-design.md`；§6 待用户定 deadline 值/作用域、资源回收深度、交付节奏（先 plan 还是先拍插入点）。**未动生产码**。
 
+**🔨 2026-11-05（G 轮续）I-DEBT-84 §6 已拍板转 plan，首刀 A+B 落生产码**：用户定 (a) 全局默认 30s 以配置项暴露+DS 覆盖 /(b) deadline+强制 close 两件一起做 /(c) 先 plan 再动码。
+实读当前 HEAD 定档插入点：整条 `MycatdbCommand.execute` 在命令入口 `DefaultCommandHandler:66/:213`、`MycatVertxMySQLHandler:98/:125/:374` 被 `ioExecutor.executeBlocking` 包裹（阻塞 JDBC 跑在 `IOExecutor:63/:70` newCachedThreadPool worker、非 event loop）；force-close 抓手=`JdbcDatasourcePoolImpl:62` 令 `NewMycatConnectionImpl.connection=getRawConnection()` 物理连接、`abandonConnection()` 即强关；定时器源=`AbstractMySQLManagerImpl:29-38`→`ScheduleUtil.getTimer()`；错误发出=`MycatVertxMySQLHandler:312-334 recover`→`writeErrorEndPacketBySyncInProcessError`。
+**已落 A**：`DatasourceConfig.statementTimeout` 默认 30s（同 maxConnectTimeout 结构、DS 可覆盖、<=0 禁用）。**已落 B**：新 `hbt/.../io.mycat.vertx.StatementDeadline.withDeadline`（deadline race + onTimeout 先 force-close 后报 3013 + src 先完成则 cancel timer 防泄漏 + settled CAS 幂等）；单测 `StatementDeadlineTest` **5/0F/0E**（D1 超时界客户端+force-close 恰一次/D2 正常先完成则 timer 取消不泄漏/D3 禁用零开销透传同实例/超时后 src 迟到完成变 no-op/onTimeout 抛错仍报 3013）；`mvn -pl hbt -am` BUILD SUCCESS。**待落 C+D**：命令入口包裹 withDeadline + 会话在途连接 force-close + SELECT 已刷列头则关连接（复用 `MysqlPayloadObjectObserver.resultStarted:356/:377-383` 纪律）。错误码投 Mycat 自有 3013。**未 push**。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。

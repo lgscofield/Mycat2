@@ -38,6 +38,11 @@ public class DatasourceConfig implements KVObject{
     @javax.validation.constraints.NotNull
     private String type = DatasourceType.JDBC.name();
     private int queryTimeout = 0;
+    // I-DEBT-84 (D-B')：Mycat 侧语句级 wall-clock deadline，兜住后端僵死/TCP 黑 hole 时
+    // “等后端响应无界挂”。默认 30s（与 maxConnectTimeout 同构），每个 datasource 继承、
+    // JSON 显式配置可覆盖；<=0 表示禁用本 DS 的 deadline（交由上层默认值）。
+    // 与 queryTimeout（Druid→Statement.setQueryTimeout，服务端取消、对冻结后端无效）正交互补。
+    private long statementTimeout = TimeUnit.SECONDS.toMillis(30);
     private boolean removeAbandoned = false;
     private int removeAbandonedTimeoutSecond=180;//秒
     private boolean logAbandoned = true;
