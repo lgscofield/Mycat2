@@ -275,4 +275,11 @@ Spec `2026-11-05-i-debt-82-xa-writepath-drain-design.md`；取证属较大新工
 ⇒ **H2（双清 use-after-close）实测否证、H3（#1 可删）反证为“删与不删无差异”**，判决 **H1**：`:233` fire-and-forget 冗余但无害，排空由 `:256` awaited 腿唯一正确负责。
 **收口=不改生产码**（删 #1 属零功能收益·有回归面的工程卫生，不抵成本）；取证脚本 `.superpowers/sdd/2026-11-05-i-debt-82-forensics/`；格 D 临时源码补丁已 `git checkout` 回退（dirtyFiles=0）并重打 jar 回正。**下一个开工位**回摆到 G1（单条归还超时兜底）。待用户拍板项不变。
 
+**🆕 2026-11-05（G 轮续）G1 立票 I-DEBT-83（🔴 待拍板）·单条归还超时兜底**：承 I-DEBT-81 §4 挂账 G1。实读当前 HEAD 坐实：
+I-DEBT-81 把 `BaseXaSqlConnection.closeStatementState():456-467` 改成 awaited `drained` 后，`drained` 完成时刻 = `clearConnections()` 完成时刻；
+而 `joinCloses:515-528` 对每条 `close()` 只 `.recover(warn)`、无超时，`NewMycatConnectionImpl.close():643-651` = 语句 `future` 的 `transform`、亦无超时。
+可达性坐实：`DatasourceConfig.queryTimeout=0`(:40)→Druid 不设语句超时、`removeAbandoned=false`(:41)、代码层不注入 `socketTimeout` ⇒ **后端语句僵死/黑 hole 时 `future` 永不完成 → 排空永不完成 → 客户端在 `sendOk(:256)`/SELECT EOF(:391) 前无限挂起**。
+本质是 I-DEBT-81 用"客户端等排空"换掉"跨语句泄漏"时新引入的失效面。核心难点=超时只保证不再无限挂、无法让未完成的物理归还变已归还，须"有界延迟 vs 孤儿连接"显式取舍（架构级）。Spec `2026-11-05-i-debt-83-drain-close-timeout-guard-design.md`；
+**触生产码 + 需后端故障注入取证（较重、扰动三档容器），不擅自开工**：待用户于 §6 拍板 (a) D-A 交运维配置关闭 / (b) 投实现 D-B/D-C 先跑可达性活体 / (c) 仅挂账。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。
