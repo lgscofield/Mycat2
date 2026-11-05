@@ -38,11 +38,12 @@ trap 'kill $MYCAT_PID 2>/dev/null || true' EXIT
 #    初始化完成（配置/心跳线程未就绪）时，纯 TCP 判据会放行测试，制造首批用例连接失败的假红。
 ready=0
 for i in $(seq 1 60); do
-  # 读 5 字节：4 字节包长 + 1 字节序列号；首字节 >0 才算真握手包（包长小端编码，首字节为长度低位）
+  # 读 5 字节：0..2=包长(3 字节小端) + 3=序列号 + 4=payload 首字节。握手包长度恒 >0，
+  # 其低位置于第 1 个字节 ⇒ 首字节 >0 才算真握手包（与本地 run-example-guard.ps1 的 $b[0] 判据同口径）。
   hs=$(timeout 6 bash -c 'exec 3<>/dev/tcp/127.0.0.1/8066; dd bs=1 count=5 <&3 2>/dev/null' | od -An -tu1 | tr -s ' \t' ' ' | sed 's/^ *//')
   if [ -n "$hs" ]; then
     set -- $hs
-    if [ "${3:-0}" -gt 0 ] 2>/dev/null; then ready=1; break; fi
+    if [ "$#" -ge 5 ] && [ "${1:-0}" -gt 0 ] 2>/dev/null; then ready=1; break; fi
   fi
   sleep 1
 done
