@@ -1,6 +1,8 @@
 # I-DEBT-83 · 语句级排空 awaited 后单条 `close()` 无超时兜底（G1）—— Spec 先行
 
-> **状态**：🔴 待拍板（Spec 先行，取证/实现均未启动）。
+> **状态**：🔬 活体取证完成（2026-11-05），**据实重定性**（详 §7）：悬挂真且无界，但**发生在语句腿、非排空/close 腿**
+> ⇒ 原挂账的 D-B（给 close 加超时）打不中它；有效杆杆是语句/读超时（D-A 的 `queryTimeout`/`socketTimeout`）。
+> **待用户就重定范围拍板**（取证书 §7；下述 §1/§2 的朴素模型已被 §7 订正）。
 > **分层**：C（引擎地基 / 生产稳健交界，与"无缝替代"招牌 A 层正交，承 I-DEBT-80/81/82 资源族）。
 > **前置**：本票是 I-DEBT-81 §4 明确挂账的 **G1**（"单条归还的超时兜底，防 `close()` 永久悬挂拖死 `eventually`"）。
 > I-DEBT-81 把 `closeStatementState()` 从"排空腿丢在 onComplete 不等待"改成"用 `Promise<Void> drained` 真等排空"。
@@ -86,3 +88,29 @@
 - **(c) 仅挂账**：认可问题真实但优先级低，保留本 spec 于队列，先推其他债务。
 
 （I-DEBT-82 已以 H1 by-design 关闭；本 G1 是 I-DEBT-81 挂账的最后一枚兜底票。）
+
+---
+
+## §7 活体取证结果（2026-11-05，当前 HEAD 54b918c69·未改生产码）
+
+**方法学教训（诚实留痕）**：两次"看似后端"的探针其实是 Mycat 本地求值，不算后端在途：
+- **R1**（`SELECT SLEEP(600)` + pause）：日志 `MycatProject(input=MycatValues, SLEEP)` 证 SLEEP 被 `io.mycat.calcite.sqlfunction.infofunction.MycatSleepFunction` **本地截获**，不触后端 ⇒ 无效。
+- **R1b**（`COLUMNS×COLUMNS` 交叉 COUNT + pause）：pause 后端 60s 下查询 17s 完成返回 4092529（非后端 250s/22M）⇒ **Mycat 用 Calcite 本地做 join/聚合**，只从后端快取一次 COLUMNS ⇒ 无效。
+
+**R1c（行锁法·有效，下推已验）**：后端直连会话 X `START TRANSACTION; UPDATE db1.i82t...; SELECT SLEEP(400)` 持行锁；Mycat 会话 Y `UPDATE db1.i82t SET v=v+1 WHERE id=1`（EXPLAIN 证 `targetName: prototype`）。实测：
+
+| 阶段 | 现象 | 含义 |
+|---|---|---|
+| pause 前 | 后端 processlist `time=3 state=updating UPDATE db1.i82t` | **Y 系真·后端在途语句，Mycat 正等响应**（与 R1/R1b 本质不同） |
+| pause 后端 45s | Y 全程 `Running`、**零报错** | **Mycat 自身无任何读超时可解此等待 ⇒ 客户端随冻结无限挂** |
+| unpause 后 | Y 在 53s 报 `ERROR 1205 Lock wait timeout` | **唯一能解脱客户端的界来自后端 `innodb_lock_wait_timeout=50s`，Mycat 一份没出** |
+
+**判决**：悬挂（客户端无界挂起）**真且可重现**，定位在**语句腿（Mycat 等后端响应）**，非排空/close 腿（close=Druid 内存回收、pause 不影响它，且语句未回时根本走不到 drain）。
+**订正 §1/§2 朴素模型**：本票初稿把"awaited 排空→close 悬挂→拖死客户端"当主因，实为上游语句 fetch 无界，而非排空腿。
+
+**设含决策⇒重定范围**：D-B（给 `joinCloses` 每条 close 加超时）**不解决已实证的悬挂**（到达不了那腿）。有效杆杆：
+- D-A1：datasource URL 带 `socketTimeout`（界住死 socket 读，对合法长查询无损）——运维配置，零代码；
+- D-A2：`DatasourceConfig.queryTimeout` 默认从 0 抬为正（Druid `Statement.setQueryTimeout`，服务端取消）——一行默认值，但改变全局语句语义、可能误杀合法长查询（危险）；
+- D-B'（真正的 Mycat 侧语句级 deadline）：若要在不依赖 URL 的前提下给“等后端响应”加 Mycat 自有上限，属语句执行层新增机制（非本票原位的 close 兜底），需另立 spec→plan。
+
+**卫生**：本轮只改文档 + 一次性取证驱动（`.superpowers/sdd/2026-11-05-i-debt-83-forensics/`）；零生产码改动（dirty=0）；`m1-mysql-a` 已 unpause、`i82t` v 无净变化、取证 proxy 已 KILL。

@@ -282,4 +282,11 @@ I-DEBT-81 把 `BaseXaSqlConnection.closeStatementState():456-467` 改成 awaited
 本质是 I-DEBT-81 用"客户端等排空"换掉"跨语句泄漏"时新引入的失效面。核心难点=超时只保证不再无限挂、无法让未完成的物理归还变已归还，须"有界延迟 vs 孤儿连接"显式取舍（架构级）。Spec `2026-11-05-i-debt-83-drain-close-timeout-guard-design.md`；
 **触生产码 + 需后端故障注入取证（较重、扰动三档容器），不擅自开工**：待用户于 §6 拍板 (a) D-A 交运维配置关闭 / (b) 投实现 D-B/D-C 先跑可达性活体 / (c) 仅挂账。
 
+**🔬 2026-11-05（G 轮续）I-DEBT-83 活体取证完成⇒ 据实重定性（未改生产码）**：用户拍板 (b) 后跑三轮取证（`.superpowers/sdd/2026-11-05-i-debt-83-forensics/`）：
+**R1/R1b 无效**（`SELECT SLEEP` 被 `MycatSleepFunction` 本地截获；`COLUMNS×COLUMNS` 交叉 COUNT 由 Mycat Calcite 本地 join，pause 后端 60s 仍 17s 完成）——两次“看似后端”实为代理本地求值，方法学教训已留痕。
+**R1c 行锁法有效**（下推已验：后端 processlist `state=updating UPDATE db1.i82t`）：后端持行锁使 Mycat 会话 Y 处于“等后端响应”态，`docker pause` 后端 45s ⇒ **Y 全程 Running、零报错（Mycat 自身无任何读超时界）**；
+unpause 后 Y 在 53s 由**后端自己的** `innodb_lock_wait_timeout=50s` 报 `ERROR 1205`——唯一能解脱客户端的界来自后端、Mycat 一份没出。**⇒ 悬挂真且可重现，但定位在语句腿（非初稿猜的排空/close 腿）**。
+**重定范围**：D-B（给 close 加超时）打不中已实证的悬挂（语句未回时根本走不到 drain 的 close）；有效杆杆=D-A1 URL `socketTimeout`（零代码）/D-A2 抬 `queryTimeout` 默认（改全局语义、危险）/D-B' Mycat 侧语句级 deadline（属语句执行层新机制、需另立 spec）。
+卫生：零生产码改动（dirty=0）；`m1-mysql-a` 已 unpause、`i82t` v 无净变、取证 proxy 已 KILL。**待用户就重定范围拍板**（详 spec §7）。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。
