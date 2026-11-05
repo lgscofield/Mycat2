@@ -259,4 +259,13 @@ R5 绿（如实定性：排空腿成败不进 `closeStatementState` 公开结果
 新增 `-BackendContainers`（默认三档）逐个 start+ping 就绪门，任一不上 `ABORT(backend)`。三处生产码已全部重背书（产物 `2026-11-04-i-debt-81-verify-srr/`）。
 ```
 
+**🆕 2026-11-05（G 轮续）G2 立票 I-DEBT-82（🔴 待取证）+ 就地订正上方"写路径不等排空"粗表述**：
+上方 L252-253 把 G2 记为"UPDATE/INSERT 响应不等归还"——本段实读当前 HEAD **推翻该表述**：
+`ReceiverImpl.java` 写路径对**同一** `transactionSession`（`:59/:69` = `dataContext.getTransactionSession()`）调了**两次**
+`closeStatementState()`：`:232-233` fire-and-forget（返回值丢弃）+ `:245→:256 sendOk` **awaited**（排空已挂在写 OK 前）⇒ "不等"不成立。
+真可疑面是**不等那条与等那条在同一会话并发跑两次排空**（`clearConnections` 快照 `extraConnections` + `removeAll` 与再次 `getAllConnections` 竞态）；
+且 autocommit 写路径确会填 `extraConnections`（`LocalXaSqlConnection:145-148` / `BaseXaSqlConnection:105-108`）⇒ 非理论。假设 H1（良性冗余·by-design）
+/H2（双清 use-after-close）/H3（`:233` 冗余应删）待 §4 活体五格取证判决（**不推理定性，承 I-DEBT-80 教训**）。
+Spec `2026-11-05-i-debt-82-xa-writepath-drain-design.md`；取证属较大新工作，**先交付 spec + 订正待用户过目再定是否投跑测**。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。
