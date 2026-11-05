@@ -25,6 +25,9 @@ import io.mycat.beans.resultset.SimpleTextWriterImpl;
 import io.mycat.newquery.NewMycatConnection;
 import io.mycat.newquery.RowSet;
 import io.mycat.newquery.SqlResult;
+import io.mycat.config.DatasourceConfig;
+import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
+import io.mycat.vertx.StatementDeadline;
 import io.mycat.proxy.session.MySQLServerSession;
 import io.mycat.util.VertxUtil;
 import io.mycat.vertx.ResultSetMapping;
@@ -44,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -218,20 +222,33 @@ public class ReceiverImpl implements Response {
                 return sendResultSet(Observable.concat(outputs));
             }
             case UPDATE:
-            case INSERT:
+            case INSERT: {
                 List<Future<SqlResult>> updateInfoList = new ArrayList<>(targetOrderList.size());
+                // I-DEBT-84 (D-B')：登记本条命令在途的物理连接，供语句超时 deadline 触发时 force-close，
+                // 解困阻塞在 socket read 上的 IOExecutor worker 并作废连接不入池（否则=客户端解挂却泄漏线程/连接）。
+                List<NewMycatConnection> inFlight = Collections.synchronizedList(new ArrayList<>());
                 for (int i = 0; i < targetOrderList.size(); i++) {
                     String datasource = targetOrderList.get(i);
                     Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource);
                     if (detail.getExecuteType() == INSERT) {
-                        updateInfoList.add(connectionFuture.flatMap(c -> c.insert(sql.toString(), detail.getParams())));
+                        updateInfoList.add(connectionFuture
+                                .map(c -> {
+                                    inFlight.add(c);
+                                    return c;
+                                })
+                                .flatMap(c -> c.insert(sql.toString(), detail.getParams())));
                     } else {
-                        updateInfoList.add(connectionFuture.flatMap(c -> c.update(sql.toString(), detail.getParams())));
+                        updateInfoList.add(connectionFuture
+                                .map(c -> {
+                                    inFlight.add(c);
+                                    return c;
+                                })
+                                .flatMap(c -> c.update(sql.toString(), detail.getParams())));
                     }
                 }
                 CompositeFuture all = CompositeFuture.join((List) updateInfoList)
                         .onSuccess(unused -> dataContext.getTransactionSession().closeStatementState());
-                return all.<List<SqlResult>>map(u -> all.list()).flatMap(list -> {
+                Future<Void> statementLeg = all.<List<SqlResult>>map(u -> all.list()).flatMap(list -> {
                     long affectedRow = 0;
                     long lastInsertId = 0;
                     for (SqlResult sqlResult : list) {
@@ -244,6 +261,13 @@ public class ReceiverImpl implements Response {
                     }
                     return sendOk(affectedRow, lastInsertId);
                 });
+                // I-DEBT-84：UPDATE/INSERT 在 sendOk 前不向客户端写任何字节 ⇒ 超时以 3013 走 recover 发合法 ERR，协议安全。
+                // （SELECT 流式腿须与 observer 的 resultStarted 纪律协同，另列后续子改动，见 spec §D / DEBT-QUEUE。）
+                return StatementDeadline.withDeadline(statementLeg, statementDeadlineMillis(targetOrderList), () -> {
+                    forceCloseInFlight(inFlight);
+                    return Future.succeededFuture();
+                });
+            }
             default:
                 throw new IllegalStateException("Unexpected value: " + detail.getExecuteType());
         }
@@ -315,6 +339,59 @@ public class ReceiverImpl implements Response {
             }
         }
         return warnings;
+    }
+
+    /**
+     * I-DEBT-84 (D-B')：语句超时 deadline 的全局兜底默认值（datasource 未配到时的保守界）。
+     * 与 {@code DatasourceConfig.statementTimeout} 出厂默认一致。
+     */
+    private static final long DEFAULT_STATEMENT_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(30);
+
+    /**
+     * 解析本条命令的语句级 deadline（毫秒）：取所涉 datasource {@code statementTimeout} 的最小值（多 DS 取最紧）。
+     * <ul>
+     *   <li>命中的 config 全为 {@code <=0}（显式禁用）⇒ 返回 {@code 0}，即不套 deadline；</li>
+     *   <li>无任何命中 config（目标名不在数据源表）⇒ 返回保守默认 30s（保证“默认可挂”被兜住）。</li>
+     * </ul>
+     */
+    private long statementDeadlineMillis(List<String> targets) {
+        long deadline = Long.MAX_VALUE;
+        boolean sawConfig = false;
+        try {
+            JdbcConnectionManager jdbcConnectionManager = MetaClusterCurrent.wrapper(JdbcConnectionManager.class);
+            Map<String, DatasourceConfig> configMap = jdbcConnectionManager.getConfigAsMap();
+            for (String target : targets) {
+                DatasourceConfig cfg = configMap.get(target);
+                if (cfg != null) {
+                    sawConfig = true;
+                    long v = cfg.getStatementTimeout();
+                    if (v > 0) {
+                        deadline = Math.min(deadline, v);
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            LOGGER.warn("resolve statement deadline failed, fall back to default", t);
+        }
+        if (!sawConfig) {
+            return DEFAULT_STATEMENT_TIMEOUT_MILLIS;
+        }
+        // 命中的 config 全部显式禁用（<=0）⇒ 不界；否则取启用值的最小值。
+        return deadline == Long.MAX_VALUE ? 0L : deadline;
+    }
+
+    /**
+     * I-DEBT-84：对本条命令在途的物理连接逐个 force-close（弃用不入池），使阻塞在 socket read
+     * 上的 IOExecutor worker 抛错解困。单个失败只记日志，不影响其余回收与向客户端报错。
+     */
+    private void forceCloseInFlight(List<NewMycatConnection> inFlight) {
+        for (NewMycatConnection c : inFlight) {
+            try {
+                c.abandonConnection();
+            } catch (Throwable t) {
+                LOGGER.warn("statement deadline force-close connection failed", t);
+            }
+        }
     }
 
     public static class MysqlPayloadObjectObserver implements Observer<MysqlPayloadObject> {
