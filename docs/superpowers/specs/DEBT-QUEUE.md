@@ -289,4 +289,13 @@ unpause 后 Y 在 53s 由**后端自己的** `innodb_lock_wait_timeout=50s` 报 
 **重定范围**：D-B（给 close 加超时）打不中已实证的悬挂（语句未回时根本走不到 drain 的 close）；有效杆杆=D-A1 URL `socketTimeout`（零代码）/D-A2 抬 `queryTimeout` 默认（改全局语义、危险）/D-B' Mycat 侧语句级 deadline（属语句执行层新机制、需另立 spec）。
 卫生：零生产码改动（dirty=0）；`m1-mysql-a` 已 unpause、`i82t` v 无净变、取证 proxy 已 KILL。**待用户就重定范围拍板**（详 spec §7）。
 
+**✅ 2026-11-05 I-DEBT-83 重定范围已拍板⇒ 转立 I-DEBT-84**：用户选 “立 D-B' 新票”——既不选 D-A1（交运维 URL 配置），也不选仅 by-design 留档；
+要产品自带能力而非外部约束。本票的“悬挂已坐实、定位语句腿”作为前提事实移交 I-DEBT-84（本票不再自行实现 close 兜底）。
+
+**🆕 2026-11-05（G 轮续）立票 I-DEBT-84（🔴 Spec 先行，未实现）·Mycat 侧语句级超时 deadline（D-B'）**：兜 I-DEBT-83 R1c 实证的“Mycat 等后端响应无界挂”。
+语句执行链（实读）：后端 SQL 一律 `ioExecutor.executeBlocking(promise -> 阻塞 JDBC; 完 promise)`（`JdbcMySqlConnection:151-158`、`IOExecutor:66-133`），
+promise 仅在阻塞 handler 返回时完成；客户端响应排在语句 Future 之后（`ReceiverImpl:256`写/`:391`读）⇒ 后端冻结则永不返回。deadline 能界客户端（`setTimer` race），
+**但界不了卡在读上的 IOExecutor 线程/物理连接**（除非 timer 里**强制 close socket**，否则每次超时泄漏一线程+一连接=重回 I-DEBT-80 孤儿签名）。故完整方案=deadline + 强制 close 两件。
+Spec `2026-11-05-i-debt-84-statement-deadline-design.md`；§6 待用户定 deadline 值/作用域、资源回收深度、交付节奏（先 plan 还是先拍插入点）。**未动生产码**。
+
 **为什么这么排**：第 0 步先让"每关一债都能逐版本自动出红/绿证据"成立（治"我说了算"）；第 1–2 步全在 A 层，是把 M2/M3 判据一格一格推绿；第 3 步的引擎债之所以降到最后，是因为它喂的是"基本 CRUD"这条 M2 子门，但**前端连不上（无 TLS/sha2）比一条 SQL 崩栈更挡招牌**——客户端第一脚都迈进不来，谈不上跑查询。每完成一步，回仪表盘更新对应里程碑的完成度。
