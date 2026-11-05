@@ -14,7 +14,7 @@
 | ① | 无（persona=MYSQL_8_0 + 后端 3306，单跑差分锁） | **5/5 绿**（13.60s） |
 | ② | 仅换 persona=MARIADB_10_11 | **5/5 绿**（8.959s） |
 | ③ | 仅换后端引擎为 3308 MariaDB（pymysql hint 重绑） | 经 8066 与直连 3308 **逐字节一致** |
-| ④ | **干净重启 8066** 后跑全量串跑口径 | 该类 **5/5 绿**（1.559s）；6 类红**整体消失**，实得 `550/0F/5E/37skip` |
+| ④ | **干净重启 8066** 后跑全量串跑口径 | 该类 **5/5 绿**（1.559s）；6 类红**整体消失**，实得 `550/0F/5E/37skip`（**F 轮订正**：该 5E 已由 I-DEBT-81 清零，现口径 `550/0F/0E/37skip`） |
 
 **根因**：11-03 那台 8066 在活体取证段被 hint `mycat:createDataSource` 把 `prototypeDs` 热重绑到了 3308 MariaDB，此后**没有重启**就跑了全量护栏。热重绑只改内存。**2026-11-04 复核把这条根因说得更准（并纠正本票初稿两处不精确）**：① 真正被护栏里那台 8066 载入的 home 是 `server/target/.mycat-home`（`MycatCore.findMycatHome()` 未显式 `-DMYCAT_HOME` 时的回退口径），初稿引用的 `.mycat-home-e2e` 是更早探针脚本显式指定的另一份 home——两者不是同一进程载的同一目录；新证据改为"跑完两轮全量后 `server/target/.mycat-home/datasources/` 仍只有 `prototypeDs.datasource.json`（url 恒 `localhost:3306`）、**没有** 测试用 hint 建的 `newDs.datasource.json`，而同族 `clusters/c0.*`、`schemas/db1.*`、`users/root.*` 会被刷新" ⇒ 内存-only 得到独立复证。② 污染源不止人工探针：`createDataSource` / `resetConfig` hint **测试套件自己就在发**（`i70-attrib-pristine.log` L616/L792/L1216…、`attr compat.log` L43/L219 的 `MycatTest.execute:105`）⇒ 连续两轮全量不重启本就会让进程内配置态漂移，"干净前置"是护栏前提而非探针卫生。于是护栏里一部分用例连到的是"上一段活体留下的后端画像"，而用例的期望值按 mysql:8.0 后端写死 ⇒ **假红**（列头两侧逐字相同、仅 BINARY/VARBINARY 值变 null、BLOB 正常，正是后端引擎错位的指纹）。
 
@@ -60,6 +60,8 @@
    - 正控：`-Persona MYSQL_8_0 -GateOnly` ⇒ `POSTURE OK` + EXITCODE=0 + 收尾把本轮起的 8066 杀掉（不给下一轮留活进程）。
    > **原判据订正（重要）**：本票最初写的是"用 hint 热重绑后端后不重启 ⇒ gate 必 abort"。**该判据不可实现**，2026-11-04 复核推翻了它：hint 建/改的 datasource 只落内存、**不写磁盘**（跑完两轮全量后磁盘 `datasources/` 仍只有 `prototypeDs.datasource.json`，而同族 `clusters/c0.*`、`schemas/db1.*`、`users/root.*` 会被刷新），而 gate 的后端腿读的是磁盘态 ⇒ 内存-only 脏态在 gate 眼里无痕迹。拦住它的正确机制是第 1 步 **kill+restart 本身**（结构性消除），不是 gate。gate 的职责边界因此是"拦画像与后端引擎族错配 + 拦非法 persona 名"，二者已由上表负控证明。
 2. 干净重启后跑同一脚本 ⇒ gate 通过、`example` 全量回到本轮实测基线 `550/0F/5E/37skip`（5E 为 I-DEBT-80，与本票正交，不得因本票冒绿）；
+   > **基线订正（2026-11-04 F 轮）**：该格的 `5E` 是本票背书时点的真实读数，其后已由 **I-DEBT-81** 产品码修复清零，
+   > 现口径为 **`550/0F/0E/37skip`**。"5E 与本票正交、不得因本票冒绿"的纪律本身不变，只是那 5E 后来被真修掉了。
 3. `BinaryRepresentationFidelityDifferentialTest` 在全量串跑口径下 5/5 绿（把 11-03 的 6 类假红永久钉死）；
 4. 刀②若获批：CI 侧构造"非法 persona 名"负控（如 `MYSQL_9_0`）必须让 step 失败，改回合法名必须绿（判别力双检）。
 

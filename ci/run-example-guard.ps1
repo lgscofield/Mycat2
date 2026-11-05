@@ -28,7 +28,12 @@ param(
     [string]$Jar = "$PSScriptRoot\..\server\target\server-1.22-release-jar-with-dependencies.jar",
     [string]$Modules = 'server,example',
     [string]$MycatHome = '',
-    [string]$BackendContainer = 'm1-mysql-a',
+    [string]$BackendContainer = '',
+    # example 全套不止用 prototypeDs(3306)：分片库还用 3307(mysql)、MariaDB 轨还用 3308。
+    # 2026-11-05 实测教训：WSL/Docker Desktop 重启后 m1-mysql-b / m6-mariadb-a 处于 Exited，
+    # 而本脚本旧写法只 docker start 第一个容器 ⇒ proxy 一路 Connection refused 却照样跑完测试 = 假红温床。
+    # 故默认把三档后端都 start 并 ping 通，任一把不上就 abort（宁 NO_DATA 不假红）。
+    [string[]]$BackendContainers = @('m1-mysql-a', 'm1-mysql-b', 'm6-mariadb-a'),
     [string]$DsName = 'prototypeDs',
     [string]$JdkHome = '',
     [string]$Test = '',
@@ -96,14 +101,30 @@ if ($newestSrc -and $newestSrc.LastWriteTime -gt (Get-Item $Jar).LastWriteTime) 
         ") 新 ⇒ 先 mvn -o -B package -DskipTests；最新文件 " + $newestSrc.FullName.Replace($REPO + '\', ''))
 }
 
-# --- 0) 后端容器就位 ---
-docker start $BackendContainer 2>&1 | Out-Null
-for ($i = 0; $i -lt 30; $i++) {
-    docker exec $BackendContainer sh -c "mysqladmin ping -h127.0.0.1 -uroot -p123456 >/dev/null 2>&1" 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) { break }
-    Start-Sleep 2
+# --- 0) 后端容器就位（多档：-BackendContainer 若给出则只用那一个，保持旧调用方兼容）
+if ($BackendContainer) { $BackendContainers = @($BackendContainer) }
+function Wait-ContainerReady([string]$name) {
+    for ($i = 0; $i -lt 30; $i++) {
+        $ping = "mysqladmin ping -h127.0.0.1 -uroot -p123456 >/dev/null 2>&1"
+        docker exec $name sh -c $ping 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) { return $true }
+        Start-Sleep 2
+    }
+    return $false
 }
-# 容器→宿主 的可达地址（Docker Desktop 优先 host.docker.internal，回落网关 IP）
+$readyBackends = @()
+foreach ($c in $BackendContainers) {
+    docker start $c 2>&1 | Out-Null
+    if (Wait-ContainerReady $c) {
+        $readyBackends += $c
+        Write-Output ("BACKEND UP " + $c)
+    } else {
+        Write-Output ("ABORT(backend): 容器 " + $c + " 启动后 ping 不上（60s 超时）⇒ 后端不全，跑测只会造假红")
+        exit 1
+    }
+}
+# 容器→宿主 的可达地址（Docker Desktop 优先 host.docker.internal，回落网关 IP）。探针用第一个就绪容器。
+$BackendContainer = $readyBackends[0]
 function Invoke-HostSql([string]$port, [string]$sql) {
     foreach ($h in @('host.docker.internal', '192.168.65.254')) {
         $r = docker exec $BackendContainer sh -c "mysql --protocol=tcp -h$h -P$port -uroot -p123456 --get-server-public-key -N -e '$sql' 2>/dev/null"

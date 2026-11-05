@@ -51,7 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -320,7 +319,9 @@ public class VertxUpdateExecuter {
                             }
                             continue;
                         } finally {
-                            context.getTransactionSession().closeStatementState().toCompletionStage().toCompletableFuture().get(1, TimeUnit.SECONDS);
+                            // I-DEBT-81 §8.5：排空被真等待后，其超时/失败会以 checked 异常从 finally 抛出，
+                            // 覆盖 @SneakyThrows 方法 try 里已算好的 return res。改为静默等待，等不到只记日志。
+                            StatementStateReclaim.awaitQuietly(context.getTransactionSession().closeStatementState(), 1000);
                         }
                     }
                 }

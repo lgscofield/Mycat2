@@ -447,11 +447,24 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
         Future<Void> future = CompositeFuture.join(stopResultSet).mapEmpty();
         future = future.flatMap(unused -> CompositeFuture.join((List) closeList).mapEmpty());
         closeList.clear();
-        return future.onComplete(event -> clearConnections().onComplete(unused -> {
+        // I-DEBT-81：排空腿必须被等待。旧写法是
+        // return future.onComplete(event -> clearConnections().onComplete(...))，
+        // 把 clearConnections() 的 Future 丢在 onComplete 处理器里（处理器的返回值不参与 Future 链），
+        // 于是 SELECT 的 EOF 在后端连接还没归还时就发给了客户端，extraConnections 跨语句单调累积，
+        // 最终撞后端 max_connections（I-DEBT-80 六格取证的判决主因）。
+        // 语义向 LocalSqlConnection.closeStatementState 看齐：结果仍是 future 的结果，只是完成时刻推到排空之后。
+        Promise<Void> drained = Promise.promise();
+        future.onComplete(event -> clearConnections().onComplete(unused -> {
             if (!inTranscation) {
                 xid = null;
             }
+            if (event.failed()) {
+                drained.tryFail(event.cause());
+            } else {
+                drained.tryComplete();
+            }
         }));
+        return drained.future();
     }
 
     @Override
@@ -476,25 +489,48 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
      * before clear connections,it should check not be in transaction
      */
     public Future<Void> clearConnections() {
-        Future<Void> future = CompositeFuture.join((List) closeList).mapEmpty();
+        Future<Void> closeListFuture = CompositeFuture.join((List) closeList).mapEmpty();
         closeList.clear();
-        for (NewMycatConnection extraConnection : extraConnections) {
-            future = future.compose(unused -> extraConnection.close());
-        }
-        future = future.onComplete(event -> extraConnections.clear());
+        // I-DEBT-81：先快照再并行归还。旧写法把 close() 逐条 compose 成串行链（队头阻塞），
+        // 且 extraConnections.clear() 挂在链尾，链没走完计数就永不下降。
+        // 这里改成 removeAll(snapshot)，排空期间新借的连接不会被误抹掉。
+        List<NewMycatConnection> draining = new ArrayList<>(extraConnections);
+        Future<Void> extraFuture = joinCloses(draining)
+                .onComplete(event -> extraConnections.removeAll(draining));
         if (inTranscation) {
-            return future;
-        } else {
-            return future.onComplete(u -> executeTranscationConnection(c -> {
-                return c.close();
-            }).onComplete(c -> {
-                for (NewMycatConnection connection : map.values()) {
-                    connection.close();
-                }
-                map.clear();
-                connectionState.clear();
+            return joinVoidFutures(closeListFuture, extraFuture);
+        }
+        List<NewMycatConnection> transactionConnections = new ArrayList<>(map.values());
+        Future<Void> mapFuture = joinCloses(transactionConnections)
+                .onComplete(event -> {
+                    map.clear();
+                    connectionState.clear();
+                });
+        return joinVoidFutures(closeListFuture, extraFuture, mapFuture);
+    }
+
+    /**
+     * 并行归还一组连接：单条失败只记日志、不中断其余归还，也不把整条腿变成 N 段串行延迟。
+     */
+    private Future<Void> joinCloses(List<NewMycatConnection> connections) {
+        if (connections.isEmpty()) {
+            return Future.succeededFuture();
+        }
+        List<Future> futures = new ArrayList<>(connections.size());
+        for (NewMycatConnection connection : connections) {
+            futures.add(connection.close().recover(cause -> {
+                LOGGER.warn("return xa connection to pool failed,target:"
+                        + connection.getTargetName(), cause);
+                return Future.succeededFuture();
             }));
         }
+        return CompositeFuture.join(futures).mapEmpty();
+    }
+
+    @SafeVarargs
+    private final Future<Void> joinVoidFutures(Future<Void>... futures) {
+        List<Future> joined = new ArrayList<>(Arrays.asList(futures));
+        return CompositeFuture.join(joined).mapEmpty();
     }
 }
 

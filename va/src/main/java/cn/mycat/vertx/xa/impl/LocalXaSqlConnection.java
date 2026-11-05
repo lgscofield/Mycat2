@@ -279,6 +279,11 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
         if (localSqlConnection != null) {
             resList.add(localSqlConnection);
         }
+        // I-DEBT-81 M9：旧码算出 allConnections 却从未并入返回值（连容量都按 +1 预留了，漏并是笔误），
+        // 于是 XA 轨语句结束时 BaseXaSqlConnection.closeStatementState():446 对 map/extraConnections
+        // 一条 abandonQuery() 都不发（后端结果集不被放弃），且 show 的事务快照
+        // VertxMycatServer:327 也少掉全部参与者。语义向 LocalSqlConnection.getAllConnections():176 看齐。
+        resList.addAll(allConnections);
         return resList;
     }
 }
