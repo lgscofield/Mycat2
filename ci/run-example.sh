@@ -40,7 +40,10 @@ ready=0
 for i in $(seq 1 60); do
   # 读 5 字节：0..2=包长(3 字节小端) + 3=序列号 + 4=payload 首字节。握手包长度恒 >0，
   # 其低位置于第 1 个字节 ⇒ 首字节 >0 才算真握手包（与本地 run-example-guard.ps1 的 $b[0] 判据同口径）。
-  hs=$(timeout 6 bash -c 'exec 3<>/dev/tcp/127.0.0.1/8066; dd bs=1 count=5 <&3 2>/dev/null' | od -An -tu1 | tr -s ' \t' ' ' | sed 's/^ *//')
+  # 注意：Mycat 未起来时内层 bash 连接被拒→非零退出，pipefail 会把它传给整条管道；若不吞掉，
+  # set -e 会在首次轮询（服务尚未就绪）即中止整个脚本（这正是首次 CI 全红的真因）。
+  # 故用 `|| hs=""` 兜住左操作数（set -e 不干预 || 左侧），并把 stderr 丢弃以免刷屏。
+  hs=$(timeout 6 bash -c 'exec 3<>/dev/tcp/127.0.0.1/8066; dd bs=1 count=5 <&3 2>/dev/null' 2>/dev/null | od -An -tu1 | tr -s ' \t' ' ' | sed 's/^ *//') || hs=""
   if [ -n "$hs" ]; then
     set -- $hs
     if [ "$#" -ge 5 ] && [ "${1:-0}" -gt 0 ] 2>/dev/null; then ready=1; break; fi
