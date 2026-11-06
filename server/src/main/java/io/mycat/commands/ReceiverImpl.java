@@ -149,9 +149,11 @@ public class ReceiverImpl implements Response {
     public Future<Void> rollback() {
         count++;
         boolean hasMoreResultSet = hasMoreResultSet();
-        return transactionSession.rollback()
+        // I-DEBT-84 事务腿 Phase 1：rollback 经 update("rollback;"/"XA ...") 走阻塞 JDBC，后端冻结即无界挂；
+        // 套语句 deadline，超时 force-close 参与者解困 worker 并以 3013 界住客户端（未 prepared 分支断连自动回滚）。
+        return withTransactionLegDeadline(transactionSession.rollback()
                 .eventually((u) -> transactionSession.closeStatementState())
-                .flatMap(u -> session.writeOk(hasMoreResultSet));
+                .flatMap(u -> session.writeOk(hasMoreResultSet)));
     }
 
     @Override
@@ -175,27 +177,30 @@ public class ReceiverImpl implements Response {
     public Future<Void> rollbackSavepoint(String name) {
         count++;
         boolean hasMoreResultSet = hasMoreResultSet();
-        return transactionSession.rollbackSavepoint(name)
+        // I-DEBT-84 事务腿 Phase 1：savepoint 系列经生产 SavepointSqlConnection 落真实 update()，可挂⇒ 同 rollback 接 deadline。
+        return withTransactionLegDeadline(transactionSession.rollbackSavepoint(name)
                 .eventually((u) -> transactionSession.closeStatementState())
-                .flatMap(u -> session.writeOk(hasMoreResultSet));
+                .flatMap(u -> session.writeOk(hasMoreResultSet)));
     }
 
     @Override
     public Future<Void> setSavepoint(String name) {
         count++;
         boolean hasMoreResultSet = hasMoreResultSet();
-        return transactionSession.createSavepoint(name)
+        // I-DEBT-84 事务腿 Phase 1：见 rollbackSavepoint 同款 deadline 说明。
+        return withTransactionLegDeadline(transactionSession.createSavepoint(name)
                 .eventually((u) -> transactionSession.closeStatementState())
-                .flatMap(u -> session.writeOk(hasMoreResultSet));
+                .flatMap(u -> session.writeOk(hasMoreResultSet)));
     }
 
     @Override
     public Future<Void> releaseSavepoint(String name) {
         count++;
         boolean hasMoreResultSet = hasMoreResultSet();
-        return transactionSession.releaseSavepoint(name)
+        // I-DEBT-84 事务腿 Phase 1：见 rollbackSavepoint 同款 deadline 说明。
+        return withTransactionLegDeadline(transactionSession.releaseSavepoint(name)
                 .eventually((u) -> transactionSession.closeStatementState())
-                .flatMap(u -> session.writeOk(hasMoreResultSet));
+                .flatMap(u -> session.writeOk(hasMoreResultSet)));
     }
 
     @Override
@@ -435,6 +440,23 @@ public class ReceiverImpl implements Response {
                 LOGGER.warn("statement deadline force-close connection failed", t);
             }
         }
+    }
+
+    /**
+     * I-DEBT-84 事务腿 Phase 1：给 rollback/savepoint 腿套语句级 deadline。参与者均已借出（无 getConnection 迟到竞态），
+     * 超时即逐个 {@code abandonConnection()} 解困阻塞在 {@code update()} 上的 worker；deadline 口径与 SELECT/DML 腿一致
+     * （datasource {@code statementTimeout} 最小值 + 全局默认兜底）。commit 腿（本地单 DS + 多 DS 2PC）因 in-doubt
+     * 风险刻意不接，留 Phase 2 拍板（见 spec §7.6/§7.7）。
+     */
+    private Future<Void> withTransactionLegDeadline(Future<Void> leg) {
+        List<NewMycatConnection> participants = transactionSession.getExistedTranscationConnections();
+        List<String> targets = participants.stream().map(NewMycatConnection::getTargetName)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        long deadline = statementDeadlineMillis(targets);
+        return StatementDeadline.withDeadline(leg, deadline, () -> {
+            forceCloseInFlight(participants, new AtomicBoolean(true));
+            return Future.succeededFuture();
+        });
     }
 
     public static class MysqlPayloadObjectObserver implements Observer<MysqlPayloadObject> {
