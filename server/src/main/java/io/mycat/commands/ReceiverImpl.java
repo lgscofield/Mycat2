@@ -127,12 +127,21 @@ public class ReceiverImpl implements Response {
 
     @Override
     public Future<Void> sendResultSet(Observable<MysqlPayloadObject> mysqlPacketObservable) {
+        return sendResultSet(mysqlPacketObservable, null);
+    }
+
+    /**
+     * I-DEBT-84 子项②：带列头已刷信号的重载。{@code resultStartedSignal} 由 {@code null} 之外的共享
+     * {@link AtomicBoolean} 承担，供 SELECT 腿的语句超时 deadline 在 timer 线程上读列头是否已上线。
+     */
+    public Future<Void> sendResultSet(Observable<MysqlPayloadObject> mysqlPacketObservable,
+                                      AtomicBoolean resultStartedSignal) {
         count++;
         boolean hasMoreResult = hasMoreResultSet();
         IOExecutor ioExecutor = MetaClusterCurrent.wrapper(IOExecutor.class);
 
         return ioExecutor.executeBlocking(promise1 -> mysqlPacketObservable.subscribe(
-                new MysqlPayloadObjectObserver(promise1, hasMoreResult, binary, session)));
+                new MysqlPayloadObjectObserver(promise1, hasMoreResult, binary, session, resultStartedSignal)));
 
     }
 
@@ -204,10 +213,18 @@ public class ReceiverImpl implements Response {
         switch (detail.getExecuteType()) {
             case QUERY:
             case QUERY_MASTER: {
+                // I-DEBT-84 子项②：SELECT 流式腿同样接语句超时 deadline。登记在途连接供超时 force-close
+                // （阻塞在后端 socket read 上的 IOExecutor worker 解困），并用共享 resultStartedSignal 记住
+                // 列头是否已刷：未刷→3013 走 recover 发合法 ERR；已刷→只能关通道（裸 ERR 非法，且关通道
+                // 使 recover 的 3013 自动变 no-op），二者竞态由 timer 在 onTimeout 里据信号二选一收口。
+                List<NewMycatConnection> inFlight = Collections.synchronizedList(new ArrayList<>());
+                AtomicBoolean statementTimedOut = new AtomicBoolean(false);
+                AtomicBoolean resultStartedSignal = new AtomicBoolean(false);
                 List<Observable<MysqlPayloadObject>> outputs = new LinkedList<>();
                 for (int i = 0; i < targetOrderList.size(); i++) {
                     String datasource = targetOrderList.get(i);
-                    Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource);
+                    Future<NewMycatConnection> connectionFuture = transactionSession.getConnection(datasource)
+                            .map(c -> registerInFlight(c, inFlight, statementTimedOut));
                     if (i == 0) {
                         // I-DEBT-69 Blade D 余项：SELECT 的后端诊断条件同样物化到会话缓冲（比 EOF/OK 早）。
                         outputs.add(VertxExecuter.runQueryOutputAsMysqlPayloadObject(connectionFuture, sql.toString(), detail.getParams(),
@@ -220,7 +237,16 @@ public class ReceiverImpl implements Response {
                                 .map(row -> new MysqlObjectArrayRow(row)));
                     }
                 }
-                return sendResultSet(Observable.concat(outputs));
+                Future<Void> queryLeg = sendResultSet(Observable.concat(outputs), resultStartedSignal);
+                return StatementDeadline.withDeadline(queryLeg, statementDeadlineMillis(targetOrderList), () -> {
+                    forceCloseInFlight(inFlight, statementTimedOut);
+                    if (resultStartedSignal.get()) {
+                        // 列头已上线：客户端在读行态，此处若让 3013 走 recover 补裸 ERR 属协议非法（客户端
+                        // 会当数据行继续等终结包而永挂）。先关通道，令随后 recover 的 3013 因 channel 已断变 no-op。
+                        session.close(false, "Query exceeded statement deadline");
+                    }
+                    return Future.succeededFuture();
+                });
             }
             case UPDATE:
             case INSERT: {
@@ -421,13 +447,25 @@ public class ReceiverImpl implements Response {
         private final AtomicLong rowCount = new AtomicLong(0);
         /** 列头是否已刷给客户端：一旦刷出，连接进入读行态，后续错误不能再补合法 ERR 包，只能关连接。 */
         private boolean resultStarted = false;
+        /**
+         * I-DEBT-84 子项②：把 {@link #resultStarted} 外抛给语句超时 deadline 的 timer 线程读，
+         * 使其能在列头已刷时选择关通道（禁非法裸 ERR）而非放行 3013 走 recover。可为 null（非 deadline 路径）。
+         */
+        private final AtomicBoolean resultStartedSignal;
 
         public MysqlPayloadObjectObserver(Promise<Void> promise,
                                           boolean moreResultSet, boolean binary, MySQLServerSession session) {
+            this(promise, moreResultSet, binary, session, null);
+        }
+
+        public MysqlPayloadObjectObserver(Promise<Void> promise,
+                                          boolean moreResultSet, boolean binary, MySQLServerSession session,
+                                          AtomicBoolean resultStartedSignal) {
             this.promise = promise;
             this.moreResultSet = moreResultSet;
             this.binary = binary;
             this.session = session;
+            this.resultStartedSignal = resultStartedSignal;
         }
 
         @Override
@@ -448,6 +486,11 @@ public class ReceiverImpl implements Response {
                     MycatRowMetaData rowMetaData = ((MySQLColumnDef) next).getMetaData();
                     // 列数包即客户端进入读行态的提交点：先置位，此后任何错误都只能关连接而非补 ERR。
                     this.resultStarted = true;
+                    // I-DEBT-84 子项②：同步外抛给 deadline timer，须在写列数包之前置位（保守偏早安全：
+                    // timer 若据此关通道，客户端至多丢连接，不会收到写在看开路上的非法裸 ERR）。
+                    if (resultStartedSignal != null) {
+                        resultStartedSignal.set(true);
+                    }
                     session.writeColumnCount(rowMetaData.getColumnCount());
                     if (!binary) {
                         convertor = ResultSetMapping.concertToDirectTextResultSet(rowMetaData);

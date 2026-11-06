@@ -10,6 +10,9 @@ import io.mycat.TransactionSession;
 import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.config.DatasourceConfig;
 import io.mycat.datasource.jdbc.datasource.JdbcConnectionManager;
+import io.mycat.IOExecutor;
+import io.mycat.beans.mycat.CopyMycatRowMetaData;
+import io.mycat.newquery.MysqlCollector;
 import io.mycat.newquery.NewMycatConnection;
 import io.mycat.newquery.SqlResult;
 import io.mycat.proxy.session.MySQLServerSession;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -81,6 +85,8 @@ public class ReceiverStatementDeadlineForceCloseTest {
         JdbcConnectionManager manager = Mockito.mock(JdbcConnectionManager.class);
         Mockito.when(manager.getConfigAsMap()).thenReturn(configMap);
         MetaClusterCurrent.register(JdbcConnectionManager.class, manager);
+        // SELECT 流式腿经 sendResultSet→ioExecutor.executeBlocking，需注册 IOExecutor（DEFAULT 用 cached 线程跑 handler）。
+        MetaClusterCurrent.register(IOExecutor.class, IOExecutor.DEFAULT);
 
         // 永不完成的 update：模拟后端冻结时 statement.executeUpdate 卡在 socket read。
         blockingUpdate = Promise.promise();
@@ -194,5 +200,76 @@ public class ReceiverStatementDeadlineForceCloseTest {
         Thread.sleep(100L);
         assertEquals(1, lateAbandonCounter.get(),
                 "deadline 之后才借到的连接必须即刻 force-close，否则成孤儿");
+    }
+
+    /**
+     * I-DEBT-84 子项②（SELECT 流式腿·列头未刷侧）：连接永不借到 ⇒ 列头永不刷出⇒客户端尚未进读行态。
+     * 此时超时 MUST 以 3013 走 recover 发合法 ERR，且绝不得提前关通道（否则丢合法 ERR 路径）。
+     */
+    @Test
+    public void testSelectLegTimesOutBeforeHeaderFlushesReports3013() throws Exception {
+        // 连接永不借到：runQueryOutput 的 observable 永不起列头，executeBlocking 的 promise 永不 settle。
+        Mockito.when(xa.getConnection(RESOLVED_DS)).thenReturn(Promise.<NewMycatConnection>promise().future());
+
+        ReceiverImpl receiver = new ReceiverImpl(session, 1, false);
+        ExplainDetail detail = ExplainDetail.create(ExecuteType.QUERY,
+                Collections.singletonList("tbl"), "SELECT id FROM db1.t WHERE id=1", null,
+                Collections.emptyList());
+
+        long start = System.nanoTime();
+        ExecutionException ex = null;
+        try {
+            receiver.execute(detail).toCompletionStage().toCompletableFuture().get(3, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            ex = e;
+        }
+        long elapsedMs = (System.nanoTime() - start) / 1_000_000L;
+
+        assertTrue(ex != null, "永不借到连接的 SELECT 必须被语句 deadline 掐成失败");
+        assertTrue(elapsedMs < 2000, "应远小于 3s 超时，实际 " + elapsedMs + " ms");
+        assertInstanceOf(MycatException.class, ex.getCause());
+        assertEquals(MycatErrorCode.ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT,
+                ((MycatException) ex.getCause()).getErrorCode(), "超时须报 3013");
+        Mockito.verify(session, Mockito.never()).close(Mockito.anyBoolean(), Mockito.anyString());
+        assertEquals(0, abandonCounter.get(), "列头未刷且无在途连接——不应有 force-close 动作");
+    }
+
+    /**
+     * I-DEBT-84 子项②（SELECT 流式腿·列头已刷侧）：借到连接后 prepareQuery 只刷列头（onColumnDef）
+     * 却永不 onComplete ⇒ 客户端已进读行态、流冻结。此时超时 MUST：先对在途连接 force-close，
+     * 再因 resultStartedSignal=true 而 session.close（不能让 3013 走 recover 补非法裸 ERR）。
+     */
+    @Test
+    public void testSelectLegTimesOutAfterHeaderFlushesClosesSession() throws Exception {
+        CopyMycatRowMetaData meta = new CopyMycatRowMetaData(new CopyMycatRowMetaData.Column[]{
+                new CopyMycatRowMetaData.Column(false, true, true, 11, "id", "", 10, 0, "t",
+                        Types.INTEGER, "id", false)
+        });
+        // 借到连接后 prepareQuery 只刷列头、不 onComplete：模拟结果集流在后端冻结（列头已上线）。
+        Mockito.doAnswer(inv -> {
+            MysqlCollector collector = inv.getArgument(2);
+            collector.onColumnDef(meta);
+            return null;
+        }).when(fakeConn).prepareQuery(Mockito.anyString(), Mockito.anyList(), Mockito.any(MysqlCollector.class));
+
+        ReceiverImpl receiver = new ReceiverImpl(session, 1, false);
+        ExplainDetail detail = ExplainDetail.create(ExecuteType.QUERY,
+                Collections.singletonList("tbl"), "SELECT id FROM db1.t WHERE id=1", null,
+                Collections.emptyList());
+
+        ExecutionException ex = null;
+        try {
+            receiver.execute(detail).toCompletionStage().toCompletableFuture().get(3, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            ex = e;
+        }
+
+        assertTrue(ex != null, "列头已刷且流冻结的 SELECT 必须被 deadline 掐成失败（客户端有界）");
+        assertInstanceOf(MycatException.class, ex.getCause());
+        assertEquals(MycatErrorCode.ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT,
+                ((MycatException) ex.getCause()).getErrorCode(), "超时须报 3013");
+        assertTrue(abandonCounter.get() >= 1, "deadline 须对在途连接 force-close");
+        // 列头已刷⇒由我的 onTimeout 分支主动关通道（而非 observer.onError，后者需 onError 信号）。
+        Mockito.verify(session).close(Mockito.eq(false), Mockito.anyString());
     }
 }
