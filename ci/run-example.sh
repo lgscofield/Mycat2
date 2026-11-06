@@ -66,15 +66,23 @@ if [ -n "${MYCAT_PERSONA:-}" ] && command -v mysql >/dev/null 2>&1; then
     *) echo "ABORT(posture): 非法 MYCAT_PERSONA='$MYCAT_PERSONA'（白名单见 config/ServerPersona.java）"; exit 1 ;;
   esac
   # --get-server-public-key：非 TLS 下 caching_sha2 full-auth 必需，否则 ERROR 2061（仪器坑非产品坑）
-  got_ver=$(mysql --protocol=tcp -h127.0.0.1 -P8066 -uroot -p123456 --get-server-public-key \
-      -N -B -e 'select version()' 2>/dev/null || echo "")
+  # 重试 3 次防瞬时抖动（读不到与错配同等对待，硬 abort 前给足机会）
+  got_ver=""
+  for i in 1 2 3; do
+    got_ver=$(mysql --protocol=tcp -h127.0.0.1 -P8066 -uroot -p123456 --get-server-public-key \
+        -N -B -e 'select version()' 2>/dev/null || echo "")
+    [ -n "$got_ver" ] && break
+    sleep 3
+  done
   echo "POSTURE(persona=$MYCAT_PERSONA) front(8066)=[$got_ver] want=$want_ver"
-  # 渐进加固：本 gate 的版本断言从未在 CI 真跑过（step 7 曾恒红、后续步被跳过），故本轮先以
-  # 非致命 WARN 落地上线，从 CI 日志取回 version() 真值核对正则，下一轮再升为硬 abort（假绿门牙）。
+  # 硬门牙（刀② 收尾，2026-11-06）：WARN 试点轮 run@42171603959 已从 CI 日志取回 7 档真值
+  # 且正则逐档命中（5.7.33-mycat-2.0 / 8.0.34 / 8.4.0 / 9.0.1 / 10.6.14-MariaDB /
+  # 10.11.8-MariaDB / 11.4.2-MariaDB，全 POSTURE OK），判据经实证，按预定计划升为 abort：
+  # 画像与宣称族错配或读不到版本 = 假绿温床，直接红掉本 step，不再放行。
   if [ -z "$got_ver" ]; then
-    echo "WARN(posture): 经 8066 读不到 select version()（本轮不阻断，待取证）"
+    echo "ABORT(posture): 经 8066 读不到 select version()，无法证实 persona=$MYCAT_PERSONA"; exit 1
   elif ! echo "$got_ver" | grep -qE "$want_ver"; then
-    echo "WARN(posture): 前端 version()='$got_ver' 不在 $MYCAT_PERSONA 宣称的族 $want_ver（本轮不阻断，待核对正则后升硬）"
+    echo "ABORT(posture): 前端 version()='$got_ver' 不在 $MYCAT_PERSONA 宣称的族 $want_ver"; exit 1
   else
     echo "POSTURE OK"
   fi
