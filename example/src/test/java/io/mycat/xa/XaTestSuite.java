@@ -95,8 +95,19 @@ public abstract class XaTestSuite {
                 "  KEY `id` (`id`)\n" +
                 ") ENGINE=InnoDB  DEFAULT CHARSET=utf8");
         JdbcUtils.execute(mySQLConnection, "CREATE DATABASE IF NOT EXISTS `mycat`;");
+        // 与产品 XaLogSchema 同源：xa_log 含 create_time（Phase 2 reaper 判超期）、mycat_id（多实例归属）。
         JdbcUtils.execute(mySQLConnection, "CREATE TABLE IF NOT EXISTS `mycat`.`xa_log`" +
-                "(`xid` bigint PRIMARY KEY NOT NULL) ENGINE=InnoDB;");
+                "(`xid` bigint PRIMARY KEY NOT NULL,`create_time` bigint,`mycat_id` int) ENGINE=InnoDB;");
+        // 旧库（早期只有 xid 单列）补列，幂等。
+        for (String alter : new String[]{
+                "ALTER TABLE `mycat`.`xa_log` ADD COLUMN `create_time` bigint",
+                "ALTER TABLE `mycat`.`xa_log` ADD COLUMN `mycat_id` int"}) {
+            try {
+                JdbcUtils.execute(mySQLConnection, alter);
+            } catch (SQLException ignore) {
+                // Duplicate column name —— 已是新结构，跳过。
+            }
+        }
     }
 
 

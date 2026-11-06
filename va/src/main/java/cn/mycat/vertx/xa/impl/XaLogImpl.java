@@ -144,15 +144,10 @@ public class XaLogImpl implements XaLog {
             try {
                 for (Map.Entry<String, Connection> connectionEntry : connectionMap.entrySet()) {
                     Connection connection = connectionEntry.getValue();
-                    JdbcUtils.executeUpdate(connection,
-                            "create database if not exists `mycat`", Collections.emptyList());
-                    JdbcUtils.executeUpdate(connection,
-                            "create table if not exists `mycat`." + "`xa_log`"
-                                    + "(`xid` bigint PRIMARY KEY NOT NULL" +
-                                    ") ENGINE=InnoDB", Collections.emptyList());
+                    XaLogSchema.ensureSchema(connection);
                 }
             } catch (Throwable throwable) {
-                LOGGER.warn("create database mycat fail",throwable);
+                LOGGER.warn("create database mycat fail", throwable);
                 return;
             }
             ConcurrentHashMap<String, Set<String>> xid_targets = new ConcurrentHashMap<>();//xid,Se

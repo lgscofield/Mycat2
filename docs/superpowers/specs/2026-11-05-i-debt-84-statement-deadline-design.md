@@ -1,6 +1,6 @@
 # I-DEBT-84 · Mycat 侧语句级超时 deadline（D-B'，兜住 R1c 实证的"等后端响应无界挂"）—— Spec 先行
 
-> **状态**：🟡 已拍板→转 plan（未实码）。承 I-DEBT-83 §7 活体取证判决 + 用户拍板"立 D-B' 新票"；§6 三岔路已定（见末）。
+> **状态**：🟢 实码推进中——statement/DML/SELECT/事务腿 Phase1 已落地（§7.6）；Phase2 阶段0+1（提交意向持久化 + 独立事务 reaper）已落地实证（§7.8）；阶段2（commit 腿接 deadline）留后续独立子票。
 > **分层**：C（引擎地基 / 生产稳健交界，承 I-DEBT-80/81/82/83 资源/可用性族）。
 > **一句话**：给"Mycat 等后端响应"这条 Future 套一个 wall-clock deadline，使客户端在**后端僵死/TCP 黑 hole**（服务端超时也救不了的场景）下
 > 仍在**有界**时间内拿到错误，兑现招牌"无缝替代 MySQL"的可用性底线；且**不得把"客户端解挂"变成"线程/连接泄漏"**。
@@ -123,4 +123,19 @@
 ### §7.7 独立事务 reaper 取舍评估（2026-11-06，§7.5 落地可行性实证）
 - **地基实锤存在**：`ScheduleUtil.getTimer()` 单例 `ScheduledExecutorService`（`ScheduleUtil:28-33`）可挂周期扫描；`MySQLManager.setTimer(delay, runnable)` 已被 `retryCommit()`/`retryRollback()` 使用（`BaseXaSqlConnection:225,376`）；`xa_log` 表 + `log.readXARecoveryLog()`/`tryRecovery()`（`BaseXaSqlConnection:191-213`）即 recovery 现成入口。⇒ reaper **不必从零造**，可复用既有定时器 + xa_log + recovery 三件套。
 - **但它救的是 Phase 2，不是 Phase 1**：Phase 1（rollback/savepoint）的悬挂已被客户端 deadline + force-close **自洽收口**（未 prepared 分支断连自动回滚，无残留）。reaper 的价值在于兜"commit 已发出但结果未知/客户端 deadline 竞态漏堵"的**未决事务**——正是 Phase 2 的核心难点与 §7.3②③ 的耦合根源。
-- **推荐（带代价）**：**评估结论=倾向引入，但作为 Phase 2 的前置解耦杠杆单独拍板，不与 Phase 1 捆绑**。选它：Phase 2 commit 的 in-doubt 兜底从"脆弱挂在客户端 deadline"改挂到与客户端解耦的后台收尸线，天然贴近 peers 纵深防御，且已有三件套使落地成本可控。代价与边界：① 新增一个常驻调度/扫描机制（全局单例 vs per-schema、扫描周期与 `xa_log.expires` 对齐）；② 语义须精确定性——仅扫**超期且未决**事务、走既有 `readXARecoveryLog`+`retryCommit`，禁与在线客户端事务抢方向盘；③ 活体 2PC 故障注入才能诚实背书"不损坏 in-doubt"，确定性单测锁不住。**因涉全新增子系统、有外溢（后台线程持续动后端事务），属须用户拍板项，本会话只出评估不擅自实现。**
+- **推荐（带代价）**：**评估结论=倾向引入，但作为 Phase 2 的前置解耦杠杆单独拍板，不与 Phase 1 捆绑**。选它：Phase 2 commit 的 in-doubt 兜底从“脆弱挂在客户端 deadline”改挂到与客户端解耦的后台收尸线，天然贴近 peers 纵深防御，且已有三件套使落地成本可控。代价与边界：① 新增一个常驻调度/扫描机制（全局单例 vs per-schema、扫描周期与 `xa_log.expires` 对齐）；② 语义须精确定性——仅扫**超期且未决**事务、走既有 `readXARecoveryLog`+`retryCommit`，禁与在线客户端事务抢方向盘；③ 活体 2PC 故障注入才能诚实背书“不损坏 in-doubt”，确定性单测锁不住。**因涉全新增子系统、有外溢（后台线程持续动后端事务），属须用户拍板项，本会话只出评估不擅自实现。**
+
+### §7.8 Phase 2 阶段0+1 已落地实证（2026-11-06 实码，用户拍板后按 plan `I-DEBT-84_Phase2_Reaper` 执行）
+> §7.7 的“只评估不实现”已被后续拍板推翻：用户批准先做阶段0+1（低风险、不碰在线 commit 正常路径）；阶段2（commit 腿接 deadline）仍未动，留独立子票。
+
+**阶段 0（提交意向持久化，承 §7.7 前置“接通休眠钩子”）**：
+- **DDL 单一真源**：新增 `va/.../xa/impl/XaLogSchema.java`（package-private）——`xa_log` 扩为 `(xid bigint PK, create_time bigint, mycat_id int)`；旧库升级用幂等 try-alter 逐列补建（MySQL 无 `add column if not exists`，重复列错误仅记日志跳过、不阻断），沿用原 `create ... if not exists` 宽容风格；意向写入 `insert ... on duplicate key update`（同 xid 重写不报错、仅刷新计时/归属）；清除为 `where xid=?` 条件删（并发双删安全）。`XaLogImpl` 启动扫描就地拼 DDL 改调 `XaLogSchema.ensureSchema`；测试侧 `XaTestSuite.initSchema` 同步扩列。
+- **持久化覆写**：`LocalXaMemoryRepositoryImpl` 覆写 `writeCommitLog`（先 `super.put` 保留内存快路径，再向各参与者后端 INSERT 意向；**写失败抛 `IllegalStateException` ⇒ commit 腿明确失败，宁可拒绝提交不可假装持久**），`cancelCommitLog`/`remove` 对应条件 DELETE（失败仅 WARN，交 recovery 最终一致）；per-target `schemaEnsuredTargets` 幂等建表、失败回退下次重试；新工厂 `createLocalXaMemoryRepository(supplier, mycatId)`（旧单参重载兼容 mycatId=0），生产装配 `MycatRouterConfigOps:652` 传 `serverConfig.getMycatId()`。
+- **取证**：`XaCommitIntentPersistenceTest`（真后端 ds1，不 mock）**3/0F/0E**——writeCommitLog 后 xa_log 可读回该 xid 且 `create_time>0`、`mycat_id` 写入；cancel/remove 后意向行消失。
+
+**阶段 1（常驻 reaper，按 §7.3② 纵深防御 + §7.7 三件套复用）**：
+- **新增 `va/.../xa/impl/XaReaper.java`**：每轮 ① 幂等 `ensureSchema`；② 各后端 `XA RECOVER` 收集 prepared 分支 xid→targets；③ `select xid from mycat.xa_log` 收集已决意向；④ 决策：命中意向⇒各分支 `XA COMMIT`+删意向；未决⇒仅当跨轮观察到滞留超 grace 才 `XA ROLLBACK`，否则本轮跳过；⑤ 收敛后 `retainAll` 清理计时表。单轮异常全捕获记 WARN 不杀常驻任务；`unknown XID` 等报错视为幂等成功静默。
+- **设计修正（实现时一手取证推翻 plan 书面假设）**：plan 原拟未决分支靠 `create_time` 判超期——但未决事务根本不入 xa_log、无 `create_time` 可取；实改为 xa_log 仅承担“已决→COMMIT”判据，未决 grace 由内存 `undecidedFirstSeen` 跨轮计时（进程重启窗口由启动一次性 `readXARecoveryLog` eager 扫描兜底已决提交）；`create_time`/`mycat_id` 列仍落地（归属/审计/后续能力）。
+- **不抢方向盘的收口**：在线协调器正常驱动的 2PC 在 grace（默认 60s = 2×语句超时 30s）窗口内不被碰；与在线并发命中同一 xid 靠 MySQL 幂等报错吞掉 + 条件删兼容；reaper 实质只接管“协调器已失联（进程重启/异常退出）致 xid 长期悬挂”的场景。启动一次性扫描 eager 语义不变。
+- **配置与接线**：`ServerConfig.xaReaperIntervalMillis=30_000`（<=0 禁用，零常驻线程零开销）、`xaReaperGraceMillis=60_000`；`MycatRouterConfigOps` 在既有 hasXA 门（`:740-743` `readXARecoveryLog()` 后）调 `startXaReaper()` 挂载；进程级单例（static + 锁，config 热重载替换旧实例防重复挂）；supplier 每轮从 `MetaClusterCurrent` 取当前 `MySQLManager`，避免热重载后抱住旧连接池。
+- **取证**：`XaReaperSchedulingTest`（va 层注入调度器+假扫描任务，不连库）**2/0F/0E**（启用态周期触发≥2 次；<=0 禁用零排程）；`XaReaperConvergenceTest`（真 XA 后端 + 注入时钟驱动 grace，确定性活体）**2/0F/0E**——场景 A 已决提交：prepared 分支+xa_log 意向 ⇒ 一轮 sweep 后 `XA COMMIT`、分支内写入对其它连接可见（未丢已提交数据）、意向行清除；场景 B+C 未决：grace 内不动（仍 prepared，不抢方向盘），过 grace 后 `XA ROLLBACK`、数据未生效。

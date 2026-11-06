@@ -91,6 +91,12 @@ public class ServerConfig {
     private long stickySessionTime = -1;
     private int sendBufferSize = -1;
     private int receiveBufferSize = -1;
+    // I-DEBT-84 事务腿 Phase 2 阶段 1：独立事务 reaper。周期扫 past-prepare 的 in-doubt XA 事务并收敛
+    // （已决提交者据 xa_log 意向 COMMIT、未决者过 grace 才 ROLLBACK）。<=0 禁用（零常驻后台线程、零回归）。
+    private long xaReaperIntervalMillis = 30_000L;
+    // grace 窗口：未决 prepared 分支须滞留超此时长才被判为"协调器已失联"进而回滚，避免误杀正在跑的 2PC。
+    // 默认 2× 语句超时量级（30s）。
+    private long xaReaperGraceMillis = 60_000L;
     public static void main(String[] args) {
         System.out.println(JsonUtil.toJson(new ServerConfig()));
     }

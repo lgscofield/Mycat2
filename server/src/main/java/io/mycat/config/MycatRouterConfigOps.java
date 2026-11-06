@@ -18,6 +18,7 @@ import cn.mycat.vertx.xa.MySQLManager;
 import cn.mycat.vertx.xa.XaLog;
 import cn.mycat.vertx.xa.impl.LocalXaMemoryRepositoryImpl;
 import cn.mycat.vertx.xa.impl.XaLogImpl;
+import cn.mycat.vertx.xa.impl.XaReaper;
 import io.mycat.sql.MycatSQLUtils;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
@@ -77,6 +78,10 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
     MycatRouterConfig newConfig;
 
     static boolean init = true;
+
+    // I-DEBT-84 事务腿 Phase 2 阶段 1：进程级唯一常驻 reaper（config 重载时替换旧实例，避免重复挂载）。
+    private static final Object XA_REAPER_LOCK = new Object();
+    private static XaReaper xaReaper;
 
 
     public MycatRouterConfigOps(MycatRouterConfig original, StorageManager storageManager, Options options) {
@@ -644,7 +649,7 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
             return Resource.of(MetaClusterCurrent.wrapper(XaLog.class), true);
         }
         MySQLManager mycatMySQLManager = mycatMySQLManagerResource.get();
-        LocalXaMemoryRepositoryImpl localXaMemoryRepository = LocalXaMemoryRepositoryImpl.createLocalXaMemoryRepository(() -> mycatMySQLManager);
+        LocalXaMemoryRepositoryImpl localXaMemoryRepository = LocalXaMemoryRepositoryImpl.createLocalXaMemoryRepository(() -> mycatMySQLManager, serverConfig.getMycatId());
         XaLog xaLog = new XaLogImpl(localXaMemoryRepository, serverConfig.getMycatId(),
                 Objects.requireNonNull(mycatMySQLManager));
         return Resource.of(xaLog, false);
@@ -735,7 +740,31 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
             if (hasXA) {
                 LOGGER.info("readXARecoveryLog start");
                 xaLog.readXARecoveryLog();
+                startXaReaper();
             }
+        }
+    }
+
+    /**
+     * I-DEBT-84 Phase 2 阶段 1：启动一次性恢复扫描之后，按配置挂载常驻事务 reaper。
+     * {@code xaReaperIntervalMillis<=0} 则不启动（零常驻后台线程、零回归）。supplier 每次从
+     * {@link MetaClusterCurrent} 取当前 {@link MySQLManager}，以免热重载后抱住旧连接池。
+     */
+    private void startXaReaper() {
+        ServerConfig serverConfig = MetaClusterCurrent.wrapper(ServerConfig.class);
+        long interval = serverConfig.getXaReaperIntervalMillis();
+        if (interval <= 0) {
+            LOGGER.info("XaReaper disabled by config (xaReaperIntervalMillis=" + interval + ")");
+            return;
+        }
+        long grace = serverConfig.getXaReaperGraceMillis();
+        synchronized (XA_REAPER_LOCK) {
+            if (xaReaper != null) {
+                xaReaper.stop();
+            }
+            xaReaper = new XaReaper(() -> MetaClusterCurrent.wrapper(MySQLManager.class), interval, grace);
+            xaReaper.start();
+            LOGGER.info("XaReaper scheduled: interval=" + interval + "ms grace=" + grace + "ms");
         }
     }
 
