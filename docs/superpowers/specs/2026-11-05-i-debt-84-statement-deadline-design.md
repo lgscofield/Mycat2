@@ -75,3 +75,33 @@
 - **(c) 交付节奏 = 已定**：**先出 plan 再动码**（含具体 file:line 改动点 + 错误码选择 + 插入点定档 + 测试矩阵），plan 审阅通过后才实现。
 
 （承 I-DEBT-83：G1 的悬挂已被 R1c 坐实在语句腿；本票是那枚悬挂的正解，非 I-DEBT-83 原位的 close 兜底。）
+
+---
+
+## §7 事务腿（commit/rollback/savepoint）设计定档（2026-11-06 对标同类后 refined-B）
+
+### §7.0 触发
+子项②（SELECT 流式腿）已收口（HEAD `1e4b5dda6`）。剩余事务腿须对齐同类口径，故先做一手对标取证再定实现，不凭猜选 A/B。
+
+### §7.1 事务腿悬挂面实证（当前 HEAD 实读 `va/.../BaseXaSqlConnection.java` + `LocalXaSqlConnection.java`）
+- **`begin()` = 不接 deadline**：`BaseXaSqlConnection.begin():70-80`/`LocalXaSqlConnection.begin():43-51` 仅置 `inTranscation=true`+写协调日志，**不碰后端 JDBC**（连接由后续 `getConnection()` 懒取）。无阻塞面=无物可界。
+- **`commit()` = 有悬挂面**：`commitXa():271-351` 经 `connection.update("XA END/PREPARE/COMMIT")` 走 `ioExecutor.executeBlocking` 阻塞 JDBC，后端冻结则该 future 永不完成→客户端无界挂；**且**因是“永挂而非失败”，状态机自带的 `retryCommit()`/`rollback→kill+tryRecovery` 根本不触发。
+- **`rollback()` / savepoint 腿 = 有悬挂面**：同理发 `XA END/ROLLBACK`；失败已有 `kill()+tryRecovery()`（`rollback():169-186`）。
+
+### §7.2 同类对标（一手资料，非二手结论）
+**Vitess**（架构最接近：proxy+shard）——vttablet 文档实锤两把独立刀：
+- `--queryserver-config-query-timeout`(30s)：“If a query takes more than this timeout, **it will be killed**”。
+- `--queryserver-config-transaction-timeout`(30s)：“a transaction will be **killed** if it takes longer than this value”（独立事务 reaper）。
+- issue #21627（原句）：“A statement that is still executing when the deadline expires is not affected: **vttablet kills the connection, which rolls the transaction back.**” 且该 reaper **明确跳过已 PREPARE 的 2PC 事务**（不杀），交给 unresolved-transaction 恢复路径。
+
+**ShardingSphere-Proxy**——靠 JDBC `Statement.cancel()` 优雅中断在途语句 + 断连时 `closeAllResources` 清理（issue #40375 侧证靠“取消+清理”而非吊客户端）；分布式 XA 交外部 Seata/XA recovery。
+
+**结论**：同类**都不是纯 A**（“只界客户端、不动连接”），而是 **“超时→kill/回滚 + in-doubt 走 recovery”**。按用户规则（“都是 A 就直 A，否则要对齐”）⇒ **对齐 peers = refined-B**，非纯 A。Mycat 已内置同类机制（`kill`=abandonConnection + `xa_log`+`tryRecovery`+`retryCommit`），refined-B 是**复用既有路径**而非新造轮子，blast 远小于裸从外部强关。
+
+### §7.3 refined-B 分阶段（下轮 plan 直接取用）
+- **Phase 1（低风险、可本地自证）= rollback/savepoint 腿**：包 `StatementDeadline` 界客户端（超时回 3013）；onTimeout 对参与者 `abandonConnection()`。因 rollback 路**未 PREPARE**，弃连接后 MySQL 对**非 prepared** XA 分支会在断连时**自动回滚**=正是期望结果（同 Vitess kill→rollback），无 in-doubt 风险。`begin()` 不接。
+- **Phase 2（架构级、需活体 2PC 故障注入取证）= commit 腿**：超时同样界客户端+abandon，但 past-prepare 会落 **in-doubt（prepared 分支跨断连存活）**，必须靠 `xa_log`+`tryRecovery`/`retryCommit` 收敛。难点=timer 外部 abandon 与状态机自身 `commitXa` 失败回调/`retryCommit`（setTimer 重连）抢方向盘、及 `inTranscation` 标志与会话复用一致性。**需专门设计+活体取证才能诚实背书**（确定性单测锁不住“不损坏 in-doubt”）。未过拍板不贸然改 commit 路径。
+- **错误码**：沿用 3013（同 statement 腿）。
+
+### §7.4 未定项（需用户拍板，属高风险/架构级）
+Phase 2 commit 腿的 abandon↔状态机重试竞态收口方式、in-doubt 后客户端语义（报“提交结果未知”还是确定 3013）、是否引入类 Vitess 的独立事务 reaper——均需拍板后才投实现，不在本轮盲改 2PC 提交路径。
