@@ -64,44 +64,84 @@ for i in $(seq 1 30); do
 done
 [ "$port_busy" = 0 ] || { echo "端口 $MYCAT_HOST:$MYCAT_PORT 等30s 仍被占用，先清掉残留 Mycat"; exit 1; }
 
-# 起 Mycat
-java "-Dmycat.persona=$MYCAT_PERSONA" --add-opens=java.base/java.nio=ALL-UNNAMED \
-  -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" >"$SERVER_LOG" 2>&1 &
-SERVER_PID=$!
-cleanup() { kill "$SERVER_PID" 2>/dev/null || true; wait "$SERVER_PID" 2>/dev/null || true; }
+# 起 Mycat：<tlsMode> 空 = 明文（缺省），REQUIRED = 前端 TLS 轴。SERVER_PID 由 stop_server 收尾。
+start_server() { # <tlsMode 可空>
+  local extra=()
+  [ -n "${1:-}" ] && extra+=("-Dmycat.tls.mode=$1")
+  java "-Dmycat.persona=$MYCAT_PERSONA" --add-opens=java.base/java.nio=ALL-UNNAMED \
+    -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 "${extra[@]}" -jar "$JAR" >>"$SERVER_LOG" 2>&1 &
+  SERVER_PID=$!
+  [ -d "/proc/$SERVER_PID" ] || { echo "Mycat 未能启动，日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
+  wait_for_port "$MYCAT_HOST" "$MYCAT_PORT" 60 "Mycat 前端 $MYCAT_PORT (tls=${1:-off})" \
+    || { echo "启动日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
+  sleep 3   # settle，确保 reactor 就绪后再喂探针
+}
+stop_server() { [ -n "${SERVER_PID:-}" ] && { kill "$SERVER_PID" 2>/dev/null || true; wait "$SERVER_PID" 2>/dev/null || true; }; SERVER_PID=""; }
+cleanup() { stop_server; }
 trap cleanup EXIT
-[ -d "/proc/$SERVER_PID" ] || { echo "Mycat 未能启动，日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
-wait_for_port "$MYCAT_HOST" "$MYCAT_PORT" 60 "Mycat 前端 $MYCAT_PORT" || { echo "启动日志尾部："; tail -n 40 "$SERVER_LOG"; exit 1; }
 
-# 逐旧线跑探针
-overall=0
-for coord in $COORDS; do
-  jarpath="$(resolve_jar "$coord")"
+# 解析旧线 jar（本地仓缺则在线拉一次；仍缺返回空）。
+ensure_jar() { # <coord> → echo jarpath 或空
+  local jarpath; jarpath="$(resolve_jar "$1")"
   if [ ! -f "$jarpath" ]; then
-    # 旧 jar 非工程依赖，本地仓可能没有：先试在线拉一次（CI 可网）；拉不到则诚实跳过。
-    echo "本地仓缺 $coord，试 mvn dependency:get 拉取…"
-    mvn -q -B dependency:get "-Dartifact=$coord" >/dev/null 2>&1 || true
-    jarpath="$(resolve_jar "$coord")"
+    echo "本地仓缺 $1，试 mvn dependency:get 拉取…" >&2
+    mvn -q -B dependency:get "-Dartifact=$1" >/dev/null 2>&1 || true
+    jarpath="$(resolve_jar "$1")"
   fi
-  if [ ! -f "$jarpath" ]; then
-    echo "OLDLINE SKIP $coord  —— 本地仓缺 jar且在线拉取未成：$jarpath（宁挂账不伪绿）"
+  [ -f "$jarpath" ] && echo "$jarpath" || echo ""
+}
+
+# 跑一条旧线探针：<jarpath> <tls(off|required)>；stdout 透传，RC 经全局 PROBE_RC。
+PROBE_RC=0
+run_probe() { # <jarpath> <tls>
+  set +e
+  OUT="$(java -Dfile.encoding=UTF-8 -cp "$1" ci/OldConnectorProbe.java \
+    "$MYCAT_HOST" "$MYCAT_PORT" "$MYCAT_USER" "$MYCAT_PASSWORD" "$MYCAT_SCHEMA" "${2:-off}" 2>&1)"
+  PROBE_RC=$?
+  set -e
+  echo "$OUT"
+}
+
+overall=0
+start_server ""
+
+# --- 明文轴（缺省，旧行为不变）：逐线 OldConnectorProbe（认证 + SELECT 1 + 版本 + 基本 CRUD + 逐类型深面）---
+for coord in $COORDS; do
+  jarpath="$(ensure_jar "$coord")"
+  if [ -z "$jarpath" ]; then
+    echo "OLDLINE SKIP $coord  —— 本地仓缺 jar且在线拉取未成（宁挂账不伪绿）"
     overall=1
     continue
   fi
-  echo "==== 旧线 $coord ($jarpath) ===="
-  set +e
-  OUT="$(java -Dfile.encoding=UTF-8 -cp "$jarpath" ci/OldConnectorProbe.java \
-    "$MYCAT_HOST" "$MYCAT_PORT" "$MYCAT_USER" "$MYCAT_PASSWORD" "$MYCAT_SCHEMA" 2>&1)"
-  RC=$?
-  set -e
-  echo "$OUT"
-  if [ "$RC" -ne 0 ] || ! echo "$OUT" | grep -q "verdict=PASS"; then
-    echo "OLDLINE FAIL $coord"
-    overall=1
+  echo "==== 旧线(明文) $coord ($jarpath) ===="
+  run_probe "$jarpath" off
+  if [ "$PROBE_RC" -ne 0 ] || ! echo "$OUT" | grep -q "verdict=PASS"; then
+    echo "OLDLINE FAIL(plaintext) $coord"; overall=1
   else
-    echo "OLDLINE PASS $coord"
+    echo "OLDLINE PASS(plaintext) $coord"
   fi
 done
+
+# --- 旧线 TLS 轴（I-DEBT-9 摘 NO_DATA）：重启服务端 tls.mode=REQUIRED，逐线跑 tls=required ---
+# 判据口径同 example/.../TlsAxisMatrixTest：Connector/J sslMode=REQUIRED/5.1 useSSL=true 能建连
+# 即客户端可观测的权威加密证据（不回退明文）；REQUIRED 连上并 CRUD+深面保真 = 旧线 TLS 兼容达标。
+if [ "${OLDLINE_SKIP_TLS:-0}" != "1" ]; then
+  stop_server
+  start_server REQUIRED
+  for coord in $COORDS; do
+    jarpath="$(ensure_jar "$coord")"
+    [ -z "$jarpath" ] && { echo "OLDLINE SKIP(TLS) $coord 缺 jar"; overall=1; continue; }
+    echo "==== 旧线(TLS required) $coord ($jarpath) ===="
+    run_probe "$jarpath" required
+    if [ "$PROBE_RC" -ne 0 ] || ! echo "$OUT" | grep -q "verdict=PASS"; then
+      echo "OLDLINE FAIL(TLS) $coord"; overall=1
+    else
+      echo "OLDLINE PASS(TLS) $coord"
+    fi
+  done
+  stop_server
+fi
+
 
 # 服务端日志不允许出现影子断裂类错误（与 L1 同族守卫）
 if grep -qE "NoSuchMethodError|NoClassDefFoundError" "$SERVER_LOG"; then

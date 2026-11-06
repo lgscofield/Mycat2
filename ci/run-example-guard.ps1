@@ -17,6 +17,9 @@
        引擎族（MySQL vs MariaDB）必须与 persona 一致
     4) 跑 mvn -o -B -pl <Modules> -am test（-am 硬要求：不带会从本地仓库取上游 jar，引入第二变量）；
        给 -Test 时追加 -Dtest=<值> -Dsurefire.failIfNoSpecifiedTests=false，用于 I-DEBT-80 那类隔离取证
+  出口码三元语义（刀③，I-DEBT-79）：0=PASS（跑过且全绿/GateOnly 前置过）、1=RED（真跑测且 mvn 红）、
+  2=NO_DATA（闸门拒检，从未进入跑测）。每条路径末尾打 RESULT=PASS|RED|NO_DATA 总结行，
+  调用方以退出码+RESULT 行区分"没测"与"测红"，杜绝拿 2 当红记账或当绿收工。
 limitations
   - gate 拦不住"只改内存的热重绑"（磁盘态仍是干净的）；那种脏态由第 1 步 kill+restart 结构性消除。
     故 -SkipRestart 仅供取证观察，此时第 3 步的后端腿反映的是磁盘态而非进程内存态，务必自行判断可信度。
@@ -44,6 +47,34 @@ param(
 )
 $ErrorActionPreference = 'Continue'
 
+# --- 刀③（I-DEBT-79）：出口码三元语义，把"没测"与"测红"在退出码上硬区分 ---
+#   0 = PASS（闸门全过且测试全绿，或 -GateOnly 前置通过）
+#   1 = RED （真跑了测试且 mvn 红——可信的失败信号）
+#   2 = NO_DATA（环境/闸门拒检：persona 非法、JDK 错配、后端不全、就绪/姿态不符——从未进入跑测，
+#       调用方不得把 2 当红记账，也不得把 2 视同绿；唯有 0/1 才是跑过测的证据）
+# 所有 NO_DATA 路径统一经 Abort-NoData 打 RESULT=NO_DATA 总结行并置 $X=2；try 块内的 abort 腿
+# 显式走 Cleanup-NoData（先杀 8066 再 exit 2——实测顶层 return 虽跑 finally 但出口码恒 0，不可靠）。
+$X = 0
+$Cleaned = $false
+function Abort-NoData([string]$cat, [string]$msg) {
+    Write-Output ("ABORT(" + $cat + "): " + $msg)
+    Write-Output ("RESULT=NO_DATA abort=" + $cat)
+    $script:X = 2
+}
+# 杀本轮起的 8066（防污染下一轮）。幂等：各 abort 腿显式 Cleanup-NoData 后，finally 再调一次也无副作用。
+# 为什么不用 try/return 承担 abort：实测（t2 最小复演）pwsh -File 下脚本顶层 return 会跑 finally 但
+# 出口码恒 0——abort 腿想要 exit 2 必须显式 exit，而 try 内 exit 会跳过 finally，故清理须前置。
+function Cleanup-8066 {
+    if ($Cleaned) { return }
+    if ($KeepRunning) { Write-Output 'KEEP_RUNNING: 按 -KeepRunning 保留 8066（下次务必带 -SkipRestart 或先手工杀）'; $Cleaned = $true; return }
+    Get-NetTCPConnection -LocalPort 8066 -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
+        Write-Output ("KILL 8066 pid " + $_.OwningProcess + "（收尾，防污染下一轮）")
+        Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+    }
+    $script:Cleaned = $true
+}
+function Cleanup-NoData { Cleanup-8066; exit $X }
+
 # --- 画像表白：值取自 config/src/main/java/io/mycat/config/ServerPersona.java，默认版本串取自 defaultVersionString ---
 $Personas = @{
     'MYSQL_5_7'      = @{ Ver = '^5\.7\.';  Engine = 'MySQL' }
@@ -56,9 +87,9 @@ $Personas = @{
 }
 $REPO = (Resolve-Path "$PSScriptRoot\..").Path
 if (-not $Personas.ContainsKey($Persona)) {
-    Write-Output ("ABORT(posture): 非法 persona '" + $Persona + "'，白名单=" + (($Personas.Keys | Sort-Object) -join ','))
+    Abort-NoData 'posture' ("非法 persona '" + $Persona + "'，白名单=" + (($Personas.Keys | Sort-Object) -join ','))
     Write-Output '  -Dmycat.persona 拼错时 PersonaOverride 只记 WARN 并静默回退 ⇒ 会把这个画像测成另一个画像（假绿）'
-    exit 1
+    exit $X
 }
 $wantEngine = $Personas[$Persona].Engine
 # --- JDK 门（本机器自身踩过：shell 的 JAVA_HOME 指向 LibericaJDK-25 时，Lombok 跑不动，
@@ -76,15 +107,15 @@ foreach ($h in $JdkCandidates) { if ((Get-JdkMajor $h) -eq 21) { $JdkFound = $h;
 if (-not $JdkFound) {
     if ($AllowAnyJdk) { $JdkFound = $JdkCandidates[0] }
     else {
-        Write-Output ("ABORT(jdk): 未找到 major=21 的 JDK（候选 " + ($JdkCandidates -join ' | ') +
+        Abort-NoData 'jdk' ("未找到 major=21 的 JDK（候选 " + ($JdkCandidates -join ' | ') +
             " 实得 " + (Get-JdkMajor $env:JAVA_HOME) + "）。用 -JdkHome <path> 指定，或 -AllowAnyJdk 明知而为之")
-        exit 1
+        exit $X
     }
 }
 $env:JAVA_HOME = $JdkFound
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 Write-Output ("JAVA_HOME=" + $env:JAVA_HOME + "  major=" + (Get-JdkMajor $env:JAVA_HOME))
-if (-not (Test-Path $Jar)) { Write-Output "ABORT: 找不到 jar $Jar（先 mvn -o -B package -DskipTests）"; exit 1 }
+if (-not (Test-Path $Jar)) { Abort-NoData 'jar' "找不到 jar $Jar（先 mvn -o -B package -DskipTests）"; exit $X }
 if (-not $MycatHome) { $MycatHome = Join-Path (Split-Path $Jar) '.mycat-home' }   # MycatCore.findMycatHome 的回退口径
 $dsJson = Join-Path $MycatHome "datasources\$DsName.datasource.json"
 Write-Output ("REPO=" + $REPO + "  persona=" + $Persona + "  jar=" + (Split-Path $Jar -Leaf) +
@@ -119,8 +150,8 @@ foreach ($c in $BackendContainers) {
         $readyBackends += $c
         Write-Output ("BACKEND UP " + $c)
     } else {
-        Write-Output ("ABORT(backend): 容器 " + $c + " 启动后 ping 不上（60s 超时）⇒ 后端不全，跑测只会造假红")
-        exit 1
+        Abort-NoData 'backend' ("容器 " + $c + " 启动后 ping 不上（60s 超时）⇒ 后端不全，跑测只会造假红")
+        exit $X
     }
 }
 # 容器→宿主 的可达地址（Docker Desktop 优先 host.docker.internal，回落网关 IP）。探针用第一个就绪容器。
@@ -166,17 +197,17 @@ try {
         } catch { Start-Sleep 2; continue }
         Start-Sleep 2
     }
-    if (-not $ready) { Write-Output 'ABORT(readiness): 8066 未读到握手首字节'; exit 1 }
+    if (-not $ready) { Abort-NoData 'readiness' '8066 未读到握手首字节'; Cleanup-NoData }
     Start-Sleep 15
 
     # --- 3) posture gate：前端画像 + 磁盘态后端引擎族，两条都过才准跑测 ---
     $front = Invoke-HostSql 8066 'select version()'
     if ($front[1] -notmatch $Personas[$Persona].Ver) {
-        Write-Output ("ABORT(posture): 前端 version()='" + $front[1] + "' 不在 persona $Persona 宣称的族 " +
+        Abort-NoData 'posture' ("前端 version()='" + $front[1] + "' 不在 persona $Persona 宣称的族 " +
             $Personas[$Persona].Ver + "（经 " + $front[0] + " 探测）")
-        exit 1
+        Cleanup-NoData
     }
-    if (-not (Test-Path $dsJson)) { Write-Output "ABORT(posture): 磁盘态数据源配置不存在 $dsJson"; exit 1 }
+    if (-not (Test-Path $dsJson)) { Abort-NoData 'posture' "磁盘态数据源配置不存在 $dsJson"; Cleanup-NoData }
     $dsUrl = ((Get-Content $dsJson -Raw) | ConvertFrom-Json).url
     $bp = [regex]::Match($dsUrl, '//([^/:]+):(\d+)')
     $backend = Invoke-HostSql $bp.Groups[2].Value 'select version()'
@@ -185,17 +216,17 @@ try {
         " | back(" + $bp.Groups[1].Value + ":" + $bp.Groups[2].Value + ", disk " + $DsName + ", mtime " +
         (Get-Item $dsJson).LastWriteTime + ")=" + $backend[1] +
         " via " + $backend[0] + "  [persona 引擎族=" + $wantEngine + "]")
-    if (-not $backend[1]) { Write-Output 'ABORT(posture): 读不到磁盘态后端版本（容器/端口不可达）'; exit 1 }
+    if (-not $backend[1]) { Abort-NoData 'posture' '读不到磁盘态后端版本（容器/端口不可达）'; Cleanup-NoData }
     if ($beEngine -ne $wantEngine) {
-        Write-Output ("ABORT(posture): 后端引擎族=" + $beEngine + " 与 persona 引擎族=" + $wantEngine +
+        Abort-NoData 'posture' ("后端引擎族=" + $beEngine + " 与 persona 引擎族=" + $wantEngine +
             " 不一致 ⇒ 用例期望值会连到与画像不符的后端（假红指纹），拒绝跑测")
-        exit 1
+        Cleanup-NoData
     }
     if ($backend[1] -notmatch $Personas[$Persona].Ver) {
         Write-Output 'WARN(posture): 后端 minor 与 persona 宣称 minor 不同（属常见组合，仅提示不阻断）'
     }
     Write-Output 'POSTURE OK'
-    if ($GateOnly) { Write-Output 'GATE_ONLY: 前置校验通过，未跑测试'; exit 0 }
+    if ($GateOnly) { Write-Output 'GATE_ONLY: 前置校验通过，未跑测试'; Write-Output 'RESULT=PASS gate_only=true'; exit 0 }
 
     # --- 4) 全量护栏 ---
     $log = "$REPO\target\ci-guard\guard-$(Get-Date -Format yyyyMMdd-HHmmss).log"
@@ -208,6 +239,12 @@ try {
     Write-Output ("MVN " + ($mvnArgs -join ' ') + "  →  " + $log)
     mvn @mvnArgs *>&1 | Out-File -Encoding utf8 $log
     Write-Output ("MVN_EXIT=" + $LASTEXITCODE)
+    if ($LASTEXITCODE -eq 0) {
+        Write-Output 'RESULT=PASS'
+    } else {
+        Write-Output ("RESULT=RED mvn_exit=" + $LASTEXITCODE)
+        $X = 1
+    }
     Write-Output '=== 汇总（各模块）==='
     Get-Content $log | Select-String -Pattern '^\[(INFO|ERROR)\] Tests run:.*(Failures|Errors)' | ForEach-Object { $_.Line }
     Write-Output '=== 红类清单 ==='
@@ -215,12 +252,11 @@ try {
     Write-Output '=== reactor 结论 ==='
     Get-Content $log | Select-String -Pattern 'BUILD (SUCCESS|FAILURE)' | Select-Object -First 5 | ForEach-Object { $_.Line.Trim() }
 } finally {
-    if (-not $KeepRunning) {
-        Get-NetTCPConnection -LocalPort 8066 -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Output ("KILL 8066 pid " + $_.OwningProcess + "（收尾，防污染下一轮）")
-            Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
-        }
-    } else {
-        Write-Output 'KEEP_RUNNING: 按 -KeepRunning 保留 8066（下次务必带 -SkipRestart 或先手工杀）'
-    }
+    Cleanup-8066
 }
+# 刀③：出口码三元语义落点（0=PASS / 1=RED / 2=NO_DATA）。
+# try 块内的 NO_DATA 腿经 Cleanup-NoData（先 Cleanup-8066 杀 8066 再 exit 2；实测 try 内 exit
+# 既触发 finally 又正确回传退出码，且 $Cleaned 幂等保证 8066 只杀一次）；
+# try 块前的闸门（persona/jdk/jar/backend）在 8066 启动前直接 exit $X，无需清理。
+Write-Output ('GUARD_EXIT=' + $X)
+exit $X

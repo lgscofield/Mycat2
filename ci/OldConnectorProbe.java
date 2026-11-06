@@ -32,6 +32,9 @@ public class OldConnectorProbe {
         String user = arg(args, 2, "root");
         String password = arg(args, 3, "123456");
         String schema = arg(args, 4, "mysql");
+        // I-DEBT-9 旧线 TLS 轴（第 6 位参，缺省 off 保持 CI 向后兼容）：required 时按线别拼 TLS 参数，
+        // 与以 -Dmycat.tls.mode=REQUIRED 起的服务端配合，量旧客户端过 Mycat 前端 TLS 握手的兼容面。
+        String tls = arg(args, 5, "off");
 
         // 加载态自证：哪个 jar 真正在起作用（旧线 5.1 vs 8.x 类名不同，DriverManager 按 classpath 选）。
         String driverClass;
@@ -55,9 +58,21 @@ public class OldConnectorProbe {
 
         // allowPublicKeyRetrieval：MySQL 8 默认 caching_sha2_password，公钥拉取须放行，
         // 否则握手在认证阶段即失败（5.1.x 不支持 caching_sha2，这正是要量的旧线兼容点）。
+        // TLS 轴：required 时 5.1.x 用 useSSL=true&verifyServerCertificate=false（旧属性名），
+        // 8.x 用 sslMode=REQUIRED（useSSL 已废弃）；自签证书故关服务端证书校验。
         String url = "jdbc:mysql://" + host + ":" + port + "/" + schema
-                + "?useUnicode=true&characterEncoding=utf8&useSSL=false"
-                + "&allowPublicKeyRetrieval=true&connectTimeout=15000&socketTimeout=30000";
+                + "?useUnicode=true&characterEncoding=utf8";
+        if ("required".equalsIgnoreCase(tls)) {
+            if (driverClass.startsWith("com.mysql.jdbc")) {
+                url += "&useSSL=true&verifyServerCertificate=false";
+            } else {
+                url += "&sslMode=REQUIRED";
+            }
+        } else {
+            url += "&useSSL=false&allowPublicKeyRetrieval=true";
+        }
+        url += "&connectTimeout=15000&socketTimeout=30000";
+        System.out.println("TLS mode=" + tls + " driver=" + driverClass);
 
         boolean pass = true;
         Connection connection = null;
@@ -66,6 +81,19 @@ public class OldConnectorProbe {
         try {
             connection = DriverManager.getConnection(url, user, password);
             pass &= report("auth", true, "connected via " + driverClass);
+            // TLS 生效判据（口径同 example/.../TlsAxisMatrixTest §2）：Connector/J sslMode=REQUIRED / 5.1 useSSL=true
+            // 能建连即权威证明服务端广告 CLIENT_SSL 且本连接 STARTTLS 升级成功（客户端不回退明文）。
+            // 故连接成功本身就是加密证据，无需硬依赖 Ssl_cipher。此处仅**非门控**读一行 Ssl_cipher 作参考
+            // （Mycat 代理下该值语义可能透传后端，不作为 FAIL 判据，只打印供人判读，绝不并入 verdict）。
+            if ("required".equalsIgnoreCase(tls)) {
+                try (Statement t1 = connection.createStatement();
+                     ResultSet rs = t1.executeQuery("SHOW STATUS LIKE 'Ssl_cipher'")) {
+                    String cipher = rs.next() ? String.valueOf(rs.getObject(2)) : "<no-row>";
+                    System.out.println("STAGE tlscipher-info (non-gating) Ssl_cipher=[" + cipher + "]");
+                } catch (SQLException e) {
+                    System.out.println("STAGE tlscipher-info (non-gating) read-failed: " + e.getMessage());
+                }
+            }
         } catch (SQLException e) {
             pass &= report("auth", false, e.getClass().getSimpleName() + ": " + e.getMessage());
             finish(driverClass, driverVersion, pass);
