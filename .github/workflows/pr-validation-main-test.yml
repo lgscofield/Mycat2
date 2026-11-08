@@ -156,3 +156,31 @@ jobs:
       # 旧线清单：Connector/J 5.1 末版（旧类名 com.mysql.jdbc.Driver，早于 caching_sha2）+ 8.x 首档。
       - name: Run old Java connector line smoke net
         run: bash ci/verify-old-connector.sh
+
+  # I-DEBT-86 净室启动护栏：mycat-home 缺 clusters/ 形态（新部署/冷启动常见形态）下 Connector/J
+  # 必须可连且引导 22 变量全可读。修复前该形态任何 JDBC 客户端连 8066 即死（Connector/J 引导查询
+  # NumberFormatException: "null"，根因链见 DEBT-QUEUE I-DEBT-86）——CI/护栏配置齐全从不暴露，
+  # 本 job 即该测试网盲区的补网（spec §6-T4；本地证据 audit/2026-11-08-capability-audit）。
+  cleanroom:
+    runs-on: ubuntu-latest
+    services:
+      mysql-a:
+        image: mysql:8.0
+        ports: [ "3306:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build server jar (skip test compile)
+        run: mvn -B install '-Dmaven.test.skip=true' -pl server -am
+      - name: Verify cleanroom boot (no clusters/ config)
+        run: bash ci/verify-cleanroom.sh
