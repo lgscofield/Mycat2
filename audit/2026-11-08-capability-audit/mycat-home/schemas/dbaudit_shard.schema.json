@@ -1,0 +1,10 @@
+{
+  "schemaName" : "dbaudit_shard",
+  "targetName" : null,
+  "shardingTables" : { },
+  "globalTables" : { },
+  "normalTables" : { },
+  "customTables" : { },
+  "normalProcedures" : { },
+  "views" : { }
+}

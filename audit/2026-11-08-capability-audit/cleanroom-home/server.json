@@ -1,0 +1,7 @@
+{
+  "loadBalance":{"defaultLoadBalance":"BalanceRandom","loadBalances":[]},
+  "mode":"local",
+  "properties":{},
+  "server":{"ip":"0.0.0.0","mycatId":2,"port":8067,"reactorNumber":2,
+    "workerPool":{"corePoolSize":1,"keepAliveTime":1,"maxPendingLimit":65535,"maxPoolSize":64,"taskTimeout":5,"timeUnit":"MINUTES"}}
+}

@@ -1,0 +1,44 @@
+probe,final_verdict,note
+P-L1-01,PASS,native认证+SELECT1+version posture(5.7.33-mycat-2.0)
+P-L1-02,PASS,caching_sha2 前端认证
+P-L1-03,PASS,TLS REQUIRED + TLS_AES_256_GCM_SHA384(自签回落)
+P-L1-04,PASS,错误密码被拒
+P-A-01,PASS,server-side prepare 全类型保真(中文/NULL/decimal/datetime/varbinary)
+P-A-02,PASS-UNDERSTATED,游标 COM_STMT_FETCH 实际可用(文档低估)
+P-A-03,PASS-UNDERSTATED,压缩协议实际可用(文档低估)
+P-A-04,PASS-UNDERSTATED,多结果集实际可用(文档低估)
+P-A-05,PASS,1MB blob long-data 往返逐字节一致
+P-A-06,PASS,KILL 会话边界正常
+P-B-01,PASS,mod_hash 分片 CRUD/路由/后端 55+55 分布
+P-B-02,PASS,非分片键广播
+P-B-03,PASS,跨片聚合5项+GROUP BY 集合全等
+P-B-04,RED,分片×分片自连接返回0行(应29)→新缺陷F6
+P-B-05,RED,19/20函数一致;YEAR()杀连接→新缺陷F2
+P-B-06,RED,sql_mode不传导+1/0无告警→F5/F7
+P-B-07,PASS,information_schema 基本面
+P-B-08,PASS-NUANCE,I-DEBT-85 在 Connector/J 9.3 未复现(9.3已不发裸HAVING)
+P-B-09,PASS,getTables(null) OK(171行)
+P-B-10,PASS,跨片 UNION 列头类型/精度/scale 与直连一致
+P-B-11,PASS,跨片 ORDER BY+LIMIT TopN 与基线一致
+P-B-12,PASS,视图跨分片查询
+SQL-BARE-HAVING,RED,I-DEBT-85 SQL层坐实:not being grouped 逐字一致+放宽后仍倒第二层
+P-C-01,PASS,本地事务+savepoint
+P-C-02,PASS,XA(同物理后端)commit/rollback
+P-C-03,RED-RECHAR,单物理后端多schema XA静默降级为本地提交;意向持久化需mycat库+权限(未记载前置)→F11
+P-C-04,RED,statementTimeout 30s 对透传路径未生效→F8
+P-C-05,PASS,kill事务中会话后1s INNODB_TRX清空
+P-C-06,NO_DATA,需第二后端/docker pause
+P-C-07,PASS,autocommit=0 跨分片边界
+P-D-01,RED-NEW,createDataSource hint 解析层不可达→F9
+P-D-02,CONFIRMED,9066 无认证 HTTP 200
+P-D-03,CONFIRMED,9090 无认证 metrics;showDatasources 明文回显后端密码→F10
+P-D-04,CONFIRMED,无库表授权模型(新用户全域可见)
+P-D-05,CONFIRMED,fullTableScanLimit=1+exception=true 死旋钮
+P-D-06/06B,CONFIRMED,migrate 状态重启即失
+P-D-07,CONFIRMED,maxCon=1000/DS vs 后端出厂151
+P-D-08,PASS-UNDERSTATED,disallowSqlTypes 真实生效(DELETE被拦)
+P-E-01,PASS,点查QPS: 1线程356 / 8线程1328 / 零错误
+P-E-02,PASS-NUANCE,普通表dump→原生回灌HEX逐值全等;分片表dump含私有语法不可回灌原生→F12
+P-E-03,NO_DATA,old connector jar 不可得(无网/无docker)
+P-E-04,NO_DATA,第二后端未起
+P-E-05,PASS,1000混合CRUD零错误;后端连接9→9无泄漏

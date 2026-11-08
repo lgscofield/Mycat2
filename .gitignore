@@ -83,3 +83,5 @@ server/version.txt
 
 # I-DEBT-56: fallback config home (MycatCore.findMycatHome)
 .mycat-home/
+audit/2026-11-08-capability-audit/db3307/
+.zcode/

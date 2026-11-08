@@ -1,0 +1,7 @@
+{
+  "dbType":"mysql","idleTimeout":60000,"initSqls":[],"initSqlsGetConnection":true,
+  "instanceType":"READ_WRITE","maxCon":100,"maxConnectTimeout":30000,"maxRetryCount":5,
+  "minCon":1,"name":"prototypeDs","password":"Audit#2026","type":"JDBC",
+  "url":"jdbc:mysql://127.0.0.1:3306/dbaudit_a?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true",
+  "user":"audit","weight":0
+}
