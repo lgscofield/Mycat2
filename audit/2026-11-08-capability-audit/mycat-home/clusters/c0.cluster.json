@@ -5,8 +5,8 @@
   "name" : "c0",
   "readBalanceName" : null,
   "writeBalanceName" : null,
-  "masters" : [ "dw0" ],
-  "replicas" : [ "dr0" ],
+  "masters" : [ "prototypeDs" ],
+  "replicas" : [ ],
   "heartbeat" : {
     "maxRetryCount" : 3,
     "minSwitchTimeInterval" : 300,
@@ -14,6 +14,6 @@
     "slaveThreshold" : 0.0,
     "showLog" : false
   },
-  "maxCon" : 2000,
+  "maxCon" : 200,
   "timer" : null
 }

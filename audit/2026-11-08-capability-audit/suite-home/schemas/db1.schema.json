@@ -1,5 +1,5 @@
 {
-  "schemaName" : "dbaudit_shard",
+  "schemaName" : "db1",
   "targetName" : null,
   "shardingTables" : { },
   "globalTables" : { },
