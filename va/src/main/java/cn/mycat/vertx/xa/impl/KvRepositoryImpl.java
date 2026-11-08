@@ -21,7 +21,6 @@ import cn.mycat.vertx.xa.Repository;
 import io.vertx.core.Future;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.json.Json;
 
 import java.util.Collection;
 import java.util.Map;
@@ -58,7 +57,11 @@ public class KvRepositoryImpl implements Repository {
     public ImmutableCoordinatorLog get(String xid) {
         String s = this.map.get(xid);
         if (s!=null){
-            return Json.decodeValue(s,ImmutableCoordinatorLog.class);
+            try {
+                return io.vertx.core.json.jackson.DatabindCodec.mapper().readValue(s, ImmutableCoordinatorLog.class);
+            } catch (java.io.IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return null;
     }

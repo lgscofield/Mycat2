@@ -358,6 +358,18 @@ public class BaseRowObservable extends RowObservable implements StreamMysqlColle
                         // bit→数值归并渲染（原 else 分支 throw 即 [B→Long 崩溃根因之一）。
                         value = MycatValueFactory.LONG_VALUE_FACTORY.createFromLong(
                                 new BigInteger(1, (byte[]) o).longValue());
+                    } else if (o instanceof java.sql.Date) {
+                        // MYCAT CHANGE (I-DEBT-87): JDBC 腿 `getObject`（NewMycatConnectionImpl:146/158）对
+                        // 后端 YEAR 线缆类型(13) 因 Connector/J yearIsDateType 缺省=true 返回 java.sql.Date，
+                        // 而本层元数据声明为整数族 → Date 落旧 else throw（UnsupportedOperationException:
+                        // "2026-01-01"）→ result-set failed → 会话强断（ERROR 2013）。按年份语义还原数值
+                        // （YEAR 值 2026 → Date 2026-01-01 → getYear()=2026），对齐同点 I-DEBT-41 byte[] 先例。
+                        value = MycatValueFactory.LONG_VALUE_FACTORY.createFromLong(
+                                ((java.sql.Date) o).toLocalDate().getYear());
+                    } else if (o instanceof java.time.LocalDate) {
+                        // I-DEBT-87 防御腿：原生腿若产出 LocalDate 形态的年份值，同样按年份还原。
+                        value = MycatValueFactory.LONG_VALUE_FACTORY.createFromLong(
+                                ((java.time.LocalDate) o).getYear());
                     } else {
                         throw new UnsupportedOperationException(o.toString());
                     }

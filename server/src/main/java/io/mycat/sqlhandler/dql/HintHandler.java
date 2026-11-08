@@ -88,6 +88,50 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
 
     public static final HintHandler INSTANCE = new HintHandler();
 
+    /**
+     * I-DEBT-88：showDataSources 等管控面输出中的凭据脱敏。
+     * 固定掩码（不泄露长度/字符集信息）；null 保持 null（结果集单元格形状不变）。
+     * 活体 RED 证据：audit/2026-11-08-capability-audit/logs/P-D-01.log（修复前明文回显 prototypeDs 口令）。
+     */
+    static String maskPassword(String raw) {
+        return raw == null ? null : "******";
+    }
+
+    /**
+     * I-DEBT-90/G4：管控类 hint 清单——写集群状态/数据移动面（createDataSource/dropDataSource/
+     * createUser/dropUser/resetConfig/syncConfig 双向/loadConfigFromFile/migrate/migrateStop/
+     * createCluster/dropCluster）。路由类 hint 与诊断类 show 系列 不在列（防误伤业务路径）。
+     */
+    static boolean isManagementHint(String cmd) {
+        switch (cmd == null ? "" : cmd.toLowerCase()) {
+            case "createdatasource":
+            case "dropdatasource":
+            case "createuser":
+            case "dropuser":
+            case "createcluster":
+            case "dropcluster":
+            case "resetconfig":
+            case "syncconfigfromfiletodb":
+            case "syncconfigfromdbtofile":
+            case "loadconfigfromfile":
+            case "migrate":
+            case "migratestop":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /** I-DEBT-90/G4：admin 判定 = 用户配置显式 admin=true；任何异常按非 admin 处理（fail-closed）。 */
+    static boolean isAdminUser(MycatDataContext dataContext) {
+        try {
+            io.mycat.MycatUser user = dataContext.getUser();
+            return user != null && user.getUserConfig() != null && user.getUserConfig().isAdmin();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     @Override
     protected Future<Void> onExecute(SQLRequest<MySqlHintStatement> request, MycatDataContext dataContext, Response response) {
         MySqlHintStatement ast = request.getAst();
@@ -108,6 +152,13 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                         body = s.substring(bodyStartIndex);
                     }
                     cmd = cmd.trim();
+
+                    // I-DEBT-90/G4：管控类 hint（写集群状态/数据移动面）仅限 admin 用户（users/*.user.json
+                    // 显式 "admin": true，缺省 false）。对齐真库 SUPER 语义 1227；路由类/诊断类 show* 不受影响。
+                    if (isManagementHint(cmd) && !isAdminUser(dataContext)) {
+                        throw new MycatException(MySQLErrorCode.ER_SPECIFIC_ACCESS_DENIED_ERROR,
+                                "management hint '" + cmd + "' requires admin user (I-DEBT-90/G4)");
+                    }
 
                     MetadataManager metadataManager = MetaClusterCurrent.wrapper(MetadataManager.class);
                     MycatRouterConfig routerConfig = MetaClusterCurrent.wrapper(MycatRouterConfig.class);
@@ -325,7 +376,9 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                             DatasourceConfig config = jdbcDataSource.getConfig();
                             String NAME = config.getName();
                             String USERNAME = config.getUser();
-                            String PASSWORD = config.getPassword();
+                            // I-DEBT-88：凭据不外显——明文口令不再进结果集（活体 RED：audit/2026-11-08-capability-audit/logs/P-D-01.log 曾回显 prototypeDs 明文口令）。
+                            // 注意：URL 若含内嵌口令形参仍在，本票只锁 PASSWORD 列；URL/DRIVER 面与消费点清单在实现轮取证簿登记。
+                            String PASSWORD = maskPassword(config.getPassword());
                             int MAX_CON = config.getMaxCon();
                             int MIN_CON = config.getMinCon();
 

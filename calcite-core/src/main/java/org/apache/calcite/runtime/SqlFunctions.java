@@ -5088,7 +5088,14 @@ public class SqlFunctions {
   // See https://issues.apache.org/jira/browse/CALCITE-6753
   @NonDeterministic
   public static int toInt(String s) {
-    return parseInt(s.trim());
+    // MYCAT CHANGE (I-DEBT-91 后续 G3/F3): MySQL 语义下非法串转数 = 0 + 告警 1292，绝不抛
+    // （活体：SELECT CAST('abc' AS SIGNED) 经 8066 曾 NumberFormatException 杀会话；真库=0）。
+    // 告警生产属 F5 告警面遗留，本处先对齐值语义。
+    try {
+      return parseInt(s.trim());
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   public static int toInt(Number number) {
@@ -5192,7 +5199,12 @@ public class SqlFunctions {
     if (s.startsWith("199") && s.contains(":")) {
       return Timestamp.valueOf(s).getTime();
     }
-    return parseLong(s.trim());
+    // MYCAT CHANGE (F3 同族): 非法串转 long 同 MySQL 语义 = 0 + 告警(值对齐, 告警面归 F5)
+    try {
+      return parseLong(s.trim());
+    } catch (NumberFormatException e) {
+      return 0L;
+    }
   }
 
   public static long toLong(Number number) {

@@ -961,6 +961,13 @@ public class SQLRBORewriter extends RelShuttleImpl {
                 }
             });
             if (allHitPartition) {
+                // MYCAT CHANGE (I-DEBT-92/G2): join 条件全部为派生表达式(如 `a.id = b.id - 1`)时
+                // pairs 处理被 isDerived 全跳过 → keysMap/equals 为空 → 空 allMatch 恒 true + 空 isErJoin
+                // 恒 true → 误判为可下推 ER → 整体下推为每分片本地 JOIN → mod_hash 下跨分片行关联恒
+                // 丢失(活体: 自连接返 0 行, 真库 29)。无任何纯列等值对即无从证明同分片 → 回退内存 JOIN。
+                if (equals.isEmpty()) {
+                    return Optional.empty();
+                }
 
                 //erjoin
                 boolean pushDown = isErJoin(equals);

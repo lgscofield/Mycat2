@@ -70,6 +70,13 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
             globalVariables.put("time_zone", "SYSTEM");
             globalVariables.put("lower_case_table_names", "1");
             globalVariables.put("wait_timeout", "172800");
+            // I-DEBT-86 刀B扩展：补齐 Connector/J 引导查询 22 变量在净室缺省表的缺口
+            // （拉取路径失效时这些键原缺 → 引导变量返 null）
+            globalVariables.put("auto_increment_increment", "1");
+            globalVariables.put("collation_server", "utf8_general_ci");
+            globalVariables.put("collation_connection", "utf8_general_ci");
+            globalVariables.put("license", "GPL");
+            globalVariables.put("performance_schema", "1");
 
 
             ////////////////////////////////////session/////////////////////////////////////////////////////////////////
@@ -87,6 +94,10 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
 
 
             sessionVariables.put("max_execution_time","0");
+            // I-DEBT-86 刀B：session 默认表补 max_allowed_packet——净室启动（mycat-home 缺 clusters/，
+            // prototype 拉取路径失效）时 Connector/J 引导查询消费 `@@session.max_allowed_packet`，
+            // 缺行 → null → toInt 崩（活体：audit P-L1-01 全 RED）。值取同类 global 缺省(:63) 16777216。
+            sessionVariables.put("max_allowed_packet","16777216");
             sessionVariables.put("innodb_lock_wait_timeout","50");
             sessionVariables.put("interactive_timeout","28800");
 
@@ -99,6 +110,9 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
             for (Map.Entry<String, Object> entry : sessionVariables.entrySet()) {
                 globalVariables.put(entry.getKey(),entry.getValue());
             }
+            // I-DEBT-86 刀B扩展：净室下 session 继承 global 缺省（真库语义：会话建立时自 global 继承），
+            // 补齐 Connector/J 引导查询 22 变量的可读性（修复前 ~16 个返 null）
+            seedSessionFromGlobal(globalVariables, sessionVariables);
         }
 
         // I-DEBT-29-EXT：version 键必须与握手 serverVersion / VERSION()（MycatVersionFunction）同源，
@@ -122,6 +136,40 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
         return metadata.majorVersion() >= 8 ? "1024" : "64";
     }
 
+    /**
+     * I-DEBT-86 刀A：整型族会话变量的 null 设防（包级 static 供回归锁直接调用，对齐 I-DEBT-56 先例）。
+     * <p>净室启动（mycat-home 缺 {@code clusters/}，prototype 拉取路径失效）时 session 默认表可能缺
+     * Connector/J 引导查询消费的整型变量，{@code null} 进 {@link MySQLVariablesUtil#toInt} →
+     * {@code parseInt("null")} → NumberFormatException → 任何 JDBC 客户端无法连接。
+     * <p>窄面原则：只对已知整型族变量按内置 global 默认表回落；非整型族 null 仍原样透传（不扩大设防）。
+     * <p>有意不采纳 spec §3-C（toInt 全局 null 设防）：toInt 亦被 autocommit/read_only 解析消费，
+     * 全局 null→0 属语义变更，风险面大（见 DEBT-QUEUE I-DEBT-86 行）。
+     */
+    static Object fixIntLikeVariable(String name, Object o) {
+        if (o == null) {
+            if (name.equalsIgnoreCase("max_allowed_packet")) {
+                return 16777216;
+            }
+            if (name.equalsIgnoreCase("innodb_file_per_table")) {
+                return 1;
+            }
+            if (name.equalsIgnoreCase("FOREIGN_KEY_CHECKS")) {
+                return 1;
+            }
+            return null;
+        }
+        if (name.equalsIgnoreCase("innodb_file_per_table")) {
+            return toInt(o);
+        }
+        if (name.equalsIgnoreCase("FOREIGN_KEY_CHECKS")) {
+            return toInt(o);
+        }
+        if (name.equalsIgnoreCase("max_allowed_packet")) {
+            return toInt(o);
+        }
+        return o;
+    }
+
     @Override
     public Object getGlobalVariable(String name) {
         name = name.startsWith("@@") ? name.substring(2) : name;
@@ -131,17 +179,34 @@ public class MysqlVariableServiceImpl implements MysqlVariableService {
 
     @Nullable
     private Object fixValue(String name, Object o) {
-        if (name.equalsIgnoreCase("innodb_file_per_table")){
-            return toInt(o);
-        }
-        if (name.equalsIgnoreCase("FOREIGN_KEY_CHECKS")){
-            return toInt(o);
-        }
-        if (name.equalsIgnoreCase("max_allowed_packet")){
-            return toInt(o);
-        }
-        return o;
+        return fixIntLikeVariable(name, o);
     }
+
+    /**
+     * I-DEBT-86 刀B扩展：session 继承 global（不覆写已有 session 值）。包级 static 供回归锁直接调用
+     * （对齐 I-DEBT-56 先例）。键面 = Connector/J 引导查询消费的 22 变量（{@link #CLEANROOM_SESSION_INHERIT_KEYS}）。
+     */
+    static void seedSessionFromGlobal(NameMap<Object> global, NameMap<Object> session) {
+        for (String k : CLEANROOM_SESSION_INHERIT_KEYS) {
+            Object v = global.get(k, false);
+            if (v != null && session.get(k, false) == null) {
+                session.put(k, v);
+            }
+        }
+    }
+
+    /**
+     * I-DEBT-86：Connector/J 9.x 连接引导查询（{@code SELECT @@session.auto_increment_increment, ...}）
+     * 消费的变量面，即净室配置下必须可读的最小集合。
+     */
+    static final String[] CLEANROOM_SESSION_INHERIT_KEYS = {
+            "auto_increment_increment", "character_set_client", "character_set_connection",
+            "character_set_results", "character_set_server", "collation_server", "collation_connection",
+            "init_connect", "interactive_timeout", "license", "lower_case_table_names",
+            "max_allowed_packet", "net_write_timeout", "performance_schema", "query_cache_size",
+            "query_cache_type", "sql_mode", "system_time_zone", "time_zone",
+            "transaction_isolation", "wait_timeout"
+    };
 
     @Override
     public Object getSessionVariable(String name) {

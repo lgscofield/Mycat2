@@ -2,7 +2,6 @@ package io.mycat.sqlhandler.config;
 
 import io.mycat.config.KVObject;
 import io.mycat.util.JsonUtil;
-import io.vertx.core.json.Json;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;

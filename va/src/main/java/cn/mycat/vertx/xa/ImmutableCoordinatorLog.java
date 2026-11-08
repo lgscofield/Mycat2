@@ -18,7 +18,6 @@ package cn.mycat.vertx.xa;
 
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.json.Json;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -115,11 +114,21 @@ public class ImmutableCoordinatorLog implements Serializable {
     }
 
     public String toJson() {
-        return Json.encode(new MutableCoordinatorLog(getXid(), getParticipants().toArray(new ImmutableParticipantLog[0]), commitMarked));
+        try {
+            // I-DEBT-91: vertx 4.5 移除 io.vertx.core.json.Json(fat jar 运行期 NCD)→ jackson mapper 等价序列化
+            return io.vertx.core.json.jackson.DatabindCodec.mapper().writeValueAsString(new MutableCoordinatorLog(getXid(), getParticipants().toArray(new ImmutableParticipantLog[0]), commitMarked));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static ImmutableCoordinatorLog from(String text) {
-        MutableCoordinatorLog mutableCoordinatorLog = Json.decodeValue(text, MutableCoordinatorLog.class);
+        MutableCoordinatorLog mutableCoordinatorLog;
+        try {
+            mutableCoordinatorLog = io.vertx.core.json.jackson.DatabindCodec.mapper().readValue(text, MutableCoordinatorLog.class);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
         return new ImmutableCoordinatorLog(mutableCoordinatorLog.getXid(),
                 mutableCoordinatorLog.getParticipants(),
                 mutableCoordinatorLog.isCommitMarked());

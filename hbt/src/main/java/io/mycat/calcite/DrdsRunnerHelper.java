@@ -405,9 +405,39 @@ public class DrdsRunnerHelper {
         try {
             PlanImpl plan = getPlan(drdsSqlWithParams);
             PlanImplementor planImplementor = getPlanImplementor(dataContext, response, drdsSqlWithParams);
-            return impl(plan, planImplementor);
+            // I-DEBT-91 后续 G3/F8：本地执行腿（内存引擎/本地 codegen，如 SELECT SLEEP(35) 的
+            // MycatProject(MycatValues)）原不接语句级超时——ReceiverImpl 的 deadline 只包后端腿，
+            // 本地腿曾睡满全程令客户端无限等（活体 P-C-04 RED）。此处按全库 statementTimeout 最小值
+            // 界本地腿；超时先断会话后端连接（解阻可能的 gather 读），调用方收 3013。
+            return io.mycat.vertx.StatementDeadline.withDeadline(impl(plan, planImplementor),
+                    localStatementDeadlineMillis(),
+                    () -> {
+                        try {
+                            dataContext.getTransactionSession().closeStatementState();
+                        } catch (Throwable ignore) {
+                        }
+                        return io.vertx.core.Future.succeededFuture();
+                    });
         } finally {
             SessionSqlMode.reset();
+        }
+    }
+
+    /** I-DEBT-91/F8：本地腿语句超时 = 全部数据源 statementTimeout(>0) 的最小值，缺省 30s。 */
+    private static long localStatementDeadlineMillis() {
+        try {
+            io.mycat.datasource.jdbc.datasource.JdbcConnectionManager manager =
+                    MetaClusterCurrent.wrapper(io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.class);
+            long deadline = Long.MAX_VALUE;
+            for (io.mycat.config.DatasourceConfig cfg : manager.getConfigAsMap().values()) {
+                long v = cfg.getStatementTimeout();
+                if (v > 0) {
+                    deadline = Math.min(deadline, v);
+                }
+            }
+            return deadline == Long.MAX_VALUE ? 30_000L : deadline;
+        } catch (Throwable t) {
+            return 30_000L;
         }
     }
 

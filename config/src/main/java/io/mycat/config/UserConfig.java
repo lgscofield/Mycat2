@@ -30,6 +30,8 @@ public class UserConfig implements KVObject {
     private String encryptType = "";
     private String encodeKey = "";
     private RoleConfig role;
+    /** I-DEBT-90/G4: 管控类 hint 仅限 admin 用户(缺省 false, 用户 json 可显式置 true)。 */
+    private boolean admin = false;
 
     @Data
     public static class RoleConfig {

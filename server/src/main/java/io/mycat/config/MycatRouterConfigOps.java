@@ -59,7 +59,6 @@ import io.mycat.sqlhandler.config.UpdateSet;
 import io.mycat.statistic.StatisticCenter;
 import io.mycat.util.JsonUtil;
 import io.mycat.protocol.codec.NameMap;
-import io.vertx.core.json.Json;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -88,7 +87,8 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
         this.original = original;
         this.storageManager = storageManager;
         this.options = options;
-        this.newConfig = Json.decodeValue(Json.encode(original), MycatRouterConfig.class);
+        // I-DEBT-91: vertx 4.5 已移除 io.vertx.core.json.Json(fat jar 运行期 NCD)→ mycat JsonUtil.clone 等价深拷贝
+        this.newConfig = JsonUtil.clone(original, MycatRouterConfig.class);
     }
 
     public MycatRouterConfigOps(MycatRouterConfig original, StorageManager storageManager, Options options, MycatRouterConfig newConfig) {

@@ -10,8 +10,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
+import io.mycat.util.JsonUtil;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.Json;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -68,6 +68,14 @@ public class MycatSQLLogMonitorImpl extends MycatSQLLogMonitor {
             httpServer.requestHandler(new Handler<HttpServerRequest>() {
                 @Override
                 public void handle(HttpServerRequest request) {
+                    // I-DEBT-89/G4：monitorToken（server.json properties 或 -DmonitorToken）配置后，
+                    // 9066 全部端点要求 Authorization: Bearer <token>，否则 401；未配置=行为不变（WARN）。
+                    String expectToken = resolveMonitorToken();
+                    if (expectToken != null && !expectToken.isEmpty()
+                            && !("Bearer " + expectToken).equals(request.getHeader("Authorization"))) {
+                        request.response().setStatusCode(401).end("unauthorized");
+                        return;
+                    }
                     if (request.uri().startsWith(LOCKSERIVCE_URL.toLowerCase())) {
                         request.setExpectMultipart(true);
                     }
@@ -143,7 +151,7 @@ public class MycatSQLLogMonitorImpl extends MycatSQLLogMonitor {
                                             res = throwable.getLocalizedMessage();
                                         }
                                     }
-                                    request.response().end(Json.encode(res));
+                                    request.response().end(JsonUtil.toJson(res)); // I-DEBT-91
                                 } catch (Throwable throwable) {
                                     LOGGER.error("", throwable);
                                     request.response().end(throwable.getLocalizedMessage());
@@ -232,5 +240,29 @@ public class MycatSQLLogMonitorImpl extends MycatSQLLogMonitor {
     @Override
     public long getSqlTimeFilter() {
         return Optional.ofNullable(this.monitorConfig).map(i -> i.getSqlLog().getSqlTimeFilter()).orElse(Long.valueOf(-1));
+    }
+
+    private volatile String monitorTokenCache;
+    private volatile boolean monitorTokenResolved;
+
+    /** I-DEBT-89/G4：monitorToken = server.json properties "monitorToken" 或 -DmonitorToken；空=无认证(WARN)。 */
+    private String resolveMonitorToken() {
+        if (monitorTokenResolved) return monitorTokenCache;
+        String t = System.getProperty("monitorToken", "");
+        if (t.isEmpty()) {
+            try {
+                Object o = io.mycat.MetaClusterCurrent.wrapper(io.mycat.config.MycatServerConfig.class)
+                        .getProperties().get("monitorToken");
+                if (o != null) t = o.toString();
+            } catch (Throwable ignore) {
+            }
+        }
+        monitorTokenCache = t;
+        monitorTokenResolved = true;
+        if (t == null || t.isEmpty()) {
+            org.slf4j.LoggerFactory.getLogger(MycatSQLLogMonitorImpl.class)
+                    .warn("I-DEBT-89/G4: 9066 监控面未配置 monitorToken，当前无认证（建议配置 token 或仅绑回环）");
+        }
+        return t;
     }
 }
