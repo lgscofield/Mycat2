@@ -1,0 +1,28 @@
+{
+  "schemaName" : "dbx3",
+  "targetName" : null,
+  "shardingTables" : {
+    "xt" : {
+      "partition" : null,
+      "function" : {
+        "name" : null,
+        "clazz" : null,
+        "properties" : {
+          "dbNum" : "2",
+          "mappingFormat" : "c${targetIndex}/dbx3_${dbIndex}/xt_${tableIndex}",
+          "storeNum" : 2,
+          "dbMethod" : "mod_hash(id)"
+        },
+        "ranges" : null
+      },
+      "createTableSQL" : "CREATE TABLE IF NOT EXISTS dbx3.xt (\n\tid bigint PRIMARY KEY,\n\tv varchar(10)\n)\nDBPARTITION BY mod_hash(id) DBPARTITIONS 2",
+      "autoIncrement" : null,
+      "shardingIndexTables" : { }
+    }
+  },
+  "globalTables" : { },
+  "normalTables" : { },
+  "customTables" : { },
+  "normalProcedures" : { },
+  "views" : { }
+}
