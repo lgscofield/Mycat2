@@ -71,6 +71,11 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
         }
         if (localSqlConnection != null && map.isEmpty()) {
             NewMycatConnection curLocalSqlConnection = localSqlConnection;
+            // I-DEBT-86 审计 F11/G5 显式化：单连接提交 = XA 语义静默降级为本地 commit（无 2PC/无意向）。
+            // 同物理实例多分片时原子性由后端自身保证、无数据风险，但运维必须知道"这不是分布式事务"。
+            LOGGER.warn("XA policy commit degraded to single-connection local commit (no 2PC/no xa_log intent). " +
+                    "Safe only because all involved datanodes resolve to one physical connection; " +
+                    "for real cross-instance XA ensure datanodes span distinct physical backends (G5).");
             return curLocalSqlConnection.update("commit;").transform(event -> {
                 if (event.failed()) {
                     // 提交失败不能静默还池：Druid 只对 underlyingAutoCommit=false 的连接做 recycle 回滚，
