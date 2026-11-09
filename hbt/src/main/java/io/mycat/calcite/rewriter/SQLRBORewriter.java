@@ -942,7 +942,9 @@ public class SQLRBORewriter extends RelShuttleImpl {
                     equals.put(leftColumnOrigin, rightColumnOrigin);
                 }
             }
-            boolean allHitPartition = keysMap.entrySet().stream().allMatch(shardingTableHandlerSetEntry -> {
+            // MYCAT CHANGE (I-DEBT-93/G2): keysMap 为空时 allMatch 恒真(vacuous truth),先显式判空——
+            // 空 = 无任何纯列等值对 = 不可证明同分片 = 不下推,与 I-DEBT-92 修复语义一致。
+            boolean allHitPartition = !keysMap.isEmpty() && keysMap.entrySet().stream().allMatch(shardingTableHandlerSetEntry -> {
                 TableHandler tableHandler = shardingTableHandlerSetEntry.getKey();
                 switch (tableHandler.getType()) {
                     case SHARDING:
@@ -1042,6 +1044,12 @@ public class SQLRBORewriter extends RelShuttleImpl {
     }
 
     private static boolean isErJoin(IdentityHashMap<RelColumnOrigin, RelColumnOrigin> equals) {
+        // MYCAT CHANGE (I-DEBT-93/G2): 空 equals map 在 allMatch 上恒真(vacuous truth),显式判 false——
+        // 空 = 不可证明同分片 = 不构成 ER join,与 I-DEBT-92 修复语义一致。
+        // 现网唯一调用点(pushDownERTable)已被 I-DEBT-92 的 equals.isEmpty() 守卫先行拦截,此为结构性显式化。
+        if (equals.isEmpty()) {
+            return false;
+        }
         return equals.entrySet().stream().allMatch(entry -> {
             RelColumnOrigin leftColumnOrigin = entry.getKey();
             RelColumnOrigin rightColumnOrigin = entry.getValue();
