@@ -411,9 +411,27 @@ public class DrdsSqlCompiler {
             decorRelNode = RelDecorrelator.decorrelateQuery(root.rel, relBuilder);
             return new RelNodeContext(root.withRel(decorRelNode), sqlToRelConverter, validator, relBuilder, catalogReader, parameterRowType);
         } catch (Throwable throwable) {
-            log.error("sqlStatement:{} sqlNode:{} validated:{} root:{} newRelNode:{}", sqlStatement, sqlNode, validated, root, decorRelNode);
+            // MYCAT CHANGE (I-DEBT-94/F13): 编译失败现场补记客户端原文（getParameterizedSQL）于行首。
+            // 此前只打 druid AST/Calcite SqlNode 重渲染（sqlStatement:SELECT $$ AS $$），活体取证
+            // （audit/2026-11-08-capability-audit/logs/E0-05-mycat-boot2.log:21212 等）显示读者会误判为
+            // "内部占位 $$ 被当真实 SQL 重解析"；实际该语句是客户端连接探针 select $$ 原样下发，
+            // `$$ AS $$` 是 druid 解析 + MycatCalciteMySqlNodeVisitor 隐式别名的重渲染，仓库内无内部
+            // 生产点。原文与重渲染同屏（sql: / sqlStatement: / sqlNode:），失败现场三层形态自释，伪影不再误导。
+            log.error(compileFailureLog(drdsSql.getParameterizedSQL(), sqlStatement, sqlNode, validated, root, decorRelNode));
             throw throwable;
         }
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-94/F13)：编译失败现场日志串的唯一构造出口（纯函数，离线可锁）。
+     * 客户端原文置于行首（{@code sql:}），随后依次为 druid AST 重渲染（{@code sqlStatement:}）、
+     * Calcite SqlNode（{@code sqlNode:}）与各编译阶段产物——原文与内部重渲染同屏，消除
+     * "{@code SELECT $$ AS $$} 是内部占位语句"的日志伪影误导。
+     */
+    static String compileFailureLog(String rawSql, Object sqlStatement, Object sqlNode,
+                                    Object validated, Object root, Object newRelNode) {
+        return String.format("sql:%s sqlStatement:%s sqlNode:%s validated:%s root:%s newRelNode:%s",
+                rawSql, sqlStatement, sqlNode, validated, root, newRelNode);
     }
 
 //    private MycatRel planUpdate(LogicalTableModify tableModify,

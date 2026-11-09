@@ -170,6 +170,14 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- I-DEBT-94/F13：解析失败现场日志锁需真实捕获 log.error 输出（logback ListAppender）。
+             版本由根 pom dependencyManagement 管理（1.5.18，与 server 运行时同代）；仅 test 作用域，
+             不影响运行时日志装配。 -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

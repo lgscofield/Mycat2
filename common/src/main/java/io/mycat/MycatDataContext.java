@@ -149,10 +149,37 @@ public interface MycatDataContext extends Wrapper, SessionOpt {
      * <p>活体真值（2026-11-01 双档探针 C1/C2/D0）：凡语句级失败必进诊断区（Error 级，
      * wc/ec 各计入），与 ERR 包同源同码；message 为 null 时兜底空串（WarningMessage 对
      * message requireNonNull）。
+     *
+     * <p>MYCAT CHANGE (I-DEBT-94/F4)：会话告警缓冲写入点过滤内部解析伪影错误——
+     * {@code CalciteContextException: Column '$$' not found in any table} 一类。活体出处
+     * （audit/2026-11-08-capability-audit/logs/E0-05-mycat-boot2.log 16:16:18）：客户端连接探针
+     * {@code select $$}（裸 {@code $$} 被 Calcite 校验器当列名）失败后，同会话首条
+     * {@code SHOW WARNINGS} 即吐出该 Java 异常文本行（真库直连为空）。真库不会把内部 Java 异常
+     * 灌进诊断区，故本类消息不入缓冲；过滤在 recordStatementError 单点收口（server 的
+     * VertxSessionImpl 与 proxy 的 MySQLProxyServerSession 两条 ERR 出口的唯一汇点），一处覆盖
+     * SHOW WARNINGS / SHOW ERRORS / @@warning_count / @@error_count 全部读腿与计数。ERR 包本身
+     * 照发（语句对客户端的失败应答不受影响）；真用户错误（重复键、未知列等）仍照常入诊断区。
      */
     default void recordStatementError(int errorCode, String message) {
         // 活体 C1：失败语句的 Error 与 ERR 包同源同码；null 消息兜底空串，错误出口自身不得反抛 NPE。
+        if (isInternalCalciteDollarArtifactError(message)) {
+            return;
+        }
         addWarning(new WarningMessage("Error", errorCode, message == null ? "" : message));
+    }
+
+    /**
+     * I-DEBT-94/F4：判 message 是否为内部解析伪影类错误——Calcite 校验器把客户端探针的裸
+     * {@code $$} 标识符当列名的失败（列 '$$' not found）。两类生产形态都须命中：
+     * recover 腿的 {@code cause.toString()} 单行与外层 catch 的堆栈串（两者首行/cause 链
+     * 均含 CalciteContextException 类名与 {@code Column '$$' not found in any table} 判词）。
+     * 非伪影（普通用户列名）不命中——过滤面只钉死 {@code $$}，不得扩大到全部
+     * CalciteContextException。
+     */
+    static boolean isInternalCalciteDollarArtifactError(String message) {
+        return message != null
+                && message.contains("org.apache.calcite.runtime.CalciteContextException")
+                && message.contains("Column '$$' not found in any table");
     }
 
     long getLastInsertId();

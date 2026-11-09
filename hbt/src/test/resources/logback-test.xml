@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- I-DEBT-94：hbt 测试期引入 logback-classic（仅 test 作用域）后的静默配置——
+     根级别 WARN，防第三方 DEBUG 刷屏；定向日志锁（CompileFailureLogRawSqlTest）
+     用程序化 ListAppender 自行挂接，不依赖本文件。 -->
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}[%level]%logger{36}:%line%m%n</pattern>
+        </encoder>
+    </appender>
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

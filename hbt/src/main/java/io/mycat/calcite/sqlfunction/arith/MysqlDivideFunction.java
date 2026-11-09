@@ -67,6 +67,22 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
      * MySQL {@code /} 的求值实现。参数声明为 {@code Object} 以免被宽松隐式 CAST 强改成固定族，
      * 由本方法内部按运行时类型分派（对齐 {@code strictEqualAny(Object,Object)} 的写法）。
      *
+     * <p>MYCAT CHANGE (I-DEBT-94/F5) 设计要点（本轮只收口值语义，告警通道另票）：真库
+     * {@code SELECT 1/0} 除返回 NULL 外还会进一条 Error 级诊断 1365 {@code Division by 0}
+     * （SHOW WARNINGS / @@warning_count 可见）；本地 codegen 除法经 remapOperator 出码为对
+     * 本静态纯函数的无上下文调用（{@code MysqlDivideFunction.mysqlDivide(a,b)}，见
+     * MysqlDivideFunctionTest），拿不到会话诊断缓冲（dataContext），故除零分支只能静默返 NULL
+     * ——{@code @@warning_count} 不涨。补齐告警需通道级改造，两案备选（均超一轮量，另票跟踪）：
+     * <ul>
+     *   <li>方案A：出码表达式改为 {@code root.mysqlDivide(a,b)}——在 {@code NewMycatDataContext}
+     *       增加 default 方法（内部 {@code getContext().addWarning(...)}），触及 remap hook
+     *       （MycatCalciteRuntimeHooks）与 codegen 模板，全算子回归面大。</li>
+     *   <li>方案B：执行器在 Bindable 求值边界设 {@code ThreadLocal<MycatDataContext>} 诊断槽，
+     *       除零分支查槽写入——改动集中，但引入 computation 线程可见性约定，需在 executor
+     *       try/finally 里严格挂/摘，防线程池复用串会话。</li>
+     * </ul>
+     * 值语义（除零→NULL）由 {@code MysqlDivideFunctionTest#divideByZeroYieldsNull} 锁定，与本设计无关。
+     *
      * @return 精确数值路返回 {@link BigDecimal}（scale=被除数scale+{@link #DIV_PRECISION_INCREMENT}，HALF_UP）；
      *         近似型路返回 {@link Double}；任一操作数为 null 或除零返回 {@code null}。
      */
@@ -79,6 +95,8 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
                 || den instanceof Double || den instanceof Float) {
             double d = ((Number) den).doubleValue();
             if (d == 0.0d) {
+                // I-DEBT-94/F5：真库此处另有 Error 级诊断 1365 "Division by 0" 入诊断区；本地 codegen
+                // 静态纯函数无诊断通道，静默返 NULL——通道级改造设计要点见类注释（本轮只收口值语义）。
                 return null;
             }
             return ((Number) num).doubleValue() / d;
@@ -86,6 +104,7 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
         // 精确路：BigDecimal 十进制商。
         BigDecimal bden = toBigDecimal(den);
         if (bden.signum() == 0) {
+            // I-DEBT-94/F5：同上，除零静默返 NULL（告警通道设计要点见类注释）。
             return null;
         }
         BigDecimal bnum = toBigDecimal(num);
