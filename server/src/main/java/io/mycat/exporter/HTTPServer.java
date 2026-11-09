@@ -5,7 +5,9 @@ import io.prometheus.client.exporter.common.TextFormat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
@@ -49,13 +51,28 @@ public class HTTPServer {
         private CollectorRegistry registry;
         private final LocalByteArray response = new LocalByteArray();
         private final static String HEALTHY_RESPONSE = "Exporter is Healthy.";
+        // I-DEBT-95/G4:非空时对所有端点前置 Bearer 校验,不匹配 401;空=无认证模式(绑定面已收窄到回环)。
+        private final String bearerToken;
 
-        HTTPMetricHandler(CollectorRegistry registry) {
+        HTTPMetricHandler(CollectorRegistry registry, String bearerToken) {
           this.registry = registry;
+          this.bearerToken = bearerToken;
         }
 
 
         public void handle(HttpExchange t) throws IOException {
+            if (bearerToken != null && !bearerToken.isEmpty()
+                    && !PrometheusExporter.isAuthorized(t.getRequestHeaders().getFirst("Authorization"), bearerToken)) {
+                byte[] payload = "unauthorized".getBytes(StandardCharsets.UTF_8);
+                t.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                t.getResponseHeaders().set("WWW-Authenticate", "Bearer realm=\"mycat-prometheus\"");
+                t.sendResponseHeaders(HttpURLConnection.HTTP_UNAUTHORIZED, payload.length);
+                try (OutputStream os = t.getResponseBody()) {
+                    os.write(payload);
+                }
+                t.close();
+                return;
+            }
             String query = t.getRequestURI().getRawQuery();
 
             String contextPath = t.getHttpContext().getPath();
@@ -156,11 +173,20 @@ public class HTTPServer {
      * The {@code httpServer} is expected to already be bound to an address
      */
     public HTTPServer(HttpServer httpServer, CollectorRegistry registry, boolean daemon) throws IOException {
+        this(httpServer, registry, daemon, null);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-95/G4):bearerToken 非空时对全部 context(/、/metrics、/-/healthy)
+     * 前置 {@code Authorization: Bearer <token>} 校验,不匹配返回 401;
+     * 空/null = 无认证(调用方必须仅绑回环,见 PrometheusExporter.resolveBindAddress)。
+     */
+    public HTTPServer(HttpServer httpServer, CollectorRegistry registry, boolean daemon, String bearerToken) throws IOException {
         if (httpServer.getAddress() == null)
             throw new IllegalArgumentException("HttpServer hasn't been bound to an address");
 
         server = httpServer;
-        HttpHandler mHandler = new HTTPMetricHandler(registry);
+        HttpHandler mHandler = new HTTPMetricHandler(registry, bearerToken);
         server.createContext("/", mHandler);
         server.createContext("/metrics", mHandler);
         server.createContext("/-/healthy", mHandler);
@@ -174,6 +200,13 @@ public class HTTPServer {
      */
     public HTTPServer(InetSocketAddress addr, CollectorRegistry registry, boolean daemon) throws IOException {
         this(HttpServer.create(addr, 3), registry, daemon);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-95/G4):按显式绑定地址启动;bearerToken 非空时前置 Bearer 校验(不匹配 401)。
+     */
+    public HTTPServer(InetSocketAddress addr, CollectorRegistry registry, boolean daemon, String bearerToken) throws IOException {
+        this(HttpServer.create(addr, 3), registry, daemon, bearerToken);
     }
 
     /**
