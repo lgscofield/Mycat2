@@ -223,4 +223,4 @@ jobs:
         run: mvn -B -pl example test 2>&1 | tee example-test-full.log
       - name: Publish test summary
         if: always()
-        run: grep -aE "Tests run: [0-9]+, Fail" example-test-full.log | tail -5 || true
+        run: grep -aE "Tests run" example-test-full.log | tail -5 || true
