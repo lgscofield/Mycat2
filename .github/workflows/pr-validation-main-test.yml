@@ -189,7 +189,7 @@ jobs:
   # CI 凭据(root/123456@3306/3307)与 MycatTest 默认一致，无需重定向。这是"全量套件进门禁"的终态形态：
   # 本机长跑被休眠/会话生命周期反复杀死（三次实证），权威全量门放 CI。
   full-suite:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/g8-full-suite-gate')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     services:
