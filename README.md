@@ -55,6 +55,15 @@ The following are explicitly out of scope. Mycat2 is a MySQL-protocol-compatible
 
 
 
+## Deployment Notes (默认行为三坑)
+
+以下默认值与旧版/直觉不同，部署或升级前请知情（代码锚点见括号）：
+
+1. **默认只绑回环地址**：`server.json` 的 `ip` 缺省为 `localhost`（`config/.../ServerConfig.java`），外部客户端/容器无法连入。对外服务需显式配置 `"ip": "0.0.0.0"`（或具体网卡地址）。
+2. **默认版本画像（persona）是 MySQL 5.7**：`persona` 缺省 `MYSQL_5_7`（`ServerConfig.java` / `ServerPersona.java`），影响握手版本串、认证插件默认、元数据仿真行值等。后端为 MySQL 8.0/8.4/9.x 或 MariaDB 时，应在 `server.json` 配置对应 persona，或用 `-Dmycat.persona=MYSQL_8_0` 临时覆盖（非法值会被忽略并告警，见 `PersonaOverride`）。可选值：`MYSQL_5_7 / MYSQL_8_0 / MYSQL_8_4 / MYSQL_9_X / MARIADB_10_6 / MARIADB_10_11 / MARIADB_11_4`。
+3. **语句默认 30 秒超时是新行为**：每个 datasource 的 `statementTimeout` 缺省 30000ms（`DatasourceConfig.java`，I-DEBT-84），是 Mycat 侧 wall-clock deadline，兜住后端僵死时客户端无界挂起；超过即报错。既有用户升级后长查询可能被此阈值截断——可在 datasource JSON 显式调大，或设 `<=0` 禁用该 datasource 的 deadline。它与 `queryTimeout`（Druid → `Statement.setQueryTimeout`，依赖后端响应取消）正交互补。
+
+
 ## Framework
 
 ![](https://cdn.nlark.com/yuque/0/2021/png/658548/1615792485342-b0f62690-e0cf-4f4a-89b6-18e5e1487227.png)

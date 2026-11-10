@@ -1578,11 +1578,12 @@ public class UserCaseTest implements MycatTest {
     }
     @Test
     /*
-     * I-DEBT-36 复现锁：TIMESTAMPDIFF(unit, t1, t2) 的 unit 关键字在 Mycat 解析层
+     * I-DEBT-36 回归锁：TIMESTAMPDIFF(unit, t1, t2) 的 unit 关键字在 Mycat 解析层
      * 此前被建成 SqlCharStringLiteral，下游 SqlTimestampDiffFunction.validateCall
      * 无守卫强转 SqlIntervalQualifier 抛首层 CCE。MySQL 语义
-     * TIMESTAMPDIFF(SECOND, a, b) = b - a = 86400 秒。收割 f685ad60c 后首层 CCE 消，
-     * 阻塞后移至下推 deparse（Reinterpret/SPECIAL 无法反解析），本锁保持 RED 作 C2 验收面。
+     * TIMESTAMPDIFF(SECOND, a, b) = b - a = 86400 秒。收割 f685ad60c 后首层 CCE 消；
+     * 跨片全计划旧 deparse 阻塞已于后续轮次消失（2026-11-10 活体复核 2/0F/0E 销账），
+     * 本锁作为绿锁保留防回归。
      */
     public void caseI36Timestampdiff() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {
@@ -1610,7 +1611,8 @@ public class UserCaseTest implements MycatTest {
      * 单片(where id=1)列头来自后端→byte[] 口径已通(CrudResultMatrixTest#bitColumnFidelity 绿)；本去过滤、
      * 跨 2 分片归并→列头走 CalciteRowMetaData，BIT 经 fork 类型系统归一为数值、列头失 BIT 性，行值仍是后端
      * 原生 byte[]→BaseRowObservable.getObjects 数值分支(:355) 抛 UnsupportedOperationException:[B@...（会话崩）。
-     * 与跨片 caseI36 同族，属"类型表征统一"专轮，本 R5 保持 RED、不强推、不 fabricate 绿。
+     * 与跨片 caseI36 同族，属"类型表征统一"专轮（已收口）；本锁转绿保留防回归
+     * （2026-11-10 活体复核 2/0F/0E）。
      */
     public void caseCrossShardBitColumnFidelity() throws Exception {
         try (Connection mycatConnection = getMySQLConnection(DB_MYCAT);) {

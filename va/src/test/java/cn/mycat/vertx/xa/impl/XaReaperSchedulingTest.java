@@ -17,6 +17,8 @@ package cn.mycat.vertx.xa.impl;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,5 +63,34 @@ public class XaReaperSchedulingTest {
         reaper.stop();
         int observed = runs.get();
         assertTrue(observed >= 2, "启用态应周期触发扫描，实测 " + observed + " 次");
+    }
+
+    /**
+     * 常驻任务不得因单轮异常静默死亡：{@code scheduleWithFixedDelay} 的任务一旦抛异常，
+     * 后续执行被永久抑制。默认 sweepTask 若直连 {@code runSweep}（manager 取数段在 try 外），
+     * 一次后端取数失败 = reaper 永久停摆。本锁用真实调度器 + 恒抛异常的 supplier 钉死
+     * "首轮失败后仍继续周期触发"（即默认接线必须走 {@code runSweepQuiet}）。
+     */
+    @Test
+    public void recurringSweepSurvivesSweepFailure() throws Exception {
+        AtomicInteger calls = new AtomicInteger(0);
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        try {
+            XaReaper reaper = new XaReaper(() -> {
+                calls.incrementAndGet();
+                throw new IllegalStateException("simulated manager lookup failure");
+            }, 20L, 60_000L, scheduler, System::currentTimeMillis);
+
+            assertNotNull(reaper.start());
+            long deadline = System.currentTimeMillis() + 1500L;
+            while (calls.get() < 3 && System.currentTimeMillis() < deadline) {
+                Thread.sleep(20L);
+            }
+            reaper.stop();
+            assertTrue(calls.get() >= 3,
+                    "单轮扫描抛异常不得杀死常驻任务，实测仅触发 " + calls.get() + " 次");
+        } finally {
+            scheduler.shutdownNow();
+        }
     }
 }
