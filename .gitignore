@@ -86,3 +86,12 @@ server/version.txt
 audit/2026-11-08-capability-audit/db3307/
 .zcode/
 audit/2026-11-08-capability-audit/db3309/
+audit/**/mycat-home/schemas/
+audit/**/suite-home/schemas/
+audit/**/mycat-home/users/
+audit/**/suite-home/users/
+audit/**/mycat-home/datasources/
+audit/**/suite-home/datasources/
+audit/**/mycat-home/clusters/
+audit/**/suite-home/clusters/
+audit/**/suite-home/logs/
