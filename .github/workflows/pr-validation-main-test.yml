@@ -4,7 +4,7 @@ name: Java CI - Mycat2 Compat Matrix
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, g8-full-suite-gate ]
   pull_request:
     branches: [ main ]
   # I-CI-2：手动重跑入口（启用后首个 CI run 不必等新 push；历史 push 不补跑）。
@@ -12,6 +12,7 @@ on:
 
 jobs:
   compat:
+    if: github.ref != 'refs/heads/g8-full-suite-gate'
     runs-on: ubuntu-latest
     # M1 目标=产出逐版本 pass/fail。历史：R0 时全部档 experimental:true（CRUD 深债 7 版皆红）；
     # 2026-10-19 逐档撤实验完毕：全 7 档 experimental:false，任何档红均阻断 PR（闸门全牙闭环，
@@ -125,6 +126,7 @@ jobs:
   # 与后端版本无关（量的是旧客户端过 Mycat 前端的认证/CRUD 兼容面），故单 job 不进矩阵；
   # 不起多 connector 同 classpath（类遮蔽），verify-old-connector.sh 逐线 java -cp 单喂一个旧 jar。
   old-connector:
+    if: github.ref != 'refs/heads/g8-full-suite-gate'
     runs-on: ubuntu-latest
     services:
       mysql-a:
@@ -162,6 +164,7 @@ jobs:
   # NumberFormatException: "null"，根因链见 DEBT-QUEUE I-DEBT-86）——CI/护栏配置齐全从不暴露，
   # 本 job 即该测试网盲区的补网（spec §6-T4；本地证据 audit/2026-11-08-capability-audit）。
   cleanroom:
+    if: github.ref != 'refs/heads/g8-full-suite-gate'
     runs-on: ubuntu-latest
     services:
       mysql-a:
