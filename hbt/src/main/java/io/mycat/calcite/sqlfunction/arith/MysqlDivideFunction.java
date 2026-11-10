@@ -14,9 +14,12 @@
  */
 package io.mycat.calcite.sqlfunction.arith;
 
+import io.mycat.MycatDataContext;
+import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.calcite.MycatScalarFunction;
 
 import org.apache.calcite.mycat.MycatSqlDefinedFunction;
+import org.apache.calcite.runtime.NewMycatDataContext;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.ScalarFunction;
@@ -67,21 +70,20 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
      * MySQL {@code /} 的求值实现。参数声明为 {@code Object} 以免被宽松隐式 CAST 强改成固定族，
      * 由本方法内部按运行时类型分派（对齐 {@code strictEqualAny(Object,Object)} 的写法）。
      *
-     * <p>MYCAT CHANGE (I-DEBT-94/F5) 设计要点（本轮只收口值语义，告警通道另票）：真库
-     * {@code SELECT 1/0} 除返回 NULL 外还会进一条 Error 级诊断 1365 {@code Division by 0}
-     * （SHOW WARNINGS / @@warning_count 可见）；本地 codegen 除法经 remapOperator 出码为对
-     * 本静态纯函数的无上下文调用（{@code MysqlDivideFunction.mysqlDivide(a,b)}，见
-     * MysqlDivideFunctionTest），拿不到会话诊断缓冲（dataContext），故除零分支只能静默返 NULL
-     * ——{@code @@warning_count} 不涨。补齐告警需通道级改造，两案备选（均超一轮量，另票跟踪）：
-     * <ul>
-     *   <li>方案A：出码表达式改为 {@code root.mysqlDivide(a,b)}——在 {@code NewMycatDataContext}
-     *       增加 default 方法（内部 {@code getContext().addWarning(...)}），触及 remap hook
-     *       （MycatCalciteRuntimeHooks）与 codegen 模板，全算子回归面大。</li>
-     *   <li>方案B：执行器在 Bindable 求值边界设 {@code ThreadLocal<MycatDataContext>} 诊断槽，
-     *       除零分支查槽写入——改动集中，但引入 computation 线程可见性约定，需在 executor
-     *       try/finally 里严格挂/摘，防线程池复用串会话。</li>
-     * </ul>
-     * 值语义（除零→NULL）由 {@code MysqlDivideFunctionTest#divideByZeroYieldsNull} 锁定，与本设计无关。
+     * <p>MYCAT CHANGE (I-DEBT-94/F5 → I-DEBT-97/F5) 设计要点：真库 {@code SELECT 1/0} 除返回 NULL
+     * 外还会进一条诊断 1365 {@code Division by 0}（SHOW WARNINGS / @@warning_count 可见；默认
+     * sql_mode 下 Level 为 SQLWARNING/"Warning"，见 {@code QueryBackendWarningsTest} 远程腿同码口径）。
+     * 本地 codegen 除法经 remapOperator 出码为对本静态纯函数的无上下文调用
+     * （{@code MysqlDivideFunction.mysqlDivide(a,b)}，见 MysqlDivideFunctionTest），拿不到会话
+     * 诊断缓冲（dataContext）。I-DEBT-97 选方案B收口：执行器在 Bindable 求值边界（订阅边界，
+     * 见 {@code PrepareExecutor} 的 I-DEBT-97 注释）把会话 {@link MycatDataContext} 装进
+     * {@code NewMycatDataContext.DIAGNOSTIC_CONTEXT_SLOT}（{@code ThreadLocal}），本函数除零分支
+     * 读槽写入 {@link #emitDivisionByZeroWarning()}——槽空（远程/异步消费线程、无槽执行路径）
+     * 降级静默返 NULL，不抛不种槽。曾备选方案A（出码改 {@code root.mysqlDivide(a,b)} 触及
+     * remap hook 与 codegen 模板，全算子回归面大）弃用；诊断槽线程串会话防线
+     * （严格 try/finally + previous 恢复）见 {@code NewMycatDataContext} 的 I-DEBT-97 注释。
+     * 值语义（除零→NULL）由 {@code MysqlDivideFunctionTest#divideByZeroYieldsNull} 与
+     * {@code MysqlDivideDiagnosticSlotTest} 对照格锁定。
      *
      * @return 精确数值路返回 {@link BigDecimal}（scale=被除数scale+{@link #DIV_PRECISION_INCREMENT}，HALF_UP）；
      *         近似型路返回 {@link Double}；任一操作数为 null 或除零返回 {@code null}。
@@ -95,8 +97,9 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
                 || den instanceof Double || den instanceof Float) {
             double d = ((Number) den).doubleValue();
             if (d == 0.0d) {
-                // I-DEBT-94/F5：真库此处另有 Error 级诊断 1365 "Division by 0" 入诊断区；本地 codegen
-                // 静态纯函数无诊断通道，静默返 NULL——通道级改造设计要点见类注释（本轮只收口值语义）。
+                // I-DEBT-97/F5：真库此处另有 SQLWARNING 1365 "Division by 0" 入诊断区；经诊断槽写入
+                // （槽空降级静默——远程/异步消费线程兼容），值语义（NULL）不变。
+                emitDivisionByZeroWarning();
                 return null;
             }
             return ((Number) num).doubleValue() / d;
@@ -104,12 +107,36 @@ public class MysqlDivideFunction extends MycatSqlDefinedFunction {
         // 精确路：BigDecimal 十进制商。
         BigDecimal bden = toBigDecimal(den);
         if (bden.signum() == 0) {
-            // I-DEBT-94/F5：同上，除零静默返 NULL（告警通道设计要点见类注释）。
+            // I-DEBT-97/F5：同上，经诊断槽写 1365 后返 NULL（槽空降级静默）。
+            emitDivisionByZeroWarning();
             return null;
         }
         BigDecimal bnum = toBigDecimal(num);
         int scale = Math.max(bnum.scale() + DIV_PRECISION_INCREMENT, 0);
         return bnum.divide(bden, scale, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-97/F5)：除零诊断发射——读 {@code NewMycatDataContext.DIAGNOSTIC_CONTEXT_SLOT}
+     * 诊断槽，槽内挂有会话 {@link MycatDataContext} 时 {@code addWarning(Warning 1365 "Division by 0")}
+     * （口径对齐真库与远程腿 {@code QueryBackendWarningsTest} 的 {@code WarningMessage("Warning",1365,...)}），
+     * 告警入会话缓冲后由既有 I-DEBT-69 读腿（SHOW WARNINGS / @@warning_count）自动带出。
+     *
+     * <p>三次防御保证"诊断通道不得反噬值语义/执行"：(1) 无槽返回 {@code null} 即静默降级，不抛不种槽；
+     * (2) addWarning 自身异常（会话实现缺陷）被吞并 debug 记日志——告警腿故障不得把求值线程炸成
+     * 语句失败；(3) 只在除数零且被除数非 {@code null} 的分支调用（NULL/0 短路不产告警，对齐真库）。
+     * 每次除零发生各计一条（真库 {@code SELECT 1/0,1/0} → {@code @@warning_count}=2）。
+     */
+    private static void emitDivisionByZeroWarning() {
+        MycatDataContext ctx = NewMycatDataContext.currentDiagnosticContext();
+        if (ctx == null) {
+            return;
+        }
+        try {
+            ctx.addWarning(new WarningMessage("Warning", 1365, "Division by 0"));
+        } catch (Throwable e) {
+            MycatDataContext.LOGGER.debug("I-DEBT-97: emit division-by-zero warning failed, degrade silently", e);
+        }
     }
 
     private static BigDecimal toBigDecimal(Object x) {
