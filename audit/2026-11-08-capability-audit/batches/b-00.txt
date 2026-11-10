@@ -1,0 +1,8 @@
+io.mycat.alter.AlterTableTest
+io.mycat.alter.CreateIndexTest
+io.mycat.alter.DDLTest
+io.mycat.alter.DropTableTest
+io.mycat.alter.MySQLCheckTest
+io.mycat.alter.RenameTableTest
+io.mycat.alter.TruncateTableTest
+io.mycat.assemble.AddSequenceTest

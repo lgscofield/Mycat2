@@ -1,0 +1,8 @@
+io.mycat.compat.ShowCreateDatabaseCharsetTest
+io.mycat.compat.SqlModeSessionDumpSurfaceTest
+io.mycat.compat.TlsAxisMatrixTest
+io.mycat.config.KVTest
+io.mycat.config.MycatServerStdStorageManagerTest
+io.mycat.config.StdStorageManagerTest
+io.mycat.connection.DefaultBackendConnectionTest
+io.mycat.connection.ProxyBackendConnectionTest

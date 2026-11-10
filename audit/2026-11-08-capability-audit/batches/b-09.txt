@@ -1,0 +1,8 @@
+io.mycat.springdata.TableJPATemplateTest
+io.mycat.sql.BkaJoinExecuteTest
+io.mycat.sql.ColumnDefTest
+io.mycat.sql.ExceptionCaseTest
+io.mycat.sql.LoaddataTest
+io.mycat.sql.MegreJoinExecuteTest
+io.mycat.sql.MultiStatementTest
+io.mycat.sql.PushDownFunctionNormalTableTest

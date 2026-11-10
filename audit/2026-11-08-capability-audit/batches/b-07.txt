@@ -1,0 +1,8 @@
+io.mycat.monitor.MycatMonitorTest
+io.mycat.procedure.ProcedureTest
+io.mycat.replica.GaleraTest
+io.mycat.replica.MGRTest
+io.mycat.replica.MHATest
+io.mycat.replica.MasterSlaveTest
+io.mycat.replica.NoneTest
+io.mycat.replica.ReplicaTest

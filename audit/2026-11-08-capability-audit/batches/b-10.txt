@@ -1,0 +1,8 @@
+io.mycat.sql.PushDownFunctionShardingTableTest
+io.mycat.sql.ReplaceStatementTest
+io.mycat.sql.ShardingInsertNamedVariantTest
+io.mycat.sql.SqlFunctionTest
+io.mycat.sql.TableAnalyseTest
+io.mycat.sql.UserCaseTest
+io.mycat.swapbuffer.SwapBufferTest
+io.mycat.sysbench.SysbenchTest

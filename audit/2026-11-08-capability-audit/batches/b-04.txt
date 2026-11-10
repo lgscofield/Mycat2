@@ -1,0 +1,8 @@
+io.mycat.compat.CrudResultMatrixTest
+io.mycat.compat.DumpRestoreRoundTripMatrixTest
+io.mycat.compat.DumpSurfaceMatrixTest
+io.mycat.compat.FrontAuthMatrixTest
+io.mycat.compat.MariadbEd25519BackendTest
+io.mycat.compat.MetadataGuiMatrixTest
+io.mycat.compat.MigrateMatrixTest
+io.mycat.compat.OrderByNullCollationMatrixTest

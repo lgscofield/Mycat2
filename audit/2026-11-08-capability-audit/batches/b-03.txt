@@ -1,0 +1,8 @@
+io.mycat.blob.BlobTest
+io.mycat.client.ClientTest
+io.mycat.compat.BackendAuthMatrixTest
+io.mycat.compat.BinaryRepresentationFidelityDifferentialTest
+io.mycat.compat.ConnectionSmokeTest
+io.mycat.compat.CrossShardUnionHeaderDifferentialTest
+io.mycat.compat.CrossShardWarningRelayTest
+io.mycat.compat.CrudResultMatrixOracleShapeTest

@@ -1,0 +1,8 @@
+io.mycat.connection.XaBackendConnectionTest
+io.mycat.exception.ReadResultSetTest
+io.mycat.exception.ThreadTest
+io.mycat.globalinsert.GlobalInsertTest
+io.mycat.gsi.CreateGsiTest
+io.mycat.hint.HintTest
+io.mycat.hint.UserHintTest
+io.mycat.migrate.MigrateTest

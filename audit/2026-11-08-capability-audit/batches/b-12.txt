@@ -1,0 +1,6 @@
+io.mycat.xa.LocalXaTest
+io.mycat.xa.OnePhaseXaSavepointTest
+io.mycat.xa.OnePhaseXaTest
+io.mycat.xa.XaCommitIntentPersistenceTest
+io.mycat.xa.XaLogImplTest
+io.mycat.xa.XaReaperConvergenceTest

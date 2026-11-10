@@ -1,0 +1,8 @@
+io.mycat.replica.SingleTest
+io.mycat.savepoint.SavepointTest
+io.mycat.springdata.GlobalTableJPATest
+io.mycat.springdata.MySQLGlobalTableJPATest
+io.mycat.springdata.MySQLNormalTableJPATest
+io.mycat.springdata.MySQLShardingTableJPATest
+io.mycat.springdata.NormalTableJPATest
+io.mycat.springdata.ShardingTableJPATest

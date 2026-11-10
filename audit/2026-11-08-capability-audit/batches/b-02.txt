@@ -1,0 +1,8 @@
+io.mycat.assemble.PstmtAssembleTest
+io.mycat.assemble.RwTest
+io.mycat.assemble.SetTranscationTest
+io.mycat.assemble.SpmHintTest
+io.mycat.assemble.SpmTest
+io.mycat.assemble.SqlResultSetTest
+io.mycat.assemble.UserTest
+io.mycat.binlog.BinlogTest

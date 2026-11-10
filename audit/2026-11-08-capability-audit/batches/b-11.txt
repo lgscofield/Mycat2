@@ -1,0 +1,8 @@
+io.mycat.vector.VectorTest
+io.mycat.view.ViewTest
+io.mycat.xa.BaseXaSavepointTest
+io.mycat.xa.BaseXaTest
+io.mycat.xa.LocalSavepointTest
+io.mycat.xa.LocalTest
+io.mycat.xa.LocalXaCommitFailureTest
+io.mycat.xa.LocalXaSavepointTest

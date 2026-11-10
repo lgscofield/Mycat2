@@ -1,0 +1,8 @@
+io.mycat.assemble.AssembleTest
+io.mycat.assemble.CharsetTest
+io.mycat.assemble.DDLHintTest
+io.mycat.assemble.HbtTest
+io.mycat.assemble.LockTest
+io.mycat.assemble.ManagerHintTest
+io.mycat.assemble.MycatDdlDropRoutingTest
+io.mycat.assemble.MycatTest
