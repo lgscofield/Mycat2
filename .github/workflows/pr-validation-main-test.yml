@@ -194,7 +194,7 @@ jobs:
   full-suite:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/g8-full-suite-gate')
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 360
     services:
       mysql-a:
         image: mysql:8.0
@@ -222,6 +222,14 @@ jobs:
           cache: maven
       - name: Build and install modules (skip test compile)
         run: mvn -B install '-Dmaven.test.skip=true' -pl example -am
+      # I-DEBT-96/G8 修正: 首跑 5h 取消真因=未启动 mycat 实例(555 例全在连接超时空转)。
+      # bundled 默认数据源(123456@localhost:3306)与 CI services 天然对齐; 实例日志静音防拖慢。
+      - name: Boot Mycat instance (8066)
+        run: |
+          printf '<configuration><appender name="C" class="ch.qos.logback.core.ConsoleAppender"><encoder><pattern>%%d[%%-5level]%%logger{20}:%%msg%%n</pattern></encoder></appender><root level="WARN"><appender-ref ref="C"/></root></configuration>' > /tmp/logback-quiet.xml
+          nohup java -Dlogback.configurationFile=/tmp/logback-quiet.xml --add-opens=java.base/java.nio=ALL-UNNAMED -jar server/target/server-1.22-release-jar-with-dependencies.jar > /tmp/mycat-boot.log 2>&1 &
+          for i in $(seq 1 60); do (exec 3<>/dev/tcp/127.0.0.1/8066) 2>/dev/null && { exec 3<&- 3>&-; echo "8066 ready (${i}s)"; break; }; sleep 1; done
+          sleep 15
       - name: Run FULL example suite (555 tests)
         run: mvn -B -pl example test 2>&1 | tee example-test-full.log
       - name: Publish test summary
