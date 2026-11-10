@@ -148,6 +148,13 @@ public class JdbcConnectionManager implements ConnectionManager<DefaultConnectio
                             }
                         }
                     }
+                    // MYCAT CHANGE (I-DEBT-F7): 会话 sql_mode 借出时传导。活体 P-B-06：会话 SET sql_mode=''
+                    // 只进了 mycat 内存层，JDBC 腿借出的物理连接仍带服务器默认 STRICT_TRANS_TABLES，
+                    // 截断 INSERT 后端报 1406。此处若处于执行器借出窗口（SessionSqlModeAligner 携带会话值）
+                    // 且该物理连接上次对齐值≠会话值，则发一次 SET sql_mode 对齐（连接级标记防重复发；
+                    // 归还不还原，池复用时下个借出者再对齐）。窗口外借出（心跳/元数据/原型服务）不动后端。
+                    // 刻意排在 initSqls 之后：会话值比静态配置更新、更具体，借出窗口内会话值胜出。
+                    SessionSqlModeAligner.alignIfSessionBorrowed(connection, key.isMySQLType());
                     key.counter.getAndIncrement();
                     LOGGER.debug("get connection:{} pool {} ,used count:{} ", name, defaultConnection,key.counter);
                     return defaultConnection;

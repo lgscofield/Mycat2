@@ -134,7 +134,18 @@ public class VertxExecuter {
                     String sql = eachSQL.getSql();
                     List<Object> params = eachSQL.getParams();
 
-                    Future<NewMycatConnection> connectionFuture = map.computeIfAbsent(target, s -> transactionSession.getConnection(target));
+                    // MYCAT CHANGE (I-DEBT-F7): DML 下推借出窗口内携带会话 sql_mode。借出
+                    // （transactionSession.getConnection→JDBC 腿 JdbcConnectionManager.getConnection）
+                    // 同步发生在本 lambda 内，故窄窗口 set/finally reset 即可覆盖，且不污染同线程的
+                    // 元数据借出（变量表/SPM/统计）。会话从未 SET（getSessionSqlMode()==null）时
+                    // 传导为 no-op，存量会话零变化。
+                    io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(context.getSessionSqlMode());
+                    Future<NewMycatConnection> connectionFuture;
+                    try {
+                        connectionFuture = map.computeIfAbsent(target, s -> transactionSession.getConnection(target));
+                    } finally {
+                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                    }
                     Future<SqlResult> future;
                     if (insert) {
                         future = connectionFuture.flatMap(c -> c.insert(sql, params));

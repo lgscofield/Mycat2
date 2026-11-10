@@ -207,9 +207,20 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
 
     public synchronized Future<NewMycatConnection> getConnection(String key) {
         XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
+        // MYCAT CHANGE (I-DEBT-F7): SELECT 下推借出窗口内携带会话 sql_mode（context 即本查询的
+        // MycatDataContext）。两条借出支路（事务复用腿/直连腿）的 JDBC 池借出都同步发生在窗口内；
+        // native 腿借出在窗口内读不到 JDBC 连接、no-op。会话从未 SET 时传导为 no-op，零回归。
+        String sessionSqlMode = context.getSessionSqlMode();
         if (context.isInTransaction()) {
             return transactionConnnectionMap
-                    .computeIfAbsent(key, s -> transactionSession.getConnection(key));
+                    .computeIfAbsent(key, s -> {
+                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
+                        try {
+                            return transactionSession.getConnection(key);
+                        } finally {
+                            io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                        }
+                    });
         }
         MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
         int limit = Math.min(AsyncMycatDataContextImpl.FULL_TABLE_SCAN_LIMIT, mySQLManager.getAvailableNumber(key));
@@ -223,7 +234,14 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         int index = limitQueue.queue.size();
         Future<NewMycatConnection> connectionFuture;
         if (index < limit) {
-            connectionFuture = mySQLManager.getConnection(key).flatMap(newMycatConnection -> {
+            io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
+            Future<NewMycatConnection> borrowed;
+            try {
+                borrowed = mySQLManager.getConnection(key);
+            } finally {
+                io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+            }
+            connectionFuture = borrowed.flatMap(newMycatConnection -> {
                 connectionlList.add(newMycatConnection);
                 return Future.succeededFuture( newMycatConnection);
             });
