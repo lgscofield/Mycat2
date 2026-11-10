@@ -240,12 +240,17 @@ public class MycatCore {
     }
 
     public static void main(String[] args) throws Exception {
+        applySystemPropertyArgs(args);
+        new MycatCore().startServer();
+    }
+
+    static void applySystemPropertyArgs(String[] args) {
         if (args != null) {
             for (String i : args) {
                 if (i.startsWith("-D") || i.startsWith("-d")) {
                     i = i.substring(2);
                     if (i.contains("=")) {
-                        String[] n = i.substring(2).split("=");
+                        String[] n = i.split("=", 2);
                         System.setProperty(n[0], n[1]);
                     } else {
                         System.setProperty(i, Boolean.TRUE.toString());
@@ -253,6 +258,5 @@ public class MycatCore {
                 }
             }
         }
-        new MycatCore().startServer();
     }
 }

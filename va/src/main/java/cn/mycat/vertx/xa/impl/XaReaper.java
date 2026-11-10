@@ -62,8 +62,8 @@ public class XaReaper {
     /** 跨轮记录未决 xid 的首次观察时刻，用于 grace 计时（内存态；进程重启后由启动扫描兜底已决提交）。 */
     private final Map<String, Long> undecidedFirstSeen = new ConcurrentHashMap<>();
 
-    /** 可注入的扫描动作（默认真实 sweep）；供调度单测替换为计数任务，避免连真库。 */
-    Runnable sweepTask = this::runSweep;
+    /** 可注入的扫描动作（默认 quiet 包裹：单轮异常不得杀死 scheduleWithFixedDelay 常驻任务）；供调度单测替换。 */
+    Runnable sweepTask = this::runSweepQuiet;
 
     private ScheduledFuture<?> scheduled;
 
