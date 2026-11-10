@@ -228,7 +228,12 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
         LoadBalanceStrategy writeLB = loadBalanceManager.getLoadBalanceByBalanceName(replicaConfig.getWriteBalanceName());
         int maxRequestCount = replicaConfig.getMaxCon() == null ? Integer.MAX_VALUE : replicaConfig.getMaxCon();
 
-        assert datasourceConfigMap.size() != 0;
+        // MYCAT CHANGE (I-DEBT-98): 数据源文件全缺（全局映射为空）时集群整体跳过并 WARN，
+        // 不再 assert（AssertionError）/NoSuchElementException 崩启动；正常路径行为零变化。
+        if (datasourceConfigMap.isEmpty()) {
+            LOGGER.warn("I-DEBT-98 ignored orphan cluster [{}]: no datasource configs exist at all, skip and continue startup", name);
+            return;
+        }
         DatasourceConfig datasourceConfig = datasourceConfigMap.values().stream().iterator().next();
         String dbType = datasourceConfig.getDbType();
 
@@ -264,9 +269,13 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
             if (datasource != null) {
                 registerDatasource(master, selector, datasource, () -> sessionCounterProvider.getSessionCounter(datasourceName));
             } else {
-                String msg = "ignored " + datasourceName;
-                LOGGER.error(msg);
-                throw new IllegalArgumentException(msg);
+                // MYCAT CHANGE (I-DEBT-98): 孤儿引用自愈——集群配置存在但引用的数据源缺失时
+                // WARN+跳过该孤儿条目，不再抛 IllegalArgumentException 阻断启动。
+                // 活体证据 E24：任一孤儿引用即整机无法重启（运维事故级）；语义拍板=自愈式
+                // （WARN+跳过+继续启动）。同批多个孤儿逐条 WARN；部分孤儿的集群保留其余有效引用，
+                // 全孤儿集群注册为空（仅告警），热重载/内存配置同源路径同样受此防线保护。
+                LOGGER.warn("I-DEBT-98 ignored orphan datasource reference [{}] on cluster [{}] ({}): datasource config missing, skip and continue startup",
+                        datasourceName, selector.getName(), master ? "master" : "replica");
             }
         }
     }
@@ -401,6 +410,15 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
                 ReplicaSelector selector = replicaMap.get(replicaName);
                 if (selector != null) {
                     PhysicsInstance physicsInstance = selector.getRawDataSourceMap().get(datasourceName);
+                    if (physicsInstance == null) {
+                        // MYCAT CHANGE (I-DEBT-98): 孤儿引用不建心跳流。I-DEBT-98 起孤儿引用在
+                        // registerDatasource 阶段被 WARN+跳过（不再抛异常），配置面仍可能带着缺失引用
+                        // 走到这里；DefaultHeartbeatFlow 直取 instance.isMaster()（sendDataSourceStatus），
+                        // 对未注册实例发心跳既无意义又会 NPE。原语义（抛异常）下该分支不可达。
+                        LOGGER.warn("I-DEBT-98 skip heartbeat flow for orphan datasource [{}] on cluster [{}]: instance not registered",
+                                datasourceName, replicaName);
+                        return;
+                    }
                     DefaultHeartbeatFlow heartbeatFlow = new DefaultHeartbeatFlow(selector, physicsInstance, datasourceName,
                             heartbeatConfig.getMaxRetryCount(), heartbeatConfig.getMinSwitchTimeInterval(), heartbeatConfig.getHeartbeatTimeout(),
                             ReplicaSwitchType.valueOf(c.getSwitchType()),

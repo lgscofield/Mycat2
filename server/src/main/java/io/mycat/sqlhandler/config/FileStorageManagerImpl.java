@@ -27,6 +27,11 @@ public class FileStorageManagerImpl implements StorageManager {
     }
 
     @Override
+    public Optional<Path> getBaseDirectory() {
+        return Optional.of(baseDirectory);
+    }
+
+    @Override
     @SneakyThrows
     public <T extends KVObject> KV<T> get(String path, String fileNameTemplate, Class<T> aClass) {
         Path dir = baseDirectory.resolve(path);

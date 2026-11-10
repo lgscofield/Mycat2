@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -32,6 +33,12 @@ public class StdStorageManagerImpl implements StorageManager {
     @Override
     public <T extends KVObject> KV<T> get(String path, String fileNameTemplate, Class<T> aClass) {
         return fileStorageManager.get(path, fileNameTemplate, aClass);
+    }
+
+    // MYCAT CHANGE (I-DEBT-98): 透传文件基目录给孤儿配置自愈；非文件后端沿用接口默认空值。
+    @Override
+    public Optional<Path> getBaseDirectory() {
+        return fileStorageManager.getBaseDirectory();
     }
 
 
