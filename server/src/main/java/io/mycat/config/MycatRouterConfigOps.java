@@ -910,8 +910,26 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
 
     @Override
     public void reset() {
+        // MYCAT CHANGE (I-DEBT-100/G8): reset 只重置路由/schema 面,保留部署特定数据源凭据三元组
+        // (url/user/password)。出厂硬编码 123456@localhost:3306 与一切非 CI 凭据宿主结构性冲突——
+        // 活体三次同因: G1 验收插曲/E8 事故/G8 wedge(compat 测试 RESET_CONFIG→Druid 无限重试)。
+        // CI 兼容: CI 宿主既有 prototypeDs 即 123456,保留=同值,零变化。
+        MycatRouterConfig previous = this.newConfig;
         MycatRouterConfig newMycatRouterConfig = new MycatRouterConfig();
         defaultConfig(newMycatRouterConfig);
+        if (previous != null) {
+            previous.getDatasources().stream()
+                    .filter(ds -> "prototypeDs".equals(ds.getName()))
+                    .findFirst()
+                    .ifPresent(prevDs -> newMycatRouterConfig.getDatasources().stream()
+                            .filter(ds -> "prototypeDs".equals(ds.getName()))
+                            .findFirst()
+                            .ifPresent(newDs -> {
+                                newDs.setUrl(prevDs.getUrl());
+                                newDs.setUser(prevDs.getUser());
+                                newDs.setPassword(prevDs.getPassword());
+                            }));
+        }
         this.newConfig = newMycatRouterConfig;
     }
 
