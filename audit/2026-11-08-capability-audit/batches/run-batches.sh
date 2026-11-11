@@ -9,13 +9,18 @@ DONE="$B/done.txt"
 touch "$DONE"
 export JAVA_HOME="D:\Program Files\BellSoft\LibericaJDK-21-Full"
 export PATH="$JAVA_HOME/bin:$PATH"
+# 预检守卫: 四服务全活才起跑(防带病 pass 产生垃圾红)
+for p in 8066 8068 3307 3309; do
+  (exec 3<>/dev/tcp/127.0.0.1/$p) 2>/dev/null && { exec 3<&- 3>&-; } || { echo "PREFLIGHT FAIL: $p 不可达 → NO_DATA"; exit 2; }
+done
+echo "PREFLIGHT PASS: 8066/8068/3307/3309 全活"
+
 for bf in "$B"/b-*.txt; do
   name=$(basename "$bf" .txt)
   grep -qx "$name" "$DONE" && { echo "SKIP $name (done)"; continue; }
   classes=$(paste -sd, "$bf")
   echo "=== BATCH $name START $(date +%H:%M:%S): $classes ==="
   if mvn -q -B -pl example test -Dtest="$classes" -Dsurefire.failIfNoSpecifiedTests=false \
-      "-Ddb_mycat=jdbc:mysql://localhost:8068/dbaudit_a?username=root&password=123456&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true" \
       "-Ddb1=jdbc:mysql://localhost:3307/mysql?username=root&password=123456&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true" \
       "-Ddb2=jdbc:mysql://localhost:3309/mysql?username=root&password=123456&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true" \
       > "$A/logs/G8-$name.log" 2>&1; then
