@@ -17,6 +17,7 @@ package io.mycat.commands;
 import cn.mycat.vertx.xa.XaSqlConnection;
 import io.mycat.*;
 import io.mycat.api.collector.*;
+import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.WarningMessage;
 import io.mycat.beans.resultset.ResultSetWriter;
@@ -169,8 +170,11 @@ public class ReceiverImpl implements Response {
     public Future<Void> commit() {
         count++;
         boolean moreResultSet = hasMoreResultSet();
-        return transactionSession.commit().eventually((u) -> transactionSession.closeStatementState())
-                .flatMap(u -> session.writeOk(moreResultSet));
+        // I-DEBT-84 Phase2 阶段2 R5：commit 腿（本地单 DS + 多 DS 2PC）接语句级 deadline。后端冻结时
+        // XA COMMIT/本地 commit; 永不完成=无界挂；超时 force-close 参与者解困 worker、置 commitTimedOut
+        // 使 va retryCommit 让位 reaper，并以 3013 界住客户端（已决场景文案追加 outcome unknown，见 helper）。
+        return withCommitLegDeadline(transactionSession.commit().eventually((u) -> transactionSession.closeStatementState())
+                .flatMap(u -> session.writeOk(moreResultSet)));
     }
 
     @Override
@@ -456,6 +460,39 @@ public class ReceiverImpl implements Response {
         return StatementDeadline.withDeadline(leg, deadline, () -> {
             forceCloseInFlight(participants, new AtomicBoolean(true));
             return Future.succeededFuture();
+        });
+    }
+
+    /**
+     * I-DEBT-84 Phase2 阶段2 R5：给 commit 腿套语句级 deadline，范式同 {@link #withTransactionLegDeadline}
+     * （参与者均已借出，超时逐个 abandonConnection 解困阻塞 worker），并额外置 {@code markCommitTimedOut()}——
+     * va 轨 retryCommit 据此让位 reaper（意向在 xa_log，reaper 命中意向⇒XA COMMIT），杜绝客户端已拿 3013 走人后
+     * 后台仍无限 setTimer 抢新连接与 reaper 双主 churn。
+     *
+     * <p>R3：已决超时（{@code isCommitOutcomeUnknown()}=commitTimedOut&&commitDecided，决定点已过、参与者意向已
+     * durable）⇒ 提交结果未知而非失败，客户端 3013 文案追加 "commit outcome unknown; recovery in background"，
+     * 提示后台 reaper 向前收敛；未决/单 DS 超时维持标准 3013 文案。码恒为 3013 不变。
+     */
+    private Future<Void> withCommitLegDeadline(Future<Void> leg) {
+        List<NewMycatConnection> participants = transactionSession.getExistedTranscationConnections();
+        List<String> targets = participants.stream().map(NewMycatConnection::getTargetName)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        long deadline = statementDeadlineMillis(targets);
+        Future<Void> bounded = StatementDeadline.withDeadline(leg, deadline, () -> {
+            // 先置超时标志再 force-close：确保 commitTimedOut 在任何被弃用连接的失败传播回 va commit transform 前
+            // 已可见，使未决超时档跳过 rollback 让位 reaper（I-DEBT-84 C1），杜绝 rollback→kill→rollback 递归。
+            transactionSession.markCommitTimedOut();
+            forceCloseInFlight(participants, new AtomicBoolean(true));
+            return Future.succeededFuture();
+        });
+        return bounded.recover(cause -> {
+            if (cause instanceof MycatException
+                    && ((MycatException) cause).getErrorCode() == MycatErrorCode.ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT
+                    && transactionSession.isCommitOutcomeUnknown()) {
+                return Future.failedFuture(new MycatException(MycatErrorCode.ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT,
+                        cause.getMessage() + "; commit outcome unknown; recovery in background"));
+            }
+            return Future.failedFuture(cause);
         });
     }
 

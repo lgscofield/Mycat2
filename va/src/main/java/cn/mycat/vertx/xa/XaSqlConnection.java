@@ -85,4 +85,29 @@ public interface XaSqlConnection {
     public void setReadOnly(boolean value);
 
     public boolean isReadOnly();
+
+    /**
+     * I-DEBT-84 Phase2 阶段2 R1：提交决定已做出（混合路径=本地协调 commit; 成功；纯 XA=writeCommitLog 持久化成功）。
+     * 决定后失败只向前收敛（交 reaper），不得回滚已决提交。默认 no-op/false（非 XA 实现无此语义）。
+     */
+    public default void markCommitDecided() {
+    }
+
+    public default boolean isCommitDecided() {
+        return false;
+    }
+
+    /**
+     * I-DEBT-84 Phase2 阶段2 R2：commit 腿语句超时已触发（ReceiverImpl deadline onTimeout 置位）。
+     * retryCommit 据此让位 reaper，止无限 setTimer churn。
+     */
+    public default void markCommitTimedOut() {
+    }
+
+    /**
+     * I-DEBT-84 Phase2 阶段2 R3：超时且决定已做出 ⇒ 客户端语义为"提交结果未知，后台恢复中"。
+     */
+    public default boolean isCommitOutcomeUnknown() {
+        return false;
+    }
 }

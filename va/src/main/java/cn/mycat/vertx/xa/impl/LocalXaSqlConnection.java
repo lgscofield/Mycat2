@@ -90,19 +90,36 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
         }
         if (inTranscation && localSqlConnection != null) {
             NewMycatConnection curLocalSqlConnection = localSqlConnection;
+            // I-DEBT-84 Phase2 阶段2（spec §8.6 决定点归位）：本地协调 ds1 的 commit; 是真实原子决定点，收进
+            // beforeCommit，先于参与者意向持久化（writeCommitLog）与 XA COMMIT。REPLACE xa_log + commit; 原子提交
+            // 业务数据与协调者意向；成功后置 commitDecided。外层仅余删 xa_log（commit; 已收进 beforeCommit）。
             Future<Void> xaCommit = super.commitXa((coordinatorLog) -> curLocalSqlConnection.update(
-                            "REPLACE INTO mycat.xa_log (xid) VALUES('" + curXid + "');").mapEmpty())
-                    .compose((Function<Void, Future<Void>>) o -> {
-                        return curLocalSqlConnection.update("commit;").compose(unused -> {
-                            return curLocalSqlConnection.update("delete from mycat.xa_log where xid = '" + curXid + "'").mapEmpty();
-                        });
-                    }).mapEmpty();
+                            "REPLACE INTO mycat.xa_log (xid) VALUES('" + curXid + "');")
+                    .compose(unused -> curLocalSqlConnection.update("commit;"))
+                    .compose(unused -> {
+                        commitDecided = true;
+                        return Future.<Void>succeededFuture();
+                    }))
+                    .compose((Function<Void, Future<Void>>) o -> curLocalSqlConnection.update(
+                            "delete from mycat.xa_log where xid = '" + curXid + "'").mapEmpty())
+                    .mapEmpty();
             return xaCommit.transform(o -> {
                 if (o.failed()) {
-                    // 失败即回滚：把已 PREPARE 的参与者 XA ROLLBACK 掉、本地连接 rollback; 后再弃用，
-                    // 并把原始失败如实上报——既不报成功，也不把持锁连接还池（I-DEBT-72）。
                     LOGGER.error("xa commit occurs exception", o.cause());
                     Throwable cause = o.cause();
+                    if (commitDecided || commitTimedOut) {
+                        // 决定已做出（ds1 已 commit）：不回滚已决提交（prepared 参与者交 reaper 按 ds1.xa_log 意向
+                        // 向前收敛），弃用本地连接、清会话态后如实报错。杜绝 rollback→kill→close→rollback 递归。
+                        // 或 commit 腿已超时（commitTimedOut，force-close 已弃用全部参与者）：此时 XA ROLLBACK 必失败，
+                        // 进入 rollback 会触发 rollback→kill→rollback 无限递归（I-DEBT-84 C1）。未决超时 likewise 弃用
+                        // 本地连接、清会话态、如实报错，未决收敛交 reaper（无意向 durable ⇒ reaper XA ROLLBACK 参与者）。
+                        curLocalSqlConnection.abandonConnection();
+                        inTranscation = false;
+                        xid = null;
+                        localSqlConnection = null;
+                        return Future.failedFuture(cause);
+                    }
+                    // 未 decided（ds1 未 commit）：把已 PREPARE 参与者 XA ROLLBACK、本地 rollback; 后弃用，如实上报（I-DEBT-72）。
                     return rollback().transform(unused -> Future.failedFuture(cause));
                 }
                 Future<Void> closeFuture = curLocalSqlConnection.close();
@@ -150,6 +167,28 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
 
     @Override
     public Future<Void> rollback() {
+        if (rollingBack) {
+            // 重入回滚（Base.rollback 失败 → kill → Local.kill → rollback）：XA ROLLBACK 已失败，再发只会
+            // rollback→kill→rollback 无限递归（I-DEBT-84 C1）。强制弃用连接 + 复位会话态，不再重发 XA ROLLBACK。
+            return forceAbandonAndReset();
+        }
+        rollingBack = true;
+        return rollbackInternal().onComplete(ar -> rollingBack = false);
+    }
+
+    /** 重入回滚时的终止路径：弃用本地协调 + 参与者连接、复位会话态。inTranscation 先置 false 使 super.kill() 不再触发 rollback。 */
+    private Future<Void> forceAbandonAndReset() {
+        NewMycatConnection cur = localSqlConnection;
+        if (cur != null) {
+            cur.abandonConnection();
+        }
+        inTranscation = false;
+        xid = null;
+        localSqlConnection = null;
+        return super.kill();
+    }
+
+    private Future<Void> rollbackInternal() {
         if (localSqlConnection == null && map.isEmpty()) {
 
             inTranscation = false;

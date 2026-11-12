@@ -211,4 +211,24 @@ public class SavepointSqlConnection implements XaSqlConnection {
     public void addCloseFuture(Future<Void> future) {
         connection.addCloseFuture(future);
     }
+
+    @Override
+    public void markCommitDecided() {
+        connection.markCommitDecided();
+    }
+
+    @Override
+    public boolean isCommitDecided() {
+        return connection.isCommitDecided();
+    }
+
+    @Override
+    public void markCommitTimedOut() {
+        connection.markCommitTimedOut();
+    }
+
+    @Override
+    public boolean isCommitOutcomeUnknown() {
+        return connection.isCommitOutcomeUnknown();
+    }
 }
