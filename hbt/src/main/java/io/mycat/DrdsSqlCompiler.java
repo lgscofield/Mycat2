@@ -355,6 +355,13 @@ public class DrdsSqlCompiler {
 //            }
 //        }
         RelDataType finalRowType = logPlan.getRowType();
+        // 7C A1: 隐式别名含裸?须在 CBO 前覆写为字面量形态——MycatView 下推别名取自 CBO 期定稿的
+        // rowType 字段名,顶层 rename 晚于 MycatView 构建无法触及下推 fragment,故在此前置 rename logPlan。
+        List<String> overriddenNames = overrideImplicitAliasBareParam(finalRowType.getFieldNames(), drdsSql);
+        if (overriddenNames != null) {
+            logPlan = relNodeContext.getRelBuilder().push(logPlan).rename(overriddenNames).build();
+            finalRowType = logPlan.getRowType();
+        }
         RelNode rboLogPlan = optimizeWithRBO(logPlan);
 //        if (!RelOptUtil.areRowTypesEqual(rboLogPlan.getRowType(), logPlan.getRowType(), true)) {
 //            rboLogPlan = relNodeContext.getRelBuilder().push(rboLogPlan).rename(logPlan.getRowType().getFieldNames()).build();
@@ -372,6 +379,31 @@ public class DrdsSqlCompiler {
             mycatRel = MycatProject.create(relNode.getInput(), relNode.getProjects(), relNode.getRowType());
         }
         return mycatRel;
+    }
+
+    // 7C A1: 隐式别名取自参数化表达式文本(含裸?),下推时 JDBC 占位符错配致后端1064。
+    // 以 preParse 字面量形态 aliasList 覆写含?的隐式字段名;显式 AS 无?→零变化。
+    // 返回覆写后字段名列表;无命中返回 null(调用方据此跳过 rename,零回归)。
+    private List<String> overrideImplicitAliasBareParam(List<String> fieldNames, DrdsSql drdsSql) {
+        List<String> aliasList = (drdsSql instanceof DrdsSqlWithParams)
+                ? ((DrdsSqlWithParams) drdsSql).getAliasList() : Collections.emptyList();
+        if (aliasList == null || aliasList.isEmpty()) {
+            return null;
+        }
+        boolean changed = false;
+        final List<String> renamed = new ArrayList<>(fieldNames.size());
+        for (int i = 0; i < fieldNames.size(); i++) {
+            String name = fieldNames.get(i);
+            if (name.indexOf('?') >= 0 && i < aliasList.size()) {
+                String alias = aliasList.get(i);
+                if (alias != null && !alias.isEmpty()) {
+                    name = alias;
+                    changed = true;
+                }
+            }
+            renamed.add(name);
+        }
+        return changed ? renamed : null;
     }
 
     public RelNodeContext getRelRoot(DrdsSql drdsSql) {
