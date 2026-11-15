@@ -186,10 +186,15 @@ public class XaLogImpl implements XaLog {
                     Connection connection = connectionMap.get(target);
                     try {
                         JdbcUtils.executeUpdate(connection, sql, Collections.emptyList());
+                        // MYCAT CHANGE (I-DEBT-110): 意向删除仅在 XA COMMIT/ROLLBACK 确认成功后执行。
+                        // 此前无条件删除:COMMIT 瞬时失败(锁/连接半死)被注释误判为"已提交或已回滚",
+                        // 恢复锚销毁 → 分支 in-doubt 且无意向 → 下轮恢复判 ROLLBACK → 已决提交被回滚(P0)。
+                        // 对齐同仓 XaReaper.resolve 先例(删放同 try,失败即跳过删除)。I-DEBT-111 的 R1
+                        // 决定点归位后,ds1.xa_log 是收敛权威,此处删除失败仅留一行待清理,无害。
+                        JdbcUtils.executeUpdate(connection, "delete from mycat.xa_log where xid = '" + xid + "'", Collections.emptyList());
                     } catch (Exception e) {
-                        LOGGER.error(e);//已经提交或者回滚了
+                        LOGGER.error(e);// XA 终态未确认(非幂等失败)——保留 xa_log 意向供收敛重试(I-DEBT-110)
                     }
-                    JdbcUtils.executeUpdate(connection, "delete from mycat.xa_log where xid = '" + xid + "'", Collections.emptyList());
                 }
             }
         } finally {
