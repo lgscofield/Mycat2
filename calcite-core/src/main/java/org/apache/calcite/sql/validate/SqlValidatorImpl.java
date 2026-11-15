@@ -3201,6 +3201,14 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
           new SelectScope(parentScope, windowParentScope, select);
       scopes.put(select, selectScope);
 
+      // MYCAT CHANGE (I-DEBT-85): MySQL/MariaDB treat a non-aggregate HAVING without
+      // GROUP BY as WHERE (per-row, multi-row), even with ONLY_FULL_GROUP_BY on; a
+      // HAVING reference outside the select list is ER 1054. Normalize here, before
+      // clause scopes are created, so isAggregate() below never sees the bare HAVING
+      // (aggregation scoping rejected bare columns as notGroupExpr in strict sessions
+      // and crashed codegen in lenient ones).
+      rewriteBareHavingAsWhere(select);
+
       // Start by registering the WHERE clause
       clauseScopes.put(IdPair.of(select, Clause.WHERE), selectScope);
       registerOperandSubQueries(
@@ -5407,6 +5415,71 @@ public class SqlValidatorImpl implements SqlValidatorWithHints {
       return SqlTypeUtil.inBooleanFamily(recordField.getType());
     }
     return SqlTypeUtil.inBooleanFamily(relDataType);
+  }
+
+  /** MYCAT CHANGE (I-DEBT-85): see the call site in {@link #registerQuery}. */
+  private void rewriteBareHavingAsWhere(SqlSelect select) {
+    final SqlNode having = select.getHaving();
+    if (having == null) {
+      return;
+    }
+    final SqlNodeList groupBy = select.getGroup();
+    if (groupBy != null && groupBy.size() > 0) {
+      return;
+    }
+    final SqlNodeList selectList = requireNonNull(select.getSelectList(), "selectList");
+    // Aggregate queries keep single-group HAVING semantics; subqueries/window shapes
+    // are conservatively left on the legacy path.
+    if (SqlUtil.containsAgg(having) || SqlUtil.containsAgg(selectList)
+        || SqlUtil.containsCall(having, call -> call.getKind() == SqlKind.SELECT)
+        || SqlUtil.containsCall(having, call -> call.getOperator() instanceof SqlOverOperator)
+        || SqlUtil.containsCall(selectList, call -> call.getOperator() instanceof SqlOverOperator)) {
+      return;
+    }
+    final boolean caseSensitive = catalogReader.nameMatcher().isCaseSensitive();
+    final Map<String, SqlNode> selectRefs = new HashMap<>();
+    boolean hasStar = false;
+    for (SqlNode item : selectList) {
+      SqlNode operand = item;
+      String name = null;
+      if (item.getKind() == SqlKind.AS) {
+        final SqlCall call = (SqlCall) item;
+        operand = call.operand(0);
+        name = ((SqlIdentifier) call.operand(1)).getSimple();
+      } else if (item instanceof SqlIdentifier) {
+        final SqlIdentifier id = (SqlIdentifier) item;
+        if (id.isStar()) {
+          hasStar = true;
+          continue;
+        }
+        name = id.getSimple();
+      }
+      if (name != null) {
+        selectRefs.put(caseSensitive ? name : name.toUpperCase(Locale.ROOT), operand);
+      }
+    }
+    final boolean allColumnsVisible = hasStar;
+    // MySQL resolves HAVING against the select list only; an unresolvable reference
+    // is ER 1054 even in lenient sql_mode. With a star select every FROM column is
+    // visible, so references pass through untouched.
+    final SqlNode expanded = having.accept(new SqlShuttle() {
+      @Override public SqlNode visit(SqlIdentifier id) {
+        final String key =
+            caseSensitive ? id.getSimple() : id.getSimple().toUpperCase(Locale.ROOT);
+        final SqlNode mapped = selectRefs.get(key);
+        if (mapped != null) {
+          return mapped;
+        }
+        if (!allColumnsVisible) {
+          throw newValidationError(id, RESOURCE.unknownColumnInHavingClause(id.getSimple()));
+        }
+        return id;
+      }
+    });
+    final SqlNode where = select.getWhere();
+    select.setWhere(where == null ? expanded
+        : SqlStdOperatorTable.AND.createCall(where.getParserPosition(), where, expanded));
+    select.setHaving(null);
   }
 
   protected void validateHavingClause(SqlSelect select) {

@@ -166,4 +166,24 @@ public class MycatXaTranscation implements XaSqlConnection, TransactionSession {
     public List<NewMycatConnection> getAllConnections() {
         return connection.getAllConnections();
     }
+
+    @Override
+    public void markCommitDecided() {
+        connection.markCommitDecided();
+    }
+
+    @Override
+    public boolean isCommitDecided() {
+        return connection.isCommitDecided();
+    }
+
+    @Override
+    public void markCommitTimedOut() {
+        connection.markCommitTimedOut();
+    }
+
+    @Override
+    public boolean isCommitOutcomeUnknown() {
+        return connection.isCommitOutcomeUnknown();
+    }
 }

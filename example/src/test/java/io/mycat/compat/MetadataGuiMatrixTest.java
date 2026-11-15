@@ -7,6 +7,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -179,6 +180,46 @@ public class MetadataGuiMatrixTest implements MycatTest {
                     "WHERE\n" +
                     "\tt.TABLE_SCHEMA = 'information_schema'\n" +
                     "\tAND t.TABLE_NAME = 'CHECK_CONSTRAINTS'");
+        }
+    }
+
+    /**
+     * S2（I-DEBT-85 回归锁）：{@code getTables(typeList=[TABLE,VIEW])}——Connector/J 对非空 typeList
+     * 生成无 GROUP BY 的裸 {@code HAVING TABLE_TYPE IN (...)}。真 MySQL/MariaDB 把该形按 WHERE 逐行
+     * 处理（2026-11-10 一手实测）；修复前 Mycat 默认会话抛 notGroupExpr、宽松会话实现层越界崩。
+     * 判据：带类型过滤的结果集 == 不带过滤结果集的客户端侧 TABLE/VIEW 子集（逐 (catalog,name,type) 比对）。
+     */
+    @Test
+    public void s2GetTablesTypeListFilter() throws Exception {
+        assumeInfraUp();
+        guardBackendVersion();
+        try (Connection c = DriverManager.getConnection(PLAIN_URL, USER, PW)) {
+            Set<String> all = new LinkedHashSet<>();
+            try (ResultSet rs = c.getMetaData().getTables(null, null, "%", null)) {
+                while (rs.next()) {
+                    all.add(rs.getString("TABLE_CAT") + "/" + rs.getString("TABLE_NAME")
+                            + "/" + rs.getString("TABLE_TYPE"));
+                }
+            }
+            Set<String> expected = new LinkedHashSet<>();
+            for (String key : all) {
+                if (key.endsWith("/TABLE") || key.endsWith("/VIEW")) {
+                    expected.add(key);
+                }
+            }
+            Set<String> filtered = new LinkedHashSet<>();
+            try (ResultSet rs = c.getMetaData().getTables(null, null, "%", new String[]{"TABLE", "VIEW"})) {
+                while (rs.next()) {
+                    String type = rs.getString("TABLE_TYPE");
+                    assertTrue("TABLE".equals(type) || "VIEW".equals(type),
+                            "typeList 过滤后不得混入其他类型：" + type);
+                    filtered.add(rs.getString("TABLE_CAT") + "/" + rs.getString("TABLE_NAME") + "/" + type);
+                }
+            }
+            System.out.println("[MetadataGui] " + COMPAT_DB + " getTables all=" + all.size()
+                    + " typeList[TABLE,VIEW]=" + filtered.size());
+            assertEquals(expected, filtered,
+                    "getTables(typeList) 必须等于无过滤结果集的 TABLE/VIEW 子集（裸 HAVING 按 WHERE 逐行语义）");
         }
     }
 

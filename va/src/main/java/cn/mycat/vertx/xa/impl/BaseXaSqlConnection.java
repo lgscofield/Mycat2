@@ -45,6 +45,19 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
     protected final List<Future<Void>> closeList = new CopyOnWriteArrayList<>();
     private final Supplier<MySQLManager> mySQLManagerSupplier;
     protected volatile String xid;
+    /**
+     * I-DEBT-84 Phase2 阶段2 R1：提交决定已做出。混合路径在本地协调 commit; 成功后置位（LocalXaSqlConnection），
+     * 纯 XA 在 writeCommitLog 持久化成功后置位（commitXa）。决定后失败只向前收敛，不回滚已决提交。
+     */
+    protected volatile boolean commitDecided;
+    /** I-DEBT-84 Phase2 阶段2 R2：commit 腿语句超时已触发，retryCommit 据此让位 reaper。 */
+    protected volatile boolean commitTimedOut;
+    /**
+     * I-DEBT-84 C1 终止守卫：rollback 进行中标志。Base.rollback 失败分支调 kill()，LocalXaSqlConnection.kill()
+     * 又调 rollback()，若 XA ROLLBACK 持续失败则 rollback→kill→rollback 无限递归。LocalXaSqlConnection.rollback()
+     * 据此切断重入（重入时强制弃用连接而非再发 XA ROLLBACK）。
+     */
+    protected volatile boolean rollingBack;
 
 
     public BaseXaSqlConnection(MySQLIsolation isolation, Supplier<MySQLManager> mySQLManagerSupplier, XaLog xaLog) {
@@ -303,30 +316,33 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
                         })
                         .onSuccess(compositeFuture -> {
                             log.logPrepare(xid, true);
-                            Future<Void> future;
-                            try {
-                                /**
-                                 * if log commit fail ,occur exception,other transcations rollback.
-                                 */
-                                ImmutableCoordinatorLog coordinatorLog = this.log.logCommitBeforeXaCommit(xid);
-                                /**
-                                 * if native connection has inner commited,
-                                 * but it didn't received the commit response.
-                                 * should check the by manually.
-                                 */
-                                future = beforeCommit.apply(coordinatorLog);
-                            } catch (Throwable throwable) {
-                                future = Future.failedFuture(throwable);
-                            }
-                            future.onFailure((Handler<Throwable>) throwable -> {
+                            // I-DEBT-84 Phase2 阶段2（spec §8.6 决定点归位）：本地协调决定（beforeCommit，混合=ds1
+                            // REPLACE xa_log + commit;）必须先于参与者意向持久化（writeCommitLog）与 XA COMMIT，使真实
+                            // 原子决定点落在参与者意向 durable 之前——否则 ds1 提交前被 force-close 时参与者意向已 durable，
+                            // reaper 误提交参与者造成跨库不一致（PROBE-A 坐实）。beforeCommit 的 coordinatorLog 参数各调用方
+                            // 均忽略（LocalSqlConnection.commitXa 亦 apply(null)），重排后传 null。
+                            Future<Void> before = beforeCommit.apply(null);
+                            before.onFailure((Handler<Throwable>) throwable -> {
+                                // 决定未做出（混合 ds1 未 commit）：取消意向 + 复位 decided，交客户端 rollback。
                                 log.logCancelCommitBeforeXaCommit(xid);
-                                //客户端触发回滚
-                                /**
-                                 * the client received exception ,it must  rollback.
-                                 */
+                                commitDecided = false;
                                 promsie.fail(throwable);
                             });
-                            future.onSuccess(event16 -> {
+                            before.onSuccess(event16 -> {
+                                try {
+                                    // 参与者意向持久化（阶段0）。混合路径决定已在 beforeCommit 做出（commitDecided 已 true）；
+                                    // 纯 XA 此处才是决定点。writeCommitLog 失败抛 IllegalStateException。
+                                    this.log.logCommitBeforeXaCommit(xid);
+                                    commitDecided = true;
+                                } catch (Throwable throwable) {
+                                    // 混合 decided=true：ds1 已 commit，决定不可撤销 ⇒ 不 cancel/不回滚，保留 ds1.xa_log
+                                    // 意向交 reaper 向前收敛。纯 XA decided=false：未 durable=未决定 ⇒ cancel + 交客户端 rollback。
+                                    if (!commitDecided) {
+                                        log.logCancelCommitBeforeXaCommit(xid);
+                                    }
+                                    promsie.fail(throwable);
+                                    return;
+                                }
                                 executeTranscationConnection(connection -> {
                                     return connection.update(String.format(XA_COMMIT, xid))
                                             .map(c -> changeTo(connection, State.XA_COMMITED)).mapEmpty();
@@ -356,6 +372,13 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
      */
     private Future<Void> retryCommit() {
         return Future.future((Promise<Void> promise) -> {
+            // I-DEBT-84 Phase2 阶段2 R2：commit 腿已超时（客户端已拿 3013 走人）。retryCommit 只在 XA COMMIT
+            // 失败后进入（此时 writeCommitLog 已成功 ⇒ commitDecided=true，意向在 xa_log），收敛交 reaper 向前
+            // 提交即可；若继续 setTimer 抢新连接无限重试，会与 reaper 双主 churn。故立即让位、有界失败。
+            if (commitTimedOut) {
+                promise.tryFail(new IllegalStateException("commit timed out; retryCommit yields to reaper, xid:" + xid));
+                return;
+            }
             CompositeFuture all = CompositeFuture.join(computePrepareCommittedTargets().stream()
                     .map(s -> mySQLManager().getConnection(s)
                             .compose(c -> {
@@ -373,6 +396,11 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
                 clearConnections().onComplete(promise);
             });
             all.onFailure(event -> {
+                // 重试途中超时标志被置位（onTimeout 异步触发）：不再重排，让位 reaper。
+                if (commitTimedOut) {
+                    promise.tryFail(new IllegalStateException("commit timed out; retryCommit yields to reaper, xid:" + xid));
+                    return;
+                }
                 mySQLManager().setTimer(log.retryDelay(), () -> retryCommit().onComplete(promise));
             });
         });
@@ -470,6 +498,26 @@ public class BaseXaSqlConnection extends AbstractXaSqlConnection {
     @Override
     public String getXid() {
         return xid;
+    }
+
+    @Override
+    public void markCommitDecided() {
+        commitDecided = true;
+    }
+
+    @Override
+    public boolean isCommitDecided() {
+        return commitDecided;
+    }
+
+    @Override
+    public void markCommitTimedOut() {
+        commitTimedOut = true;
+    }
+
+    @Override
+    public boolean isCommitOutcomeUnknown() {
+        return commitTimedOut && commitDecided;
     }
 
     @Override

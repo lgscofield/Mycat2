@@ -1,6 +1,6 @@
 # I-DEBT-84 · Mycat 侧语句级超时 deadline（D-B'，兜住 R1c 实证的"等后端响应无界挂"）—— Spec 先行
 
-> **状态**：🟢 实码推进中——statement/DML/SELECT/事务腿 Phase1 已落地（§7.6）；Phase2 阶段0+1（提交意向持久化 + 独立事务 reaper）已落地实证（§7.8）；阶段2（commit 腿接 deadline）留后续独立子票。
+> **状态**：🟢 实码推进中——statement/DML/SELECT/事务腿 Phase1 已落地（§7.6）；Phase2 阶段0+1（提交意向持久化 + 独立事务 reaper）已落地实证（§7.8）；**阶段2（commit 腿接 deadline）已落地实证（§8.7，2026-11-12，含决定点归位 §8.6 + C1 递归终止修复）；commit 待拍板。遗留 I2b（force-close=Druid recycle 非物理 abort，冻结后端 worker 解困）属 Phase1 全腿共享机制，升级独立拍板（§8.7）。**
 > **分层**：C（引擎地基 / 生产稳健交界，承 I-DEBT-80/81/82/83 资源/可用性族）。
 > **一句话**：给"Mycat 等后端响应"这条 Future 套一个 wall-clock deadline，使客户端在**后端僵死/TCP 黑 hole**（服务端超时也救不了的场景）下
 > 仍在**有界**时间内拿到错误，兑现招牌"无缝替代 MySQL"的可用性底线；且**不得把"客户端解挂"变成"线程/连接泄漏"**。
@@ -139,3 +139,52 @@
 - **不抢方向盘的收口**：在线协调器正常驱动的 2PC 在 grace（默认 60s = 2×语句超时 30s）窗口内不被碰；与在线并发命中同一 xid 靠 MySQL 幂等报错吞掉 + 条件删兼容；reaper 实质只接管“协调器已失联（进程重启/异常退出）致 xid 长期悬挂”的场景。启动一次性扫描 eager 语义不变。
 - **配置与接线**：`ServerConfig.xaReaperIntervalMillis=30_000`（<=0 禁用，零常驻线程零开销）、`xaReaperGraceMillis=60_000`；`MycatRouterConfigOps` 在既有 hasXA 门（`:740-743` `readXARecoveryLog()` 后）调 `startXaReaper()` 挂载；进程级单例（static + 锁，config 热重载替换旧实例防重复挂）；supplier 每轮从 `MetaClusterCurrent` 取当前 `MySQLManager`，避免热重载后抱住旧连接池。
 - **取证**：`XaReaperSchedulingTest`（va 层注入调度器+假扫描任务，不连库）**2/0F/0E**（启用态周期触发≥2 次；<=0 禁用零排程）；`XaReaperConvergenceTest`（真 XA 后端 + 注入时钟驱动 grace，确定性活体）**2/0F/0E**——场景 A 已决提交：prepared 分支+xa_log 意向 ⇒ 一轮 sweep 后 `XA COMMIT`、分支内写入对其它连接可见（未丢已提交数据）、意向行清除；场景 B+C 未决：grace 内不动（仍 prepared，不抢方向盘），过 grace 后 `XA ROLLBACK`、数据未生效。
+
+---
+
+## §8 Phase 2 阶段2（commit 腿接 deadline）详细设计（2026-11-10 取证完成；组合案已拍板认可，实现排 I-DEBT-85 之后）
+
+> 承 §7.4/§7.6/§7.8：阶段0（意向持久化）+阶段1（常驻 reaper）已落地，本节是 commit 腿本体设计。**未过拍板不动 commit 路径。**
+
+### §8.1 当前接线事实（2026-11-10 实读 HEAD）
+- **裸奔点**：`server/.../commands/ReceiverImpl.java:169-174` `commit()` 无任何 deadline（Phase 1 只包了 rollback/savepoint 四腿，`:154/:181/:191/:201`）。
+- **Phase 1 范式**：`withTransactionLegDeadline`（`ReceiverImpl:451-460`）= 快照参与者（`getExistedTranscationConnections()`）→ `statementDeadlineMillis(targets)`（datasource `statementTimeout` 最小值+全局 30s 兜底）→ `StatementDeadline.withDeadline`，onTimeout=`forceCloseInFlight`（`:434-443` 逐个 `abandonConnection()`）。
+- **StatementDeadline**（`hbt/.../vertx/StatementDeadline.java:75-124`）：CAS 先到先得；超时先跑 onTimeout 再以 3013（`ERR_SQL_DISTRIBUTED_QUERY_TIMEOUT`）失败；src 先完成则取消 timer；超时后 src 迟到完成变 no-op。
+- **commit 三路径**（`LocalXaSqlConnection.commit():54-118`）：
+  - **空事务**（`:65-71`）：no-op，无悬挂面。
+  - **单 DS 本地**（`:72-90`）：`update("commit;")`，失败→`rollback()`+报原始 cause（I-DEBT-72）。无 PREPARE/无 xa_log，但"已提交后冻结"=in-doubt（§7.6）。
+  - **多 DS 混合**（`:91-114`）：`super.commitXa(beforeCommit=REPLACE INTO mycat.xa_log)` → 本地 `commit;` → 删 xa_log；**失败→`rollback()`**（`:106`）。
+- **commitXa 状态机**（`BaseXaSqlConnection:271-351`）：logParticipants → XA END → XA PREPARE（败→logPrepare(false)+tryFail）→ **`log.logCommitBeforeXaCommit`（阶段0已持久化意向到各参与者，写失败抛 IllegalStateException 拒提交）** → beforeCommit → 逐连接 XA COMMIT；**XA COMMIT 败→logCommit(false)+`retryCommit()`（`:357-379` setTimer 无限重试换新连接）**；成功→inTranscation=false+logCommit(true)+clearConnections。
+
+### §8.2 核心危险：超时 force-close 会触发"已决提交被回滚"（必须设计防线）
+多 DS 路径下，意向持久化后后端冻结 → deadline 超时 force-close → 在途 `XA COMMIT` 的 update 失败 → **两条既有失败腿都会抢错方向盘**：
+1. `LocalXaSqlConnection.commit` 的 transform（`:100-107`）→ `rollback()` → 对 **prepared 分支发 XA ROLLBACK**（prepared 分支可回滚！）+ **删 xa_log 意向**（`LocalXaSqlConnection.rollback():175-176`）⇒ **已持久化"提交决定"的事务被回滚= durability 破口**。
+2. `commitXa` 的 onFailure → `retryCommit()` 无限 setTimer 循环 ⇒ 客户端已拿 3013 走人，后台还在无限抢新连接重试（资源搅动+与 reaper 双主）。
+
+### §8.3 设计定案候选（推荐案，待拍板）
+**R1 提交决定标记（commitDecided）**：`BaseXaSqlConnection` 加 volatile 标志，在 `logCommitBeforeXaCommit` **成功返回后**置位（意向已 durable ⇒ 2PC 决定已做出，只能向前收敛）。`LocalXaSqlConnection.commit` 的失败 transform 改为：**decided → 不 rollback**，清会话态（inTranscation/xid/map）后如实报错；未 decided → 维持现 rollback 路径（未 PREPARE/未持久化，回滚正确）。
+**R2 retryCommit 让位**：onTimeout 置取消标志，`retryCommit` 每轮重试前检查——已取消则退出循环，收敛交 reaper（意向在 xa_log，reaper 命中意向⇒XA COMMIT，§7.8 已实证）。避免双主+无限 churn。reaper grace（默认 60s）内不碰 ⇒ in-doubt 窗口 ≤ grace+interval，有界。
+**R3 客户端语义**：超时统一回 **3013**（与其他腿一致、会话可复用）；decided 场景的 message 追加 "commit outcome unknown; recovery in background"（诚实告知结果未知，不假装失败）。**不**选关连接（2013 风格）——会话复用一致性代价大，且 MySQL 客户端对 ERR 的处理已成熟。
+**R4 单 DS 本地腿**：无 xa_log/无 prepared，force-close 后后端状态自权威（未提交则断连自动回滚，已提交则无可回滚）；现有 transform→rollback() 在已弃连接上快速失败→abandon→态清理，**无需新代码**，只需包 deadline。客户端同样 3013（outcome unknown 文案）。
+**R5 包裹点**：`ReceiverImpl.commit()` 整腿包 commit 版 deadline helper（复用 Phase 1 范式，onTimeout=forceCloseInFlight(participants)+置 R1/R2 标志）。deadline 口径不变（datasource 最小值+30s 兜底，<=0 禁用）。
+**R6 不动的边界**：非超时的既有失败语义（beforeCommit 失败→cancelCommitLog→rollback）保持不变；`writeCommitLog` 自身失败（未 durable）→ 拒提交+rollback 正确。空事务/begin 不接。
+
+### §8.4 测试矩阵（TDD）
+- **确定性单测（va，注入假连接+可控 timer）**：① 永不完成的 update ⇒ 客户端 Future N+ε 内 3013（RED=无 deadline 挂死，测试超时判红）；② decided 后超时 ⇒ 不发 XA ROLLBACK、xa_log 意向保留、retryCommit 退出；③ 未 decided 超时 ⇒ 走 rollback；④ 正常先完成 ⇒ timer 取消不泄漏；⑤ 单 DS 超时 ⇒ 态清理会话可复用。
+- **活体取证（docker pause 配方，承 R1c）**：① 多 DS：PREPARE 后冻结 ⇒ 客户端 3013 有界 ⇒ 解冻后 reaper 在 grace+interval 内 XA COMMIT、数据可见、意向清除（**不丢已决提交**）；② PREPARE 前冻结 ⇒ 3013 + 分支回滚；③ 单 DS commit; 冻结 ⇒ 3013 + 无连接/线程泄漏（IOExecutor 计数回落、后端无孤儿会话）；④ 变异负控：去包裹 ⇒ ①必红。
+- **硬门**：重打 fat jar 再验；va/server/example 全量护栏；账本对齐；commit 不 push（待拍板）。
+
+### §8.5 拍板结果（2026-11-10 用户定）
+R1+R2+R3 组合案**认可**（decided 后失败不回滚向前收敛；retryCommit 超时让位 reaper；客户端 3013+"commit outcome unknown" 文案）；范围=单 DS 本地 + 多 DS 2PC 一起接，空事务/begin 不接。实现节奏：先 I-DEBT-85，本腿随后独立轮次。
+
+### §8.6 混合路径决定点归位修正（2026-11-11 取证 + 拍板，偏离 §8.3 R1 置位点）
+实现前探针实证（真后端 ds1:3306/ds2:3307，`I84MixedPathHoleProbe` 用完即删）发现 §8.3 R1 在**混合路径**（ds1 本地协调 + ds2 XA 参与者）有 durability 破口：生产顺序为 ds2 PREPARE → 阶段0 提前写 ds2 意向（durable）→ ds1 REPLACE xa_log（本地 tx）→ ds2 XA COMMIT → **ds1 `commit;`（真实原子决定点，却排最后）**。R1 把 `commitDecided` 置在阶段0 写意向成功后，远早于真实决定点 ⇒ ds1 提交前被 force-close 时本地回滚、ds2 意向仍 durable → reaper 误提交 ds2 = 跨库不一致（PROBE-A `local=false participant=true` 坐实；PROBE-B 修正顺序 `local=false participant=false` 一致）。纯多 DS XA 路径无此问题（决定点即 writeCommitLog）。
+**修正（Option A，2026-11-11 用户拍板认可）**：决定点归位——`commitXa` 重排为 prepare→beforeCommit→writeCommitLog→XA COMMIT；混合 beforeCommit 扩容为"REPLACE xa_log + `commit;`"并在其成功后置 `commitDecided`；纯 XA 仍在 writeCommitLog 成功后置位。残留窗口（ds1 已 commit、writeCommitLog 未跑）靠 reaper 兜底：reaper `sweep` union 所有后端 xa_log（含 ds1），ds1 协调者意向已随 commit durable ⇒ 命中 ⇒ XA COMMIT ds2 ⇒ 一致。详见 plan `docs/superpowers/plans/2026-11-11-i-debt-84-commit-leg-deadline.md` §A。执行方式：Native 内联。
+
+### §8.7 阶段2 落地实证（2026-11-12，Native 内联，commit 待拍板）
+按 plan Task1-6 落地 R1+R2+R3+R4+R5+R6 + §8.6 决定点归位，全量护栏绿 + 活体取证：
+- **生产码**：`BaseXaSqlConnection`（commitDecided/commitTimedOut/rollingBack volatile + commitXa 重排 + retryCommit 超时让位 + 四标志 impl）；`LocalXaSqlConnection`（混合 beforeCommit=REPLACE xa_log+commit; 决定点归位 + decided/超时未决不 rollback 守卫 + rollback 重入终止守卫）；`SavepointSqlConnection`/`MycatXaTranscation`（四标志委托穿透装饰链）；`ReceiverImpl.commit`（withCommitLegDeadline 包裹 + force-close + markCommitTimedOut 前置 + R3 outcome-unknown 文案，码恒 3013）。
+- **C1 修复（fresh review 发现，Critical）**：未决混合 commit 失败 transform 无条件 `rollback()` → `Base.rollback` 失败分支 `kill()` → `Local.kill` `rollback()` → **rollback→kill→rollback 无限递归**（实测 748 次 XA ROLLBACK，同步测试仅因 StackOverflow 停；真后端异步则 runaway CPU/日志/worker/会话泄漏 = I-DEBT-80 孤儿签名）。force-close 弃用全部参与者使 XA ROLLBACK 必失败 ⇒ 在功能主目标场景（冻结后端+多 DS+未决超时）激活。修复：(A) 未决 transform 守卫扩 `commitDecided || commitTimedOut`（超时未决跳过 rollback、弃用+复位+如实报错，收敛交 reaper）；(B) `rollingBack` 重入守卫切断递归（重入走 forceAbandonAndReset，先置 inTranscation=false 使 super.kill 不再 rollback）。TDD：CommitDecidedFlagTest 2 新测试 RED（725/764 次）→GREEN（≤2/0 次）。
+- **护栏**：va 28/0/0、proxy 33/0/0、server 179/0/0、example XA 簇 164/0/0 Skipped12；重打 clean fat jar（245185844 bytes）；活体探针（单 DS commit 冻结）`commit bounded 3013 in 4108ms (deadline=3000ms)` + 解冻后代理恢复、后端无孤儿（m1-mysql-a/b Up）。
+- **遗留 I2b（升级独立拍板，非本轮）**：force-close 链 `abandonConnection→DefaultConnection.close→JdbcConnectionManager.closeConnection:206 JdbcUtils.close=DruidPooledConnection.close()=recycle`，**非物理 socket abort**；`DruidDatasourceProvider:67` 后端 URL 原样、代理不注入 socketTimeout ⇒ 冻结后端下阻塞 worker 不被 recycle 解困（除非用户 URL 自带 socketTimeout）。此为 **Phase1 全腿共享 force-close 机制**（statement/rollback/savepoint/commit 同链），改物理 abort（`DruidPooledConnection.abort()`）+ worker 解困活体矩阵（§8.4 活体③完整 mandate：IOExecutor 计数回落、后端无孤儿、多轮冻结不耗尽池）属架构级、超 commit 腿范围，据「架构级须 spec→plan→拍板」升级用户拍板。本轮 commit 腿 deadline 的客户端有界 3013 + 决定点 durability + 递归终止已自洽交付；worker 物理解困是共享机制的纵深防御补强。
+- **deferred minors**：M2 withCommitLegDeadline/withTransactionLegDeadline DRY；M3 forceCloseInFlight 死参 AtomicBoolean；M4 新文件尾换行。

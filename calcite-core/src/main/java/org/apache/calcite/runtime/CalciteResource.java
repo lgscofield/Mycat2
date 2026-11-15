@@ -227,6 +227,10 @@ public interface CalciteResource {
   @BaseMessage("Column ''{0}'' not found in any table")
   ExInst<SqlValidatorException> columnNotFound(String a0);
 
+  // MYCAT CHANGE (I-DEBT-85): MySQL 1054 wording for a HAVING reference outside the select list.
+  @BaseMessage("Unknown column ''{0}'' in ''having clause''")
+  ExInst<SqlValidatorException> unknownColumnInHavingClause(String a0);
+
   @BaseMessage("Column ''{0}'' not found in any table; did you mean ''{1}''?")
   ExInst<SqlValidatorException> columnNotFoundDidYouMean(String a0, String a1);
 
