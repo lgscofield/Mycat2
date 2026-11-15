@@ -2,6 +2,7 @@ package io.mycat.calcite;
 
 import io.mycat.calcite.spm.ParamHolder;
 import io.mycat.calcite.sqlfunction.arith.MysqlDivideFunction;
+import io.mycat.calcite.sqlfunction.arith.MysqlModFunction;
 import io.mycat.calcite.sqlfunction.cmpfunction.StrictEqualFunction;
 import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.linq4j.tree.ParameterExpression;
@@ -44,6 +45,12 @@ public final class MycatCalciteRuntimeHooks implements MycatCalciteRuntime.Hooks
     if (op == SqlStdOperatorTable.DIVIDE) {
       return MysqlDivideFunction.INSTANCE;
     }
+    // MYCAT CHANGE (I-DEBT-119)：MySQL {@code MOD}/{@code %}（{@code SqlStdOperatorTable.MOD}）重映射到
+    // {@link MysqlModFunction}（NULL 透传 + 除零→NULL+诊断槽 1365，与 / 除法同口径）。原生
+    // {@code SqlFunctions.mod} 系返回原始类型无法表达 NULL、零除数抛 ArithmeticException。
+    if (op == SqlStdOperatorTable.MOD) {
+      return MysqlModFunction.INSTANCE;
+    }
     return "<=>".equalsIgnoreCase(op.getName()) ? StrictEqualFunction.INSTANCE : op;
   }
 
@@ -52,6 +59,28 @@ public final class MycatCalciteRuntimeHooks implements MycatCalciteRuntime.Hooks
       Expression operand) {
     // Mycat 宽松（MySQL 语义）CAST 分派：命中则回 X_TO_Y 调用，未命中回 null 交 fork 原生。
     return MycatCastOverride.translate(sourceType, targetType, operand);
+  }
+
+  /**
+   * MYCAT CHANGE (I-DEBT-118)：calcite-core 侧 MycatBuiltInMethodImpl 非法串宽松转数（回 0 值）
+   * 的告警通道——经 I-DEBT-97 诊断槽写会话 Warning 1292 "Truncated incorrect X value: 'v'"
+   * （真库 CAST('abc' AS SIGNED) 口径；先例 MysqlDivideFunction.emitDivisionByZeroWarning）。
+   * 无槽（远程/异步消费线程）降级静默；addWarning 异常吞并 debug，不反噬求值线程。
+   */
+  @Override
+  public void castTruncatedWarning(String inputValue, String targetType) {
+    io.mycat.MycatDataContext ctx =
+        org.apache.calcite.runtime.NewMycatDataContext.currentDiagnosticContext();
+    if (ctx == null) {
+      return;
+    }
+    try {
+      ctx.addWarning(new io.mycat.beans.mycat.WarningMessage("Warning", 1292,
+          "Truncated incorrect " + targetType + " value: '" + inputValue + "'"));
+    } catch (Throwable e) {
+      io.mycat.MycatDataContext.LOGGER.debug(
+          "I-DEBT-118: emit cast truncated warning failed, degrade silently", e);
+    }
   }
 
   /** 装配本实现到中立 seam（幂等：重复调用只是再次 set 同一语义）。 */

@@ -38,6 +38,15 @@ public final class MycatCalciteRuntime {
      */
     Expression translateCastOverride(RelDataType sourceType, RelDataType targetType,
         Expression operand);
+
+    /**
+     * MYCAT CHANGE (I-DEBT-118)：CAST 非法串宽松转数（回 0 值）时的告警发射通道（默认 no-op，
+     * Mycat 侧装配后经 I-DEBT-97 诊断槽写会话 Warning 1292 "Truncated incorrect X value: 'v'"，
+     * 对齐真库 CAST('abc' AS SIGNED)=0+1292 口径）。钩子实现必须自身吞掉一切异常——
+     * 告警腿不得反噬求值线程。
+     */
+    default void castTruncatedWarning(String inputValue, String targetType) {
+    }
   }
 
   private static final Hooks DEFAULT = new Hooks() {

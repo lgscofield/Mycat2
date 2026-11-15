@@ -82,6 +82,101 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
     private static final Object XA_REAPER_LOCK = new Object();
     private static XaReaper xaReaper;
 
+    // MYCAT CHANGE (I-DEBT-130)：commit() 两阶段资源交换的原子性载体。
+    // swappedOutResources：本轮 commit 换下来的旧资源（旧 JdbcConnectionManager/旧 MySQLManager），
+    // 不再"注册新成功即 close 旧"——旧资源在提交成功信号后延迟关闭，失败路径保持存活并恢复引用。
+    // swappedInResources：本轮新建、尚未提交成功的资源，失败路径 giveup。
+    final List<Object> swappedOutResources = new ArrayList<>();
+    final List<Object> swappedInResources = new ArrayList<>();
+    /**
+     * MYCAT CHANGE (I-DEBT-130)：换下的旧资源延迟关闭窗口（秒），给在途请求留时间收尾。
+     */
+    private static final long SWAPPED_RESOURCE_CLOSE_DELAY_SECONDS = 30;
+
+    /**
+     * MYCAT CHANGE (I-DEBT-130)：提交成功信号——新资源全部注册并 MetaClusterCurrent 替换完成后调用。
+     * 换下来的旧资源此刻才允许关闭（默认异步延迟，给在途请求留窗口）。
+     */
+    void onCommitSuccess() {
+        // I-DEBT-130：延迟 30s 关闭旧资源，给在途请求留窗口（调度失败降级为立即关）。
+        try {
+            io.mycat.ScheduleUtil.getTimer().schedule(this::closeSwappedOutResourcesNow,
+                    SWAPPED_RESOURCE_CLOSE_DELAY_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Throwable e) {
+            LOGGER.warn("I-DEBT-130 schedule deferred close of swapped-out resources failed, close inline", e);
+            closeSwappedOutResourcesNow();
+        }
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-130)：立即关闭全部换下的旧资源（提交成功后由延迟器回调，测试直调）。
+     * 幂等：关闭后清空登记，重复调用 no-op。
+     */
+    void closeSwappedOutResourcesNow() {
+        List<Object> toClose;
+        synchronized (swappedOutResources) {
+            if (swappedOutResources.isEmpty()) {
+                return;
+            }
+            toClose = new ArrayList<>(swappedOutResources);
+            swappedOutResources.clear();
+        }
+        for (Object old : toClose) {
+            closeObjectQuietly(old, "close swapped-out resource");
+        }
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-130)：资源关闭收口——AutoCloseable 直关，否则反射找 {@code close()}
+     * （{@code JdbcConnectionManager}/{@code MySQLManager} 未实现 AutoCloseable，对齐
+     * {@link Resource#giveup} 的反射惯例）；异常吞并记日志，关闭腿不得反噬提交/恢复流程。
+     */
+    private void closeObjectQuietly(Object object, String action) {
+        try {
+            if (object instanceof AutoCloseable) {
+                ((AutoCloseable) object).close();
+            } else {
+                object.getClass().getMethod("close").invoke(object);
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("I-DEBT-130 {} [{}] failed (degrade silently)",
+                    action, object.getClass().getSimpleName(), e);
+        }
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-130)：提交失败路径——giveup 本轮新建资源（未提交成功，防泄漏），
+     * 把旧资源引用恢复回 MetaClusterCurrent（旧池保持存活），保证整机 getConnection 不失效。
+     */
+    void restoreSwappedOutResourcesOnFailure() {
+        List<Object> toGiveup;
+        List<Object> toRestore;
+        synchronized (swappedOutResources) {
+            if (swappedOutResources.isEmpty() && swappedInResources.isEmpty()) {
+                return;
+            }
+            toGiveup = new ArrayList<>(swappedInResources);
+            toRestore = new ArrayList<>(swappedOutResources);
+            swappedInResources.clear();
+            swappedOutResources.clear();
+        }
+        for (Object newResource : toGiveup) {
+            closeObjectQuietly(newResource, "giveup swapped-in resource");
+        }
+        for (Object oldResource : toRestore) {
+            try {
+                if (oldResource instanceof JdbcConnectionManager) {
+                    MetaClusterCurrent.register(JdbcConnectionManager.class, oldResource);
+                    MetaClusterCurrent.register(io.mycat.ConnectionManager.class, oldResource);
+                } else if (oldResource instanceof MySQLManager) {
+                    MetaClusterCurrent.register(MySQLManager.class, oldResource);
+                }
+            } catch (Throwable e) {
+                LOGGER.error("I-DEBT-130 restore swapped-out resource reference failed", e);
+            }
+        }
+    }
+
 
     public MycatRouterConfigOps(MycatRouterConfig original, StorageManager storageManager, Options options) {
         this.original = original;
@@ -599,6 +694,10 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
 
             allSuccess = true;
 
+            // MYCAT CHANGE (I-DEBT-130)：提交成功信号——新资源全部注册并 MetaClusterCurrent 替换
+            // 完成后才允许退休换下的旧资源（延迟 30s 关闭，给在途请求留窗口）。
+            onCommitSuccess();
+
             if (init) {
                 recoveryXA();
                 DbPlanManagerPersistorImpl dbPlanManagerPersistor = new DbPlanManagerPersistorImpl();
@@ -612,6 +711,9 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
         } finally {
             if (!allSuccess) {
                 resourceList.forEach(c -> c.giveup());
+                // MYCAT CHANGE (I-DEBT-130)：失败路径——本轮新建（已注册进 MetaClusterCurrent 的）
+                // 资源 giveup，换下来的旧资源恢复引用并保持存活，整机 getConnection 不得失效。
+                restoreSwappedOutResourcesOnFailure();
             }
             if (MetaClusterCurrent.exist(ReplicaSelectorManager.class)) {
                 ReplicaSelectorManager replicaSelectorManager = MetaClusterCurrent.wrapper(ReplicaSelectorManager.class);
@@ -664,16 +766,14 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
         }
         if (MetaClusterCurrent.exist(MySQLManager.class)) {
             MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
-            boolean success = false;
-            try{
-                MycatMySQLManagerImpl newMycatMySQLManager = new MycatMySQLManagerImpl(datasourceConfigUpdateSet.getTargetAsList());
-                success = true;
-                return Resource.of(newMycatMySQLManager, false);
-            }finally {
-                if (success){
-                    mySQLManager.close();
-                }
-            }
+            // MYCAT CHANGE (I-DEBT-130)：旧 MySQLManager 不再在交换 getter 内立即 close——旧实例
+            // 登记进 swappedOutResources，提交成功信号后延迟关闭（给在途请求留窗口）；失败路径
+            // 保持存活并恢复引用。原 finally-close 使后续阶段（replica/metadata 等）任一失败即
+            // "新资源 giveup + 旧资源已关" → 整机不可用直至重启。
+            MycatMySQLManagerImpl newMycatMySQLManager = new MycatMySQLManagerImpl(datasourceConfigUpdateSet.getTargetAsList());
+            swappedOutResources.add(mySQLManager);
+            swappedInResources.add(newMycatMySQLManager);
+            return Resource.of(newMycatMySQLManager, false);
         }
         return Resource.of(new MycatMySQLManagerImpl(datasourceConfigUpdateSet.getTargetAsList()), false);
     }
@@ -835,18 +935,16 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
                     }
                     return Resource.of(jdbcConnectionManager, true);
                 } else {
-                    boolean success = false;
-                    try {
-                        JdbcConnectionManager newJdbcConnectionManager = new JdbcConnectionManager(
-                                DruidDatasourceProvider.class.getCanonicalName(),
-                                datasourceConfigUpdateSet.getTargetAsMap());
-                        success= true;
-                        return Resource.of(newJdbcConnectionManager , false);
-                    }finally {
-                        if (success) {
-                            jdbcConnectionManager.close();
-                        }
-                    }
+                    // MYCAT CHANGE (I-DEBT-130)：旧连接池不再在交换 getter 内立即 close——旧实例
+                    // 登记进 swappedOutResources，提交成功信号后延迟关闭（给在途请求留窗口）；失败
+                    // 路径保持存活并恢复引用。原 finally-close 使后续阶段（replica 注册/metadata
+                    // 构建等）任一失败即 "新资源 giveup + 旧池已永久关" → 整机 getConnection 失效。
+                    JdbcConnectionManager newJdbcConnectionManager = new JdbcConnectionManager(
+                            DruidDatasourceProvider.class.getCanonicalName(),
+                            datasourceConfigUpdateSet.getTargetAsMap());
+                    swappedOutResources.add(jdbcConnectionManager);
+                    swappedInResources.add(newJdbcConnectionManager);
+                    return Resource.of(newJdbcConnectionManager , false);
                 }
             } else {
                 return Resource.of(jdbcConnectionManager, true);

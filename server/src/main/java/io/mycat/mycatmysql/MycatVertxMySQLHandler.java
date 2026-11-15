@@ -149,7 +149,8 @@ public class MycatVertxMySQLHandler {
                     int numParams = getNumParamsByStatementId(statementId, this.session);
                     byte[] nullMap = null;
                     if (numParams > 0) {
-                        nullMap = readView.readBytes((numParams + 7) / 8);
+                        // MYCAT CHANGE (I-DEBT-123)：NULL 位图读取抽入 readStmtExecuteNullBitmap（协议统一 +2 偏移）
+                        nullMap = readStmtExecuteNullBitmap(readView, numParams);
                     }
                     int[] params = prepareInfo.get(statementId).getParametersType();
                     BindValue[] values = new BindValue[numParams];
@@ -163,7 +164,8 @@ public class MycatVertxMySQLHandler {
                     for (int i = 0; i < numParams; i++) {
                         BindValue bv = new BindValue();
                         bv.type = params[i];
-                        if ((nullMap[i / 8] & (1 << (i & 7))) != 0) {
+                        // MYCAT CHANGE (I-DEBT-123)：NULL 位取位抽入 isStmtExecuteParamNull（协议统一 +2 偏移）
+                        if (isStmtExecuteParamNull(nullMap, i)) {
                             bv.isNull = true;
                         } else {
                             byte[] longData = getLongData(statementId, i, this.session);
@@ -392,6 +394,31 @@ public class MycatVertxMySQLHandler {
                 () -> "preparedStatement:" + statementId + "  not exist"
         );
         return preparedStatement.getParametersNumber();
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-123)：COM_STMT_EXECUTE 的参数 NULL 位图读取长度。
+     * MySQL 二进制协议统一 +2 偏移（位图前两位是 status/param_count 预留位），位图持有
+     * {@code numParams+2} 位 → 字节长 {@code (numParams + 2 + 7) / 8}。本仓编码端
+     * {@code MySQLPacketUtil.generateBinaryRowHeader}（common）即按 {@code (columnIndex + 2) / 8}
+     * 写位；读取长度错 1 字节时会把 new_params_bound_flag 等后续字段错位吞入位图。
+     */
+    static byte[] readStmtExecuteNullBitmap(ReadView readView, int numParams) {
+        // MYCAT CHANGE (I-DEBT-123)：位图持有 numParams+2 位（协议统一 +2 偏移：前两位为
+        // status/param_count 预留位），字节长=(numParams+2+7)/8。原 (numParams+7)/8 少 1 字节，
+        // 会把 new_params_bound_flag 等后续字段错位吞入位图。
+        return readView.readBytes((numParams + 9) / 8);
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-123)：按协议 +2 偏移取第 {@code i} 个参数的 NULL 位——
+     * {@code (nullMap[(i + 2) / 8] & (1 << ((i + 2) & 7)))}，对齐编码端
+     * {@code MySQLPacketUtil} 的 {@code (columnIndex + 2)} 口径。
+     */
+    static boolean isStmtExecuteParamNull(byte[] nullMap, int i) {
+        // MYCAT CHANGE (I-DEBT-123)：原 (i/8, i&7) 按参数序号裸取位，错位 2 位——客户端发来的
+        // NULL 参数被解码成非 NULL（拿残留位图当参数值）。统一 +2 偏移。
+        return (nullMap[(i + 2) / 8] & (1 << ((i + 2) & 7))) != 0;
     }
 
     private Future<Void> handlePrepareStatementReset(long statementId, MycatVertxMysqlSession MycatMysqlSession) {

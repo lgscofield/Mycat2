@@ -1006,7 +1006,12 @@ public class SQLRBORewriter extends RelShuttleImpl {
                 }
             } else if (leftTableType == LogicTableType.GLOBAL || leftTableType == LogicTableType.NORMAL) {
                 if (rightTableType == LogicTableType.SHARDING) {
-                    return isSameTargetPartitionJoin(right, leftColumnOrigin, rightRelNode, rightRelNode);
+                    // MYCAT CHANGE (I-DEBT-117)：助手签名语义=（sharding 视图, sharding 侧列起源,
+                    // sharding 表, normal/global 对端表）。原调用第 4 参误传 rightRelNode（与第 3 参
+                    // 同一 sharding 表）→ 助手内对端类型恒 SHARDING → NORMAL/GLOBAL 分支恒死；
+                    // 第 2 参亦须为 sharding 侧列起源 rightColumnOrigin（否则拿 normal 表列序去索引
+                    // sharding 表列——列序号越界 IOOBE 或错列判定）。镜像 SHARDING 在左的正确参考(:1005)。
+                    return isSameTargetPartitionJoin(right, rightColumnOrigin, rightRelNode, leftRelNode);
                 }
             }
             return false;

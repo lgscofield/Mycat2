@@ -1,11 +1,15 @@
 package org.apache.calcite.mycat;
 
 import com.github.sisyphsu.dateparser.DateParserUtils;
+import io.mycat.MycatDataContext;
 import io.mycat.MycatTimeUtil;
+import io.mycat.beans.mycat.WarningMessage;
 import org.apache.calcite.avatica.util.ByteString;
 import org.apache.calcite.avatica.util.TimeUnitRange;
+import org.apache.calcite.runtime.NewMycatDataContext;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.*;
 import java.time.format.DateTimeFormatterBuilder;
@@ -13,8 +17,47 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.IsoFields;
 import java.time.temporal.Temporal;
 import java.time.temporal.WeekFields;
+import java.util.function.Function;
 
 public class MycatBuiltInMethodImpl {
+
+    /**
+     * MYCAT CHANGE (I-DEBT-118)：CAST 矩阵 string→数值路线的 MySQL 宽松语义收口。
+     * 非法串→0（整数）/0（DECIMAL）/0.0（浮点）+ 告警，绝不抛 NumberFormatException 杀会话
+     * （真库口径：CAST('abc' AS SIGNED)=0 + Warning 1292 "Truncated incorrect INTEGER value: 'abc'"；
+     * 同 F3 先例 SqlFunctions.toInt/toLong 的 MYCAT CHANGE）。NULL 透传语义不变。
+     *
+     * <p>告警通道 = I-DEBT-97 诊断槽（{@link NewMycatDataContext#currentDiagnosticContext()}，先例
+     * MysqlDivideFunction.emitDivisionByZeroWarning）：无槽执行路径（远程/异步消费线程、单测直调）
+     * 降级静默，不抛不种槽；addWarning 自身异常被吞并 debug（告警腿不得反噬求值）。
+     */
+    private static void emitCastTruncatedWarning(String inputValue, String targetType) {
+        MycatDataContext ctx = NewMycatDataContext.currentDiagnosticContext();
+        if (ctx == null) {
+            return;
+        }
+        try {
+            ctx.addWarning(new WarningMessage("Warning", 1292,
+                    "Truncated incorrect " + targetType + " value: '" + inputValue + "'"));
+        } catch (Throwable e) {
+            MycatDataContext.LOGGER.debug("I-DEBT-118: emit cast truncated warning failed, degrade silently", e);
+        }
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-118)：非法串宽松转数公共载体——{@code parser} 抛
+     * {@link NumberFormatException} 时回 0 值并经诊断槽产 1292 告警（真库语义，绝不抛）。
+     */
+    private static <T> T parseLeniently(String b, String targetType,
+                                        Function<String, T> parser, T zero) {
+        try {
+            return parser.apply(b.trim());
+        } catch (NumberFormatException e) {
+            emitCastTruncatedWarning(b, targetType);
+            return zero;
+        }
+    }
+
 
     public static String dateSubString(LocalDateTime date, java.time.Duration sub) {
         return timestampToString(date.minus(sub));
@@ -112,7 +155,8 @@ public class MycatBuiltInMethodImpl {
 
     public static Byte stringToTinyint(String b) {
         if (b == null) return null;
-        return Byte.parseByte(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0+1292 告警（真库 CAST('abc' AS SIGNED)=0），绝不抛
+        return parseLeniently(b, "INTEGER", Byte::parseByte, (byte) 0);
     }
 
     public static Byte byteStringToTinyint(ByteString b) {
@@ -181,7 +225,8 @@ public class MycatBuiltInMethodImpl {
 
     public static Short stringToSmallint(String b) {
         if (b == null) return null;
-        return Short.parseShort(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0+1292 告警
+        return parseLeniently(b, "INTEGER", Short::parseShort, (short) 0);
     }
 
     public static Short byteStringToSmallint(ByteString b) {
@@ -254,7 +299,8 @@ public class MycatBuiltInMethodImpl {
 
     public static Long stringToBigint(String b) {
         if (b == null) return null;
-        return Long.parseLong(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0+1292 告警（同 F3 SqlFunctions.toLong 口径）
+        return parseLeniently(b, "INTEGER", Long::parseLong, 0L);
     }
 
     public static Long byteStringToBigint(ByteString b) {
@@ -327,12 +373,15 @@ public class MycatBuiltInMethodImpl {
 
     public static BigDecimal stringToDecimal(String b) {
         if (b == null) return null;
-        return new BigDecimal(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0+1292 告警（真库 CAST('abc' AS DECIMAL)=0.00，
+        // 目标 scale 由 CAST 后处理统一施加）
+        return parseLeniently(b, "DECIMAL", BigDecimal::new, BigDecimal.ZERO);
     }
 
     public static BigDecimal bytestringToDecimal(ByteString b) {
         if (b == null) return null;
-        return new BigDecimal(new String(b.getBytes()));
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0+1292 告警（stringToDecimal 同族）
+        return parseLeniently(new String(b.getBytes()), "DECIMAL", BigDecimal::new, BigDecimal.ZERO);
     }
 
     public static Double booleanToFloat(Boolean b) {
@@ -395,12 +444,14 @@ public class MycatBuiltInMethodImpl {
 //    }
     public static Double stringToDouble(String b) {
         if (b == null) return null;
-        return Double.parseDouble(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0+1292 告警
+        return parseLeniently(b, "DOUBLE", Double::parseDouble, 0.0d);
     }
 
     public static Double byteStringToDouble(ByteString b) {
         if (b == null) return null;
-        return Double.parseDouble(new String(b.getBytes()));
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0+1292 告警（stringToDouble 同族）
+        return parseLeniently(new String(b.getBytes()), "DOUBLE", Double::parseDouble, 0.0d);
     }
 
     /////////////////////////////////////////////////////
@@ -471,12 +522,14 @@ public class MycatBuiltInMethodImpl {
 
     public static Double stringToFloat(String b) {
         if (b == null) return null;
-        return Double.parseDouble(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0+1292 告警
+        return parseLeniently(b, "DOUBLE", Double::parseDouble, 0.0d);
     }
 
     public static Double byteStringToFloat(ByteString b) {
         if (b == null) return null;
-        return Double.parseDouble(new String(b.getBytes()));
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0+1292 告警（stringToFloat 同族）
+        return parseLeniently(new String(b.getBytes()), "DOUBLE", Double::parseDouble, 0.0d);
     }
 
     /////////////////////////////////////////
@@ -552,12 +605,14 @@ public class MycatBuiltInMethodImpl {
 
     public static Float stringToReal(String b) {
         if (b == null) return null;
-        return Float.parseFloat(b);
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0f+1292 告警
+        return parseLeniently(b, "DOUBLE", Float::parseFloat, 0.0f);
     }
 
     public static Float byteStringToReal(ByteString b) {
         if (b == null) return null;
-        return Float.parseFloat(new String(b.getBytes()));
+        // MYCAT CHANGE (I-DEBT-118)：非法串→0.0f+1292 告警（stringToReal 同族）
+        return parseLeniently(new String(b.getBytes()), "DOUBLE", Float::parseFloat, 0.0f);
     }
 
     ///////////////////////////////////////////////////
