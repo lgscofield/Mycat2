@@ -70,6 +70,36 @@
 
 DEBT-QUEUE 仍为兼容性债务真相源(85+89/90/91 已登记);本账本引用其票号,不重复维护细节。冲突时:生产判定以本账本为准,兼容性判定以 DEBT-QUEUE 为准。
 
+
+## §5b · LTS 版本支持差距矩阵(评审6 · 2026-11-14)
+
+**结论:七版均可宣称 CRUD 级(CI 硬门背书);无一达"深度级"。** 证据:`agent_d33463ed`(评审6 全文)、`example/.../compat/` 17 类、persona 代码面。
+
+| 版本 | 可宣称等级 | 到深度级差距 |
+|---|---|---|
+| MySQL 5.7 | CRUD 级(CI 硬门) | GROUP BY 隐式排序/SQL_CALC_FOUND_ROWS/旧式密码负向保真/5.7 专项语法矩阵 |
+| MySQL 8.0 | CRUD 级 | I-DEBT-85 GUI 列库(远端已收口·待 CI 复证);CTE/窗口/JSON_TABLE 专项矩阵(零用例);i_s 8.0 列面逐列对拍 |
+| MySQL 8.4 | CRUD 级 | 8.4 专项语法矩阵未建;native password 禁用负向保真(伪装比真库宽松);utf8mb3 弃用面 |
+| MySQL 9.x | 连接+CRUD 级 | VECTOR 系统面(仅 I-DEBT-67 单点);9.x 特性全 NO_DATA |
+| MariaDB 10.6 | CRUD 级(ed25519+dump 全绿) | sequence 面(CREATE SEQUENCE/NEXT VALUE FOR 全仓无实现) |
+| MariaDB 10.11 | CRUD 级(uca1400 修复后) | @@old_mode 读面(I-DEBT-70 挂账残留·实缺口) |
+| MariaDB 11.4 | CRUD 级(离线) | 11.4 档活体往返(I-DEBT-70 残留);SHOW 新旧语法实发验证 |
+
+**系统性债(全版本)**:会话变量透传覆盖度(@@old_mode 同类)、SQL 审计/权限透传无实现面(代理前后端身份解耦)。
+
+## §5c · 模式族灭绝度(评审5 · 2026-11-14)
+
+| 族 | 灭绝度 |
+|---|---|
+| 族1 vacuous-true | 已评审域清;**存活 2 确认(BinlogUtil:419 死代码、recoveryXA:836)+2 疑似**(I-DEBT-145) |
+| 族2 盲转/裸 parse | **最大聚集地=replica 心跳策略族**(I-DEBT-142,4 处同构);hbt datefunction 残留(StringToTimestampFunction,I-DEBT-144);divide/CAST/MOD 已清 |
+| 族3 静态无上下文 | 基本收敛(divide/CAST/MOD 已落诊断槽);残留 NOW 系时区(F11/F12 疑似) |
+| 族4 classpath Json | 主运行路径灭绝(残留仅注释+assistant 不进 fat jar) |
+| 族5 凭据回显 | 存活 1 处(F5:URL/DRIVER 列,自认欠账);showDataSources/showConfigText/MIGRATE_LIST 已修 |
+| 族6 配置覆写 | 灭绝(全量替换语义) |
+| 族7 启动孤儿 | ConfigUpdater 侧清;**运行时半程存活**(I-DEBT-140 空集群裸崩) |
+| 族8 危险默认 | 存活 3 处(热重载 alive=true/未知 target 缺省 mysql/出厂弱凭据) |
+
 ## §6 证据索引
 
 - 审计全套:`audit/2026-11-08-capability-audit/`(46+ 探针、logs、AUDIT-REPORT.md、summary-final.csv)
