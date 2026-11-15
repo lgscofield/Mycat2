@@ -235,3 +235,31 @@ jobs:
       - name: Publish test summary
         if: always()
         run: grep -aE "Tests run" example-test-full.log | tail -5 || true
+
+  # I-DEBT-96/G6: 30 分钟混合 CRUD 长稳门(连接不泄漏+错误率 0)。本机三次被环境杀死后长稳的
+  # 权威归宿=CI(runner 不休眠)。自举: 探针内 CREATE DATABASE/TABLE,零外部前置。
+  soak-g6:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/g8-full-suite-gate')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      mysql-a:
+        image: mysql:8.0
+        ports: [ "3306:3306" ]
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build server jar (skip test compile)
+        run: mvn -B install '-Dmaven.test.skip=true' -pl server -am
+      - name: Run G6 soak (30min mixed CRUD)
+        run: bash ci/verify-soak-g6.sh
