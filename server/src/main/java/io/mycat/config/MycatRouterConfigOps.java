@@ -938,6 +938,10 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
             UserConfig userConfig = new UserConfig();
             userConfig.setPassword("123456");
             userConfig.setUsername("root");
+            // MYCAT CHANGE (I-DEBT-90/G4 收尾): 内建 root = 超级用户,缺省 admin=true——
+            // 否则出厂 root 无管控 hint 权限(测试套件 RESET_CONFIG 全被 1227 拒·活体 G8-wedge3),
+            // 且运维语义上内建管理员理应等于 MySQL SUPER。
+            userConfig.setAdmin(true);
             routerConfig.getUsers().add(userConfig);
         }
 
