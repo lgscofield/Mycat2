@@ -78,6 +78,22 @@ public class StdStorageManagerImpl implements StorageManager {
         }
     }
 
+    /**
+     * MYCAT CHANGE (I-DEBT-135): 配置快照日志脱敏——value 为配置文件原文 JSON，逐个过
+     * {@link io.mycat.util.JsonUtil#maskPasswordsInJson}，password 字段掩码、文件名与其余内容保留。
+     */
+    public static String maskConfigSnapshotForLog(Map<String, Map<String, String>> snapshot) {
+        Map<String, Map<String, String>> masked = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, String>> e : snapshot.entrySet()) {
+            Map<String, String> inner = new LinkedHashMap<>();
+            for (Map.Entry<String, String> file : e.getValue().entrySet()) {
+                inner.put(file.getKey(), io.mycat.util.JsonUtil.maskPasswordsInJson(file.getValue()));
+            }
+            masked.put(e.getKey(), inner);
+        }
+        return String.valueOf(masked);
+    }
+
     private static boolean checkConfigConsistency(StorageManager from, StorageManager to) {
         //去掉大小为0的value
         Map<String, Map<String, String>> fromMap = from.toMap()
@@ -94,7 +110,10 @@ public class StdStorageManagerImpl implements StorageManager {
                 if (equals) {
                     return true;
                 } else {
-                    LOGGER.error("from {} \n to {}", fromMap, toMap);
+                    // MYCAT CHANGE (I-DEBT-135): 一致性失败日志脱敏——toMap 的 value 是配置文件原文
+                    // （datasources/users JSON），直接打印即明文口令进日志；先过 maskPasswordsInJson。
+                    LOGGER.error("from {} \n to {}",
+                            maskConfigSnapshotForLog(fromMap), maskConfigSnapshotForLog(toMap));
                     return false;
                 }
             }

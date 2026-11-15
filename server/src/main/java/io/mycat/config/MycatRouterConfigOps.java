@@ -491,9 +491,11 @@ public class MycatRouterConfigOps implements AutoCloseable, ConfigOps {
             return;
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(JsonUtil.toJson(this.original));
+            // MYCAT CHANGE (I-DEBT-135): commit DEBUG dump 脱敏——全量配置 JSON 含 users/datasources
+            // 明文口令，落日志前统一过 maskPasswordsInJson（password 字段掩码，其余形状不变）。
+            LOGGER.debug(JsonUtil.maskPasswordsInJson(JsonUtil.toJson(this.original)));
             LOGGER.debug("===========================================change to ===========================================");
-            LOGGER.debug(JsonUtil.toJson(newConfig));
+            LOGGER.debug(JsonUtil.maskPasswordsInJson(JsonUtil.toJson(newConfig)));
         }
         UpdateSet<LogicSchemaConfig> schemaConfigUpdateSet = UpdateSet.create(newConfig.getSchemas(), original.getSchemas());
         UpdateSet<ClusterConfig> clusterConfigUpdateSet = UpdateSet.create(newConfig.getClusters(), original.getClusters());

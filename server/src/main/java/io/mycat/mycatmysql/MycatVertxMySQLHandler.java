@@ -17,6 +17,7 @@ import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.protocol.mysql.type.MySQLCommandType;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 import io.mycat.beans.mysql.packet.DefaultPreparedOKPacket;
 import io.mycat.commands.MycatdbCommand;
 import io.mycat.commands.ProxyReceiverImpl;
@@ -603,7 +604,14 @@ public class MycatVertxMySQLHandler {
     public Future<Void> handleChangeUser(String userName, String authResponse, String schemaName,
                                          int charsetSet, String authPlugin, Map<String, String> clientConnectAttrs,
                                          MycatVertxMysqlSession session) {
-        return session.writeOkEndPacket();
+        // MYCAT CHANGE (I-DEBT-122): COM_CHANGE_USER 拒绝而非假 OK。mycat 连接模型下会话绑定
+        // dataContext（身份/事务/会话变量都在其上），无条件 writeOk 等于把 A 的会话过户给 B（越权面）。
+        // 最小安全面：回 ERR（ER_ACCESS_DENIED_ERROR 1045 + 明确指引开新连接），不做完整重认证
+        // （auth 流程重构超本轮）。取舍：依赖 COM_CHANGE_USER 做连接复位的连接池（如 HikariCP 复位路径）
+        // 会收到 ERR——语义上比假 OK 安全；需要换身份请重新建连走正常 auth 握手。
+        mycatDataContext.setLastMessage(
+                "COM_CHANGE_USER is not supported; please open a new connection (I-DEBT-122)");
+        return session.writeErrorEndPacketBySyncInProcessError(MySQLErrorCode.ER_ACCESS_DENIED_ERROR);
     }
 
     public Future<Void> handleDelayedInsert(MycatVertxMysqlSession session) {

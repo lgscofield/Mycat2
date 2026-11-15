@@ -9,8 +9,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class JsonUtil {
+
+    // MYCAT CHANGE (I-DEBT-135): 配置日志凭据脱敏工具。配置一致性失败日志（StdStorageManagerImpl）
+    // 与 commit 时的 DEBUG 全量 dump（MycatRouterConfigOps）会把含明文口令的配置文本直接进日志。
+    // 本工具对 JSON 串做单字段替换："password":"..." → "password":"******"（掩码与 HintHandler
+    // maskPassword/I-DEBT-88 同源），兼容紧凑("password":"x")与带空格("password" : "x"，Jackson
+    // pretty printer 形态)两种排版；值内转义引号(\")也整段吞掉。只动 password 键，其余字段逐字保留。
+    private static final Pattern PASSWORD_FIELD_PATTERN = Pattern.compile(
+            "(\"password\")\\s*:\\s*\"(?:\\\\.|[^\"\\\\])*\"", Pattern.CASE_INSENSITIVE);
+
+    public static String maskPasswordsInJson(String json) {
+        if (json == null || json.isEmpty()) {
+            return json;
+        }
+        return PASSWORD_FIELD_PATTERN.matcher(json).replaceAll("$1:\"******\"");
+    }
+
 
     // MYCAT CHANGE (I-DEBT-21): hint 家族（MigrateHint/BinlogSyncHint/PauseServerHint/...）的
     // build() 走 JsonUtil.toJson(this)，因继承 HintBuilder 的 getCmd() 抽象 getter，Jackson 会把

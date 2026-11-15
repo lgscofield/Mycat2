@@ -98,9 +98,48 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
     }
 
     /**
+     * MYCAT CHANGE (I-DEBT-121): showConfigText 全量配置回显脱敏。JsonUtil.toJson(mycatRouterConfig)
+     * 会把 users[].password（UserConfig.getPassword 解密后明文）与 datasources[].password 一并序列化，
+     * 原样回显即凭据倾倒。序列化后统一过 JsonUtil.maskPasswordsInJson（I-DEBT-135 工具）做 password
+     * 字段掩码，其余字段（users/datasources 名称、ip、url 等非敏感形状）逐字保留。
+     */
+    static String maskConfigText(MycatRouterConfig config) {
+        return JsonUtil.maskPasswordsInJson(JsonUtil.toJson(config));
+    }
+
+    /**
+     * MYCAT CHANGE (I-DEBT-125): loaddata 路径白名单（纯函数）。fileName 仅允许无 ".." 穿越的相对路径：
+     * 绝对路径（POSIX "/"、UNC "\\"、Windows 盘符 "C:"）与 ".."（含混合分隔符）一概拒绝——
+     * 修复前 new FileReader(fileName) 对任意绝对路径可读出服务端文件内容并 INSERT 进目标表
+     * （任意文件读原语），admin 会话同样受限。
+     */
+    static void checkLoaddataFilePath(String fileName) {
+        boolean rejected = fileName == null
+                || fileName.trim().isEmpty()
+                || fileName.startsWith("/")
+                || fileName.startsWith("\\")
+                || fileName.contains("..")
+                || fileName.matches("^[A-Za-z]:.*");
+        if (rejected) {
+            throw new MycatException(MySQLErrorCode.ER_SPECIFIC_ACCESS_DENIED_ERROR,
+                    "loaddata fileName must be a relative path without '..' traversal"
+                            + " (I-DEBT-125), rejected: " + fileName);
+        }
+    }
+
+    /**
      * I-DEBT-90/G4：管控类 hint 清单——写集群状态/数据移动面（createDataSource/dropDataSource/
      * createUser/dropUser/resetConfig/syncConfig 双向/loadConfigFromFile/migrate/migrateStop/
      * createCluster/dropCluster）。路由类 hint 与诊断类 show 系列 不在列（防误伤业务路径）。
+     *
+     * MYCAT CHANGE (I-DEBT-124): 补齐覆盖缺口——兜底 mycatDmlHandler 可达的配置写面
+     * （createTable/dropTable/createSchema/dropSchema/setSequence/repairPhysicalTable/
+     * readXARecoveryLog）、配置缓存写面（createSqlCache/dropSqlCache）、用户方言写面
+     * （setUserDialect）、binlog 任务控制（BINLOG_STOP/BINLOG_CLEAR/BINLOG_SYNC）、线程/服务
+     * 控制（killThread/interruptThread/setAcceptConnect/pauseServer/resumeServer）与执行器
+     * 全局开关（setBkaJoin/setSortMergeJoin/setBkaJoinLeftRowCountLimit）全部入 admin 门。
+     * MYCAT CHANGE (I-DEBT-121/125): showConfigText（凭据倾倒面）与 loaddata（任意文件读面）
+     * 同属管控面，一并入列。诊断类 show* 与只读/路由类依旧不在列。
      */
     static boolean isManagementHint(String cmd) {
         switch (cmd == null ? "" : cmd.toLowerCase()) {
@@ -116,6 +155,32 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
             case "loadconfigfromfile":
             case "migrate":
             case "migratestop":
+            // I-DEBT-121/125
+            case "showconfigtext":
+            case "loaddata":
+            // I-DEBT-124 兜底 mycatDmlHandler 可达
+            case "createtable":
+            case "droptable":
+            case "createschema":
+            case "dropschema":
+            case "setsequence":
+            case "repairphysicaltable":
+            case "readxarecoverylog":
+            // I-DEBT-124 配置缓存/用户方言/binlog 任务/线程/服务/执行器开关
+            case "createsqlcache":
+            case "dropsqlcache":
+            case "setuserdialect":
+            case "binlog_stop":
+            case "binlog_clear":
+            case "binlog_sync":
+            case "killthread":
+            case "interruptthread":
+            case "setacceptconnect":
+            case "pauseserver":
+            case "resumeserver":
+            case "setbkajoin":
+            case "setsortmergejoin":
+            case "setbkajoinleftrowcountlimit":
                 return true;
             default:
                 return false;
@@ -492,7 +557,8 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                     }
                     if ("showConfigText".equalsIgnoreCase(cmd)) {
                         MycatRouterConfig mycatRouterConfig = MetaClusterCurrent.wrapper(MycatRouterConfig.class);
-                        String text = JsonUtil.toJson(mycatRouterConfig);
+                        // I-DEBT-121：凭据倾倒封堵——users[].password/datasources[].password 掩码后再回显（且 cmd 已入 admin 门）。
+                        String text = maskConfigText(mycatRouterConfig);
                         ResultSetBuilder builder = ResultSetBuilder.create();
                         builder.addColumnInfo("CONFIG_TEXT", JDBCType.VARCHAR);
                         builder.addObjectRowPayload(Arrays.asList(text));
@@ -1294,6 +1360,8 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
         String schemaName = Objects.requireNonNull((String) map.get("schemaName"));
         String tableName = Objects.requireNonNull((String) map.get("tableName"));
         final String fileName = Objects.toString(map.get("fileName"));
+        // I-DEBT-125：任意文件读封堵——仅放行无 ".." 穿越的相对路径（绝对路径/盘符/UNC 一概拒，admin 同限）。
+        checkLoaddataFilePath(fileName);
         CSVFormat format = CSVFormat.MYSQL;
         final Character delimiter = map.getOrDefault("delimiter", format.getDelimiter() + "")
                 .toString()

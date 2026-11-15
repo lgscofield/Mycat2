@@ -1,7 +1,6 @@
 package io.mycat.sqlhandler;
 
 import com.alibaba.druid.util.JdbcUtils;
-import groovy.transform.ToString;
 import io.mycat.MetaClusterCurrent;
 import io.mycat.MycatException;
 import io.mycat.Partition;
@@ -24,6 +23,7 @@ import io.vertx.core.Promise;
 import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -129,8 +129,9 @@ public class MigrateUtil {
         String password = output.getPassword();
         String url = output.getUrl();
 
-        @ToString
         @Getter
+        // MYCAT CHANGE (I-DEBT-126): 原 @ToString 为 groovy.transform.ToString（对 Java 类惰性），
+        // 随 import 归位一并移除；该本地类 toString 无任何消费点，lombok 不支持本地类注解。
         class MigrateSQLController implements MigrateController, FlowableSubscriber<BinlogUtil.ParamSQL> {
             Subscription subscription;
             Connection connection;
@@ -202,6 +203,11 @@ public class MigrateUtil {
     @ToString
     public static class MigrateJdbcOutput {
         String username;
+        // MYCAT CHANGE (I-DEBT-126): password 永不进 toString——show() INFO 列（MigrateScheduler.toString）
+        // 与 register() 成功后的 LOGGER.info(rowMap) 都会拼上本对象。原 import 的是 groovy.transform.ToString
+        // （对 Java 类是惰性注解），真实 toString 由 @Data 隐式 @ToString 生成并含明文 password（活体 RED：
+        // MigrateUtilOutputMaskingTest）。改用 lombok.ToString 并 @ToString.Exclude 排除该字段。
+        @ToString.Exclude
         String password;
         String url;
         String insertTemplate;
@@ -214,6 +220,8 @@ public class MigrateUtil {
     @ToString
     public static class MigrateJdbcAnyOutput {
         String username;
+        // MYCAT CHANGE (I-DEBT-126): 同 MigrateJdbcOutput，password 不外显（BINLOG_SYNC 写回面共用）。
+        @ToString.Exclude
         String password;
         String url;
     }
