@@ -95,5 +95,12 @@
     <groupId>com.clickhouse</groupId>
     <artifactId>clickhouse-jdbc</artifactId>
   </dependency>
+  <!-- I2b: DefaultConnectionAbortTest 用 Mockito mock DruidPooledConnection/DruidDataSource 验物理弃用接线；
+       版本由 root dependencyManagement ${mockito.version}=5.17.0 统一管理（对齐 va/server），离线可解析。 -->
+  <dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <scope>test</scope>
+  </dependency>
 </dependencies>
 </project>
