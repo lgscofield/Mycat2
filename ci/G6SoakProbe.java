@@ -9,7 +9,7 @@ import java.sql.*;
 public class G6SoakProbe {
     public static void main(String[] a) throws Exception {
         long DURATION_MS = 30 * 60 * 1000L;
-        String mycat = "jdbc:mysql://127.0.0.1:8066/dbaudit_a?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000";
+        String mycat = "jdbc:mysql://127.0.0.1:8066/mysql?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000";
         String backend = "jdbc:mysql://127.0.0.1:3306/dbaudit_a?useSSL=false&allowPublicKeyRetrieval=true";
         AtomicInteger done = new AtomicInteger(), errors = new AtomicInteger();
         CountDownLatch latch = new CountDownLatch(4);
