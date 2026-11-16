@@ -91,8 +91,11 @@ class DefaultConnectionAbortTest {
         dc.abort();
         dc.abort();
         dc.close();
+        // closeFlag CAS 单方生效：三调用合计 physical.abort / discardConnection / counter 各恰好一次，无双重释放。
         verify(physical, times(1)).abort(any(Executor.class));
-        verify(pc, never()).close();              // closeFlag 已置，close() no-op
+        verify(ds, times(1)).discardConnection(physical);
+        assertEquals(0, jdbcDs.getUsedCount());          // counter 1→0（decrementAndGet 在 CAS 内，二次 no-op）
+        verify(pc, never()).close();                     // closeFlag 已置，close() no-op
     }
 
     @Test
