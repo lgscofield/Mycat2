@@ -33,26 +33,34 @@ public class MycatTimeUtil {
         }
         switch (text.charAt(0)) {
             case '-': {//[-] DAYS [H]H:MM:SS
+                // MYCAT CHANGE (I-DEBT-144): 修复负天数分支——原 parseInt(split[0]) 把 "-1 12" 整段当小时数抛 NFE；
+                // 现按空格拆出天数、小时段单独解析（无空格时仍兼容 [-][H]H:MM:SS）。
                 int suff = text.indexOf(" ");
-                days = Integer.parseInt(text.substring(0, suff));
+                if (suff != -1) {
+                    days = Integer.parseInt(text.substring(0, suff).trim());
+                }
                 String[] split = text.split(":");
-                h = Integer.parseInt(split[0]);
+                h = Integer.parseInt(suff == -1 ? split[0] : split[0].substring(suff + 1).trim());
                 m = Integer.parseInt(split[1]);
                 second = Integer.parseInt(split[2]);
                 break;
             }
             default: {
+                // MYCAT CHANGE (I-DEBT-144): 修复 "DAYS [H]H:MM:SS" 正天数前缀被丢弃的问题——
+                // 原 text = split(" ")[1] 直接覆盖，days 恒 0；现拆出天数保留。
                 if (text.contains(" ")) {
-                    text = text.split(" ")[1];
+                    String[] daySplit = text.split(" ");
+                    days = Integer.parseInt(daySplit[0].trim());
+                    text = daySplit[1];
                 }
                 String[] split = text.split(":");
                 split[0] = split[0].trim();
                 if (split.length == 3) {
                     if (split[0].contains(" ")) {
-                        //DAYS [H]H:MM:SS
+                        //DAYS [H]H:MM:SS（不可达：上方已拆天数；防御保留并修正小时取段）
                         String[] s = split[0].split(" ");
                         days = Integer.parseInt(s[0]);
-                        h = Integer.parseInt(s[0]);
+                        h = Integer.parseInt(s[1]);
                         m = Integer.parseInt(split[1]);
                         second = Integer.parseInt(split[2]);
                         break;
@@ -82,8 +90,10 @@ public class MycatTimeUtil {
                         }
                         case 3: {
                             //MSS
+                            // MYCAT CHANGE (I-DEBT-144): 原 substring(1,2) 只取 1 位秒——
+                            // MySQL 简写 'MSS' 语义为分=首 1 位、秒=末 2 位，'123' → 00:01:23。
                             m = Integer.parseInt(shor.substring(0, 1));
-                            second = Integer.parseInt(shor.substring(1, 2));
+                            second = Integer.parseInt(shor.substring(1, 3));
                             break;
                         }
                         case 4: {

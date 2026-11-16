@@ -47,8 +47,16 @@ public class MySQLGaleraHeartBeatStrategy extends HeartBeatStrategy {
 
             Map<String, Object> resultResult = new HashMap<>();
             for (Map<String, Object> map : result) {
-                String variableName = (String) map.get("Variable_name");
-                String value = (String) map.get("Value");
+                if (map == null) {
+                    continue;
+                }
+                // MYCAT CHANGE (I-DEBT-142): Variable_name/Value 列不再裸 (String) 强转——
+                // 驱动可能返回非 String（如 Integer），ClassCastException 会让整轮心跳中断；
+                // 防御性降级为 Objects.toString（null 保持 null）。
+                Object nameRaw = map.get("Variable_name");
+                Object valueRaw = map.get("Value");
+                String variableName = nameRaw == null ? null : Objects.toString(nameRaw);
+                String value = valueRaw == null ? null : Objects.toString(valueRaw);
                 resultResult.put(variableName, value);
             }
             if (resultList.size() > 0) {

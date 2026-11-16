@@ -270,7 +270,8 @@ public class XaLogImpl implements XaLog {
         }
     }
 
-    private boolean checkState(String xid, boolean succeed, State state) {
+    // MYCAT CHANGE (I-DEBT-115): 收窄前为 private；为恢复决策面单测锁定改为包内可见。
+    boolean checkState(String xid, boolean succeed, State state) {
         boolean s;
         ImmutableCoordinatorLog coordinatorLog = xaRepository.get(xid);
 
@@ -278,7 +279,9 @@ public class XaLogImpl implements XaLog {
             State recordState = coordinatorLog.computeMinState();
             s = (succeed == (recordState == state)) || (succeed && (recordState == State.XA_COMMITED || recordState == State.XA_ROLLBACKED));
         } else {
-            s = true;
+            // MYCAT CHANGE (I-DEBT-115): 协调者日志缺失时原恒 true（放行），现显式 false——
+            // 缺失日志无法证明状态成立，恢复决策面 fail-safe。
+            s = false;
         }
         return s;
     }
@@ -303,7 +306,9 @@ public class XaLogImpl implements XaLog {
 
         synchronized (xaRepository) {
             ImmutableCoordinatorLog immutableCoordinatorLog = xaRepository.get(xid);
-            immutableCoordinatorLog.withCommit(true);
+            // MYCAT CHANGE (I-DEBT-115): withCommit(true) 返回值原被丢弃（不可变对象），
+            // commitMarked 恒不落库 → prepare 完成标记丢失；现回写后再持久化。
+            immutableCoordinatorLog = immutableCoordinatorLog.withCommit(true);
             xaRepository.writeCommitLog(immutableCoordinatorLog);
             return immutableCoordinatorLog;
         }

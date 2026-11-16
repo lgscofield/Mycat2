@@ -66,8 +66,11 @@ public class MySQLMasterSlaveBeatStrategy extends HeartBeatStrategy {
                         && Slave_IO_Running.equals(Slave_SQL_Running)
                         && Slave_SQL_Running.equals("Yes")) {
                     datasourceStatus.setDbSynStatus(DbSynEnum.DB_SYN_NORMAL);
-                    Long Behind_Master = Long.parseLong(Objects.toString(resultResult.get("Seconds_Behind_Master")));
-                    if (Behind_Master > heartbeatFlow.getSlaveThreshold()) {
+                    // MYCAT CHANGE (I-DEBT-142): Seconds_Behind_Master 为 NULL/非数字时表示"延迟未知"，
+                    // 不等于 DOWN——不再裸 Long.parseLong 抛 NumberFormatException 导致实例被误判 DOWN；
+                    // 复制线程（IO/SQL）为 Yes 时心跳仍为 OK，仅跳过延迟判定。
+                    Long Behind_Master = parseLongOrNull(resultResult.get("Seconds_Behind_Master"));
+                    if (Behind_Master != null && Behind_Master > heartbeatFlow.getSlaveThreshold()) {
                         datasourceStatus.setSlaveBehindMaster(true);
                         LOGGER.warn("found MySQL master/slave Replication delay !!! " +
                                 " binlog sync time delay: " + Behind_Master + "s");
@@ -96,5 +99,18 @@ public class MySQLMasterSlaveBeatStrategy extends HeartBeatStrategy {
 
     public MySQLMasterSlaveBeatStrategy(HeartbeatFlow heartbeatFlow) {
         super(heartbeatFlow);
+    }
+
+    // MYCAT CHANGE (I-DEBT-142): NULL/非数字 → null（延迟未知），由调用方跳过延迟判定。
+    private static Long parseLongOrNull(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Long.parseLong(Objects.toString(value));
+        } catch (NumberFormatException e) {
+            LOGGER.warn("Seconds_Behind_Master is not a number [{}], treat as unknown (not DOWN)", value);
+            return null;
+        }
     }
 }

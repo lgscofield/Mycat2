@@ -54,6 +54,11 @@ public class ImmutableCoordinatorLog implements Serializable {
      * @return  the min state for subsequent xa command to commit or rollback
      */
     public State computeMinState() {
+        // MYCAT CHANGE (I-DEBT-115): 空参与者数组时 allMatch vacuous-true 恒返回 XA_COMMITED，
+        // 恢复决策会把无参与者日志误判为"已提交"；显式返回中性态 XA_INITED。
+        if (participants == null || participants.length == 0) {
+            return State.XA_INITED;
+        }
         State txState = State.XA_COMMITED;
         if (Arrays.stream(participants).allMatch(i -> i.getState() == State.XA_COMMITED)) {
             return State.XA_COMMITED;

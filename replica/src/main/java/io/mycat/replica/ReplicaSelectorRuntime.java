@@ -149,6 +149,12 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
             if (replicaDataSourceSelector.getRawDataSourceMap().size() == 1) {
                 return replicaDataSourceSelector.getRawDataSourceMap().keySet().stream().iterator().next();
             }
+            // MYCAT CHANGE (I-DEBT-140): 全孤儿集群（I-DEBT-98 自愈后注册为空）读写列表与原始实例全空时，
+            // 直接走 graceful 语义（return replicaName），消除后续 requireNonNull("No data source available")
+            // 的 NPE 与外层 !master 兜底对空 rawDataSourceMap 做 iterator().next() 的 NoSuchElementException。
+            if (replicaDataSourceSelector.getRawDataSourceMap().isEmpty()) {
+                return replicaName;
+            }
         }
         try {
             PhysicsInstance physicsInstance = function.apply(loadBalanceByBalance, replicaDataSourceSelector);
@@ -329,6 +335,10 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
             if (replicaDataSourceSelector.getRawDataSourceMap().size() == 1) {
                 return replicaDataSourceSelector.getRawDataSourceMap().keySet().stream().iterator().next();
             }
+            // MYCAT CHANGE (I-DEBT-140): 同上——全孤儿空集群 graceful 返回，消除空集群路由 NPE 链。
+            if (replicaDataSourceSelector.getRawDataSourceMap().isEmpty()) {
+                return replicaName;
+            }
         }
         try {
             PhysicsInstance physicsInstance = function.apply(loadBalanceByBalance, replicaDataSourceSelector);
@@ -384,7 +394,13 @@ public class ReplicaSelectorRuntime implements ReplicaSelectorManager {
             element = selector.getWriteDataSourceByReplicaType();
         }
         LoadBalanceElement select = balanceStrategy.select(selector, element);
-        Objects.requireNonNull(select, "No data source available");
+        // MYCAT CHANGE (I-DEBT-140): 空集群（读写列表全空）时不再 requireNonNull 裸抛 NPE，
+        // 改为返回 null（graceful 语义）；调用方（getDatasourceNameByReplicaName / getDatasourceByReplicaName）
+        // 对 null 均已按"无可用数据源"处理，与 selector==null 的返回约定一致。
+        if (select == null) {
+            LOGGER.warn("I-DEBT-140 no data source available on cluster [{}]", selector.getName());
+            return null;
+        }
         return (PhysicsInstance) select;
     }
 

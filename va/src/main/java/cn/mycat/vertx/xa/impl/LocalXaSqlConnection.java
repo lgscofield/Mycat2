@@ -34,6 +34,13 @@ import java.util.function.Supplier;
 public class LocalXaSqlConnection extends BaseXaSqlConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalXaSqlConnection.class);
     volatile NewMycatConnection localSqlConnection = null;
+    /**
+     * MYCAT CHANGE (I-DEBT-113): 首借登记先行——首借 Future 在 resolve 前的占位。
+     * 与 localSqlConnection 相同可见性（包内测试可观测）；由 {@link #firstBorrowLock} 守护读写，
+     * onComplete（在 map 赋值之后注册，执行顺序靠后）清空占位。
+     */
+    private volatile Future<NewMycatConnection> pendingFirstBorrow = null;
+    private final Object firstBorrowLock = new Object();
 
     public LocalXaSqlConnection(MySQLIsolation isolation, Supplier<MySQLManager> mySQLManagerSupplier,
                                 XaLog xaLog) {
@@ -143,31 +150,58 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
     public Future<NewMycatConnection> getConnection(String targetName) {
         MySQLManager mySQLManager = mySQLManager();
         if (inTranscation) {
-            if (localSqlConnection == null) {
-                Future<NewMycatConnection> sqlConnectionFuture = mySQLManager.getConnection(targetName);
-                return sqlConnectionFuture.map(sqlConnection -> {
-                    LocalXaSqlConnection.this.localSqlConnection = sqlConnection;
-                    return sqlConnection;
-                }).compose(sqlConnection -> sqlConnection
-                        .update(getTransactionIsolation().getCmd())
-                        .flatMap(unused -> sqlConnection.update("begin;").map(sqlConnection)));
-            }
-            if (this.localSqlConnection != null && this.localSqlConnection.getTargetName().equals(targetName)) {
-                if (this.localSqlConnection.isClosed()) {
-                    LOGGER.error("localSqlConnection is closed ,in transaction");
+            // MYCAT CHANGE (I-DEBT-113): 修复事务首借 check-then-act——原实现 `localSqlConnection == null`
+            // 判空后跨异步借用再赋值，真异步池借出 Future 未 resolve 期间后到的 getConnection 也走首借分支，
+            // 两并发首借各 begin，后完成者覆写 localSqlConnection，先借出者成孤儿（带 open begin 写静默丢失）。
+            // 现首借改为登记先行：synchronized 首借块内在借出 Future resolve 前先占位（pendingFirstBorrow），
+            // 后到者等首借落位后按既有 local/map 路径分发。行为变化仅在"首借未落位"的并发窗口，常规路径零变化。
+            synchronized (firstBorrowLock) {
+                if (localSqlConnection == null && pendingFirstBorrow == null) {
+                    Future<NewMycatConnection> firstBorrow = mySQLManager.getConnection(targetName)
+                            .map(sqlConnection -> {
+                                LocalXaSqlConnection.this.localSqlConnection = sqlConnection;
+                                return sqlConnection;
+                            })
+                            .compose(sqlConnection -> sqlConnection
+                                    .update(getTransactionIsolation().getCmd())
+                                    .flatMap(unused -> sqlConnection.update("begin;").map(sqlConnection)));
+                    pendingFirstBorrow = firstBorrow;
+                    // onComplete 在 map 赋值之后注册（链上靠后），清占位不会先于赋值执行；
+                    // 首借失败同样清占位，允许后续借出重试。
+                    firstBorrow.onComplete(unused -> {
+                        synchronized (firstBorrowLock) {
+                            pendingFirstBorrow = null;
+                        }
+                    });
+                    return firstBorrow;
                 }
-                return Future.succeededFuture(localSqlConnection);
+                Future<NewMycatConnection> pending = pendingFirstBorrow;
+                if (pending != null) {
+                    // 后到者：先等首借落位，再按既有路径分发（不并发借出）
+                    return pending.compose(unused -> getConnectionAfterFirstBorrow(targetName, mySQLManager));
+                }
             }
-            if (xid == null) {
-                xid = log.nextXid();
-                log.beginXa(xid);
-            }
-            return super.getConnection(targetName);
+            return getConnectionAfterFirstBorrow(targetName, mySQLManager);
         }
         return mySQLManager.getConnection(targetName).map(connection -> {
             extraConnections.add(connection);
             return connection;
         });
+    }
+
+    /** 首借已落位（localSqlConnection 可用）后的分发：同目标复用本地连接，异目标走参与者 map 路径。 */
+    private Future<NewMycatConnection> getConnectionAfterFirstBorrow(String targetName, MySQLManager mySQLManager) {
+        if (this.localSqlConnection != null && this.localSqlConnection.getTargetName().equals(targetName)) {
+            if (this.localSqlConnection.isClosed()) {
+                LOGGER.error("localSqlConnection is closed ,in transaction");
+            }
+            return Future.succeededFuture(localSqlConnection);
+        }
+        if (xid == null) {
+            xid = log.nextXid();
+            log.beginXa(xid);
+        }
+        return super.getConnection(targetName);
     }
 
     @Override

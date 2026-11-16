@@ -742,25 +742,8 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                         List<Flowable<Object[]>> observables = new ArrayList<>();
                         MetadataManager manager = MetaClusterCurrent.wrapper(MetadataManager.class);
                         TableHandler outputTable = manager.getTable(output.getSchemaName(), output.getTableName());
-                        String username = Optional.ofNullable(output.getUsername()).orElseGet(new Supplier<String>() {
-                            @Override
-                            public String get() {
-                                UserConfig userConfig = routerConfig.getUsers().get(0);
-                                String username = userConfig.getUsername();
-                                String password = userConfig.getPassword();
-                                return username;
-                            }
-                        });
-                        String password = Optional.ofNullable(output.getUsername()).orElseGet(new Supplier<String>() {
-                            @Override
-                            public String get() {
-
-                                UserConfig userConfig = routerConfig.getUsers().get(0);
-                                String username = userConfig.getUsername();
-                                String password = userConfig.getPassword();
-                                return password;
-                            }
-                        });
+                        String username = resolveMigrateUsername(output, routerConfig);
+                        String password = resolveMigratePassword(output, routerConfig);
                         String url = Optional.ofNullable(output.getUrl()).orElseGet(() -> {
                             ServerConfig serverConfig = MetaClusterCurrent.wrapper(ServerConfig.class);
                             String ip = serverConfig.getIp();
@@ -1650,5 +1633,23 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
             assembleMetadataStorageManager.syncFromNet();
             return;
         }
+    }
+
+    // MYCAT CHANGE (I-DEBT-141): MIGRATE 写库凭据兜底——原实现 password 兜底误判 output.getUsername()
+    // 而非 output.getPassword()，导致 output 只填 password 不填 username 时 password 恒回落 users[0]。
+    // 提取为纯函数便于单测锁定；username 供应商内的死变量 password 一并清理。
+    static String resolveMigrateUsername(MigrateHint.Output output, MycatRouterConfig routerConfig) {
+        return Optional.ofNullable(output.getUsername()).orElseGet(() -> {
+            UserConfig userConfig = routerConfig.getUsers().get(0);
+            return userConfig.getUsername();
+        });
+    }
+
+    static String resolveMigratePassword(MigrateHint.Output output, MycatRouterConfig routerConfig) {
+        return Optional.ofNullable(output.getPassword()).orElseGet(() -> {
+
+            UserConfig userConfig = routerConfig.getUsers().get(0);
+            return userConfig.getPassword();
+        });
     }
 }

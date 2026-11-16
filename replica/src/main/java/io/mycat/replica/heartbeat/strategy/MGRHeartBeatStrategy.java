@@ -50,13 +50,22 @@ public class MGRHeartBeatStrategy extends HeartBeatStrategy {
             return;
         }
         {
-            behind = ((Number) (result.get("BEHIND"))).doubleValue();
-            double delay;
-            if ((delay = (behind - heartbeatFlow.getSlaveThreshold())) > 0) {
-                datasourceStatus.setSlaveBehindMaster(true);
-                LOGGER.warn("found MySQL MGR GTID delay !!! " +
-                        " delay: " + delay);
+            // MYCAT CHANGE (I-DEBT-142): BEHIND 为 NULL/非 Number 时表示 GTID 延迟未知，
+            // 不等于 DOWN——不再裸 ((Number)...).doubleValue() 抛 NPE/ClassCastException
+            // 导致 ONLINE 实例被误判 DOWN；仅跳过延迟判定，实例状态保持 ONLINE→OK。
+            Number behindRaw = result.get("BEHIND") instanceof Number ? (Number) result.get("BEHIND") : null;
+            if (behindRaw != null) {
+                behind = behindRaw.doubleValue();
+                double delay;
+                if ((delay = (behind - heartbeatFlow.getSlaveThreshold())) > 0) {
+                    datasourceStatus.setSlaveBehindMaster(true);
+                    LOGGER.warn("found MySQL MGR GTID delay !!! " +
+                            " delay: " + delay);
+                } else {
+                    datasourceStatus.setSlaveBehindMaster(false);
+                }
             } else {
+                LOGGER.warn("MGR heartbeat BEHIND is null or not a number, treat as unknown (not DOWN)");
                 datasourceStatus.setSlaveBehindMaster(false);
             }
         }

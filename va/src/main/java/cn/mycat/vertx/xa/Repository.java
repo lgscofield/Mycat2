@@ -66,7 +66,9 @@ public interface Repository {
      */
     default void cancelCommitLog(String xid) {
         ImmutableCoordinatorLog immutableCoordinatorLog = get(xid);
-        immutableCoordinatorLog.withCommit(false);
+        // MYCAT CHANGE (I-DEBT-115): withCommit(false) 返回值原被丢弃（不可变对象），
+        // cancel 恒不落库；现回写后再持久化。
+        immutableCoordinatorLog = immutableCoordinatorLog.withCommit(false);
         put(xid, immutableCoordinatorLog);
     }
 }
