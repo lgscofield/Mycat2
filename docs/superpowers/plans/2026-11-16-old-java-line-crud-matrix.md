@@ -53,6 +53,8 @@ STAGE6 新增 9 格，合已有 STAGE4/5 的 C1/C3/C4，即现代网 12 格全�
 
 ---
 
+> **执行落地说明（Ruling·2026-11-16 实现期据实修订）**：下文 Task 1-4 的 Interfaces 提到的 `cmCell(tag,cols)` / `cmCount` helper **未落地为独立方法**——九格列集/主体各异，抽 `cmCell` 只是省一句 `"CREATE TABLE cN(...) ... dbpartition..."` 的模板串，属未挣得的过早抽象（遵仓内"三行重复优于过早抽象"）。实际实现：唯一 helper 为 `report("cm.<tag>",ok,detail)`（已落地，纳入 `pass` 累积）；每格内联 `CREATE TABLE cN(...) PRIMARY KEY(id)` + 常量 `CM_SHARD`；c9 的六单位断言用内联 `for` 循环取代 `cmCount`。**格子覆盖映射**应读作 cell→STAGE6 内联块，而非 cell→`cmCell`。此为文档-实现对齐说明，非代码缺陷（fresh review 确认九格皆非空跑、无误绿）。
+
 ### Task 1: STAGE6 脚手架 + C2 UPDATE/DELETE + C5 VARBINARY（prepared 写入）
 
 **Files:**
