@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import static io.mycat.beans.mycat.MycatDataType.BINARY;
@@ -56,6 +57,10 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     private long activeTimestamp = System.currentTimeMillis();
 
     private DatasourceConfig config;
+
+    // I-PR-1：每实例单把可重入锁。VT 在 synchronized 内 park 会钉住载体线程，故换 ReentrantLock。
+    // 两处 Observable 内的临界区直接引用本字段，保持单锁拓扑（可重入嵌套依赖它）。
+    private final ReentrantLock lock = new ReentrantLock();
 
     public NewMycatConnectionImpl(String targetName,boolean needLastInsertId, Connection connection) {
         this.targetName = targetName;
@@ -106,71 +111,76 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     }
 
     @Override
-    public synchronized void prepareQuery(String sql, List<Object> params, MysqlCollector collector) {
-        if (this.future.isComplete()) {
-            this.future = Future.succeededFuture();
-        }
-        this.future = this.future.transform(voidAsyncResult -> {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
+    public void prepareQuery(String sql, List<Object> params, MysqlCollector collector) {
+        lock.lock();
+        try {
+            if (this.future.isComplete()) {
+                this.future = Future.succeededFuture();
             }
-            try {
-                if (params.isEmpty()) {
-                    try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-                        setStreamFlag(statement);
-                        resultSet = statement.executeQuery(sql);
-                        onRev();
-                        MycatRowMetaData mycatRowMetaData = getJdbcRowMetaData(resultSet.getMetaData());
-                        int columnCount = mycatRowMetaData.getColumnCount();
-                        collector.onColumnDef(mycatRowMetaData);
-                        int columnLimit = columnCount + 1;
-                        while (!isResultSetClosed() && resultSet.next()) {
-                            Object[] objects = new Object[columnCount];
-                            for (int i = 1, j = 0; i < columnLimit; i++, j++) {
-                                objects[j] = resultSet.getObject(i);
-                            }
-                            collector.onRow(objects);
-                        }
-                        // I-DEBT-69 Blade D 余项：诊断条件属语句级状态，必须在 Statement 关闭前取走。
-                        collector.onWarnings(toWarningMessages(statement.getWarnings()));
-                    }
-                } else {
-                    try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);) {
-                        setStreamFlag(statement);
-                        int limit = params.size() + 1;
-                        for (int i = 1; i < limit; i++) {
-                            statement.setObject(i, params.get(i - 1));
-                        }
-                        onSend();
-                        resultSet = statement.executeQuery();
-                        onRev();
-                        MycatRowMetaData mycatRowMetaData = getJdbcRowMetaData(resultSet.getMetaData());
-                        int columnCount = mycatRowMetaData.getColumnCount();
-                        collector.onColumnDef(mycatRowMetaData);
-                        int columnLimit = columnCount + 1;
-                        while (!isResultSetClosed() && resultSet.next()) {
-                            Object[] objects = new Object[columnCount];
-                            for (int i = 1, j = 0; i < columnLimit; i++, j++) {
-                                objects[j] = resultSet.getObject(i);
-                            }
-                            collector.onRow(objects);
-                        }
-                        // I-DEBT-69 Blade D 余项：预编译分支同构采集。
-                        collector.onWarnings(toWarningMessages(statement.getWarnings()));
-                    }
+            this.future = this.future.transform(voidAsyncResult -> {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
                 }
+                try {
+                    if (params.isEmpty()) {
+                        try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                            setStreamFlag(statement);
+                            resultSet = statement.executeQuery(sql);
+                            onRev();
+                            MycatRowMetaData mycatRowMetaData = getJdbcRowMetaData(resultSet.getMetaData());
+                            int columnCount = mycatRowMetaData.getColumnCount();
+                            collector.onColumnDef(mycatRowMetaData);
+                            int columnLimit = columnCount + 1;
+                            while (!isResultSetClosed() && resultSet.next()) {
+                                Object[] objects = new Object[columnCount];
+                                for (int i = 1, j = 0; i < columnLimit; i++, j++) {
+                                    objects[j] = resultSet.getObject(i);
+                                }
+                                collector.onRow(objects);
+                            }
+                            // I-DEBT-69 Blade D 余项：诊断条件属语句级状态，必须在 Statement 关闭前取走。
+                            collector.onWarnings(toWarningMessages(statement.getWarnings()));
+                        }
+                    } else {
+                        try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);) {
+                            setStreamFlag(statement);
+                            int limit = params.size() + 1;
+                            for (int i = 1; i < limit; i++) {
+                                statement.setObject(i, params.get(i - 1));
+                            }
+                            onSend();
+                            resultSet = statement.executeQuery();
+                            onRev();
+                            MycatRowMetaData mycatRowMetaData = getJdbcRowMetaData(resultSet.getMetaData());
+                            int columnCount = mycatRowMetaData.getColumnCount();
+                            collector.onColumnDef(mycatRowMetaData);
+                            int columnLimit = columnCount + 1;
+                            while (!isResultSetClosed() && resultSet.next()) {
+                                Object[] objects = new Object[columnCount];
+                                for (int i = 1, j = 0; i < columnLimit; i++, j++) {
+                                    objects[j] = resultSet.getObject(i);
+                                }
+                                collector.onRow(objects);
+                            }
+                            // I-DEBT-69 Blade D 余项：预编译分支同构采集。
+                            collector.onWarnings(toWarningMessages(statement.getWarnings()));
+                        }
+                    }
 
-            } catch (Exception e) {
-                LOGGER.error("", e);
-                collector.onError(e);
-                return Future.failedFuture(e);
-            } finally {
-                resultSet = null;
-            }
-            collector.onComplete();
-            return Future.succeededFuture();
-        });
+                } catch (Exception e) {
+                    LOGGER.error("", e);
+                    collector.onError(e);
+                    return Future.failedFuture(e);
+                } finally {
+                    resultSet = null;
+                }
+                collector.onComplete();
+                return Future.succeededFuture();
+            });
 
+        } finally {
+            lock.unlock();
+        }
     }
 
     @SneakyThrows
@@ -196,67 +206,70 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     @Override
     public Observable<VectorSchemaRoot> prepareQuery(String sql, List<Object> params, MycatRelDataType mycatRelDataType, BufferAllocator allocator) {
         return Observable.create(emitter -> {
-            synchronized (NewMycatConnectionImpl.this) {
-                if (this.future.isComplete()) {
-                    this.future = Future.succeededFuture();
-                }
-                NewMycatConnectionImpl.this.future = NewMycatConnectionImpl.this.future.transform(voidAsyncResult -> {
-                    try {
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
-                        }
-                        try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-                            setStreamFlag(statement);
-                            int limit = params.size() + 1;
-                            for (int i = 1; i < limit; i++) {
-                                statement.setObject(i, params.get(i - 1));
+            lock.lock();
+            try {
+                    if (this.future.isComplete()) {
+                        this.future = Future.succeededFuture();
+                    }
+                    NewMycatConnectionImpl.this.future = NewMycatConnectionImpl.this.future.transform(voidAsyncResult -> {
+                        try {
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
                             }
-                            onSend();
-                            resultSet = statement.executeQuery();
-                            onRev();
-                            MycatField[] mycatFields;
-                            if (mycatRelDataType == null) {
-                                mycatFields = MycatDataType.from(resultSet.getMetaData());
-                            } else {
-                                mycatFields = mycatRelDataType.getFieldList().toArray(new MycatField[0]);
-                            }
-                            VectorSchemaRoot vectorSchemaRoot = null;
-                            FieldVector[] fieldVectors = null;
-                            int rowId = 0;
-                            while (resultSet.next()) {
-                                if (vectorSchemaRoot == null) {
-                                    fieldVectors = getFieldVectors(mycatFields, allocator);
-                                    vectorSchemaRoot = new VectorSchemaRoot(Arrays.asList(fieldVectors));
-                                    vectorSchemaRoot.allocateNew();
+                            try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                                setStreamFlag(statement);
+                                int limit = params.size() + 1;
+                                for (int i = 1; i < limit; i++) {
+                                    statement.setObject(i, params.get(i - 1));
                                 }
-                                for (int j = 0; j < mycatFields.length; j++) {
-                                    mycatFields[j].getMycatDataType()
-                                            .convertToVector(resultSet, j, fieldVectors[j], rowId);
+                                onSend();
+                                resultSet = statement.executeQuery();
+                                onRev();
+                                MycatField[] mycatFields;
+                                if (mycatRelDataType == null) {
+                                    mycatFields = MycatDataType.from(resultSet.getMetaData());
+                                } else {
+                                    mycatFields = mycatRelDataType.getFieldList().toArray(new MycatField[0]);
                                 }
+                                VectorSchemaRoot vectorSchemaRoot = null;
+                                FieldVector[] fieldVectors = null;
+                                int rowId = 0;
+                                while (resultSet.next()) {
+                                    if (vectorSchemaRoot == null) {
+                                        fieldVectors = getFieldVectors(mycatFields, allocator);
+                                        vectorSchemaRoot = new VectorSchemaRoot(Arrays.asList(fieldVectors));
+                                        vectorSchemaRoot.allocateNew();
+                                    }
+                                    for (int j = 0; j < mycatFields.length; j++) {
+                                        mycatFields[j].getMycatDataType()
+                                                .convertToVector(resultSet, j, fieldVectors[j], rowId);
+                                    }
 
-                                rowId++;
-                                vectorSchemaRoot.setRowCount(rowId);
-                                if (rowId > 1024) {
+                                    rowId++;
+                                    vectorSchemaRoot.setRowCount(rowId);
+                                    if (rowId > 1024) {
+                                        emitter.onNext(vectorSchemaRoot);
+                                        rowId = 0;
+                                        vectorSchemaRoot = null;
+                                    }
+                                }
+                                if (vectorSchemaRoot != null) {
                                     emitter.onNext(vectorSchemaRoot);
-                                    rowId = 0;
                                     vectorSchemaRoot = null;
                                 }
                             }
-                            if (vectorSchemaRoot != null) {
-                                emitter.onNext(vectorSchemaRoot);
-                                vectorSchemaRoot = null;
-                            }
+                        } catch (Exception e) {
+                            LOGGER.error("", e);
+                            emitter.onError(e);
+                            return Future.failedFuture(e);
+                        } finally {
+                            resultSet = null;
                         }
-                    } catch (Exception e) {
-                        LOGGER.error("", e);
-                        emitter.onError(e);
-                        return Future.failedFuture(e);
-                    } finally {
-                        resultSet = null;
-                    }
-                    emitter.onComplete();
-                    return Future.succeededFuture();
-                });
+                        emitter.onComplete();
+                        return Future.succeededFuture();
+                    });
+            } finally {
+                lock.unlock();
             }
         });
     }
@@ -295,97 +308,100 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     @Override
     public Observable<Buffer> prepareQuery(String sql, List<Object> params, int serverstatus) {
         return Observable.create(emitter -> {
-            synchronized (NewMycatConnectionImpl.this) {
-                this.future = this.future.transform(new Function<AsyncResult<Void>, Future<Void>>() {
-                    private Buffer packet(byte[] generateMySQLPacket) {
-                        return Buffer.buffer(generateMySQLPacket);
-                    }
+            lock.lock();
+            try {
+                    this.future = this.future.transform(new Function<AsyncResult<Void>, Future<Void>>() {
+                        private Buffer packet(byte[] generateMySQLPacket) {
+                            return Buffer.buffer(generateMySQLPacket);
+                        }
 
-                    @Override
-                    public Future<Void> apply(AsyncResult<Void> voidAsyncResult) {
-                        try {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
-                            }
-                            String paramize = paramize(sql, params);
-                            boolean clientDeprecateEof = NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF;
-                            try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-                                NewMycatConnectionImpl.this.setStreamFlag(statement);
-                                resultSet = statement.executeQuery(paramize);
-                                NewMycatConnectionImpl.this.onRev();
-                                int columnCount = resultSet.getMetaData().getColumnCount();
-                                int packetId = 1;
-                                MycatRowMetaData metaData = getJdbcRowMetaData(resultSet.getMetaData());
-                                MycatRelDataType mycatRelDataType = metaData.getMycatRelDataType();
-                                List<MycatField> fieldList = mycatRelDataType.getFieldList();
-                                emitter.onNext(packet(
-                                        MySQLPacketUtil.generateMySQLPacket(packetId++,
-                                                MySQLPacketUtil.generateResultSetCount(metaData.getColumnCount()))
-                                ));
-                                Iterable<byte[]> bytes = MySQLPacketUtil.generateAllColumnDefPayload(metaData);
-                                for (byte[] aByte : bytes) {
+                        @Override
+                        public Future<Void> apply(AsyncResult<Void> voidAsyncResult) {
+                            try {
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
+                                }
+                                String paramize = paramize(sql, params);
+                                boolean clientDeprecateEof = NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF;
+                                try (Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                                    NewMycatConnectionImpl.this.setStreamFlag(statement);
+                                    resultSet = statement.executeQuery(paramize);
+                                    NewMycatConnectionImpl.this.onRev();
+                                    int columnCount = resultSet.getMetaData().getColumnCount();
+                                    int packetId = 1;
+                                    MycatRowMetaData metaData = getJdbcRowMetaData(resultSet.getMetaData());
+                                    MycatRelDataType mycatRelDataType = metaData.getMycatRelDataType();
+                                    List<MycatField> fieldList = mycatRelDataType.getFieldList();
                                     emitter.onNext(packet(
                                             MySQLPacketUtil.generateMySQLPacket(packetId++,
-                                                    aByte)
+                                                    MySQLPacketUtil.generateResultSetCount(metaData.getColumnCount()))
                                     ));
-                                }
-                                if (!clientDeprecateEof) {
-                                    emitter.onNext(packet(
-                                            MySQLPacketUtil.generateMySQLPacket(packetId++,
-                                                    MySQLPacketUtil.generateEof(0, 0))
-                                    ));
-                                }
-                                while (!isResultSetClosed() && resultSet.next()) {
-                                    byte[][] row = new byte[columnCount][];
-                                    for (int index = 0; index < columnCount; index += 1) {
-                                        if (isMySQLDriver) {
-                                            int jdbcColumnIndex = index + 1;
-//                                            MycatDataType mycatDataType = mycatField.getMycatDataType();
-//                                            if (mycatDataType == DATE) {
-//                                                ResultSetImpl resultSet = NewMycatConnectionImpl.this.resultSet.unwrap(ResultSetImpl.class);
-//                                                Date localDate = resultSet.getDate(jdbcColumnIndex);
-//                                                row[index] = localDate == null ? null :localDate.toString().getBytes();
-//                                            } else if (mycatDataType == DATETIME) {
-//                                                ResultSetImpl resultSet = NewMycatConnectionImpl.this.resultSet.unwrap(ResultSetImpl.class);
-//                                                Timestamp localDateTime = ((ResultSetImpl) resultSet).getTimestamp(jdbcColumnIndex);
-//                                                row[index] = localDateTime == null ? null :localDateTime.toString().getBytes();
-//                                            } else {
-//                                                row[index] = (resultSet.getBytes(jdbcColumnIndex));
-//                                            }
-                                            row[index] = (resultSet.getBytes(jdbcColumnIndex));
-                                        } else {
-                                            MycatField mycatField = fieldList.get(index);
-                                            if (mycatField.getMycatDataType() == BINARY) {
-                                                row[index] = (resultSet.getBytes(index + 1));
+                                    Iterable<byte[]> bytes = MySQLPacketUtil.generateAllColumnDefPayload(metaData);
+                                    for (byte[] aByte : bytes) {
+                                        emitter.onNext(packet(
+                                                MySQLPacketUtil.generateMySQLPacket(packetId++,
+                                                        aByte)
+                                        ));
+                                    }
+                                    if (!clientDeprecateEof) {
+                                        emitter.onNext(packet(
+                                                MySQLPacketUtil.generateMySQLPacket(packetId++,
+                                                        MySQLPacketUtil.generateEof(0, 0))
+                                        ));
+                                    }
+                                    while (!isResultSetClosed() && resultSet.next()) {
+                                        byte[][] row = new byte[columnCount][];
+                                        for (int index = 0; index < columnCount; index += 1) {
+                                            if (isMySQLDriver) {
+                                                int jdbcColumnIndex = index + 1;
+    //                                            MycatDataType mycatDataType = mycatField.getMycatDataType();
+    //                                            if (mycatDataType == DATE) {
+    //                                                ResultSetImpl resultSet = NewMycatConnectionImpl.this.resultSet.unwrap(ResultSetImpl.class);
+    //                                                Date localDate = resultSet.getDate(jdbcColumnIndex);
+    //                                                row[index] = localDate == null ? null :localDate.toString().getBytes();
+    //                                            } else if (mycatDataType == DATETIME) {
+    //                                                ResultSetImpl resultSet = NewMycatConnectionImpl.this.resultSet.unwrap(ResultSetImpl.class);
+    //                                                Timestamp localDateTime = ((ResultSetImpl) resultSet).getTimestamp(jdbcColumnIndex);
+    //                                                row[index] = localDateTime == null ? null :localDateTime.toString().getBytes();
+    //                                            } else {
+    //                                                row[index] = (resultSet.getBytes(jdbcColumnIndex));
+    //                                            }
+                                                row[index] = (resultSet.getBytes(jdbcColumnIndex));
                                             } else {
-                                                String string = resultSet.getString(index + 1);
-                                                row[index] = string == null ? null : string.getBytes();
+                                                MycatField mycatField = fieldList.get(index);
+                                                if (mycatField.getMycatDataType() == BINARY) {
+                                                    row[index] = (resultSet.getBytes(index + 1));
+                                                } else {
+                                                    String string = resultSet.getString(index + 1);
+                                                    row[index] = string == null ? null : string.getBytes();
+                                                }
                                             }
                                         }
+                                        emitter.onNext(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId++, MySQLPacketUtil.generateTextRow(row))));
                                     }
-                                    emitter.onNext(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(packetId++, MySQLPacketUtil.generateTextRow(row))));
+                                    if (clientDeprecateEof) {
+                                        emitter.onNext(packet(
+                                                MySQLPacketUtil.generateMySQLPacket(packetId++,
+                                                        MySQLPacketUtil.generateOk(0xfe, 0, 0, 0, 0, false, false, false, ""))
+                                        ));
+                                    } else {
+                                        emitter.onNext(packet(
+                                                MySQLPacketUtil.generateMySQLPacket(packetId++,
+                                                        MySQLPacketUtil.generateEof(0, 0))
+                                        ));
+                                    }
+                                    emitter.onComplete();
+                                } catch (Exception e) {
+                                    emitter.tryOnError(e);
                                 }
-                                if (clientDeprecateEof) {
-                                    emitter.onNext(packet(
-                                            MySQLPacketUtil.generateMySQLPacket(packetId++,
-                                                    MySQLPacketUtil.generateOk(0xfe, 0, 0, 0, 0, false, false, false, ""))
-                                    ));
-                                } else {
-                                    emitter.onNext(packet(
-                                            MySQLPacketUtil.generateMySQLPacket(packetId++,
-                                                    MySQLPacketUtil.generateEof(0, 0))
-                                    ));
-                                }
-                                emitter.onComplete();
-                            } catch (Exception e) {
-                                emitter.tryOnError(e);
+                            } catch (Throwable e) {
+                                return Future.failedFuture(e);
                             }
-                        } catch (Throwable e) {
-                            return Future.failedFuture(e);
+                            return Future.succeededFuture();
                         }
-                        return Future.succeededFuture();
-                    }
-                });
+                    });
+            } finally {
+                lock.unlock();
             }
         });
 
@@ -441,116 +457,126 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     }
 
     @Override
-    public synchronized Future<List<Object>> call(String sql) {
-        if (this.future.isComplete()) {
-            this.future = Future.succeededFuture();
-        }
-        Future<List<Object>> transform = future.transform(voidAsyncResult -> {
-            try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("targetName:{}\n sql:{}\n", targetName, sql);
-                }
-                ArrayList<Object> resultSetList = new ArrayList<>();
-                CallableStatement callableStatement = connection.prepareCall(sql);
-                boolean moreResults = true;
-                int updateCount = 0;
-                callableStatement.execute();
-                while (moreResults) {
-                    updateCount = callableStatement.getUpdateCount();
-                    if (updateCount == -1) {
-                        ResultSet resultSet = callableStatement.getResultSet();
-                        if (resultSet == null) {
-                            break;
-                        }
-                        MycatRowMetaData metaData = getJdbcRowMetaData(resultSet.getMetaData());
-                        List<Object[]> objects = new ArrayList<>();
-                        while (resultSet.next()) {
-                            int columnCount = metaData.getColumnCount();
-                            Object[] row = new Object[columnCount];
-                            for (int i = 0; i < columnCount; i++) {
-                                row[i] = resultSet.getObject(i + 1);
-                            }
-                            objects.add(row);
-                        }
-                        RowSet rowSet = new RowSet(metaData, objects);
-                        resultSetList.add(rowSet);
-                    } else {
-                        resultSetList.add(new long[]{
-                                updateCount, getLastInsertId(callableStatement)
-                        });
-                    }
-                    moreResults = callableStatement.getMoreResults();
-
-                }
-                return Future.succeededFuture(resultSetList);
-            } catch (Exception exception) {
-                LOGGER.error("", exception);
-                return Future.failedFuture(exception);
+    public Future<List<Object>> call(String sql) {
+        lock.lock();
+        try {
+            if (this.future.isComplete()) {
+                this.future = Future.succeededFuture();
             }
-        });
-        this.future = transform.mapEmpty();
-        return transform;
+            Future<List<Object>> transform = future.transform(voidAsyncResult -> {
+                try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("targetName:{}\n sql:{}\n", targetName, sql);
+                    }
+                    ArrayList<Object> resultSetList = new ArrayList<>();
+                    CallableStatement callableStatement = connection.prepareCall(sql);
+                    boolean moreResults = true;
+                    int updateCount = 0;
+                    callableStatement.execute();
+                    while (moreResults) {
+                        updateCount = callableStatement.getUpdateCount();
+                        if (updateCount == -1) {
+                            ResultSet resultSet = callableStatement.getResultSet();
+                            if (resultSet == null) {
+                                break;
+                            }
+                            MycatRowMetaData metaData = getJdbcRowMetaData(resultSet.getMetaData());
+                            List<Object[]> objects = new ArrayList<>();
+                            while (resultSet.next()) {
+                                int columnCount = metaData.getColumnCount();
+                                Object[] row = new Object[columnCount];
+                                for (int i = 0; i < columnCount; i++) {
+                                    row[i] = resultSet.getObject(i + 1);
+                                }
+                                objects.add(row);
+                            }
+                            RowSet rowSet = new RowSet(metaData, objects);
+                            resultSetList.add(rowSet);
+                        } else {
+                            resultSetList.add(new long[]{
+                                    updateCount, getLastInsertId(callableStatement)
+                            });
+                        }
+                        moreResults = callableStatement.getMoreResults();
+
+                    }
+                    return Future.succeededFuture(resultSetList);
+                } catch (Exception exception) {
+                    LOGGER.error("", exception);
+                    return Future.failedFuture(exception);
+                }
+            });
+            this.future = transform.mapEmpty();
+            return transform;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public synchronized Future<SqlResult> insert(String sql, List<Object> params) {
+    public Future<SqlResult> insert(String sql, List<Object> params) {
+        lock.lock();
+        try {
 
-        if (this.future.isComplete()) {
-            this.future = Future.succeededFuture();
-        }
-        Future<SqlResult> transform = future.transform(voidAsyncResult -> {
-            try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
-                }
-                long affectRows;
-                long lastInsertId = 0;
-                List<WarningMessage> warnings = Collections.emptyList();
-                if (params.isEmpty()) {
-                    try (Statement statement = connection.createStatement();) {
-                        onSend();
-                        affectRows = statement.executeUpdate(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS);
-                        onRev();
-                        lastInsertId = getLastInsertId(statement);
-                        warnings = toWarningMessages(statement.getWarnings());
+            if (this.future.isComplete()) {
+                this.future = Future.succeededFuture();
+            }
+            Future<SqlResult> transform = future.transform(voidAsyncResult -> {
+                try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
                     }
-                } else {
-                    if (isClickHouse()) {
-                        String paramize = paramize(sql, params);
+                    long affectRows;
+                    long lastInsertId = 0;
+                    List<WarningMessage> warnings = Collections.emptyList();
+                    if (params.isEmpty()) {
                         try (Statement statement = connection.createStatement();) {
                             onSend();
-                            LOGGER.debug("sql:{}", paramize);
-                            affectRows = statement.executeUpdate(paramize);
+                            affectRows = statement.executeUpdate(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS);
                             onRev();
-                            lastInsertId = 0;
+                            lastInsertId = getLastInsertId(statement);
                             warnings = toWarningMessages(statement.getWarnings());
                         }
                     } else {
-                        try (PreparedStatement preparedStatement = connection.prepareStatement(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
-                            int limit = params.size() + 1;
-                            for (int i = 1; i < limit; i++) {
-                                preparedStatement.setObject(i, params.get(i - 1));
+                        if (isClickHouse()) {
+                            String paramize = paramize(sql, params);
+                            try (Statement statement = connection.createStatement();) {
+                                onSend();
+                                LOGGER.debug("sql:{}", paramize);
+                                affectRows = statement.executeUpdate(paramize);
+                                onRev();
+                                lastInsertId = 0;
+                                warnings = toWarningMessages(statement.getWarnings());
                             }
-                            onSend();
-                            affectRows = preparedStatement.executeUpdate();
-                            onRev();
-                            lastInsertId = getLastInsertId(preparedStatement);
-                            warnings = toWarningMessages(preparedStatement.getWarnings());
+                        } else {
+                            try (PreparedStatement preparedStatement = connection.prepareStatement(sql, needLastInsertId ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS)) {
+                                int limit = params.size() + 1;
+                                for (int i = 1; i < limit; i++) {
+                                    preparedStatement.setObject(i, params.get(i - 1));
+                                }
+                                onSend();
+                                affectRows = preparedStatement.executeUpdate();
+                                onRev();
+                                lastInsertId = getLastInsertId(preparedStatement);
+                                warnings = toWarningMessages(preparedStatement.getWarnings());
+                            }
                         }
                     }
+                    SqlResult sqlResult = new SqlResult();
+                    sqlResult.setAffectRows(affectRows);
+                    sqlResult.setLastInsertId(lastInsertId);
+                    sqlResult.setWarnings(warnings);
+                    return Future.succeededFuture(sqlResult);
+                } catch (Exception e) {
+                    LOGGER.error("", e);
+                    return Future.failedFuture(e);
                 }
-                SqlResult sqlResult = new SqlResult();
-                sqlResult.setAffectRows(affectRows);
-                sqlResult.setLastInsertId(lastInsertId);
-                sqlResult.setWarnings(warnings);
-                return Future.succeededFuture(sqlResult);
-            } catch (Exception e) {
-                LOGGER.error("", e);
-                return Future.failedFuture(e);
-            }
-        });
-        this.future = transform.mapEmpty();
-        return transform;
+            });
+            this.future = transform.mapEmpty();
+            return transform;
+        } finally {
+            lock.unlock();
+        }
     }
 
 
@@ -592,51 +618,56 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
     }
 
     @Override
-    public synchronized Future<SqlResult> update(String sql, List<Object> params) {
-        if (this.future.isComplete()) {
-            this.future = Future.succeededFuture();
-        }
-        Future<SqlResult> transform = future.transform(voidAsyncResult -> {
-            try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
-                }
-                long affectRows;
-                long lastInsertId = 0;
-                List<WarningMessage> warnings = Collections.emptyList();
-                if (params.isEmpty()) {
-                    try (Statement statement = connection.createStatement();) {
-                        onSend();
-                        affectRows = statement.executeUpdate(sql);
-                        onRev();
-                        lastInsertId = 0;
-                        warnings = toWarningMessages(statement.getWarnings());
-                    }
-                } else {
-                    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                        int limit = params.size() + 1;
-                        for (int i = 1; i < limit; i++) {
-                            preparedStatement.setObject(i, params.get(i - 1));
-                        }
-                        onSend();
-                        affectRows = preparedStatement.executeUpdate();
-                        onRev();
-                        lastInsertId = 0;
-                        warnings = toWarningMessages(preparedStatement.getWarnings());
-                    }
-                }
-                SqlResult sqlResult = new SqlResult();
-                sqlResult.setAffectRows(affectRows);
-                sqlResult.setLastInsertId(lastInsertId);
-                sqlResult.setWarnings(warnings);
-                return Future.succeededFuture(sqlResult);
-            } catch (Exception e) {
-                LOGGER.error("", e);
-                return Future.failedFuture(e);
+    public Future<SqlResult> update(String sql, List<Object> params) {
+        lock.lock();
+        try {
+            if (this.future.isComplete()) {
+                this.future = Future.succeededFuture();
             }
-        });
-        this.future = transform.mapEmpty();
-        return transform;
+            Future<SqlResult> transform = future.transform(voidAsyncResult -> {
+                try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("targetName:{}\n sql:{}\n params:{}", targetName, sql, params);
+                    }
+                    long affectRows;
+                    long lastInsertId = 0;
+                    List<WarningMessage> warnings = Collections.emptyList();
+                    if (params.isEmpty()) {
+                        try (Statement statement = connection.createStatement();) {
+                            onSend();
+                            affectRows = statement.executeUpdate(sql);
+                            onRev();
+                            lastInsertId = 0;
+                            warnings = toWarningMessages(statement.getWarnings());
+                        }
+                    } else {
+                        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                            int limit = params.size() + 1;
+                            for (int i = 1; i < limit; i++) {
+                                preparedStatement.setObject(i, params.get(i - 1));
+                            }
+                            onSend();
+                            affectRows = preparedStatement.executeUpdate();
+                            onRev();
+                            lastInsertId = 0;
+                            warnings = toWarningMessages(preparedStatement.getWarnings());
+                        }
+                    }
+                    SqlResult sqlResult = new SqlResult();
+                    sqlResult.setAffectRows(affectRows);
+                    sqlResult.setLastInsertId(lastInsertId);
+                    sqlResult.setWarnings(warnings);
+                    return Future.succeededFuture(sqlResult);
+                } catch (Exception e) {
+                    LOGGER.error("", e);
+                    return Future.failedFuture(e);
+                }
+            });
+            this.future = transform.mapEmpty();
+            return transform;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override

@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class DefaultPrototypeGenerator implements Supplier<Number> {
@@ -40,6 +41,8 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
     private final String nextSql;
     private final String setValueSql;
     private final ScheduledFuture<?> scheduledFuture;
+    // I-PR-1：每实例单把可重入锁。VT 在 synchronized 内 park 会钉住载体线程，故换 ReentrantLock。
+    private final ReentrantLock lock = new ReentrantLock();
 
     private volatile AtomicLong count = new AtomicLong();
     private volatile long step;
@@ -47,7 +50,7 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
 
     private int inv = 30;
 
-    private Value value = null;
+    private volatile Value value = null;
 
     public DefaultPrototypeGenerator(Map<String, Object> config) {
         this.targetName = Objects.toString(config.getOrDefault("targetName", "prototype"));
@@ -66,7 +69,8 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
             return andAccumulate;
         }
         Value andUpdate = null;
-        synchronized (this) {
+        lock.lock();
+        try {
             andUpdate = this.value;
             this.value = null;
             if (andUpdate != null) {
@@ -74,6 +78,8 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
                 step = andUpdate.step;
                 limit = count.get() + step;
             }
+        } finally {
+            lock.unlock();
         }
         if (andUpdate != null) {
             fetch();
@@ -89,10 +95,13 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
             try{
                 if (this.value == null) {
                     Value number = getNumber();
-                    synchronized (this) {
+                    lock.lock();
+                    try {
                         if (this.value == null) {
                             this.value = number;
                         }
+                    } finally {
+                        lock.unlock();
                     }
                 }
             }catch (Throwable throwable){
@@ -105,16 +114,21 @@ public class DefaultPrototypeGenerator implements Supplier<Number> {
 
     @NotNull
     @SneakyThrows
-    public synchronized Value getNumber() {
-        ConnectionManager connectionManager = MetaClusterCurrent.wrapper(ConnectionManager.class);
-        try (MycatConnection prototype = connectionManager.getConnection(this.targetName)) {
-            Connection connection = prototype.unwrap(Connection.class);
-            PreparedStatement preparedStatement = connection.prepareStatement(this.nextSql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            long count = resultSet.getLong(1);
-            long step = resultSet.getLong(2);
-            return new Value(count, step);
+    public Value getNumber() {
+        lock.lock();
+        try {
+            ConnectionManager connectionManager = MetaClusterCurrent.wrapper(ConnectionManager.class);
+            try (MycatConnection prototype = connectionManager.getConnection(this.targetName)) {
+                Connection connection = prototype.unwrap(Connection.class);
+                PreparedStatement preparedStatement = connection.prepareStatement(this.nextSql);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                resultSet.next();
+                long count = resultSet.getLong(1);
+                long step = resultSet.getLong(2);
+                return new Value(count, step);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 

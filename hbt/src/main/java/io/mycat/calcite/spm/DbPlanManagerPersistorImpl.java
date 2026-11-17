@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -24,6 +25,9 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
 
     final static Logger log = LoggerFactory.getLogger(DbPlanManagerPersistorImpl.class);
 
+    // I-PR-1：每实例单把可重入锁。VT 在 synchronized 内 park 会钉住载体线程，故换 ReentrantLock。
+    // loadBaseline/loadAllBaseline → toBaseline → loadFixPlan/listPlan 是同线程嵌套，必须可重入。
+    private final ReentrantLock lock = new ReentrantLock();
 
     @SneakyThrows
     public DbPlanManagerPersistorImpl() {
@@ -36,56 +40,66 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
      */
     @Override
     @SneakyThrows
-    public synchronized void checkStore() {
-        String prototype = MetadataManager.getPrototype();
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        managerOptional.ifPresent(manager -> {
-            try (DefaultConnection connection = manager.getConnection(prototype);) {
-                JdbcUtils.execute(connection.getRawConnection(), "CREATE DATABASE  IF  NOT EXISTS mycat");
-                JdbcUtils.execute(connection.getRawConnection(), "CREATE TABLE IF  NOT EXISTS mycat.`spm_baseline` (\n" +
-                        "  `id` bigint(22) NOT NULL AUTO_INCREMENT,\n" +
-                        "  `fix_plan_id` bigint(22) DEFAULT NULL,\n" +
-                        "  `constraint` longtext CHARACTER SET utf8mb4 NOT NULL,\n" +
-                        "  `extra_constraint` longtext,\n" +
-                        "  PRIMARY KEY (`id`),\n" +
-                        "  UNIQUE KEY `constraint_index` (`constraint`(22)),\n" +
-                        "  KEY `id` (`id`)\n" +
-                        ") ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 ");
-                JdbcUtils.execute(connection.getRawConnection(), "CREATE TABLE IF  NOT EXISTS mycat.`spm_plan` (\n" +
-                        "  `id` bigint(22) NOT NULL AUTO_INCREMENT,\n" +
-                        "  `sql` longtext,\n" +
-                        "  `rel` longtext,\n" +
-                        "  `baseline_id` bigint(22) DEFAULT NULL,\n" +
-                        "  PRIMARY KEY (`id`),\n" +
-                        "  KEY `id` (`id`)\n" +
-                        ") ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4");
-            } catch (Exception e) {
-                log.error("", e);
-            }
-        });
+    public void checkStore() {
+        lock.lock();
+        try {
+            String prototype = MetadataManager.getPrototype();
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            managerOptional.ifPresent(manager -> {
+                try (DefaultConnection connection = manager.getConnection(prototype);) {
+                    JdbcUtils.execute(connection.getRawConnection(), "CREATE DATABASE  IF  NOT EXISTS mycat");
+                    JdbcUtils.execute(connection.getRawConnection(), "CREATE TABLE IF  NOT EXISTS mycat.`spm_baseline` (\n" +
+                            "  `id` bigint(22) NOT NULL AUTO_INCREMENT,\n" +
+                            "  `fix_plan_id` bigint(22) DEFAULT NULL,\n" +
+                            "  `constraint` longtext CHARACTER SET utf8mb4 NOT NULL,\n" +
+                            "  `extra_constraint` longtext,\n" +
+                            "  PRIMARY KEY (`id`),\n" +
+                            "  UNIQUE KEY `constraint_index` (`constraint`(22)),\n" +
+                            "  KEY `id` (`id`)\n" +
+                            ") ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 ");
+                    JdbcUtils.execute(connection.getRawConnection(), "CREATE TABLE IF  NOT EXISTS mycat.`spm_plan` (\n" +
+                            "  `id` bigint(22) NOT NULL AUTO_INCREMENT,\n" +
+                            "  `sql` longtext,\n" +
+                            "  `rel` longtext,\n" +
+                            "  `baseline_id` bigint(22) DEFAULT NULL,\n" +
+                            "  PRIMARY KEY (`id`),\n" +
+                            "  KEY `id` (`id`)\n" +
+                            ") ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4");
+                } catch (Exception e) {
+                    log.error("", e);
+                }
+            });
 
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     @SneakyThrows
-    public synchronized Optional<Baseline> loadBaseline(long baselineId) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Optional.empty();
-        }
-        JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
-        try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_baseline where id = ?", Arrays.asList(baselineId));
-            if (maps.isEmpty()) {
+    public Optional<Baseline> loadBaseline(long baselineId) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
                 return Optional.empty();
             }
-            if (maps.size() != 1) {
-                log.error("baseline is duplicate");
-                return Optional.empty();
+            JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
+            try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_baseline where id = ?", Arrays.asList(baselineId));
+                if (maps.isEmpty()) {
+                    return Optional.empty();
+                }
+                if (maps.size() != 1) {
+                    log.error("baseline is duplicate");
+                    return Optional.empty();
+                }
+                Map<String, Object> map = maps.get(0);
+                Baseline baseline = toBaseline(map);
+                return Optional.of(baseline);
             }
-            Map<String, Object> map = maps.get(0);
-            Baseline baseline = toBaseline(map);
-            return Optional.of(baseline);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -116,41 +130,56 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
 
     @Override
     @SneakyThrows
-    public synchronized void deleteBaseline(long baseline) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        managerOptional.ifPresent(new Consumer<JdbcConnectionManager>() {
-            @Override
-            @SneakyThrows
-            public void accept(JdbcConnectionManager jdbcConnectionManager) {
-                try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
-                    JdbcUtils.executeUpdate(connection.getRawConnection(), "delete  FROM mycat.spm_baseline where id = ?", Arrays.asList(baseline));
-                    JdbcUtils.executeUpdate(connection.getRawConnection(), "delete  FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baseline));
+    public void deleteBaseline(long baseline) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            managerOptional.ifPresent(new Consumer<JdbcConnectionManager>() {
+                @Override
+                @SneakyThrows
+                public void accept(JdbcConnectionManager jdbcConnectionManager) {
+                    try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
+                        JdbcUtils.executeUpdate(connection.getRawConnection(), "delete  FROM mycat.spm_baseline where id = ?", Arrays.asList(baseline));
+                        JdbcUtils.executeUpdate(connection.getRawConnection(), "delete  FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baseline));
+                    }
                 }
+            });
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    @SneakyThrows
+    public List<BaselinePlan> listPlan(long baseline) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
+                return Collections.emptyList();
             }
-        });
-
-    }
-
-    @Override
-    @SneakyThrows
-    public synchronized List<BaselinePlan> listPlan(long baseline) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Collections.emptyList();
-        }
-        JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
-        try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "select *  FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baseline));
-            return maps.stream().map((Function<Map<String, Object>, BaselinePlan>) map -> {
-                return new BaselinePlan((String) map.get("sql"), (String) map.get("rel"), (Long) map.get("id"), (Long) map.get("baseline_id"), null);
-            }).collect(Collectors.toList());
+            JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
+            try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "select *  FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baseline));
+                return maps.stream().map((Function<Map<String, Object>, BaselinePlan>) map -> {
+                    return new BaselinePlan((String) map.get("sql"), (String) map.get("rel"), (Long) map.get("id"), (Long) map.get("baseline_id"), null);
+                }).collect(Collectors.toList());
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     @SneakyThrows
-    public synchronized void saveBaseline(Baseline baseline) {
-        saveBaseline(Collections.singleton(baseline));
+    public void saveBaseline(Baseline baseline) {
+        lock.lock();
+        try {
+            saveBaseline(Collections.singleton(baseline));
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void insertBaseline(Baseline baseline, Connection rawConnection) throws SQLException {
@@ -163,26 +192,31 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
 
     @Override
     @SneakyThrows
-    public synchronized Map<Constraint, Baseline> loadAllBaseline() {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Collections.emptyMap();
-        }
-        JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
-        try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
-            Connection rawConnection = connection.getRawConnection();
-            Map<Constraint, Baseline> baselineList = JdbcUtils.executeQuery(rawConnection, "SELECT * FROM mycat.spm_baseline", Collections.emptyList())
-                    .stream().map(b -> toBaseline(b)).distinct().collect(Collectors.toMap(k -> k.getConstraint(), v -> v));
-            if (baselineList.isEmpty()) {
+    public Map<Constraint, Baseline> loadAllBaseline() {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
                 return Collections.emptyMap();
             }
-            Map<Long, List<BaselinePlan>> baselinePlanMap = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan", Collections.emptyList())
-                    .stream().parallel().map(m -> toBaselinePlan(m)).collect(Collectors.groupingBy(k -> k.getBaselineId()));
-            for (Baseline baseline : baselineList.values()) {
-                List<BaselinePlan> baselinePlans = baselinePlanMap.getOrDefault(baseline.baselineId, Collections.emptyList());
-                baseline.getPlanList().addAll(baselinePlans);
+            JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
+            try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
+                Connection rawConnection = connection.getRawConnection();
+                Map<Constraint, Baseline> baselineList = JdbcUtils.executeQuery(rawConnection, "SELECT * FROM mycat.spm_baseline", Collections.emptyList())
+                        .stream().map(b -> toBaseline(b)).distinct().collect(Collectors.toMap(k -> k.getConstraint(), v -> v));
+                if (baselineList.isEmpty()) {
+                    return Collections.emptyMap();
+                }
+                Map<Long, List<BaselinePlan>> baselinePlanMap = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan", Collections.emptyList())
+                        .stream().parallel().map(m -> toBaselinePlan(m)).collect(Collectors.groupingBy(k -> k.getBaselineId()));
+                for (Baseline baseline : baselineList.values()) {
+                    List<BaselinePlan> baselinePlans = baselinePlanMap.getOrDefault(baseline.baselineId, Collections.emptyList());
+                    baseline.getPlanList().addAll(baselinePlans);
+                }
+                return baselineList;
             }
-            return baselineList;
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -238,64 +272,84 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
     }
 
     @SneakyThrows
-    public synchronized void clear() {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return;
-        }
-        JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
-        try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
-            JdbcUtils.execute(connection.getRawConnection(), "truncate mycat.spm_plan", Arrays.asList());
-            JdbcUtils.execute(connection.getRawConnection(), "truncate mycat.spm_baseline", Arrays.asList());
+    public void clear() {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
+                return;
+            }
+            JdbcConnectionManager jdbcConnectionManager = managerOptional.get();
+            try (DefaultConnection connection = jdbcConnectionManager.getConnection(MetadataManager.getPrototype());) {
+                JdbcUtils.execute(connection.getRawConnection(), "truncate mycat.spm_plan", Arrays.asList());
+                JdbcUtils.execute(connection.getRawConnection(), "truncate mycat.spm_baseline", Arrays.asList());
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @SneakyThrows
-    public synchronized Optional<BaselinePlan> loadPlan(long planId) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Optional.empty();
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where id = ?", Arrays.asList(planId));
-            if (maps.size() != 1) {
-                log.error("baseline is duplicate");
+    public Optional<BaselinePlan> loadPlan(long planId) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
                 return Optional.empty();
             }
-            Map<String, Object> map = maps.get(0);
-            return Optional.ofNullable(toBaselinePlan(map));
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where id = ?", Arrays.asList(planId));
+                if (maps.size() != 1) {
+                    log.error("baseline is duplicate");
+                    return Optional.empty();
+                }
+                Map<String, Object> map = maps.get(0);
+                return Optional.ofNullable(toBaselinePlan(map));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @SneakyThrows
-    public synchronized Optional<BaselinePlan> loadFixPlan(long planId, long baselineId) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Optional.empty();
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where id = ? and baseline_id = ?", Arrays.asList(planId, baselineId));
-            if (maps.size() != 1) {
-                log.error("baseline is duplicate");
+    public Optional<BaselinePlan> loadFixPlan(long planId, long baselineId) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
                 return Optional.empty();
             }
-            Map<String, Object> map = maps.get(0);
-            return Optional.ofNullable(toBaselinePlan(map));
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where id = ? and baseline_id = ?", Arrays.asList(planId, baselineId));
+                if (maps.size() != 1) {
+                    log.error("baseline is duplicate");
+                    return Optional.empty();
+                }
+                Map<String, Object> map = maps.get(0);
+                return Optional.ofNullable(toBaselinePlan(map));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @SneakyThrows
-    public synchronized List<BaselinePlan> loadPlanByBaselineId(long baselineId) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Collections.emptyList();
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baselineId));
-            return maps.stream().map(i -> toBaselinePlan(i)).collect(Collectors.toList());
+    public List<BaselinePlan> loadPlanByBaselineId(long baselineId) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
+                return Collections.emptyList();
+            }
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(connection.getRawConnection(), "SELECT * FROM mycat.spm_plan where baseline_id = ?", Arrays.asList(baselineId));
+                return maps.stream().map(i -> toBaselinePlan(i)).collect(Collectors.toList());
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -310,61 +364,76 @@ public class DbPlanManagerPersistorImpl implements PlanManagerPersistor {
     }
 
     @SneakyThrows
-    public synchronized void savePlan(BaselinePlan plan, boolean fix) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return ;
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            Connection rawConnection = connection.getRawConnection();
-            rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            rawConnection.setAutoCommit(false);
+    public void savePlan(BaselinePlan plan, boolean fix) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
+                return ;
+            }
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                Connection rawConnection = connection.getRawConnection();
+                rawConnection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                rawConnection.setAutoCommit(false);
 //            List<Map<String, Object>> maps = JdbcUtils.executeQuery(rawConnection, "select * from mycat.spm_plan where `baseline_id` = ? and `rel` =  ?",
 //                    Arrays.asList(plan.getBaselineId(), plan.getRel()));
 //            if (maps.isEmpty()) {
-            JdbcUtils.execute(rawConnection, "replace mycat.spm_plan (id,`sql`,`baseline_id`,`rel`) values(?,?,?,?)",
-                    Arrays.asList(plan.getId(), plan.getSql(), plan.getBaselineId(), plan.rel));
+                JdbcUtils.execute(rawConnection, "replace mycat.spm_plan (id,`sql`,`baseline_id`,`rel`) values(?,?,?,?)",
+                        Arrays.asList(plan.getId(), plan.getSql(), plan.getBaselineId(), plan.rel));
 //            }
-            if (fix) {
-                JdbcUtils.execute(rawConnection, "update mycat.spm_baseline set fix_plan_id  = ? where id = ?",
-                        Arrays.asList(plan.getBaselineId(), plan.getId()));
+                if (fix) {
+                    JdbcUtils.execute(rawConnection, "update mycat.spm_baseline set fix_plan_id  = ? where id = ?",
+                            Arrays.asList(plan.getBaselineId(), plan.getId()));
+                }
+                rawConnection.commit();
             }
-            rawConnection.commit();
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     @SneakyThrows
-    public synchronized void deletePlan(long planId) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return ;
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            Connection rawConnection = connection.getRawConnection();
-            JdbcUtils.execute(rawConnection, "delete from mycat.spm_plan where id = ?", Arrays.asList(planId));
-            JdbcUtils.execute(rawConnection, "update  mycat.spm_baseline set  fix_plan_id = null where fix_plan_id = ?", Arrays.asList(planId));
+    public void deletePlan(long planId) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
+                return ;
+            }
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                Connection rawConnection = connection.getRawConnection();
+                JdbcUtils.execute(rawConnection, "delete from mycat.spm_plan where id = ?", Arrays.asList(planId));
+                JdbcUtils.execute(rawConnection, "update  mycat.spm_baseline set  fix_plan_id = null where fix_plan_id = ?", Arrays.asList(planId));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     @SneakyThrows
-    public synchronized Optional<Baseline> loadBaselineByBaseLineSql(String baseLineSql, Constraint constraint) {
-        Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
-        if (!managerOptional.isPresent()) {
-            return Optional.empty();
-        }
-        JdbcConnectionManager manager = managerOptional.get();
-        try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
-            Connection rawConnection = connection.getRawConnection();
-            List<Map<String, Object>> maps = JdbcUtils.executeQuery(rawConnection, "select * from mycat.spm_baseline where `constraint` = ?", Arrays.asList(JsonUtil.toJson(constraint)));
-            if (maps.isEmpty()) {
+    public Optional<Baseline> loadBaselineByBaseLineSql(String baseLineSql, Constraint constraint) {
+        lock.lock();
+        try {
+            Optional<JdbcConnectionManager> managerOptional = getManagerOptional();
+            if (!managerOptional.isPresent()) {
                 return Optional.empty();
             }
-            Map<String, Object> map = maps.get(0);
-            return Optional.ofNullable(toBaseline(map));
+            JdbcConnectionManager manager = managerOptional.get();
+            try (DefaultConnection connection = manager.getConnection(MetadataManager.getPrototype());) {
+                Connection rawConnection = connection.getRawConnection();
+                List<Map<String, Object>> maps = JdbcUtils.executeQuery(rawConnection, "select * from mycat.spm_baseline where `constraint` = ?", Arrays.asList(JsonUtil.toJson(constraint)));
+                if (maps.isEmpty()) {
+                    return Optional.empty();
+                }
+                Map<String, Object> map = maps.get(0);
+                return Optional.ofNullable(toBaseline(map));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
