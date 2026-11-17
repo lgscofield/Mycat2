@@ -91,6 +91,12 @@ public class MycatErrorCode {
     public static int ERR_UNKNOWN_DATABASE = 3030;
     public static int ERR_CONNECTION_CLOSED = 3035;
 
+//    io admission:
+//    MYCAT-3007:ERR_IO_CONCURRENCY_LIMIT
+    // 语句准入闸饱和（同时在飞的客户端语句数达 workerPool.maxPoolSize）。
+    // 不复用 3006（那是后端连接池满，语义不同），不用原生 1040/1041/1203（会误导驱动重试/重连策略）。
+    public static int ERR_IO_CONCURRENCY_LIMIT = 3007;
+
 //    sequence:
 //    MYCAT-3014:ERR_SEQUENCE_NEXT_VALUE
 //    MYCAT-3015:ERR_SEQUENCE_NOT_EXIST

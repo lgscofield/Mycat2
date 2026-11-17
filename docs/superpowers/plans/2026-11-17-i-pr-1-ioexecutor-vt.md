@@ -548,7 +548,7 @@ git commit -m "feat(I-PR-1): 5 处前端语句入口接准入闸 + 控制面 SQL
 
 **Interfaces:**
 - Consumes: Task 1–5 全部产出
-- Produces: L1–L9 与 R1–R5 的实测证据（入库、可复跑）；两板与本 spec 的收口回写
+- Produces: **L1–L10** 与 R1–R5 的实测证据（入库、可复跑）；两板与本 spec 的收口回写
 
 - [ ] **Step 1: 重打 fat jar（改生产必重打）**
 
