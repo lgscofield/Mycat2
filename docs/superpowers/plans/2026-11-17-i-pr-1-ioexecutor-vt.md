@@ -14,6 +14,14 @@
 
 ## Global Constraints
 
+- **拍板状态：D1–D6 全部已拍板（2026-11-17，用户），可开工。**
+  D1 闸只装 5 前端入口 · D2 **控制面 SQL 豁免**（仅 A1/A4）· D3 `admitTimeoutMillis` 默认 **200ms** ·
+  D4 许可数复用 **`workerPool.maxPoolSize`**（生产 1024）· D5 `value` 加 **`volatile`** · D6 **VT-only 不留开关**。
+  **用户附加条件（原话「最好是可以配置的，默认值可以用你推荐的值」）：D3/D4 必须可配置。**
+  两者都落在 `server.json` 的 `workerPool` 段 ⇒ 不新增独立旋钮。
+  **「有字段」不等于「可配置」**：必须用**非默认值**断言配置真生效（spec A8 强化 + 新增 L10）。
+  只测默认值时，`MycatCore:135` 若仍写死 `IOExecutor.DEFAULT` 也照样全绿 ⇒ 测不出假接线。
+
 - **JAVA_HOME 会漂到 JDK-25。每条构建/运行命令前必须强制**：
   `export JAVA_HOME="D:/Program Files/BellSoft/LibericaJDK-21-Full"` 且 `export PATH="$JAVA_HOME/bin:$PATH"`。
   用错 JDK 会让全部 pinning 结论失效（JDK24+ 已改善 pinning，结论不可迁移）。
@@ -479,6 +487,10 @@ Expected: PASS。
   断言**通道未关**，且随后一条语句成功。
 - `rejectionHappensBeforeAnyByteWritten()`：断言拒绝路径上 receiver **尚未 flush**
   （协议合法性，承接 I-DEBT-84「列头已刷后裸 ERR 非法」的教训）。
+- `admitTimeoutIsConfigurableNotHardcoded()`：**A8 强化 / 用户「必须可配置」条件**。
+  以 `admitTimeoutMillis=50` 构造（**非默认 200**）⇒ 饱和下拒绝前的等待量级 **≥50ms 且 <200ms**。
+  再以 `admitTimeoutMillis=400` 构造 ⇒ 等待 **≥400ms**。
+  **两个非默认值都要测**：只测一个仍可能被「硬编码 200 + 巧合」蒙混。
 - `innerLegsStillUseExecuteBlocking()`：反射/源码结构断言——
   `ThreadMycatConnectionImplWrapper`、`ReceiverImpl`、`JdbcMySqlConnection`、`CreateTableSQLHandler`、
   `DefaultPrototypeGenerator`、`JdbcConnectionManager` 及 7 处后台腿
@@ -595,6 +607,17 @@ Expected:
 Run: 用**生产 server.json 原值**启动，跑并发负载
 Expected: 有效并发 **> 1**（不是 spike 里 129.1 qps / inFlight=1 那种静默串行化）。
 
+- [ ] **Step 8b: L10 配置生效性活体（用户「必须可配置」条件的端到端证明）**
+
+Run: 把 `server/src/main/resources/server.json` 的 `workerPool.maxPoolSize` 改 **3**、
+`admitTimeoutMillis` 改 **50** ⇒ **重打 fat jar** ⇒ 起活体 ⇒ 4 条并发长查询
+Expected:
+- 第 4 条拿 **MYCAT-3007**（许可上界真等于 3，不是 1024）；前 3 条成功。
+- 拒绝前等待量级 ≈ **50ms**（不是默认 200ms）。
+- **跑完必须把 server.json 改回生产原值并重打 jar**，再跑 Step 8（L9）。
+  否则 L9 用的是被污染的配置，反地雷断言失去意义。
+**只测默认值证明不了配置通路**：`MycatCore:135` 若仍写死 `IOExecutor.DEFAULT`，默认值测试照样全绿。
+
 - [ ] **Step 9: R1–R5 残留补证（spike 明确留下的缺口）**
 
 Run: 活体矩阵覆盖以下五项，各自独立日志：
@@ -683,5 +706,7 @@ spec §7 序列约束→Task 6 L5；§3.4 泄漏护栏→Task 6 L6；§6 错误�
   连不上则用真库以外的**可观测互斥**手段，**不得用 mock 断言 mock**。
 - Task 5 `rejectionHappensBeforeAnyByteWritten` 的 fake session 构造方式，参照既有
   `ReceiverStatementDeadlineForceCloseTest` 的接线（同一模块已有先例）。
-- 决定点 **D2–D6 未拍板前不得开工 Task 1 之后的任何任务**；D3/D4 的默认值（200ms / 复用 maxPoolSize）
-  已写进 Task 1/4，若拍板改值则同步改测试断言。
+- ~~决定点 D2–D6 未拍板前不得开工~~ ⇒ **已于 2026-11-17 全部拍板**（见 Global Constraints 首条）。
+  D3/D4 取建议默认值（200ms / 复用 `maxPoolSize`），**且必须可配置** ⇒
+  Task 5 Step 5 的接线测试与 Task 6 新增 **L10** 都用**非默认值**（permits=3 / timeout=50）断言，
+  不得只测默认值。

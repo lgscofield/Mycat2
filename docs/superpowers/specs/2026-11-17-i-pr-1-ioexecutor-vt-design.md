@@ -503,7 +503,26 @@ public void fetch() {                       // :86
 | **D5** | **`DefaultPrototypeGenerator.value` 顺手加 `volatile`** | (a) 加（一个关键字，修既有 race）　(b) 不加，另立小债 | **(a)**。本轮已在改该文件的锁，可见性故事必须自洽；(b) 会留一个「换锁时看见了却没修」的已知 race |
 | **D6** | **是否保留平台线程回退开关** | (a) VT-only，回滚＝revert 提交　(b) 加 `ioExecutorMode: VIRTUAL\|PLATFORM` 双路径 | **(a)**。(b) 引入两条都要测的生产路径与一份长期 dual-path 回归面，违背「一步到位」；spike 已证两者吞吐不可分辨，留开关的收益主要是心理上的 |
 
-**D1 是告知，D2–D6 是真选择。** 未拍板前不动生产码。
+### 8.1 拍板结果（2026-11-17，用户）
+
+**全部六点已拍板，生产码可开工。**
+
+| # | 裁定 | 附加条件 |
+|---|---|---|
+| D1 | **(a) 闸只装 5 个前端入口** | 告知项，无歧义 |
+| D2 | **(a) 控制面 SQL 豁免准入** | 仅作用 A1/A4 两个 COM_QUERY 入口；A2/A3/A5 拿不到原始 SQL 文本 ⇒ 一律不豁免，运维须用文本协议发 hint |
+| D3 | **(b) `admitTimeoutMillis` 默认 200ms** | **必须可配置**（用户原话「最好是可以配置的，默认值可以用你推荐的值」） |
+| D4 | **(a) 许可数复用 `workerPool.maxPoolSize`**，默认沿用生产 1024 | **必须可配置**（同上）。它本就是 `server.json` 既存字段 ⇒ 条件天然满足，不新增独立旋钮 |
+| D5 | **(a) `DefaultPrototypeGenerator.value` 加 `volatile`** | 非配置项 |
+| D6 | **(a) VT-only，不留平台线程开关** | 回滚＝revert 本轮提交 |
+
+**「可配置」不是有字段就算数——必须证明非默认值真的生效。**
+故强化验收 **A8** 并新增 **L10（配置生效性·活体）**：把 `server.json` 的 `workerPool.maxPoolSize` 改成 **3**、
+`admitTimeoutMillis` 改成 **50**，重打 jar 起活体，断言
+①同时在飞语句数上界 == 3（第 4 条并发语句拿 MYCAT-3007）；
+②拒绝前的等待时长量级 ≈ 50ms 而非 200ms。
+只测默认值等于没测配置通路——`MycatCore:135` 若仍写死 `IOExecutor.DEFAULT`，默认值测试照样全绿。
+**这条断言是「真接线」与「假接线」的分水岭**，与 §5.1 的 I-VE-1 整表替换教训配套。
 
 ---
 
@@ -523,7 +542,9 @@ public void fetch() {                       // :86
 - **A6 `fromVertx` 被真实行使**：零调用者 ⇒ 新增测试直接构造并跑 A1/A4/A5 全套。
 - **A7 反地雷**：用**生产 server.json 那组值**（core1/max1024/maxPending65535）构造 ⇒
   并发提交下 `peakInFlight > 1`。
-- **A8 配置真接线**：改 `maxPoolSize` ⇒ 实际许可数随之变；改 `admitTimeoutMillis` ⇒ 拒绝时延随之变。
+- **A8 配置真接线（D3/D4「必须可配置」的离线证明）**：改 `maxPoolSize` ⇒ 实际许可数随之变；
+  改 `admitTimeoutMillis` ⇒ 拒绝时延随之变。**必须用非默认值断言**（如 permits=3 / timeout=50），
+  只测默认值等于没测配置通路。活体对应 L10。
 - **A9 Lombok**：`ThreadPoolExecutorConfig.builder().build()` 拿到**字段默认值**（非 0/null）。
 - **A10 嵌套不死锁**：模拟 §1.4 的 3～4 层嵌套，在**闸饱和**下跑 ⇒ 不得挂住（§3.3 的回归锁）。
 
@@ -558,6 +579,10 @@ fat jar：`server/target/server-1.22-release-jar-with-dependencies.jar`
 - **L8 运维面恢复**：`show @@thread` **列出 IO VT**（NAME 带 `mycat-io-` 前缀）；
   `killThread` / `interruptThread` 对 VT id **`affectedRows==1`**（不能只看 OK 包）。
 - **L9 反地雷活体**：用生产 server.json 原值跑 ⇒ 有效并发 > 1（不是 129 qps/inFlight1 那种静默串行化）。
+- **L10 配置生效性活体（D3/D4「必须可配置」的端到端证明）**：改 `server.json`
+  `workerPool.maxPoolSize=3` + `admitTimeoutMillis=50`，**重打 jar** 起活体 ⇒
+  ①第 4 条并发语句拿 **MYCAT-3007**（许可上界真等于 3）；②拒绝前等待量级 ≈ **50ms** 而非 200ms。
+  跑完**必须把 server.json 改回生产原值**再跑 L9，否则 L9 用的是被污染的配置。
 
 ### 残留未测项补证（spike 明确留下的缺口，本轮必须在活体矩阵里覆盖）
 
