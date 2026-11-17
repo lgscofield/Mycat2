@@ -1,0 +1,34 @@
+=== backend readiness ===
+BACKEND_READY
+=== compile DruidPinProbe ===
+注: 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+COMPILE_OK
+--- RUN vt-C64-pool16 mode=vt C=64 pool=16 iter=32 ---
+RESULT mode=vt C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=5780 qps=354.3 borrowP50ms=0.01 borrowP95ms=589.87 p50ms=41.08 p95ms=622.90 p99ms=2507.22 peakPlatformThreads=28 peakInFlight=64  pinnedFrames=0
+--- RUN cached-C64-pool16 mode=cached C=64 pool=16 iter=32 ---
+RESULT mode=cached C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=5818 qps=352.0 borrowP50ms=0.01 borrowP95ms=623.07 p50ms=43.06 p95ms=666.59 p99ms=2155.28 peakPlatformThreads=75 peakInFlight=64  pinnedFrames=0
+--- RUN vt-C512-pool16 mode=vt C=512 pool=16 iter=4 ---
+RESULT mode=vt C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=5668 qps=361.3 borrowP50ms=0.01 borrowP95ms=4541.40 p50ms=49.82 p95ms=4573.02 p99ms=5295.83 peakPlatformThreads=28 peakInFlight=512  pinnedFrames=0
+--- RUN cached-C512-pool16 mode=cached C=512 pool=16 iter=4 ---
+RESULT mode=cached C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=5424 qps=377.6 borrowP50ms=0.01 borrowP95ms=3909.17 p50ms=46.72 p95ms=3934.06 p99ms=4778.97 peakPlatformThreads=502 peakInFlight=473  pinnedFrames=0
+--- RUN vt-C512-pool4 mode=vt C=512 pool=4 iter=4 ---
+RESULT mode=vt C=512 iter=4 rows=200 pool=4 finished=true ops=2048 errors=0 wallMs=8036 qps=254.9 borrowP50ms=0.01 borrowP95ms=6159.51 p50ms=15.69 p95ms=6176.37 p99ms=7577.54 peakPlatformThreads=28 peakInFlight=512  pinnedFrames=0
+--- RUN cached-C512-pool4 mode=cached C=512 pool=4 iter=4 ---
+RESULT mode=cached C=512 iter=4 rows=200 pool=4 finished=true ops=2048 errors=0 wallMs=7314 qps=280.0 borrowP50ms=0.01 borrowP95ms=5600.03 p50ms=15.69 p95ms=5611.71 p99ms=6636.42 peakPlatformThreads=519 peakInFlight=503  pinnedFrames=0
+=== SUMMARY3 ===
+tag	mode	C	pool	ops	errors	wallMs	qps	borrowP50ms	borrowP95ms	p50ms	p95ms	p99ms	peakPlatformThreads	peakInFlight	pinnedFrames	finished
+vt-C64-pool16	vt	64	16	2048	0	5780	354.3	0.01	589.87	41.08	622.90	2507.22	28	64	0	true
+cached-C64-pool16	cached	64	16	2048	0	5818	352.0	0.01	623.07	43.06	666.59	2155.28	75	64	0	true
+vt-C512-pool16	vt	512	16	2048	0	5668	361.3	0.01	4541.40	49.82	4573.02	5295.83	28	512	0	true
+cached-C512-pool16	cached	512	16	2048	0	5424	377.6	0.01	3909.17	46.72	3934.06	4778.97	502	473	0	true
+vt-C512-pool4	vt	512	4	2048	0	8036	254.9	0.01	6159.51	15.69	6176.37	7577.54	28	512	0	true
+cached-C512-pool4	cached	512	4	2048	0	7314	280.0	0.01	5600.03	15.69	5611.71	6636.42	519	503	0	true
+=== pinning marker hotspots (vt runs, no Mycat lock in path) ===
+=== druid/mysql frames inside pinned traces ===
+SPIKE3_DONE

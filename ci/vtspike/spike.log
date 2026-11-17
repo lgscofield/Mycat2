@@ -1,0 +1,102 @@
+=== JDK ===
+openjdk version "21.0.6" 2025-01-21 LTS
+=== backend readiness ===
+BACKEND_READY attempt=1
+=== compile probe ===
+注: 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+COMPILE_OK
+--- RUN cached-sync-C64 (iter=32) ---
+RESULT mode=cached lock=sync C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3024 qps=677.2 p50ms=21.60 p95ms=226.43 p99ms=1398.22 peakPlatformThreads=75 peakInFlight=64  pinnedFrames=0
+0
+--- RUN cached-sync-C512 (iter=4) ---
+RESULT mode=cached lock=sync C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=2660 qps=769.9 p50ms=21.46 p95ms=1854.65 p99ms=2259.33 peakPlatformThreads=495 peakInFlight=459  pinnedFrames=0
+0
+--- RUN cached-sync-C2048 (iter=1) ---
+RESULT mode=cached lock=sync C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3035 qps=674.8 p50ms=1109.90 p95ms=2017.54 p99ms=2628.62 peakPlatformThreads=1595 peakInFlight=1563  pinnedFrames=0
+0
+--- RUN cached-reentrant-C64 (iter=32) ---
+RESULT mode=cached lock=reentrant C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3371 qps=607.5 p50ms=23.77 p95ms=256.21 p99ms=1586.61 peakPlatformThreads=75 peakInFlight=64  pinnedFrames=0
+0
+--- RUN cached-reentrant-C512 (iter=4) ---
+RESULT mode=cached lock=reentrant C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3423 qps=598.3 p50ms=29.82 p95ms=2556.97 p99ms=2967.62 peakPlatformThreads=494 peakInFlight=448  pinnedFrames=0
+0
+--- RUN cached-reentrant-C2048 (iter=1) ---
+RESULT mode=cached lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=2956 qps=692.8 p50ms=1022.50 p95ms=1833.38 p99ms=2324.59 peakPlatformThreads=1551 peakInFlight=1523  pinnedFrames=0
+0
+--- RUN cached-none-C64 (iter=32) ---
+RESULT mode=cached lock=none C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3047 qps=672.1 p50ms=21.30 p95ms=264.63 p99ms=1389.09 peakPlatformThreads=75 peakInFlight=64  pinnedFrames=0
+0
+--- RUN cached-none-C512 (iter=4) ---
+RESULT mode=cached lock=none C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3390 qps=604.1 p50ms=27.29 p95ms=2333.39 p99ms=2912.19 peakPlatformThreads=508 peakInFlight=471  pinnedFrames=0
+0
+--- RUN cached-none-C2048 (iter=1) ---
+RESULT mode=cached lock=none C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=4578 qps=447.4 p50ms=1912.66 p95ms=2744.73 p99ms=3799.47 peakPlatformThreads=1782 peakInFlight=1572  pinnedFrames=0
+0
+--- RUN vt-sync-C64 (iter=32) ---
+RESULT mode=vt lock=sync C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=8007 qps=255.8 p50ms=42.80 p95ms=70.94 p99ms=2907.21 peakPlatformThreads=27 peakInFlight=40  pinnedFrames=3
+--- RUN vt-sync-C512 (iter=4) ---
+RESULT mode=vt lock=sync C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=6646 qps=308.2 p50ms=35.29 p95ms=56.91 p99ms=98.97 peakPlatformThreads=27 peakInFlight=15  pinnedFrames=3
+--- RUN vt-sync-C2048 (iter=1) ---
+RESULT mode=vt lock=sync C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=7229 qps=283.3 p50ms=38.54 p95ms=68.37 p99ms=94.49 peakPlatformThreads=27 peakInFlight=20  pinnedFrames=3
+--- RUN vt-reentrant-C64 (iter=32) ---
+RESULT mode=vt lock=reentrant C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=2992 qps=684.5 p50ms=21.87 p95ms=380.42 p99ms=1065.54 peakPlatformThreads=27 peakInFlight=64  pinnedFrames=0
+0
+--- RUN vt-reentrant-C512 (iter=4) ---
+RESULT mode=vt lock=reentrant C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3304 qps=619.9 p50ms=29.15 p95ms=2692.67 p99ms=3099.26 peakPlatformThreads=27 peakInFlight=512  pinnedFrames=0
+0
+--- RUN vt-reentrant-C2048 (iter=1) ---
+RESULT mode=vt lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3896 qps=525.7 p50ms=2252.97 p95ms=3686.43 p99ms=3860.05 peakPlatformThreads=27 peakInFlight=2048  pinnedFrames=0
+0
+--- RUN vt-none-C64 (iter=32) ---
+RESULT mode=vt lock=none C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3288 qps=622.9 p50ms=22.30 p95ms=405.84 p99ms=1248.35 peakPlatformThreads=27 peakInFlight=64  pinnedFrames=0
+0
+--- RUN vt-none-C512 (iter=4) ---
+RESULT mode=vt lock=none C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=4075 qps=502.6 p50ms=35.93 p95ms=3244.83 p99ms=3842.36 peakPlatformThreads=27 peakInFlight=512  pinnedFrames=0
+0
+--- RUN vt-none-C2048 (iter=1) ---
+RESULT mode=vt lock=none C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=4157 qps=492.7 p50ms=2057.81 p95ms=3843.35 p99ms=4061.74 peakPlatformThreads=27 peakInFlight=2048  pinnedFrames=0
+0
+=== SUMMARY ===
+mode	lock	C	pool	rows	ops	errors	wallMs	qps	p50ms	p95ms	p99ms	peakPlatformThreads	peakInFlight	pinnedFrames	finished
+cached	sync	64	16	200	2048	0	3024	677.2	21.60	226.43	1398.22	75	64	0
+0	true
+cached	sync	512	16	200	2048	0	2660	769.9	21.46	1854.65	2259.33	495	459	0
+0	true
+cached	sync	2048	16	200	2048	0	3035	674.8	1109.90	2017.54	2628.62	1595	1563	0
+0	true
+cached	reentrant	64	16	200	2048	0	3371	607.5	23.77	256.21	1586.61	75	64	0
+0	true
+cached	reentrant	512	16	200	2048	0	3423	598.3	29.82	2556.97	2967.62	494	448	0
+0	true
+cached	reentrant	2048	16	200	2048	0	2956	692.8	1022.50	1833.38	2324.59	1551	1523	0
+0	true
+cached	none	64	16	200	2048	0	3047	672.1	21.30	264.63	1389.09	75	64	0
+0	true
+cached	none	512	16	200	2048	0	3390	604.1	27.29	2333.39	2912.19	508	471	0
+0	true
+cached	none	2048	16	200	2048	0	4578	447.4	1912.66	2744.73	3799.47	1782	1572	0
+0	true
+vt	sync	64	16	200	2048	0	8007	255.8	42.80	70.94	2907.21	27	40	3	true
+vt	sync	512	16	200	2048	0	6646	308.2	35.29	56.91	98.97	27	15	3	true
+vt	sync	2048	16	200	2048	0	7229	283.3	38.54	68.37	94.49	27	20	3	true
+vt	reentrant	64	16	200	2048	0	2992	684.5	21.87	380.42	1065.54	27	64	0
+0	true
+vt	reentrant	512	16	200	2048	0	3304	619.9	29.15	2692.67	3099.26	27	512	0
+0	true
+vt	reentrant	2048	16	200	2048	0	3896	525.7	2252.97	3686.43	3860.05	27	2048	0
+0	true
+vt	none	64	16	200	2048	0	3288	622.9	22.30	405.84	1248.35	27	64	0
+0	true
+vt	none	512	16	200	2048	0	4075	502.6	35.93	3244.83	3842.36	27	512	0
+0	true
+vt	none	2048	16	200	2048	0	4157	492.7	2057.81	3843.35	4061.74	27	2048	0
+0	true
+=== pinning frame hotspots (vt runs) ===
+      9 VtSpike.runQuery(VtSpike.java:167) <== monitors:1
+SPIKE_DONE

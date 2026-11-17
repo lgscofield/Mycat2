@@ -1,0 +1,31 @@
+BACKEND_READY
+--- RUN r1-bcore16-C2048 mode=bounded lock=reentrant C=2048 core=16 max=64 queue=65535 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=8760 qps=233.8 p50ms=50.77 p95ms=145.66 p99ms=231.69 peakPlatformThreads=27 peakInFlight=16 rejected=0 startP50ms=5971.14 startP95ms=8489.70 e2eP50ms=6022.77 e2eP95ms=8520.19 e2eP99ms=8690.37  pinnedFrames=0
+--- RUN r1-vt-C2048 mode=vt lock=reentrant C=2048 core=0 max=0 queue=0 ---
+RESULT mode=vt lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=8405 qps=243.7 p50ms=3453.91 p95ms=7706.34 p99ms=8123.47 peakPlatformThreads=27 peakInFlight=2048 rejected=0 startP50ms=25.35 startP95ms=29.04 e2eP50ms=3480.89 e2eP95ms=7731.84 e2eP99ms=8147.59  pinnedFrames=0
+--- RUN r1-bcore64-C2048 mode=bounded lock=reentrant C=2048 core=64 max=64 queue=65535 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=8452 qps=242.3 p50ms=61.37 p95ms=1425.51 p99ms=3174.55 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=4022.57 startP95ms=7974.98 e2eP50ms=4483.75 e2eP95ms=8171.79 e2eP99ms=8371.68  pinnedFrames=0
+--- RUN r1-cached-C2048 mode=cached lock=reentrant C=2048 core=0 max=0 queue=0 ---
+RESULT mode=cached lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=6748 qps=303.5 p50ms=2708.82 p95ms=4406.17 p99ms=6250.65 peakPlatformThreads=1764 peakInFlight=1729 rejected=0 startP50ms=757.88 startP95ms=1428.84 e2eP50ms=3644.45 e2eP95ms=5558.02 e2eP99ms=6509.42  pinnedFrames=0
+--- RUN r2-bcore16-C2048 mode=bounded lock=reentrant C=2048 core=16 max=64 queue=65535 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=7565 qps=270.7 p50ms=50.14 p95ms=108.28 p99ms=216.08 peakPlatformThreads=27 peakInFlight=16 rejected=0 startP50ms=4616.11 startP95ms=7163.38 e2eP50ms=4665.85 e2eP95ms=7199.46 e2eP99ms=7434.94  pinnedFrames=0
+--- RUN r2-vt-C2048 mode=vt lock=reentrant C=2048 core=0 max=0 queue=0 ---
+RESULT mode=vt lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=4391 qps=466.4 p50ms=2479.41 p95ms=4135.19 p99ms=4285.77 peakPlatformThreads=27 peakInFlight=2048 rejected=0 startP50ms=8.47 startP95ms=14.53 e2eP50ms=2490.90 e2eP95ms=4135.38 e2eP99ms=4286.28  pinnedFrames=0
+--- RUN r2-bcore64-C2048 mode=bounded lock=reentrant C=2048 core=64 max=64 queue=65535 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3274 qps=625.5 p50ms=26.41 p95ms=536.42 p99ms=1006.17 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=1720.44 startP95ms=2973.95 e2eP50ms=1806.55 e2eP95ms=3061.94 e2eP99ms=3207.98  pinnedFrames=0
+--- RUN r2-cached-C2048 mode=cached lock=reentrant C=2048 core=0 max=0 queue=0 ---
+RESULT mode=cached lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=2952 qps=693.8 p50ms=912.96 p95ms=1763.13 p99ms=2410.27 peakPlatformThreads=1515 peakInFlight=1483 rejected=0 startP50ms=121.09 startP95ms=491.42 e2eP50ms=1265.91 e2eP95ms=1969.83 e2eP99ms=2545.06  pinnedFrames=0
+--- RUN r3-bcore1max1024-C2048 mode=bounded lock=reentrant C=2048 core=1 max=1024 queue=65535 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=16185 qps=126.5 p50ms=7.54 p95ms=10.48 p99ms=13.58 peakPlatformThreads=12 peakInFlight=1 rejected=0 startP50ms=8235.84 startP95ms=15409.39 e2eP50ms=8242.88 e2eP95ms=15416.63 e2eP99ms=16033.35  pinnedFrames=0
+=== SUMMARY2C ===
+tag	mode	lock	C	core	max	queue	pool	ops	errors	rejected	wallMs	qps	p50ms	p95ms	p99ms	startP50ms	startP95ms	e2eP50ms	e2eP95ms	e2eP99ms	peakPlatformThreads	peakInFlight	pinnedFrames	finished
+r1-bcore16-C2048	bounded	reentrant	2048	16	64	65535	16	2048	0	0	8760	233.8	50.77	145.66	231.69	5971.14	8489.70	6022.77	8520.19	8690.37	27	16	0	true
+r1-vt-C2048	vt	reentrant	2048	0	0	0	16	2048	0	0	8405	243.7	3453.91	7706.34	8123.47	25.35	29.04	3480.89	7731.84	8147.59	27	2048	0	true
+r1-bcore64-C2048	bounded	reentrant	2048	64	64	65535	16	2048	0	0	8452	242.3	61.37	1425.51	3174.55	4022.57	7974.98	4483.75	8171.79	8371.68	75	64	0	true
+r1-cached-C2048	cached	reentrant	2048	0	0	0	16	2048	0	0	6748	303.5	2708.82	4406.17	6250.65	757.88	1428.84	3644.45	5558.02	6509.42	1764	1729	0	true
+r2-bcore16-C2048	bounded	reentrant	2048	16	64	65535	16	2048	0	0	7565	270.7	50.14	108.28	216.08	4616.11	7163.38	4665.85	7199.46	7434.94	27	16	0	true
+r2-vt-C2048	vt	reentrant	2048	0	0	0	16	2048	0	0	4391	466.4	2479.41	4135.19	4285.77	8.47	14.53	2490.90	4135.38	4286.28	27	2048	0	true
+r2-bcore64-C2048	bounded	reentrant	2048	64	64	65535	16	2048	0	0	3274	625.5	26.41	536.42	1006.17	1720.44	2973.95	1806.55	3061.94	3207.98	75	64	0	true
+r2-cached-C2048	cached	reentrant	2048	0	0	0	16	2048	0	0	2952	693.8	912.96	1763.13	2410.27	121.09	491.42	1265.91	1969.83	2545.06	1515	1483	0	true
+r3-bcore1max1024-C2048	bounded	reentrant	2048	1	1024	65535	16	2048	0	0	16185	126.5	7.54	10.48	13.58	8235.84	15409.39	8242.88	15416.63	16033.35	12	1	0	true
+SPIKE2C_DONE

@@ -1,0 +1,4 @@
+2026-11-17 11:58:26,274[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-17 11:58:35,089[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-1} closing ...
+2026-11-17 11:58:35,213[INFO]com.alibaba.druid.pool.DruidDataSource.close:2156{dataSource-1} closed
+RESULT mode=vt lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=8405 qps=243.7 p50ms=3453.91 p95ms=7706.34 p99ms=8123.47 peakPlatformThreads=27 peakInFlight=2048 rejected=0 startP50ms=25.35 startP95ms=29.04 e2eP50ms=3480.89 e2eP95ms=7731.84 e2eP99ms=8147.59
