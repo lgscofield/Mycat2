@@ -19,7 +19,11 @@
 `synchronized` 本身**不等于** pinning 风险。JDK21 下 VT 在 monitor 内**阻塞**才 pin carrier。
 故分级准则 = **临界区内是否含阻塞 IO（JDBC / socket / 磁盘 / 池借用等待）**。
 
-## 2. P0 — 临界区内含阻塞 JDBC（真 pinning 风险，共 4 文件 / 22 处）
+## 2. P0 — 临界区内含阻塞 JDBC（真 pinning 风险，共 ~~4 文件~~ **3 文件** / 22 处）
+
+> **标题订正（2026-11-17）**：原标题写「4 文件」与 §2.4 的自我纠正、§2.5 的修正清单自相矛盾。
+> `TransactionSessionTemplate` 整类死码已剔除 ⇒ **3 文件 / 22 处**为准。
+> 该 22 处已在 I-PR-1 spec §4.1 完成**外部监视器全参考图预检并通过**，换锁不破坏任何外部互斥。
 
 ### 2.1 `common/.../newquery/NewMycatConnectionImpl.java` — 6 处【主查询路径，最高优先】
 
