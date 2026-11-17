@@ -1,23 +1,28 @@
 package io.mycat;
 
+import io.mycat.config.ThreadPoolExecutorConfig;
 import io.mycat.util.VertxUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
-import io.vertx.core.impl.future.PromiseInternal;
 import io.vertx.core.spi.metrics.PoolMetrics;
 import io.vertx.core.spi.metrics.VertxMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface IOExecutor {
     static final Logger LOGGER = LoggerFactory.getLogger(IOExecutor.class);
@@ -27,117 +32,120 @@ public interface IOExecutor {
     long count();
 
     public static List<Thread> findAllThreads() {
-        Thread[] allThreads = ThreadUtil.findAllThreads();
-        return Arrays.asList(allThreads);
+        // VT 不属于任何 ThreadGroup，ThreadUtil 的 enumerate 看不见它们，故并上活体注册表，按 id 去重。
+        Map<Long, Thread> byId = new LinkedHashMap<>();
+        for (Thread thread : ThreadUtil.findAllThreads()) {
+            byId.put(thread.getId(), thread);
+        }
+        for (Thread thread : VtIOExecutor.LIVE_VIRTUAL_THREADS.values()) {
+            byId.putIfAbsent(thread.getId(), thread);
+        }
+        return new ArrayList<>(byId.values());
     }
 
     public static boolean interrupt(long pid) {
-        return findAllThreads().stream().filter(i -> i.getId() == pid).findFirst().map(thread -> {
-            try {
-                LOGGER.info("prepare interrupt id:{}", thread.getId());
-                thread.interrupt();
-                LOGGER.info("interrupt id:{}", thread.getId());
-                return true;
-            } catch (Exception e) {
-                LOGGER.error("interrupt id:{} fail", thread.getId(), e);
-            }
-            return false;
-        }).orElse(false);
+        return interruptById(pid, "interrupt");
     }
 
     public static boolean kill(long pid) {
-        return findAllThreads().stream().filter(i -> i.getId() == pid).findFirst().map(thread -> {
-            try {
-                LOGGER.info("prepare kill id:{}", thread.getId());
-                thread.interrupt();
-                LOGGER.info("kill id:{}", thread.getId());
-                return true;
-            } catch (Exception e) {
-                LOGGER.error("kill id:{} fail", thread.getId(), e);
-            }
-            return false;
-        }).orElse(false);
+        // kill 的实际效果仍只是 interrupt；名实不符已挂账 spec §11，本票不改行为。
+        return interruptById(pid, "kill");
     }
 
-    public static final IOExecutor DEFAULT = new IOExecutor() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        private final AtomicLong count = new AtomicLong();
-
-        public <T> Future<T> executeBlocking(Handler<Promise<T>> blockingCodeHandler) {
-            count.getAndIncrement();
-            PromiseInternal<Object> promise = VertxUtil.newPromise();
-            try {
-                executorService.execute(() -> {
-                    try {
-                        blockingCodeHandler.handle((Promise<T>) promise);
-                    } catch (Exception e) {
-                        promise.tryFail(e);
-                    }
-                });
-                return (Future) promise.future();
-            } finally {
-                count.decrementAndGet();
-            }
+    private static boolean interruptById(long pid, String verb) {
+        Thread thread = VtIOExecutor.LIVE_VIRTUAL_THREADS.get(pid);
+        if (thread == null) {
+            thread = Arrays.stream(ThreadUtil.findAllThreads())
+                    .filter(i -> i.getId() == pid).findFirst().orElse(null);
         }
-
-        @Override
-        public long count() {
-            return count.get();
+        if (thread == null) {
+            return false;
         }
-    };
+        try {
+            LOGGER.info("prepare {} id:{}", verb, thread.getId());
+            thread.interrupt();
+            LOGGER.info("{} id:{}", verb, thread.getId());
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("{} id:{} fail", verb, thread.getId(), e);
+        }
+        return false;
+    }
+
+    public static final IOExecutor DEFAULT = new VtIOExecutor(null);
 
     public static IOExecutor fromVertx(Vertx vertx) {
-        class VertxIOExecutor implements IOExecutor {
-            private final ExecutorService executorService = Executors.newCachedThreadPool();
-            private final VertxMetrics metrics;
-            private PoolMetrics<?> poolMetrics;
-            private final AtomicLong count = new AtomicLong();
-
-            public VertxIOExecutor(VertxMetrics metrics) {
-                this.metrics = metrics;
-                this.poolMetrics = metrics.createPoolMetrics("io", "mycat.io-thread", Integer.MAX_VALUE);
-            }
-
-            public <T> Future<T> executeBlocking(Handler<Promise<T>> blockingCodeHandler) {
-                count.getAndIncrement();
-                Promise<T> promise = VertxUtil.newPromise();
-                PoolMetrics metrics = poolMetrics;
-                Object queueMetric = metrics != null ? metrics.submitted() : null;
-                Future<T> fut = promise.future();
-                try {
-                    Runnable command = () -> {
-                        Object execMetric = null;
-                        if (metrics != null) {
-                            execMetric = metrics.begin(queueMetric);
-                        }
-                        try {
-                            blockingCodeHandler.handle(promise);
-                        } catch (Throwable e) {
-                            promise.tryFail(e);
-                        }
-                        if (metrics != null) {
-                            metrics.end(execMetric, fut.succeeded());
-                        }
-                    };
-                    executorService.execute(command);
-                } catch (RejectedExecutionException e) {
-                    // Pool is already shut down
-                    if (metrics != null) {
-                        metrics.rejected(queueMetric);
-                    }
-                    throw e;
-                } finally {
-                    count.decrementAndGet();
-                }
-                return fut;
-            }
-
-            @Override
-            public long count() {
-                return count.get();
-            }
-        }
-        return new VertxIOExecutor((VertxMetrics) ((VertxImpl) vertx).getMetrics());
+        VertxMetrics metrics = (VertxMetrics) ((VertxImpl) vertx).getMetrics();
+        PoolMetrics<?> poolMetrics = metrics == null ? null
+                : metrics.createPoolMetrics("io", "mycat.io-thread", new ThreadPoolExecutorConfig().getMaxPoolSize());
+        return new VtIOExecutor(poolMetrics);
     }
 
+}
+
+/**
+ * I-PR-1：DEFAULT 与 fromVertx 共用的具名虚拟线程骨架，避免两份实现漂移。
+ * count() 是真实在飞任务数：提交 +1，promise 完成 −1；在 handler 返回时减是既有 bug 的病根。
+ */
+final class VtIOExecutor implements IOExecutor {
+
+    static final ConcurrentHashMap<Long, Thread> LIVE_VIRTUAL_THREADS = new ConcurrentHashMap<>();
+
+    private final ExecutorService executorService = Executors.newThreadPerTaskExecutor(
+            Thread.ofVirtual().name("mycat-io-", 0).factory());
+    private final AtomicLong count = new AtomicLong();
+    private final PoolMetrics<?> poolMetrics;
+
+    VtIOExecutor(PoolMetrics<?> poolMetrics) {
+        this.poolMetrics = poolMetrics;
+    }
+
+    @Override
+    public <T> Future<T> executeBlocking(Handler<Promise<T>> blockingCodeHandler) {
+        PoolMetrics metrics = poolMetrics;
+        Object queueMetric = metrics != null ? metrics.submitted() : null;
+        count.incrementAndGet();
+        Promise<T> promise = VertxUtil.newPromise();
+        Future<T> fut = promise.future();
+        AtomicReference<Thread> worker = new AtomicReference<>();
+        AtomicReference<Object> execMetric = new AtomicReference<>();
+        fut.onComplete(ar -> {
+            count.decrementAndGet();
+            Thread thread = worker.get();
+            if (thread != null) {
+                LIVE_VIRTUAL_THREADS.remove(thread.getId(), thread);
+            }
+            if (metrics != null) {
+                metrics.end(execMetric.get(), fut.succeeded());
+            }
+        });
+        try {
+            executorService.execute(() -> {
+                Thread current = Thread.currentThread();
+                worker.set(current);
+                LIVE_VIRTUAL_THREADS.put(current.getId(), current);
+                if (metrics != null) {
+                    execMetric.set(metrics.begin(queueMetric));
+                }
+                try {
+                    blockingCodeHandler.handle(promise);
+                } catch (Throwable e) {
+                    promise.tryFail(e);
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            // VT 每任务一线程，不抛 REE；该分支留给准入拒绝复用。
+            count.decrementAndGet();
+            if (metrics != null) {
+                metrics.rejected(queueMetric);
+            }
+            throw e;
+        }
+        return fut;
+    }
+
+    @Override
+    public long count() {
+        return count.get();
+    }
 }
