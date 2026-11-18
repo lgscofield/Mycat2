@@ -258,6 +258,19 @@ class IOExecutorAdmissionTest {
         for (int i = 0; i < 2; i++) {
             ex.executeAdmitted(outer -> {
                 outerStarted.countDown();
+                // 屏障：两个外层必须都已在飞（各持一张许可）才提交内层。VT 启动有延迟，
+                // 少了这道屏障，先到的外层会在同伴拿到许可前把空闲许可让给自己的内层链，
+                // 迟到的外层随后拿到释放的许可、其内层合法成功 ⇒ 断言"两个内层都被拒"变成掷骰子。
+                try {
+                    if (!outerStarted.await(AWAIT_SECONDS, TimeUnit.SECONDS)) {
+                        outer.tryFail(new IllegalStateException("同伴外层未在 " + AWAIT_SECONDS + "s 内启动，饱和前提不成立"));
+                        return;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    outer.tryFail(e);
+                    return;
+                }
                 Future<Object> l1 = ex.executeAdmitted(p1 -> {
                     ex.executeAdmitted(p2 -> {
                         ex.executeAdmitted(p3 -> {

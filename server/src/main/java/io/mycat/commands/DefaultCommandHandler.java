@@ -29,9 +29,12 @@ import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.beans.mysql.packet.DefaultPreparedOKPacket;
 import io.mycat.command.AbstractCommandHandler;
+import io.mycat.mycatmysql.ControlPlaneSql;
 import io.mycat.proxy.session.MySQLServerSession;
 import io.mycat.util.MySQLSqlTextCodec;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +66,16 @@ public class DefaultCommandHandler extends AbstractCommandHandler {
                 LOGGER.debug(sql);
             }
             IOExecutor vertx = MetaClusterCurrent.wrapper(IOExecutor.class);
-            return vertx.executeBlocking(event -> {
+            Handler<Promise<Void>> body = event -> {
                 Future<Void> promise =
                         MycatdbCommand.INSTANCE.executeQuery(sql, session.getDataContext(),
                                 (size) -> new ProxyReceiverImpl(session, size, false));
                 promise.onComplete(event);
-            });
+            };
+            // I-PR-1 D2：控制面语句豁免准入闸，与 COM_QUERY 入口同口径。
+            return ControlPlaneSql.isControlPlane(sql)
+                    ? vertx.executeBlocking(body)
+                    : vertx.executeAdmitted(body);
         } catch (Throwable e) {
             return Future.failedFuture(e);
         }
@@ -210,7 +217,7 @@ public class DefaultCommandHandler extends AbstractCommandHandler {
         }
         ReceiverImpl receiver = new ReceiverImpl(session, 1, true);
         IOExecutor vertx = MetaClusterCurrent.wrapper(IOExecutor.class);
-        return vertx.executeBlocking(promise -> MycatdbCommand.execute(dataContext, receiver, statement).onComplete(promise));
+        return vertx.executeAdmitted(promise -> MycatdbCommand.execute(dataContext, receiver, statement).onComplete(promise));
     }
 
     @Override

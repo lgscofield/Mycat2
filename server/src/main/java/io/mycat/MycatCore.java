@@ -132,7 +132,10 @@ public class MycatCore {
 
         HashMap<Class, Object> context = new HashMap<>();
         Vertx vertx = Vertx.vertx(vertxOptions);
-        context.put(IOExecutor.class, IOExecutor.DEFAULT);
+        // I-PR-1：由配置构造 IOExecutor（许可数=workerPool.maxPoolSize，准入等待=admitTimeoutMillis）。
+        // 必须放进这份 context —— 下面 L151 的整表 register 会替换掉之前那份 map（I-VE-1 教训）。
+        warnIgnoredPoolKnobs(workerPool, serverConfig.getServer().getTimeWorkerPool());
+        context.put(IOExecutor.class, IOExecutor.create(IOExecutorConfig.from(workerPool)));
         context.put(serverConfig.getServer().getClass(), serverConfig.getServer());
         context.put(serverConfiguration.getClass(), serverConfiguration);
         context.put(serverConfig.getClass(), serverConfig);
@@ -203,6 +206,23 @@ public class MycatCore {
                 return Future.failedFuture(throwable1);
             }
         }).toCompletionStage().toCompletableFuture().get(1, TimeUnit.SECONDS);
+    }
+
+    /**
+     * I-PR-1 spec §5.2 名实相符：IO 阻塞车道已是每任务一条虚拟线程，
+     * 线程池那套旋钮没有物理对应物，启动时逐条如实告知，不让人以为调了有用。
+     */
+    private static void warnIgnoredPoolKnobs(ThreadPoolExecutorConfig workerPool, ThreadPoolExecutorConfig timeWorkerPool) {
+        logger.warn("I-PR-1: workerPool.corePoolSize={} 被忽略——虚拟线程车道无 core 线程，每任务一条 VT，用完即终止",
+                workerPool.getCorePoolSize());
+        logger.warn("I-PR-1: workerPool.keepAliveTime={}{} 被忽略——虚拟线程车道无 idle 回收，VT 不缓存不复用",
+                workerPool.getKeepAliveTime(), workerPool.getTimeUnit());
+        logger.warn("I-PR-1: workerPool.maxPendingLimit={} 被忽略——虚拟线程车道无队列；真正界住并发的是 "
+                        + "workerPool.maxPoolSize={}（准入许可数）与 workerPool.admitTimeoutMillis={}（准入等待上限，超时即 MYCAT-3007）",
+                workerPool.getMaxPendingLimit(), workerPool.getMaxPoolSize(), workerPool.getAdmitTimeoutMillis());
+        logger.warn("I-PR-1: timeWorkerPool 整段被忽略（corePoolSize={}, maxPoolSize={}）——无队列、无 core、无 idle 回收，"
+                        + "该配置当前无消费点",
+                timeWorkerPool.getCorePoolSize(), timeWorkerPool.getMaxPoolSize());
     }
 
     @NotNull

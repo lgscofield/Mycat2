@@ -96,7 +96,11 @@ public class MycatVertxMySQLHandler {
                     process.setQuery(sql);
                     process.setState(Process.State.INIT);
                     IOExecutor vertx = MetaClusterCurrent.wrapper(IOExecutor.class);
-                    promise = vertx.executeBlocking((Handler<Promise<Void>>) event1 -> handleQuery(sql, session).onComplete(event1));
+                    Handler<Promise<Void>> queryBody = event1 -> handleQuery(sql, session).onComplete(event1);
+                    // I-PR-1 D2：控制面语句豁免准入闸，许可耗尽时运维仍能查线程/杀线程。
+                    promise = ControlPlaneSql.isControlPlane(sql)
+                            ? vertx.executeBlocking(queryBody)
+                            : vertx.executeAdmitted(queryBody);
                     break;
                 }
                 case MySQLCommandType.COM_INIT_DB: {
@@ -123,7 +127,9 @@ public class MycatVertxMySQLHandler {
                 case MySQLCommandType.COM_STMT_PREPARE: {
                     byte[] bytes = readView.readEOFStringBytes();
                     IOExecutor ioExecutor = MetaClusterCurrent.wrapper(IOExecutor.class);
-                    promise = ioExecutor.executeBlocking(voidPromise -> {
+                    // I-PR-1：prepare/execute 腿一律经闸，不做控制面豁免（裁决见账本）；
+                    // 运维须用文本协议 COM_QUERY 发 hint。
+                    promise = ioExecutor.executeAdmitted(voidPromise -> {
                         try {
                             handlePrepareStatement(bytes, session).onComplete(voidPromise);
                         } catch (Throwable throwable) {
@@ -374,7 +380,7 @@ public class MycatVertxMySQLHandler {
         }
         Response receiver = new ReceiverImpl(session, 1, true);
         IOExecutor ioExecutor = MetaClusterCurrent.wrapper(IOExecutor.class);
-        return ioExecutor.executeBlocking(event -> MycatdbCommand.execute(dataContext, receiver, typeStatement).onComplete(event));
+        return ioExecutor.executeAdmitted(event -> MycatdbCommand.execute(dataContext, receiver, typeStatement).onComplete(event));
     }
 
     private byte[] getLongData(long statementId, int i, MycatVertxMysqlSession MycatMysqlSession) {
