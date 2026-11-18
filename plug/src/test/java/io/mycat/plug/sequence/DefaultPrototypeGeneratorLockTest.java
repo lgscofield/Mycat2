@@ -179,7 +179,17 @@ public class DefaultPrototypeGeneratorLockTest {
             }
 
             @Override
+            public <T> Future<T> executeAdmitted(Handler<Promise<T>> blockingCodeHandler) {
+                return executeBlocking(blockingCodeHandler);
+            }
+
+            @Override
             public long count() {
+                return 0;
+            }
+
+            @Override
+            public long peakInFlight() {
                 return 0;
             }
         };
