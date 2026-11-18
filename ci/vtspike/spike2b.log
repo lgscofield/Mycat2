@@ -1,0 +1,32 @@
+=== backend readiness ===
+BACKEND_READY
+--- RUN b-core64-reentrant-C64 mode=bounded lock=reentrant C=64 core=64 max=64 queue=65535 iter=32 ---
+RESULT mode=bounded lock=reentrant C=64 iter=32 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=6120 qps=334.6 p50ms=41.01 p95ms=667.97 p99ms=2845.37 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=53.20 startP95ms=107.73 e2eP50ms=102.98 e2eP95ms=718.67 e2eP99ms=2888.21  pinnedFrames=0
+--- RUN b-core64-reentrant-C512 mode=bounded lock=reentrant C=512 core=64 max=64 queue=65535 iter=4 ---
+RESULT mode=bounded lock=reentrant C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=7752 qps=264.2 p50ms=51.61 p95ms=1354.83 p99ms=4246.96 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=2477.57 startP95ms=6437.71 e2eP50ms=2958.12 e2eP95ms=6673.04 e2eP99ms=7381.58  pinnedFrames=0
+--- RUN b-core64-reentrant-C2048 mode=bounded lock=reentrant C=2048 core=64 max=64 queue=65535 iter=1 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3113 qps=657.9 p50ms=25.45 p95ms=484.63 p99ms=852.20 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=1700.70 startP95ms=2857.66 e2eP50ms=1772.46 e2eP95ms=2948.32 e2eP99ms=3056.14  pinnedFrames=0
+--- RUN b-core64-none-C2048 mode=bounded lock=none C=2048 core=64 max=64 queue=65535 iter=1 ---
+RESULT mode=bounded lock=none C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3293 qps=621.9 p50ms=26.89 p95ms=453.14 p99ms=1125.80 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=1840.13 startP95ms=3035.92 e2eP50ms=1964.08 e2eP95ms=3117.89 e2eP99ms=3223.75  pinnedFrames=0
+--- RUN b-core64-sync-C2048 mode=bounded lock=sync C=2048 core=64 max=64 queue=65535 iter=1 ---
+RESULT mode=bounded lock=sync C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=2947 qps=694.9 p50ms=24.15 p95ms=471.47 p99ms=983.88 peakPlatformThreads=75 peakInFlight=64 rejected=0 startP50ms=1569.53 startP95ms=2702.99 e2eP50ms=1685.29 e2eP95ms=2784.58 e2eP99ms=2881.78  pinnedFrames=0
+--- RUN b-core16-reentrant-C2048 mode=bounded lock=reentrant C=2048 core=16 max=64 queue=65535 iter=1 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3025 qps=677.0 p50ms=20.96 p95ms=40.55 p99ms=49.90 peakPlatformThreads=27 peakInFlight=16 rejected=0 startP50ms=1747.08 startP95ms=2828.32 e2eP50ms=1773.24 e2eP95ms=2856.35 e2eP99ms=2985.30  pinnedFrames=0
+--- RUN b-core256-reentrant-C2048 mode=bounded lock=reentrant C=2048 core=256 max=256 queue=65535 iter=1 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=3246 qps=630.9 p50ms=29.06 p95ms=2092.49 p99ms=2905.26 peakPlatformThreads=267 peakInFlight=256 rejected=0 startP50ms=1374.85 startP95ms=2669.85 e2eP50ms=1868.85 e2eP95ms=3009.89 e2eP99ms=3120.52  pinnedFrames=0
+--- RUN b-core1-max1024-C2048 mode=bounded lock=reentrant C=2048 core=1 max=1024 queue=65535 iter=1 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=15864 qps=129.1 p50ms=7.33 p95ms=11.06 p99ms=13.98 peakPlatformThreads=12 peakInFlight=1 rejected=0 startP50ms=7485.75 startP95ms=15193.58 e2eP50ms=7492.81 e2eP95ms=15201.12 e2eP99ms=15729.20  pinnedFrames=0
+--- RUN b-core64q8-reentrant-C2048 mode=bounded lock=reentrant C=2048 core=64 max=64 queue=8 iter=1 ---
+RESULT mode=bounded lock=reentrant C=2048 iter=1 rows=200 pool=16 finished=true ops=102 errors=0 wallMs=245 qps=416.3 p50ms=66.44 p95ms=184.28 p99ms=206.67 peakPlatformThreads=75 peakInFlight=64 rejected=1946 startP50ms=30.01 startP95ms=68.83 e2eP50ms=85.79 e2eP95ms=221.81 e2eP99ms=233.65  pinnedFrames=0
+=== SUMMARY2B ===
+tag	mode	lock	C	core	max	queue	pool	ops	errors	rejected	wallMs	qps	p50ms	p95ms	p99ms	startP50ms	startP95ms	e2eP50ms	e2eP95ms	e2eP99ms	peakPlatformThreads	peakInFlight	pinnedFrames	finished
+b-core64-reentrant-C64	bounded	reentrant	64	64	64	65535	16	2048	0	0	6120	334.6	41.01	667.97	2845.37	53.20	107.73	102.98	718.67	2888.21	75	64	0	true
+b-core64-reentrant-C512	bounded	reentrant	512	64	64	65535	16	2048	0	0	7752	264.2	51.61	1354.83	4246.96	2477.57	6437.71	2958.12	6673.04	7381.58	75	64	0	true
+b-core64-reentrant-C2048	bounded	reentrant	2048	64	64	65535	16	2048	0	0	3113	657.9	25.45	484.63	852.20	1700.70	2857.66	1772.46	2948.32	3056.14	75	64	0	true
+b-core64-none-C2048	bounded	none	2048	64	64	65535	16	2048	0	0	3293	621.9	26.89	453.14	1125.80	1840.13	3035.92	1964.08	3117.89	3223.75	75	64	0	true
+b-core64-sync-C2048	bounded	sync	2048	64	64	65535	16	2048	0	0	2947	694.9	24.15	471.47	983.88	1569.53	2702.99	1685.29	2784.58	2881.78	75	64	0	true
+b-core16-reentrant-C2048	bounded	reentrant	2048	16	64	65535	16	2048	0	0	3025	677.0	20.96	40.55	49.90	1747.08	2828.32	1773.24	2856.35	2985.30	27	16	0	true
+b-core256-reentrant-C2048	bounded	reentrant	2048	256	256	65535	16	2048	0	0	3246	630.9	29.06	2092.49	2905.26	1374.85	2669.85	1868.85	3009.89	3120.52	267	256	0	true
+b-core1-max1024-C2048	bounded	reentrant	2048	1	1024	65535	16	2048	0	0	15864	129.1	7.33	11.06	13.98	7485.75	15193.58	7492.81	15201.12	15729.20	12	1	0	true
+b-core64q8-reentrant-C2048	bounded	reentrant	2048	64	64	8	16	102	0	1946	245	416.3	66.44	184.28	206.67	30.01	68.83	85.79	221.81	233.65	75	64	0	true
+SPIKE2B_DONE

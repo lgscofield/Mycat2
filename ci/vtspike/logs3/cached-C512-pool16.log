@@ -1,0 +1,4 @@
+2026-11-17 11:51:43,985[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-17 11:51:49,510[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-1} closing ...
+2026-11-17 11:51:49,628[INFO]com.alibaba.druid.pool.DruidDataSource.close:2156{dataSource-1} closed
+RESULT mode=cached C=512 iter=4 rows=200 pool=16 finished=true ops=2048 errors=0 wallMs=5424 qps=377.6 borrowP50ms=0.01 borrowP95ms=3909.17 p50ms=46.72 p95ms=3934.06 p99ms=4778.97 peakPlatformThreads=502 peakInFlight=473

@@ -1,10 +1,12 @@
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 /**
  * 旧 Java Connector 线冒烟探针（I-DEBT-9 旧线 NO_DATA 治具，B 层仪器）。
@@ -208,6 +210,11 @@ public class OldConnectorProbe {
                     // 清理尽力而为
                 }
             }
+
+            // STAGE 6: full-CRUD 结果保真矩阵（复刻 example/.../CrudResultMatrixTest 的 C2/C5/... 缺口族，
+            // 兑现 spec §3 M2"全 connector 跑基本 CRUD"在旧 Java 线（5.1.x/8.0.x）上的最后一格。
+            // 与 STAGE4/5 的 INSERT+SELECT 不同，本段补 UPDATE/DELETE、字节/BIT、跨片归并、函数下推、错误契约。
+            pass &= stage6(st, connection, url, user, password);
         } catch (SQLException e) {
             pass &= report("statement", false, e.getClass().getSimpleName() + ": " + e.getMessage());
         } finally {
@@ -224,6 +231,302 @@ public class OldConnectorProbe {
         }
 
         finish(driverClass, driverVersion, pass);
+    }
+
+    // -------------------------------------------------------------- STAGE 6 full-CRUD 矩阵脚手架
+    // 独立探针库 dboldcm，建表走 Mycat 正道（mod_hash 分 2 物理库，读回必经跨库归并）。逐格 report("cm.<tag>",...) 纳入 verdict。
+    private static final String CM_SHARD = " dbpartition by mod_hash(`id`) dbpartitions 2";
+
+    // 跨片归并聚合硬编码 GT（MYSQL_8_0 persona 下由现代网 CrudResultMatrixTest stdout `oracle=` 固化，见 ledger；非整除数据令 scale/口径真具鉴别力）。
+    private static final String AVG_INT_GT = "3.6667";        // C11 avg(int)：22/6，MySQL 整型 AVG scale=div_precision_increment(4)
+    private static final String AVG_DEC_GT = "3.66666667";    // C11 avg(decimal(20,4))：scale=4+4=8
+    private static final double STDDEV_GT = 1.9720265943665387; // C12 stddev_pop（总体口径 √(SS/n)，SS=23.3333）
+    private static final double VAR_GT = 3.8888888888888893;     // C12 var_pop（总体口径 SS/n；实测 MySQL 裸 variance==var_pop 坐实）
+
+    private static boolean stage6(Statement st, Connection connection, String url, String user, String password) throws SQLException {
+        boolean ok = true;
+        String db6 = "dboldcm_" + System.currentTimeMillis();
+        try {
+            st.execute("DROP DATABASE IF EXISTS " + db6);
+            st.execute("CREATE DATABASE " + db6);
+            st.execute("USE " + db6);
+
+            // cm.c2 UPDATE + DELETE 语义（STAGE4/5 仅 INSERT+SELECT，UD 全缺）——判据照抄现代网 C2。
+            try {
+                st.execute("CREATE TABLE c2 (id bigint PRIMARY KEY, c_var varchar(64))" + CM_SHARD);
+                st.execute("insert into c2(id,c_var) values (1,'a'),(2,'b')");
+                int updateRows = st.executeUpdate("update c2 set c_var='z' where id=1");
+                String gotZ;
+                try (ResultSet rs = st.executeQuery("select c_var from c2 where id=1")) {
+                    gotZ = rs.next() ? rs.getString(1) : "<none>";
+                }
+                int delRows = st.executeUpdate("delete from c2 where id=1");
+                long cntAfter;
+                try (ResultSet rs = st.executeQuery("select count(*) from c2")) {
+                    cntAfter = rs.next() ? rs.getLong(1) : -1;
+                }
+                boolean c2 = "z".equals(gotZ) && cntAfter == 1;
+                ok &= report("cm.c2", c2, "updateRows=" + updateRows + " readback=" + gotZ
+                        + "(exp z) delRows=" + delRows + " cntAfterDel=" + cntAfter + "(exp 1)");
+            } catch (SQLException e) {
+                ok &= report("cm.c2", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c5 VARBINARY 逐字节保真（prepared 写入路径，5.1.x 服务端 prep 兼容点）——payload 照抄现代网 C5。
+            try {
+                st.execute("CREATE TABLE c5 (id bigint PRIMARY KEY, c_bin varbinary(64))" + CM_SHARD);
+                byte[] payload = new byte[]{0, 1, 2, (byte) 0xFE, (byte) 0xFF, 'A', 'B'};
+                try (PreparedStatement ps = connection.prepareStatement("insert into c5(id,c_bin) values (1, ?)")) {
+                    ps.setBytes(1, payload);
+                    ps.executeUpdate();
+                }
+                byte[] back = null;
+                try (ResultSet rs = st.executeQuery("select c_bin from c5 where id=1")) {
+                    if (rs.next()) {
+                        back = rs.getBytes(1);
+                    }
+                }
+                boolean c5 = Arrays.equals(payload, back);
+                ok &= report("cm.c5", c5, "readback=" + (back == null ? "null" : Arrays.toString(back))
+                        + " exp=" + Arrays.toString(payload));
+            } catch (SQLException e) {
+                ok &= report("cm.c5", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c6 BIT 单片列头保真（**单片命中 where id=1 ⇒ 列头来自后端**，官方 wire 口径：
+            // bit(1)→Boolean true、bit(8)=b'10110011'→byte{0xB3}、bit(16)=b'1000000000000001'→{0x80,0x01}、NULL→null）。
+            // 用 getObject + 归一 byte[]（参照现代网 canonicalBytes），对 5.1.x/8.x 驱动返回类型差异（byte[]/Number/Boolean）免疫。
+            // 【边界·继承现代网】跨片归并 BIT 列头（CalciteRowMetaData 归数值、行值仍后端 byte[] ⇒ BaseRowObservable 崩）
+            // 属"类型表征统一"专轮（UserCaseTest#caseCrossShardBitColumnFidelity），本格只测单片、不重开该债。
+            try {
+                st.execute("CREATE TABLE c6 (id bigint PRIMARY KEY, c_bit1 bit(1), c_bit8 bit(8),"
+                        + " c_bit16 bit(16), c_bitnull bit(8))" + CM_SHARD);
+                st.execute("insert into c6(id,c_bit1,c_bit8,c_bit16,c_bitnull) values (1, b'1', b'10110011',"
+                        + " b'1000000000000001', NULL)");
+                StringBuilder bad = new StringBuilder();
+                try (ResultSet rs = st.executeQuery("select c_bit1,c_bit8,c_bit16,c_bitnull from c6 where id=1")) {
+                    if (!rs.next()) {
+                        bad.append("missing-row;");
+                    } else {
+                        Object o1 = rs.getObject(1);
+                        if (!Boolean.TRUE.equals(cmBitBoolean(o1))) {
+                            bad.append("c_bit1=[" + o1 + "/" + cmType(o1) + "](exp true);");
+                        }
+                        byte[] o8 = cmCanonicalBytes(rs.getObject(2));
+                        if (!Arrays.equals(o8, new byte[]{(byte) 0xB3})) {
+                            bad.append("c_bit8=" + Arrays.toString(o8) + "(exp [-77]);");
+                        }
+                        byte[] o16 = cmCanonicalBytes(rs.getObject(3));
+                        if (!Arrays.equals(o16, new byte[]{(byte) 0x80, (byte) 0x01})) {
+                            bad.append("c_bit16=" + Arrays.toString(o16) + "(exp [-128, 1]);");
+                        }
+                        Object on = rs.getObject(4);
+                        if (on != null) {
+                            bad.append("c_bitnull!=null(got " + on + "/" + cmType(on) + ");");
+                        }
+                    }
+                }
+                boolean c6 = bad.length() == 0;
+                ok &= report("cm.c6", c6, c6 ? "bit1/bit8/bit16/null 单片全保真(官方 byte[] 口径)" : bad.toString());
+            } catch (SQLException e) {
+                ok &= report("cm.c6", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c7 跨 2 分库聚合+排序（count/sum/order by desc 归并后须与后端单算一致）——判据照抄现代网 C7。
+            try {
+                st.execute("CREATE TABLE c7 (id bigint PRIMARY KEY, val int)" + CM_SHARD);
+                for (int i = 1; i <= 6; i++) {
+                    st.execute("insert into c7(id,val) values (" + i + ", " + (i * 10) + ")");
+                }
+                long cnt;
+                try (ResultSet rs = st.executeQuery("select count(*) from c7")) {
+                    cnt = rs.next() ? rs.getLong(1) : -1;
+                }
+                long sum;
+                try (ResultSet rs = st.executeQuery("select sum(val) from c7")) {
+                    sum = rs.next() ? rs.getLong(1) : -1;
+                }
+                int rows = 0;
+                long firstDesc = Long.MIN_VALUE;
+                try (ResultSet rs = st.executeQuery("select val from c7 order by val desc")) {
+                    while (rs.next()) {
+                        if (rows == 0) {
+                            firstDesc = rs.getLong(1);
+                        }
+                        rows++;
+                    }
+                }
+                boolean c7 = cnt == 6 && sum == 210 && rows == 6 && firstDesc == 60;
+                ok &= report("cm.c7", c7, "count=" + cnt + "(exp 6) sum=" + sum + "(exp 210)"
+                        + " rows=" + rows + "(exp 6) desc首行=" + firstDesc + "(exp 60)");
+            } catch (SQLException e) {
+                ok &= report("cm.c7", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c8 跨分片 LIMIT/OFFSET：归并后分页窗口仍须正确切片——判据照抄现代网 C8。
+            try {
+                st.execute("CREATE TABLE c8 (id bigint PRIMARY KEY, val int)" + CM_SHARD);
+                for (int i = 1; i <= 6; i++) {
+                    st.execute("insert into c8(id,val) values (" + i + ", " + i + ")");
+                }
+                int rows = 0;
+                long firstVal = Long.MIN_VALUE;
+                try (ResultSet rs = st.executeQuery("select val from c8 order by val limit 2 offset 1")) {
+                    while (rs.next()) {
+                        if (rows == 0) {
+                            firstVal = rs.getLong(1);
+                        }
+                        rows++;
+                    }
+                }
+                boolean c8 = rows == 2 && firstVal == 2;
+                ok &= report("cm.c8", c8, "limit2offset1 rows=" + rows + "(exp 2) 首行=" + firstVal + "(exp 2)");
+            } catch (SQLException e) {
+                ok &= report("cm.c8", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c11 跨片归并 AVG 值保真（各分片下推部分 SUM/COUNT、归并后本地算含 DIVIDE 的 AVG，
+            // 必与 MySQL 十进制商逐值相等；BigDecimal.compareTo 忽略 scale 只比数值）。行集照抄现代网 C11。
+            try {
+                st.execute("CREATE TABLE c11 (id bigint PRIMARY KEY, i int, d decimal(20,4))" + CM_SHARD);
+                String[][] rows11 = {{"1", "1", "1.0000"}, {"2", "2", "2.0000"}, {"3", "3", "3.0000"},
+                        {"4", "4", "4.0000"}, {"5", "5", "5.0000"}, {"6", "7", "7.0000"}};
+                for (String[] r : rows11) {
+                    st.execute("insert into c11(id,i,d) values (" + r[0] + ", " + r[1] + ", " + r[2] + ")");
+                }
+                BigDecimal avgI = null;
+                try (ResultSet rs = st.executeQuery("select avg(i) from c11")) {
+                    if (rs.next()) {
+                        Object v = rs.getObject(1);
+                        avgI = v == null ? null : new BigDecimal(String.valueOf(v));
+                    }
+                }
+                BigDecimal avgD = null;
+                try (ResultSet rs = st.executeQuery("select avg(d) from c11")) {
+                    if (rs.next()) {
+                        Object v = rs.getObject(1);
+                        avgD = v == null ? null : new BigDecimal(String.valueOf(v));
+                    }
+                }
+                boolean c11 = avgI != null && avgI.compareTo(new BigDecimal(AVG_INT_GT)) == 0
+                        && avgD != null && avgD.compareTo(new BigDecimal(AVG_DEC_GT)) == 0;
+                ok &= report("cm.c11", c11, "avg(int)=" + avgI + "(exp " + AVG_INT_GT + ")"
+                        + " avg(decimal)=" + avgD + "(exp " + AVG_DEC_GT + ")");
+            } catch (SQLException e) {
+                ok &= report("cm.c11", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c12 跨片归并 STDDEV/VARIANCE 口径保真（I-DEBT-61：裸算子须总体口径÷N 对齐真库，非样本÷N-1；
+            // 含 SQRT 浮点，相对容差 1e-5。样本口径偏差 ~20% ≫ 容差 ⇒ 判别力不失）。行集照抄现代网 C12。
+            try {
+                st.execute("CREATE TABLE c12 (id bigint PRIMARY KEY, i int)" + CM_SHARD);
+                String[][] rows12 = {{"1", "1"}, {"2", "2"}, {"3", "3"}, {"4", "4"}, {"5", "5"}, {"6", "7"}};
+                for (String[] r : rows12) {
+                    st.execute("insert into c12(id,i) values (" + r[0] + ", " + r[1] + ")");
+                }
+                double sd = Double.NaN, var = Double.NaN;
+                try (ResultSet rs = st.executeQuery("select stddev(i) from c12")) {
+                    if (rs.next()) {
+                        sd = rs.getDouble(1);
+                    }
+                }
+                try (ResultSet rs = st.executeQuery("select variance(i) from c12")) {
+                    if (rs.next()) {
+                        var = rs.getDouble(1);
+                    }
+                }
+                boolean c12 = cmRelClose(sd, STDDEV_GT) && cmRelClose(var, VAR_GT);
+                ok &= report("cm.c12", c12, "stddev=" + sd + "(exp " + STDDEV_GT + ")"
+                        + " variance=" + var + "(exp " + VAR_GT + ") rel-tol 1e-5");
+            } catch (SQLException e) {
+                ok &= report("cm.c12", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c9 TIMESTAMPDIFF 下推（跨月跨年不等间隔，令 DAY/MONTH/YEAR 真具鉴别力：原生下推后端求值
+            // 得 364/11/0，误走本地"字段直减"会得 27/-1/1 一类错值即红）；NULL 传播不崩会话。判据照抄现代网 C9。
+            try {
+                st.execute("CREATE TABLE c9 (id bigint PRIMARY KEY, a datetime, b datetime)" + CM_SHARD);
+                st.execute("insert into c9(id,a,b) values (1, '2021-03-01 00:00:00', '2022-02-28 00:00:00')");
+                String[][] units = {{"SECOND", "31449600"}, {"MINUTE", "524160"}, {"HOUR", "8736"},
+                        {"DAY", "364"}, {"MONTH", "11"}, {"YEAR", "0"}};
+                StringBuilder bad9 = new StringBuilder();
+                for (String[] u : units) {
+                    long got;
+                    try (ResultSet rs = st.executeQuery(
+                            "select timestampdiff(" + u[0] + ", a, b) from c9 where id=1")) {
+                        got = rs.next() ? rs.getLong(1) : Long.MIN_VALUE;
+                    }
+                    if (got != Long.parseLong(u[1])) {
+                        bad9.append(u[0]).append("=").append(got).append("(exp ").append(u[1]).append("); ");
+                    }
+                }
+                boolean nullProp;
+                try (ResultSet rs = st.executeQuery(
+                        "select timestampdiff(SECOND, NULL, b) from c9 where id=1")) {
+                    rs.next();
+                    nullProp = (rs.getObject(1) == null);
+                }
+                boolean c9 = bad9.length() == 0 && nullProp;
+                ok &= report("cm.c9", c9, (c9 ? "6 单位下推全对 + NULL 传播" : bad9 + "nullProp=" + nullProp));
+            } catch (SQLException e) {
+                ok &= report("cm.c9", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+
+            // cm.c10 除零值语义 + 未知列错误契约 + 会话存活（**独立连接**干净起点，量旧客户端过 Mycat 的传输层契约）。
+            // ① select 1/0 = 单行 NULL（对齐 MySQL SELECT 期语义，非报错非断连）；② 随后 select 1 会话仍活；
+            // ③ 未知列须抛 SQLException（非静默非断连）；④ 错误后 select 2 会话仍活。
+            try (Connection c10conn = DriverManager.getConnection(url, user, password);
+                 Statement s10 = c10conn.createStatement()) {
+                boolean divNull;
+                int divRows = 0;
+                try (ResultSet rs = s10.executeQuery("select 1/0 as d")) {
+                    if (rs.next()) {
+                        divRows = 1;
+                        divNull = (rs.getObject(1) == null);
+                    } else {
+                        divNull = false;
+                    }
+                }
+                boolean alive1 = false;
+                try (ResultSet rs = s10.executeQuery("select 1")) {
+                    alive1 = rs.next();
+                }
+                boolean threw;
+                try (ResultSet rs = s10.executeQuery("select `no_such_col_zzz` from (select 1) t")) {
+                    while (rs.next()) {
+                        rs.getObject(1);
+                    }
+                    threw = false;
+                } catch (SQLException expected) {
+                    threw = true;
+                }
+                boolean alive2 = false;
+                try (ResultSet rs = s10.executeQuery("select 2")) {
+                    alive2 = rs.next();
+                }
+                boolean c10 = divRows == 1 && divNull && alive1 && threw && alive2;
+                ok &= report("cm.c10", c10, "1/0=" + (divNull ? "NULL" : "non-null") + "(exp NULL) 除零后存活="
+                        + alive1 + " 未知列抛错=" + threw + "(exp true) 错误后存活=" + alive2);
+            } catch (SQLException e) {
+                ok &= report("cm.c10", false, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+        } finally {
+            try {
+                st.execute("DROP DATABASE IF EXISTS " + db6);
+            } catch (SQLException ignore) {
+                // 清理尽力而为
+            }
+        }
+        return ok;
+    }
+
+    // C12 浮点相对容差（|got-gt| ≤ 1e-5·max(1,|gt|)）：钉总体口径，偏差 ~20% 的样本口径必红；含 SQRT 精度噪声 ~1e-6 量级可容。
+    private static boolean cmRelClose(double got, double gt) {
+        if (Double.isNaN(got)) {
+            return false;
+        }
+        double tol = 1e-5 * Math.max(1.0, Math.abs(gt));
+        return Math.abs(got - gt) <= tol;
     }
 
     private static String safeDriverVersion(DatabaseMetaData md, String fallback) {
@@ -245,6 +548,51 @@ public class OldConnectorProbe {
         if (!pass) {
             System.exit(1);
         }
+    }
+
+    // -------------------------------------------------------------- STAGE 6 C6 BIT 归一助手（移植自现代网 canonicalBytes/toBitBoolean）
+
+    /** BIT(n>1) 读出归 byte[]（官方口径）：byte[] 原样；Number→大端最小无符号剔前导符号字节；Boolean→1 字节；String→UTF-8。 */
+    private static byte[] cmCanonicalBytes(Object o) throws SQLException {
+        if (o instanceof byte[]) {
+            return (byte[]) o;
+        }
+        if (o == null) {
+            return new byte[0];
+        }
+        if (o instanceof Number) {
+            byte[] minimal = new BigDecimal(o.toString()).toBigInteger().toByteArray();
+            if (minimal.length > 1 && (minimal[0] == 0 || minimal[0] == (byte) 0xFF)) {
+                byte[] trimmed = new byte[minimal.length - 1];
+                System.arraycopy(minimal, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return minimal;
+        }
+        if (o instanceof Boolean) {
+            return new byte[]{(byte) (((Boolean) o) ? 1 : 0)};
+        }
+        if (o instanceof String) {
+            return ((String) o).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        throw new SQLException("cm.c6 不支持的读出类型: " + cmType(o));
+    }
+
+    /** BIT(1) 读出归 Boolean：Boolean 直取；byte[]/Number 按非零真。 */
+    private static Boolean cmBitBoolean(Object o) throws SQLException {
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
+        for (byte x : cmCanonicalBytes(o)) {
+            if (x != 0) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    private static String cmType(Object o) {
+        return o == null ? "null" : o.getClass().getName();
     }
 
     // -------------------------------------------------------------- STAGE 5 逐类型断言助手

@@ -14,6 +14,9 @@
  */
 package io.mycat.datasource.jdbc.datasource;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.druid.pool.DruidStatementConnection;
 import io.mycat.*;
 import io.mycat.api.collector.*;
 import io.mycat.beans.mycat.JdbcRowBaseIterator;
@@ -30,6 +33,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.sql.DataSource;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -107,6 +111,32 @@ public class DefaultConnection implements MycatConnection {
                     LOGGER.debug("close {}", connection);
                 }
                 connectionManager.closeConnection(DefaultConnection.this);
+            }
+        } catch (Exception e) {
+            LOGGER.error("", e);
+        }
+    }
+
+    // 物理弃用(force-close 专用,区别于 close 的 recycle):剥开 Druid 包装(DruidPooledConnection→DruidStatementConnection)直达物理连接 abort——包装层 abort 先 statement.close() 抢 mysql session 锁,会被冻结 query worker 持锁阻塞致 socket 永不杀;物理 ConnectionImpl.abort→forceClose 先无锁杀 socket 解困 worker 后加锁清理。direct executor 保 forceClose 同步先于 discard 的 isClosed 短路;discard 归位 druid activeCount(abort 本身不减)防多轮冻结耗尽池。discard 置于 finally:forceClose 已先无锁杀 socket,其后清理阶段若抛异常仍须归位 activeCount,否则反复超时泄漏耗尽池。
+    public void abort() {
+        try {
+            if (closeFlag.compareAndSet(false, true)) {
+                jdbcDataSource.counter.decrementAndGet();
+                Connection physical = connection;
+                if (physical instanceof DruidPooledConnection) {
+                    physical = ((DruidPooledConnection) physical).getConnection();
+                }
+                if (physical instanceof DruidStatementConnection) {
+                    physical = ((DruidStatementConnection) physical).getConnection();
+                }
+                try {
+                    physical.abort(Runnable::run);
+                } finally {
+                    DataSource ds = jdbcDataSource.getDataSource();
+                    if (ds instanceof DruidDataSource) {
+                        ((DruidDataSource) ds).discardConnection(physical);
+                    }
+                }
             }
         } catch (Exception e) {
             LOGGER.error("", e);

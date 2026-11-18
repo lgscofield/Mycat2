@@ -99,7 +99,7 @@ public class JdbcDatasourcePoolImpl extends AbstractMycatDatasourcePool {
                 @Override
                 public void abandonConnection() {
                     try {
-                        defaultConnection.close();
+                        defaultConnection.abort();
 
                         if (LOGGER.isDebugEnabled()) {
                             list.remove(this);

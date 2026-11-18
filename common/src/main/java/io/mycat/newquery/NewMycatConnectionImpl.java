@@ -662,6 +662,8 @@ public class NewMycatConnectionImpl implements NewMycatConnection {
 
     @Override
     public void abandonConnection() {
+        // 基类默认仅 Druid recycle（socket 不杀）；force-close 超时腿需真·物理弃用（剥 Druid 包装→physical.abort+discard，
+        // 解困冻结后端持锁 worker），由 JdbcDatasourcePoolImpl 的匿名子类覆写走 DefaultConnection.abort()。勿在此静默"以为已杀 socket"。
         JdbcUtils.close(this.connection);
     }
 
