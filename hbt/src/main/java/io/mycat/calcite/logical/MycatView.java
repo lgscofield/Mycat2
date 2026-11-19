@@ -120,7 +120,17 @@ public class MycatView extends AbstractRelNode implements MycatRel {
                 public RexNode visitCall(RexCall call) {
                     if (call.isA(SqlKind.IS_DISTINCT_FROM) || call.getOperator().getName().equalsIgnoreCase("<=>")) {
                         RexBuilder rexBuilder = MycatCalciteSupport.RexBuilder;
-                        return rexBuilder.makeCall(SqlStdOperatorTable.EQUALS, call.getOperands());
+                        // MYCAT CHANGE (I-DEBT-116): null-safe 等值改写为索引等价形
+                        // (a=b) OR (a IS NULL AND b IS NULL)——而非裸 =(裸 = 在执行期分区裁剪
+                        // 按 = 裁掉 NULL 分支 → NULL 键行静默丢失,活体:mycat<=>NULL=0 vs 真库=1)。
+                        // 混合 OR 使分析器回落全分片(正确但慢),精确 NULL 分区双查留后续优化。
+                        RexNode left = call.getOperands().get(0);
+                        RexNode right = call.getOperands().get(1);
+                        RexNode eq = rexBuilder.makeCall(SqlStdOperatorTable.EQUALS, left, right);
+                        RexNode leftNull = rexBuilder.makeCall(SqlStdOperatorTable.IS_NULL, left);
+                        RexNode rightNull = rexBuilder.makeCall(SqlStdOperatorTable.IS_NULL, right);
+                        RexNode bothNull = rexBuilder.makeCall(SqlStdOperatorTable.AND, leftNull, rightNull);
+                        return rexBuilder.makeCall(SqlStdOperatorTable.OR, eq, bothNull);
                     }
                     return super.visitCall(call);
                 }
