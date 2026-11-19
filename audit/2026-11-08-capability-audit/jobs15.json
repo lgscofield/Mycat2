@@ -1,0 +1,324 @@
+{
+  "total_count": 5,
+  "jobs": [
+    {
+      "id": 133439630952,
+      "run_id": 43907349440,
+      "workflow_name": "Java CI - Mycat2 Compat Matrix",
+      "head_branch": "g8-full-suite-gate",
+      "run_url": "https://api.github.com/repos/lgscofield/Mycat2/actions/runs/43907349440",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVFYwwc8AAAAfEZ8uaA",
+      "head_sha": "fea061c4a65fcc4f4116c665535770a9311b63e0",
+      "url": "https://api.github.com/repos/lgscofield/Mycat2/actions/jobs/133439630952",
+      "html_url": "https://github.com/lgscofield/Mycat2/actions/runs/43907349440/job/133439630952",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-16T16:25:36Z",
+      "started_at": "2026-11-16T16:25:38Z",
+      "completed_at": "2026-11-16T16:28:15Z",
+      "name": "soak-g6",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-16T16:25:39Z",
+          "completed_at": "2026-11-16T16:25:40Z"
+        },
+        {
+          "name": "Initialize containers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-16T16:25:40Z",
+          "completed_at": "2026-11-16T16:26:09Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-16T16:26:09Z",
+          "completed_at": "2026-11-16T16:26:11Z"
+        },
+        {
+          "name": "Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-16T16:26:11Z",
+          "completed_at": "2026-11-16T16:26:16Z"
+        },
+        {
+          "name": "Build server jar (skip test compile)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-16T16:26:16Z",
+          "completed_at": "2026-11-16T16:27:48Z"
+        },
+        {
+          "name": "Run G6 soak (30min mixed CRUD)",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-11-16T16:27:48Z",
+          "completed_at": "2026-11-16T16:28:11Z"
+        },
+        {
+          "name": "Post Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-16T16:28:11Z",
+          "completed_at": "2026-11-16T16:28:11Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-16T16:28:11Z",
+          "completed_at": "2026-11-16T16:28:11Z"
+        },
+        {
+          "name": "Stop containers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-16T16:28:11Z",
+          "completed_at": "2026-11-16T16:28:11Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-16T16:28:11Z",
+          "completed_at": "2026-11-16T16:28:11Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/lgscofield/Mycat2/check-runs/133439630952",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000864,
+      "runner_name": "GitHub Actions 1000000864",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 133439631476,
+      "run_id": 43907349440,
+      "workflow_name": "Java CI - Mycat2 Compat Matrix",
+      "head_branch": "g8-full-suite-gate",
+      "run_url": "https://api.github.com/repos/lgscofield/Mycat2/actions/runs/43907349440",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVFYwwc8AAAAfEZ8wdA",
+      "head_sha": "fea061c4a65fcc4f4116c665535770a9311b63e0",
+      "url": "https://api.github.com/repos/lgscofield/Mycat2/actions/jobs/133439631476",
+      "html_url": "https://github.com/lgscofield/Mycat2/actions/runs/43907349440/job/133439631476",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-16T16:25:36Z",
+      "started_at": "2026-11-16T16:25:38Z",
+      "completed_at": "2026-11-16T16:38:07Z",
+      "name": "full-suite",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-16T16:25:39Z",
+          "completed_at": "2026-11-16T16:25:40Z"
+        },
+        {
+          "name": "Initialize containers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-16T16:25:40Z",
+          "completed_at": "2026-11-16T16:26:05Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-16T16:26:05Z",
+          "completed_at": "2026-11-16T16:26:07Z"
+        },
+        {
+          "name": "Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-16T16:26:07Z",
+          "completed_at": "2026-11-16T16:26:11Z"
+        },
+        {
+          "name": "Build and install modules (skip test compile)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-16T16:26:11Z",
+          "completed_at": "2026-11-16T16:27:54Z"
+        },
+        {
+          "name": "Boot Mycat instance (8066)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-16T16:27:54Z",
+          "completed_at": "2026-11-16T16:28:13Z"
+        },
+        {
+          "name": "Run FULL example suite (555 tests)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-16T16:28:13Z",
+          "completed_at": "2026-11-16T16:38:03Z"
+        },
+        {
+          "name": "Publish test summary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-16T16:38:03Z",
+          "completed_at": "2026-11-16T16:38:03Z"
+        },
+        {
+          "name": "Post Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-11-16T16:38:03Z",
+          "completed_at": "2026-11-16T16:38:03Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-11-16T16:38:03Z",
+          "completed_at": "2026-11-16T16:38:03Z"
+        },
+        {
+          "name": "Stop containers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-11-16T16:38:03Z",
+          "completed_at": "2026-11-16T16:38:04Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-11-16T16:38:04Z",
+          "completed_at": "2026-11-16T16:38:04Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/lgscofield/Mycat2/check-runs/133439631476",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000865,
+      "runner_name": "GitHub Actions 1000000865",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 133439632991,
+      "run_id": 43907349440,
+      "workflow_name": "Java CI - Mycat2 Compat Matrix",
+      "head_branch": "g8-full-suite-gate",
+      "run_url": "https://api.github.com/repos/lgscofield/Mycat2/actions/runs/43907349440",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVFYwwc8AAAAfEZ82Xw",
+      "head_sha": "fea061c4a65fcc4f4116c665535770a9311b63e0",
+      "url": "https://api.github.com/repos/lgscofield/Mycat2/actions/jobs/133439632991",
+      "html_url": "https://github.com/lgscofield/Mycat2/actions/runs/43907349440/job/133439632991",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-16T16:25:36Z",
+      "started_at": "2026-11-16T16:25:36Z",
+      "completed_at": "2026-11-16T16:25:36Z",
+      "name": "cleanroom",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/lgscofield/Mycat2/check-runs/133439632991",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 133439696688,
+      "run_id": 43907349440,
+      "workflow_name": "Java CI - Mycat2 Compat Matrix",
+      "head_branch": "g8-full-suite-gate",
+      "run_url": "https://api.github.com/repos/lgscofield/Mycat2/actions/runs/43907349440",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVFYwwc8AAAAfEaAvMA",
+      "head_sha": "fea061c4a65fcc4f4116c665535770a9311b63e0",
+      "url": "https://api.github.com/repos/lgscofield/Mycat2/actions/jobs/133439696688",
+      "html_url": "https://github.com/lgscofield/Mycat2/actions/runs/43907349440/job/133439696688",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-16T16:25:42Z",
+      "started_at": "2026-11-16T16:25:42Z",
+      "completed_at": "2026-11-16T16:25:36Z",
+      "name": "compat",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/lgscofield/Mycat2/check-runs/133439696688",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 133439724859,
+      "run_id": 43907349440,
+      "workflow_name": "Java CI - Mycat2 Compat Matrix",
+      "head_branch": "g8-full-suite-gate",
+      "run_url": "https://api.github.com/repos/lgscofield/Mycat2/actions/runs/43907349440",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVFYwwc8AAAAfEaCdOw",
+      "head_sha": "fea061c4a65fcc4f4116c665535770a9311b63e0",
+      "url": "https://api.github.com/repos/lgscofield/Mycat2/actions/jobs/133439724859",
+      "html_url": "https://github.com/lgscofield/Mycat2/actions/runs/43907349440/job/133439724859",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-11-16T16:25:44Z",
+      "started_at": "2026-11-16T16:25:44Z",
+      "completed_at": "2026-11-16T16:25:36Z",
+      "name": "old-connector",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/lgscofield/Mycat2/check-runs/133439724859",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

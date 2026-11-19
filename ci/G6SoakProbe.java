@@ -1,4 +1,6 @@
 import java.sql.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * I-DEBT-96/G6 长稳探针(CI 版): 4 线程混合 CRUD × 30 分钟 + 周期快照(吞吐/错误/后端连接/堆)。
@@ -35,18 +37,25 @@ public class G6SoakProbe {
                         while (System.currentTimeMillis() - t0 < DURATION_MS) {
                             long id = (i % 500) + 1;
                             try {
+                                long myKey = wid * 1000000L + id;  // worker 专属 key 空间(消除跨 worker 1062 竞态)
                                 switch ((int) (i % 4)) {
-                                    case 0: del.setLong(1, id + 5000); del.executeUpdate(); ins.setLong(1, id + 5000); ins.setInt(2, (int) i); ins.executeUpdate(); break;
+                                    case 0: del.setLong(1, myKey); del.executeUpdate(); ins.setLong(1, myKey); ins.setInt(2, (int) i); ins.executeUpdate(); break;
                                     case 1: sel.setLong(1, id); try (ResultSet r = sel.executeQuery()) { r.next(); } break;
                                     case 2: upd.setLong(1, id); upd.executeUpdate(); break;
-                                    case 3: sel.setLong(1, id + 5000); try (ResultSet r = sel.executeQuery()) { if (r.next()) r.getInt(1); } break;
+                                    case 3: sel.setLong(1, myKey); try (ResultSet r = sel.executeQuery()) { if (r.next()) r.getInt(1); } break;
                                 }
                                 done.incrementAndGet();
                             } catch (SQLException e) {
                                 errors.incrementAndGet();
                                 int n = errors.get();
-                                if (n % 50 == 1) {
+                                if (n <= 3) {
                                     System.out.println("ERR_DETAIL[" + n + "] code=" + e.getErrorCode() + " sqlState=" + e.getSQLState() + " msg=" + e.getMessage() + " sqlIdx=" + i);
+                                }
+                            } catch (Exception e) {
+                                errors.incrementAndGet();
+                                int n = errors.get();
+                                if (n <= 3) {
+                                    System.out.println("ERR_NONSQL[" + n + "] " + e.getClass().getName() + ": " + e.getMessage() + " sqlIdx=" + i);
                                 }
                             }
                             i++;
