@@ -8,7 +8,7 @@ import java.sql.*;
  */
 public class G6SoakProbe {
     public static void main(String[] a) throws Exception {
-        long DURATION_MS = 30 * 60 * 1000L;
+        long DURATION_MS = Long.getLong("soakMinutes", 30L) * 60 * 1000L;
         String mycat = "jdbc:mysql://127.0.0.1:8066/mysql?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000";
         String backend = "jdbc:mysql://127.0.0.1:3306/dbaudit_a?useSSL=false&allowPublicKeyRetrieval=true";
         AtomicInteger done = new AtomicInteger(), errors = new AtomicInteger();
@@ -42,7 +42,13 @@ public class G6SoakProbe {
                                     case 3: sel.setLong(1, id + 5000); try (ResultSet r = sel.executeQuery()) { if (r.next()) r.getInt(1); } break;
                                 }
                                 done.incrementAndGet();
-                            } catch (SQLException e) { errors.incrementAndGet(); }
+                            } catch (SQLException e) {
+                                errors.incrementAndGet();
+                                int n = errors.get();
+                                if (n % 50 == 1) {
+                                    System.out.println("ERR_DETAIL[" + n + "] code=" + e.getErrorCode() + " sqlState=" + e.getSQLState() + " msg=" + e.getMessage() + " sqlIdx=" + i);
+                                }
+                            }
                             i++;
                         }
                     } catch (Exception e) { errors.incrementAndGet(); }
