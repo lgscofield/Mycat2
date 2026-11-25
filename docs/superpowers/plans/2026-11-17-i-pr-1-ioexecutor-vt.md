@@ -672,7 +672,7 @@ Expected: `git status` 确认日志**真的进了暂存区**（此前 I-PR-3 就
 Critical/Important ⇒ **一轮** fix pass，每处 RED→GREEN + 全套绿；Minor ⇒ ledger 挂账。
 实测：fresh review 与 control-plane fresh review 均已完成；Important 修复后 targeted 37/37、driver 12/12、完整护栏 12/12；R5 资源角色 Minor 保留挂账。
 
-- [ ] **Step 15: Commit + push**
+- [x] **Step 15: Commit + push**
 
 ```bash
 git add ci/iopr1 docs/superpowers/specs
@@ -681,6 +681,11 @@ git push origin main
 ```
 push 失败**自行重试**（GitHub 时不时连不上）。**严禁替换 origin 为任何代理地址。**
 Expected: `git rev-parse HEAD` == `git rev-parse origin/main`，ahead=0。
+
+实测（2026-11-25）：实现提交 `4237c17cc2784f01021b46044c6dcfac0d4c5dc4` 已推送，
+本地/远端 `main` 一致；该提交触发 [run `45568270425`](https://github.com/lgscofield/Mycat2/actions/runs/45568270425)，
+总结论 `success`，9 个实际 job 全 success，`full-suite`/`soak-g6` 按触发条件 skipped。
+诚实边界：当前 workflow 未运行新增 server 定向测试；这些测试的可重跑执行证据仍以本地完整护栏归档为准。
 
 ---
 

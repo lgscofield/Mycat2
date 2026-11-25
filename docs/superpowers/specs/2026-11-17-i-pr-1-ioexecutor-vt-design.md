@@ -652,7 +652,7 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
    可拒绝集是 5 处前端入口非 19 处（订正三）；`DefaultPrototypeGenerator` 经全仓活性核对为
    **死代码机制样本**，活体 L5 靶是 `SequenceMySQLGenerator`。
 
-### 12.1 最终活体结果（2026-11-25，round 15 final，本地✅ / 完整护栏✅ / CI⏳）
+### 12.1 最终活体结果（2026-11-25，round 15 final，本地✅ / 完整护栏✅ / CI✅）
 
 **判据口径**：同一 fat jar 跑生产原值与隔离小许可两档；16 个汇总项（14 场景 + L1/L7）全部 PASS，
 且驱动要求行数恰为 16、每个预期 tag 恰出现一次、全部 verdict=PASS。受测 HEAD 为
@@ -663,21 +663,21 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 
 | 验收格 | 实测结果 | 双态 |
 |---|---|---|
-| L1 | prod/small 均 pinnedFrames=0、ours=0、RxJava=0；`prod-load`、`prod-threads`、`small-saturate` 三个真实流量场景 PASS 后才判定 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L2 | C=8→32：IO VT 峰值 25→102，平台线程峰值 60→59；平台增长 13/12（允许额外 2），`noPlatformCarrier=true` | 本地✅ / 完整护栏✅ / CI⏳ |
-| L3 | permits=3 时预热后拒绝 `MYCAT-3007`，墙钟 81ms；五条绕过边界 60–66ms 全部 3007，`boundaryUnexpected=0`，Sleeper 无错误，目标表 `tableRowsAfter=1` | 本地✅ / 完整护栏✅ / CI⏳ |
-| L4 | abandon 活跃连接 0→4→0，`peakWaitMs=4`，无泄漏 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L5 | 生产 80/80；小许可拟合 30/30；饱和 83 成功 + 7 个预期 3007，60s 内完成 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L6 | 3 条卡死腿均 3013 有界（首条 2404ms），deadline 后新语句 44ms 获准入 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L7 | 心跳错误行 0，3 个真实流量场景，`heartbeatAdvanced=true` | 本地✅ / 完整护栏✅ / CI⏳ |
-| L8 | 列出 70 行、10 个 IO VT、60 行栈非空；kill/interrupt 均 `affectedRows=1`（各 1 次命中），bogus kill=0 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L9 | 生产原值下 C=32、640 ops、errors=0、`maxClientInFlight=32`，非静默串行 | 本地✅ / 完整护栏✅ / CI⏳ |
-| L10 | 隔离 `MYCAT_HOME` 非默认 `maxPoolSize=3/admitTimeoutMillis=50` 真生效；拒绝文案明确 50ms | 本地✅ / 完整护栏✅ / CI⏳ |
-| R1 | 真实 `MycatVertxMySQLHandler` COM_QUERY → Future 链 → `executeAdmitted` VT 路径随全部前端场景覆盖 | 本地✅ / 完整护栏✅ / CI⏳ |
-| R2 | 80 次 DDL 全成功，错误 0 | 本地✅ / 完整护栏✅ / CI⏳ |
-| R3 | `SequenceMySQLGenerator` 后端函数含 `GET_LOCK` 与 `SELECT … FOR UPDATE`，序列场景全绿 | 本地✅ / 完整护栏✅ / CI⏳ |
-| R4 | 3 次真实 HTTP custom-rule 请求，路由行 1，stub 无错 | 本地✅ / 完整护栏✅ / CI⏳ |
-| R5 | `maxCon=3` 资源模型为 sessionHeld=1 + blockedSqlLog=1 + frontendQuery=1（前两项为角色推断，非池计数采样）；阻塞 INSERT 已观测，前端 40ms 完成，解锁后日志 3 行可见 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L1 | prod/small 均 pinnedFrames=0、ours=0、RxJava=0；`prod-load`、`prod-threads`、`small-saturate` 三个真实流量场景 PASS 后才判定 | 本地✅ / 完整护栏✅ / CI✅ |
+| L2 | C=8→32：IO VT 峰值 25→102，平台线程峰值 60→59；平台增长 13/12（允许额外 2），`noPlatformCarrier=true` | 本地✅ / 完整护栏✅ / CI✅ |
+| L3 | permits=3 时预热后拒绝 `MYCAT-3007`，墙钟 81ms；五条绕过边界 60–66ms 全部 3007，`boundaryUnexpected=0`，Sleeper 无错误，目标表 `tableRowsAfter=1` | 本地✅ / 完整护栏✅ / CI✅ |
+| L4 | abandon 活跃连接 0→4→0，`peakWaitMs=4`，无泄漏 | 本地✅ / 完整护栏✅ / CI✅ |
+| L5 | 生产 80/80；小许可拟合 30/30；饱和 83 成功 + 7 个预期 3007，60s 内完成 | 本地✅ / 完整护栏✅ / CI✅ |
+| L6 | 3 条卡死腿均 3013 有界（首条 2404ms），deadline 后新语句 44ms 获准入 | 本地✅ / 完整护栏✅ / CI✅ |
+| L7 | 心跳错误行 0，3 个真实流量场景，`heartbeatAdvanced=true` | 本地✅ / 完整护栏✅ / CI✅ |
+| L8 | 列出 70 行、10 个 IO VT、60 行栈非空；kill/interrupt 均 `affectedRows=1`（各 1 次命中），bogus kill=0 | 本地✅ / 完整护栏✅ / CI✅ |
+| L9 | 生产原值下 C=32、640 ops、errors=0、`maxClientInFlight=32`，非静默串行 | 本地✅ / 完整护栏✅ / CI✅ |
+| L10 | 隔离 `MYCAT_HOME` 非默认 `maxPoolSize=3/admitTimeoutMillis=50` 真生效；拒绝文案明确 50ms | 本地✅ / 完整护栏✅ / CI✅ |
+| R1 | 真实 `MycatVertxMySQLHandler` COM_QUERY → Future 链 → `executeAdmitted` VT 路径随全部前端场景覆盖 | 本地✅ / 完整护栏✅ / CI✅ |
+| R2 | 80 次 DDL 全成功，错误 0 | 本地✅ / 完整护栏✅ / CI✅ |
+| R3 | `SequenceMySQLGenerator` 后端函数含 `GET_LOCK` 与 `SELECT … FOR UPDATE`，序列场景全绿 | 本地✅ / 完整护栏✅ / CI✅ |
+| R4 | 3 次真实 HTTP custom-rule 请求，路由行 1，stub 无错 | 本地✅ / 完整护栏✅ / CI✅ |
+| R5 | `maxCon=3` 资源模型为 sessionHeld=1 + blockedSqlLog=1 + frontendQuery=1（前两项为角色推断，非池计数采样）；阻塞 INSERT 已观测，前端 40ms 完成，解锁后日志 3 行可见 | 本地✅ / 完整护栏✅ / CI✅ |
 
 **控制面多语句负边界**：`ControlPlaneSql` 已修复 `SHOW @@` 前缀豁免、MySQL/MariaDB 版本可执行注释，
 以及 fresh review 发现的行注释 fail-open。饱和中五条负边界为：`show @@thread; select 1`、
@@ -712,8 +712,15 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 生产相对路径安全门不变，聚焦回归 2/2 PASS。第三轮 Monitor `bbe5qorn9` 从零重跑 12 阶段并返回
 `GUARD_RC=0`：startup、driver、14 模块 reactor、M1/M2 559 测试（0 失败/0 错误/40 跳过）、七个 M3/M4
 persona（各 6/6）、旧 Connector/J 5.1.49/8.0.33 明文与 TLS-required STAGE6 全部通过；归档
-`ci/iopr1/guard-round15-final/`，21 条 SHA-256 清单校验通过。上表“完整护栏✅”仅指本地完整护栏；
-CI 未绿前仍不得称 Evidenced-Done。
+`ci/iopr1/guard-round15-final/`，21 条 SHA-256 清单校验通过。上表“完整护栏✅”仅指本地完整护栏。
+
+实现提交 `4237c17cc2784f01021b46044c6dcfac0d4c5dc4` 已推送并触发
+[run `45568270425`](https://github.com/lgscofield/Mycat2/actions/runs/45568270425)：总结论 `success`，
+`old-connector`、`cleanroom` 与七个 compat persona 共 9 个实际 job 全 success；
+`full-suite`/`soak-g6` 因非手动/g8 gate 触发按 workflow 条件 skipped。由此本票代码状态为
+**本地✅ / 完整护栏✅ / CI✅ / Evidenced-Done**。覆盖边界不得省略：当前 CI 的 compat 测试白名单仍只有
+example 类，新增 server 定向测试未进入 workflow；本地完整护栏是这些定向测试的执行证据，不能写成 CI 已运行它们。
+
 首条 ERR 应答冷路径需后续分段取证；`executeBlocking` bypass 与本地计划腿全库最小 deadline 仍是明确设计边界。
 
 ---

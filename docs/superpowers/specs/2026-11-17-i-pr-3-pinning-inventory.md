@@ -267,5 +267,9 @@ pinning 只是性能问题。下面这条是**功能静默失效**，比性能�
 - round15 在控制面行注释 fail-open 与 Sleeper RuntimeException 漏记修复后重打 jar 并复跑；受测 jar SHA-256 为
   `6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66`，归档
   `ci/iopr1/matrix-round15-final/` 的 35 个文件校验通过。
-- 首轮完整护栏已中断；第二轮 Monitor `b8vtxa1hx` 为 11/12 阶段通过，唯一失败是 `LoaddataTest` 两条相对路径文件找不到，已修测试落盘目录并聚焦 2/2 PASS。两轮失败证据分别保留在 `guard-round15-interrupted1/` 与 `guard-round15-failed1/`；第三轮 Monitor `bbe5qorn9` 从零重跑 12 阶段并返回 `GUARD_RC=0`，归档 `guard-round15-final/`，21 条 SHA-256 清单校验通过。CI 未背书，双态保持本地✅ / 完整护栏✅ / CI⏳。§10.3 的
+- 首轮完整护栏已中断；第二轮 Monitor `b8vtxa1hx` 为 11/12 阶段通过，唯一失败是 `LoaddataTest` 两条相对路径文件找不到，已修测试落盘目录并聚焦 2/2 PASS。两轮失败证据分别保留在 `guard-round15-interrupted1/` 与 `guard-round15-failed1/`；第三轮 Monitor `bbe5qorn9` 从零重跑 12 阶段并返回 `GUARD_RC=0`，归档 `guard-round15-final/`，21 条 SHA-256 清单校验通过。
+- 实现提交 `4237c17cc2784f01021b46044c6dcfac0d4c5dc4` 的
+  [run `45568270425`](https://github.com/lgscofield/Mycat2/actions/runs/45568270425) 总结论 `success`：
+  9 个实际 job 全 success，`full-suite`/`soak-g6` 按触发条件 skipped。双态收口为本地✅ / 完整护栏✅ / CI✅。
+  当前 CI 未运行新增 server 定向测试，不能把 CI 绿写成这些测试已执行。§10.3 的
   `ObservableRefCount.subscribeActual` 架构债不因本轮未复现而关闭。
