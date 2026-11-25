@@ -1,0 +1,14 @@
+2026-11-24 18:39:52,550[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 18:39:52,554[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 18:39:52,556[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:39:52,556[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:39:52,558[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 18:39:52,609[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 18:39:52,610[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:39:52,610[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:39:52,612[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 18:39:52,631[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+TIMING tag=saturate at=2026-11-24T10:39:54.177201100Z warmupMs=974 warmupErrorCode=0
+TIMING tag=saturate rejectStartAt=2026-11-24T10:39:54.667094200Z
+TIMING tag=saturate rejectEndAt=2026-11-24T10:39:54.747851600Z waitMs=81 code=MYCAT-3007
+RESULT tag=saturate permits=3 rejectCode=MYCAT-3007 rejectWaitMs=81 rejectWaitLimitMs=500 warmupMs=974 connAliveAfterRelease=true activeAfterReject=3 activeAfterBoundaries=3 allFinished=true sleeperErrors=0 sleeper0Error=none sleeper1Error=none sleeper2Error=none boundaryChecks=5 boundarySkipped=0 boundary3007=5 boundaryOther=0 boundaryUnexpected=0 boundaryOtherCodes=none boundaryMaxMs=66 boundaryResults=0:MYCAT-3007:ms=66:active=3;1:MYCAT-3007:ms=60:active=3;2:MYCAT-3007:ms=62:active=3;3:MYCAT-3007:ms=62:active=3;4:MYCAT-3007:ms=61:active=3; tableRowsAfter=1 verdict=PASS

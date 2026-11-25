@@ -1,0 +1,15 @@
+2026-11-24 17:21:56,448[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 17:21:56,453[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 17:21:56,457[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 17:21:56,457[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 17:21:56,460[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 17:21:56,534[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 17:21:56,535[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 17:21:56,535[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 17:21:56,538[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 17:21:56,564[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+2026-11-24 17:21:59,286[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 17:21:59,286[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 17:21:59,286[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 17:21:59,287[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+RESULT tag=seq C=9 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=3160 ok=65 err3007=7 errOther=0 maxId=96 tableRows=65 firstErr=ERROR-CODE:_[MYCAT-3007][ERR_IO_CONCURRENCY_LIMIT]_IO_并发已达许可上界_3，等待_50ms_仍未获准入；请稍后重试，或调大_workerPool.maxPoolSize firstOtherErr= verdict=PASS

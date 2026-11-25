@@ -1,0 +1,27 @@
+SLEEPER_SELFTEST_PASS
+PASS Sleeper RuntimeException 被记录并使场景失败
+--- RUN probe config=prod args= ---
+PROBE_FAILED rc=7 verdict=PASS tag=probe
+PASS probe 非零退出传播到汇总与返回码
+--- RUN probe config=prod args= ---
+RESULT tag=x verdict=PASS
+PASS 正常 PASS 探针通过
+--- RUN probe config=prod args= ---
+NO_RESULT rc=0 tag=probe
+no result
+PASS 无 RESULT 探针失败
+--- RUN probe config=prod args= ---
+PROBE_FAILED rc=1 verdict=FAIL tag=probe
+PASS FAIL 探针返回非零
+SUMMARY_OK rows=16 all_verdicts=PASS
+PASS 完整 16 格 PASS 通过
+SUMMARY_FAIL rows=16 expected=16 all_verdicts=PASS
+PASS FAIL 汇总返回非零
+SUMMARY_FAIL rows=15 expected=16 all_verdicts=PASS
+PASS 缺格汇总返回非零
+SUMMARY_FAIL rows=15 expected=16 all_verdicts=PASS
+PASS 错格汇总返回非零
+PASS 心跳进展正断言通过
+PASS 无心跳进展拒绝
+PASS 心跳错误拒绝
+DRIVER_TESTS_DONE

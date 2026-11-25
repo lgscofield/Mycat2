@@ -1,0 +1,71 @@
+=== backend readiness ===
+BACKEND_READY
+=== compile LiveMatrixProbe ===
+COMPILE_OK
+HOME_CONFIG production-values-unchanged
+MYCAT_UP tag=prod pid=1672
+--- RUN prod-setup config=prod args=setup ---
+RESULT tag=setup setup=OK verdict=PASS
+--- RUN prod-load config=prod args=load 127.0.0.1 8066 32 20 ---
+RESULT tag=load C=32 iter=20 finished=true ops=640 errors=0 wallMs=18141 maxClientInFlight=32 verdict=PASS
+--- RUN prod-threads config=prod args=threads 127.0.0.1 8066 8 32 8 ---
+RESULT tag=threads lowC=8 highC=32 loadSeconds=8 lowFinished=true lowOps=291 lowErrors=0 highFinished=true highOps=591 highErrors=0 baselineIoVt=1 baselinePlatform=45 lowPeakIoVt=29 highPeakIoVt=97 lowPeakPlatform=59 highPeakPlatform=59 lowPlatformGrowth=14 highPlatformGrowth=14 allowedExtraPlatformGrowth=2 noPlatformCarrier=true lowSamples=27 highSamples=30 lowAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,JNA_Cleaner,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 highAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,JNA_Cleaner,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 lowWallMs=8356 highWallMs=8613 verdict=PASS
+--- RUN prod-seq config=prod args=seq 127.0.0.1 8066 8 60 1024 ---
+RESULT tag=seq C=8 permits=1024 perThread=10 hardTimeoutS=60 finished=true wallMs=2368 ok=80 err3007=0 errOther=0 maxId=241 tableRows=80 firstErr= firstOtherErr= verdict=PASS
+--- RUN prod-ddl config=prod args=ddl 127.0.0.1 8066 8 10 ---
+RESULT tag=ddl C=8 rounds=10 finished=true ok=80 errors=0 firstErr= verdict=PASS
+--- RUN prod-r4 config=prod args=http-rule 127.0.0.1 8066 ---
+RESULT tag=http-rule httpRequests=3 routedRows=1 wallMs=3040 stubError= verdict=PASS
+HOME_CONFIG maxPoolSize=3 admitTimeoutMillis=50
+MYCAT_UP tag=small pid=1738
+--- RUN small-setup config=small args=setup ---
+RESULT tag=setup setup=OK verdict=PASS
+--- RUN small-saturate config=small args=saturate 127.0.0.1 8066 3 6 ---
+RESULT tag=saturate permits=3 rejectCode=MYCAT-3007 rejectWaitMs=100 rejectWaitLimitMs=500 warmupMs=2526 connAliveAfterRelease=true activeAfterReject=3 activeAfterBoundaries=3 allFinished=true sleeperErrors=0 sleeper0Error=none sleeper1Error=none sleeper2Error=none boundaryChecks=4 boundarySkipped=0 boundary3007=4 boundaryOther=0 boundaryUnexpected=0 boundaryOtherCodes=none boundaryMaxMs=69 boundaryResults=0:MYCAT-3007:ms=61:active=3;1:MYCAT-3007:ms=60:active=3;2:MYCAT-3007:ms=69:active=3;3:MYCAT-3007:ms=66:active=3; tableRowsAfter=1 verdict=PASS
+--- RUN small-ops config=small args=ops 127.0.0.1 8066 3 10 ---
+RESULT tag=ops heartbeatBefore=1795512093957 heartbeatAdvanced=true threadRows=72 ioVtRows=11 nonEmptyStack=62 opsLatencyMs=893 killAffected=1 killAttempts=1 killId=289 interruptAffected=1 interruptAttempts=1 bogusKillAffected=0 verdict=PASS
+--- RUN small-seq-fit config=small args=seq 127.0.0.1 8066 3 60 3 ---
+RESULT tag=seq C=3 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=1328 ok=30 err3007=0 errOther=0 maxId=31 tableRows=30 firstErr= firstOtherErr= verdict=PASS
+--- RUN small-seq-sat config=small args=seq 127.0.0.1 8066 9 60 3 ---
+RESULT tag=seq C=9 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=3160 ok=65 err3007=7 errOther=0 maxId=96 tableRows=65 firstErr=ERROR-CODE:_[MYCAT-3007][ERR_IO_CONCURRENCY_LIMIT]_IO_�����Ѵ������Ͻ�_3���ȴ�_50ms_��δ��׼�룻���Ժ����ԣ������_workerPool.maxPoolSize firstOtherErr= verdict=PASS
+--- RUN small-abandon config=small args=abandon 127.0.0.1 8066 3 6 ---
+RESULT tag=abandon useConBefore=0 useConPeak=8 peakWaitMs=8 useConAfter=0 rose=true fellBack=true verdict=PASS
+--- RUN small-r5 config=small args=sql-log 127.0.0.1 8066 ---
+RESULT tag=sql-log maxCon=3 sessionHeld=1 blockedSqlLog=1 frontendQuery=1 singleShardTable=r5_sql_log_1795512135522 blockedInsertObserved=true frontendCompleted=true frontendMs=61 loggedRows=3 verdict=PASS
+--- RUN small-deadline config=small args=deadline 127.0.0.1 8066 3 ---
+RESULT tag=deadline  unexpected=0 unexpectedFirst=none afterErr=none permits=3 bounded3013=3 firstBoundMs=2991 admittedAfterDeadline=true admitMs=69 verdict=PASS
+L1_L7_TRAFFIC_SCENARIOS_PASSED=3
+=== L1 pinning ===
+PINNED_FRAMES prod-server.log = 0
+PINNED_FRAMES small-server.log = 0
+L1_PINNED_TOTAL=0
+L1_PINNED_OURS=0
+L1_PINNED_EXEMPT_RXJAVA=0
+=== pinning hotspots ===
+=== L7 heartbeat / backend-dead markers ===
+L7_HEARTBEAT_ERROR_LINES=0
+=== ignored-knob WARN (名实相符) ===
+2026-11-24 17:20:34,930[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:216I-PR-1: workerPool.corePoolSize=1 被忽略——虚拟线程车道无 core 线程，每任务一条 VT，用完即终止
+2026-11-24 17:20:34,932[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:218I-PR-1: workerPool.keepAliveTime=1MINUTES 被忽略——虚拟线程车道无 idle 回收，VT 不缓存不复用
+2026-11-24 17:20:34,933[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:220I-PR-1: workerPool.maxPendingLimit=65535 被忽略——虚拟线程车道无队列；真正界住并发的是 workerPool.maxPoolSize=3（准入许可数）与 workerPool.admitTimeoutMillis=50（准入等待上限，超时即 MYCAT-3007）
+2026-11-24 17:20:34,934[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:223I-PR-1: timeWorkerPool 整段被忽略（corePoolSize=0, maxPoolSize=2）——无队列、无 core、无 idle 回收，该配置当前无消费点
+=== SUMMARY ===
+tag	config	verdict	detail
+prod-setup	prod	PASS	RESULT tag=setup setup=OK verdict=PASS
+prod-load	prod	PASS	RESULT tag=load C=32 iter=20 finished=true ops=640 errors=0 wallMs=18141 maxClientInFlight=32 verdict=PASS
+prod-threads	prod	PASS	RESULT tag=threads lowC=8 highC=32 loadSeconds=8 lowFinished=true lowOps=291 lowErrors=0 highFinished=true highOps=591 highErrors=0 baselineIoVt=1 baselinePlatform=45 lowPeakIoVt=29 highPeakIoVt=97 lowPeakPlatform=59 highPeakPlatform=59 lowPlatformGrowth=14 highPlatformGrowth=14 allowedExtraPlatformGrowth=2 noPlatformCarrier=true lowSamples=27 highSamples=30 lowAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,JNA_Cleaner,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 highAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,JNA_Cleaner,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 lowWallMs=8356 highWallMs=8613 verdict=PASS
+prod-seq	prod	PASS	RESULT tag=seq C=8 permits=1024 perThread=10 hardTimeoutS=60 finished=true wallMs=2368 ok=80 err3007=0 errOther=0 maxId=241 tableRows=80 firstErr= firstOtherErr= verdict=PASS
+prod-ddl	prod	PASS	RESULT tag=ddl C=8 rounds=10 finished=true ok=80 errors=0 firstErr= verdict=PASS
+prod-r4	prod	PASS	RESULT tag=http-rule httpRequests=3 routedRows=1 wallMs=3040 stubError= verdict=PASS
+small-setup	small	PASS	RESULT tag=setup setup=OK verdict=PASS
+small-saturate	small	PASS	RESULT tag=saturate permits=3 rejectCode=MYCAT-3007 rejectWaitMs=100 rejectWaitLimitMs=500 warmupMs=2526 connAliveAfterRelease=true activeAfterReject=3 activeAfterBoundaries=3 allFinished=true sleeperErrors=0 sleeper0Error=none sleeper1Error=none sleeper2Error=none boundaryChecks=4 boundarySkipped=0 boundary3007=4 boundaryOther=0 boundaryUnexpected=0 boundaryOtherCodes=none boundaryMaxMs=69 boundaryResults=0:MYCAT-3007:ms=61:active=3;1:MYCAT-3007:ms=60:active=3;2:MYCAT-3007:ms=69:active=3;3:MYCAT-3007:ms=66:active=3; tableRowsAfter=1 verdict=PASS
+small-ops	small	PASS	RESULT tag=ops heartbeatBefore=1795512093957 heartbeatAdvanced=true threadRows=72 ioVtRows=11 nonEmptyStack=62 opsLatencyMs=893 killAffected=1 killAttempts=1 killId=289 interruptAffected=1 interruptAttempts=1 bogusKillAffected=0 verdict=PASS
+small-seq-fit	small	PASS	RESULT tag=seq C=3 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=1328 ok=30 err3007=0 errOther=0 maxId=31 tableRows=30 firstErr= firstOtherErr= verdict=PASS
+small-seq-sat	small	PASS	RESULT tag=seq C=9 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=3160 ok=65 err3007=7 errOther=0 maxId=96 tableRows=65 firstErr=ERROR-CODE:_[MYCAT-3007][ERR_IO_CONCURRENCY_LIMIT]_IO_�����Ѵ������Ͻ�_3���ȴ�_50ms_��δ��׼�룻���Ժ����ԣ������_workerPool.maxPoolSize firstOtherErr= verdict=PASS
+small-abandon	small	PASS	RESULT tag=abandon useConBefore=0 useConPeak=8 peakWaitMs=8 useConAfter=0 rose=true fellBack=true verdict=PASS
+small-r5	small	PASS	RESULT tag=sql-log maxCon=3 sessionHeld=1 blockedSqlLog=1 frontendQuery=1 singleShardTable=r5_sql_log_1795512135522 blockedInsertObserved=true frontendCompleted=true frontendMs=61 loggedRows=3 verdict=PASS
+small-deadline	small	PASS	RESULT tag=deadline  unexpected=0 unexpectedFirst=none afterErr=none permits=3 bounded3013=3 firstBoundMs=2991 admittedAfterDeadline=true admitMs=69 verdict=PASS
+L1-pinning	both	PASS	pinnedFrames=0 ours=0 exemptRxJava=0 trafficScenarios=3
+L7-heartbeat	both	PASS	heartbeatErrorLines=0 trafficScenarios=3 heartbeatAdvanced=true
+SUMMARY_OK rows=16 all_verdicts=PASS
+LIVE_MATRIX_DONE failed=0

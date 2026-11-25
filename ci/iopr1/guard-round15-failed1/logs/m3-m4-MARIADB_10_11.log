@@ -1,0 +1,316 @@
+抬升 127.0.0.1:3306 max_connections=1000 (I-DEBT-7B)
+抬升 127.0.0.1:3307 max_connections=1000 (I-DEBT-7B)
+POSTURE(persona=MARIADB_10_11) front(8066)=[10.11.8-MariaDB] want=^10\.11\..*MariaDB
+POSTURE OK
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------------< io.mycat:example >--------------------------
+[INFO] Building example 1.22-release
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ example ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\example\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ example ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ example ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ example ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ example ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running io.mycat.compat.DumpRestoreRoundTripMatrixTest
+2026-11-25 10:01:21,729[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-25 10:01:21,734[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: clickhouse-jdbc 0.7.2 (revision: 33b1fad)
+2026-11-25 10:01:21,736[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-25 10:01:21,736[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-25 10:01:21,741[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-25 10:01:21,841[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: clickhouse-jdbc 0.7.2 (revision: 33b1fad)
+2026-11-25 10:01:21,842[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-25 10:01:21,842[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-25 10:01:21,846[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-25 10:01:21,869[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+2026-11-25 10:01:22,695[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-25 10:01:22,890[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-25 10:01:23,123[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-25 10:01:23,312[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump
+create database dbdump
+2026-11-25 10:01:23,396[INFO]io.mycat.assemble.MycatTest.execute:105create table dbdump.t1 (id int not null primary key, name varchar(64), amount decimal(10,2), ts datetime null, gen int as (id * 2) stored, b bit(8), txt text)
+create table dbdump.t1 (id int not null primary key, name varchar(64), amount decimal(10,2), ts datetime null, gen int as (id * 2) stored, b bit(8), txt text)
+2026-11-25 10:01:24,158[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbdump.t1 (id,name,amount,ts,b,txt) values (1,'a',10.50,'2026-01-01 10:00:00',b'10101010','hello')
+insert into dbdump.t1 (id,name,amount,ts,b,txt) values (1,'a',10.50,'2026-01-01 10:00:00',b'10101010','hello')
+2026-11-25 10:01:24,418[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbdump.t1 (id,name,amount,ts,b,txt) values (2,'b',20.75,null,b'11111111','plain')
+insert into dbdump.t1 (id,name,amount,ts,b,txt) values (2,'b',20.75,null,b'11111111','plain')
+2026-11-25 10:01:25,199[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump_restore
+drop database if exists dbdump_restore
+2026-11-25 10:01:25,222[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump_restore
+create database dbdump_restore
+2026-11-25 10:01:25,326[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE IF NOT EXISTS `dbdump_restore`.t1 (
+	id int NOT NULL PRIMARY KEY,
+	name varchar(64),
+	amount decimal(10, 2),
+	ts datetime NULL,
+	gen int AS (id * 2) STORED,
+	b bit(8),
+	txt text
+)
+CREATE TABLE IF NOT EXISTS `dbdump_restore`.t1 (
+	id int NOT NULL PRIMARY KEY,
+	name varchar(64),
+	amount decimal(10, 2),
+	ts datetime NULL,
+	gen int AS (id * 2) STORED,
+	b bit(8),
+	txt text
+)
+2026-11-25 10:01:26,359[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-25 10:01:26,613[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-25 10:01:26,639[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump_restore
+drop database if exists dbdump_restore
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.667 s -- in io.mycat.compat.DumpRestoreRoundTripMatrixTest
+[INFO] Running io.mycat.compat.DumpSurfaceMatrixTest
+2026-11-25 10:01:26,951[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-25 10:01:26,960[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-25 10:01:27,020[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump
+create database dbdump
+2026-11-25 10:01:27,118[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-25 10:01:27,122[INFO]io.mycat.assemble.MycatTest.execute:105create table t1 (id int not null primary key, name varchar(64), amount decimal(10,2) default null, ts timestamp null, gen int as (id * 2), key idx_name(name))
+create table t1 (id int not null primary key, name varchar(64), amount decimal(10,2) default null, ts timestamp null, gen int as (id * 2), key idx_name(name))
+2026-11-25 10:01:27,626[INFO]io.mycat.assemble.MycatTest.execute:105insert into t1 (id, name, amount) values (1, 'a', 10.5), (2, 'b', 20.75)
+insert into t1 (id, name, amount) values (1, 'a', 10.5), (2, 'b', 20.75)
+2026-11-25 10:01:28,142[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-25 10:01:28,149[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-2} inited
+2026-11-25 10:01:29,055[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-25 10:01:29,763[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-25 10:01:29,951[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.140 s -- in io.mycat.compat.DumpSurfaceMatrixTest
+[INFO] Running io.mycat.compat.MigrateMatrixTest
+2026-11-25 10:01:30,084[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-25 10:01:30,090[INFO]io.mycat.assemble.MycatTest.execute:105CREATE DATABASE IF NOT EXISTS db1
+CREATE DATABASE IF NOT EXISTS db1
+2026-11-25 10:01:30,156[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE IF NOT EXISTS db1.`mig_src` (
+  `id` bigint NOT NULL,
+  `val` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+CREATE TABLE IF NOT EXISTS db1.`mig_src` (
+  `id` bigint NOT NULL,
+  `val` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+2026-11-25 10:01:30,343[INFO]io.mycat.assemble.MycatTest.execute:105DELETE FROM db1.mig_src
+DELETE FROM db1.mig_src
+2026-11-25 10:01:30,416[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(1, 'v1')
+INSERT INTO db1.mig_src (id, val) VALUES(1, 'v1')
+2026-11-25 10:01:30,510[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(2, 'v2')
+INSERT INTO db1.mig_src (id, val) VALUES(2, 'v2')
+2026-11-25 10:01:30,597[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(3, 'v3')
+INSERT INTO db1.mig_src (id, val) VALUES(3, 'v3')
+2026-11-25 10:01:30,627[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(4, 'v4')
+INSERT INTO db1.mig_src (id, val) VALUES(4, 'v4')
+2026-11-25 10:01:30,683[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(5, 'v5')
+INSERT INTO db1.mig_src (id, val) VALUES(5, 'v5')
+2026-11-25 10:01:30,763[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(6, 'v6')
+INSERT INTO db1.mig_src (id, val) VALUES(6, 'v6')
+2026-11-25 10:01:30,858[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(7, 'v7')
+INSERT INTO db1.mig_src (id, val) VALUES(7, 'v7')
+2026-11-25 10:01:30,955[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(8, 'v8')
+INSERT INTO db1.mig_src (id, val) VALUES(8, 'v8')
+2026-11-25 10:01:31,049[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(9, 'v9')
+INSERT INTO db1.mig_src (id, val) VALUES(9, 'v9')
+2026-11-25 10:01:31,145[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(10, 'v10')
+INSERT INTO db1.mig_src (id, val) VALUES(10, 'v10')
+2026-11-25 10:01:31,248[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(11, 'v11')
+INSERT INTO db1.mig_src (id, val) VALUES(11, 'v11')
+2026-11-25 10:01:31,344[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(12, 'v12')
+INSERT INTO db1.mig_src (id, val) VALUES(12, 'v12')
+2026-11-25 10:01:31,436[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(13, 'v13')
+INSERT INTO db1.mig_src (id, val) VALUES(13, 'v13')
+2026-11-25 10:01:31,546[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(14, 'v14')
+INSERT INTO db1.mig_src (id, val) VALUES(14, 'v14')
+2026-11-25 10:01:31,639[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(15, 'v15')
+INSERT INTO db1.mig_src (id, val) VALUES(15, 'v15')
+2026-11-25 10:01:31,720[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(16, 'v16')
+INSERT INTO db1.mig_src (id, val) VALUES(16, 'v16')
+2026-11-25 10:01:31,886[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(17, 'v17')
+INSERT INTO db1.mig_src (id, val) VALUES(17, 'v17')
+2026-11-25 10:01:31,980[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(18, 'v18')
+INSERT INTO db1.mig_src (id, val) VALUES(18, 'v18')
+2026-11-25 10:01:32,067[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(19, 'v19')
+INSERT INTO db1.mig_src (id, val) VALUES(19, 'v19')
+2026-11-25 10:01:32,094[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(20, 'v20')
+INSERT INTO db1.mig_src (id, val) VALUES(20, 'v20')
+2026-11-25 10:01:32,152[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(21, 'v21')
+INSERT INTO db1.mig_src (id, val) VALUES(21, 'v21')
+2026-11-25 10:01:32,220[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(22, 'v22')
+INSERT INTO db1.mig_src (id, val) VALUES(22, 'v22')
+2026-11-25 10:01:32,308[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(23, 'v23')
+INSERT INTO db1.mig_src (id, val) VALUES(23, 'v23')
+2026-11-25 10:01:32,380[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(24, 'v24')
+INSERT INTO db1.mig_src (id, val) VALUES(24, 'v24')
+2026-11-25 10:01:32,417[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(25, 'v25')
+INSERT INTO db1.mig_src (id, val) VALUES(25, 'v25')
+2026-11-25 10:01:32,449[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(26, 'v26')
+INSERT INTO db1.mig_src (id, val) VALUES(26, 'v26')
+2026-11-25 10:01:32,487[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(27, 'v27')
+INSERT INTO db1.mig_src (id, val) VALUES(27, 'v27')
+2026-11-25 10:01:32,576[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(28, 'v28')
+INSERT INTO db1.mig_src (id, val) VALUES(28, 'v28')
+2026-11-25 10:01:32,652[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(29, 'v29')
+INSERT INTO db1.mig_src (id, val) VALUES(29, 'v29')
+2026-11-25 10:01:32,685[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(30, 'v30')
+INSERT INTO db1.mig_src (id, val) VALUES(30, 'v30')
+2026-11-25 10:01:32,718[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(31, 'v31')
+INSERT INTO db1.mig_src (id, val) VALUES(31, 'v31')
+2026-11-25 10:01:32,755[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(32, 'v32')
+INSERT INTO db1.mig_src (id, val) VALUES(32, 'v32')
+2026-11-25 10:01:32,847[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(33, 'v33')
+INSERT INTO db1.mig_src (id, val) VALUES(33, 'v33')
+2026-11-25 10:01:32,919[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(34, 'v34')
+INSERT INTO db1.mig_src (id, val) VALUES(34, 'v34')
+2026-11-25 10:01:33,002[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(35, 'v35')
+INSERT INTO db1.mig_src (id, val) VALUES(35, 'v35')
+2026-11-25 10:01:33,030[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(36, 'v36')
+INSERT INTO db1.mig_src (id, val) VALUES(36, 'v36')
+2026-11-25 10:01:33,091[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(37, 'v37')
+INSERT INTO db1.mig_src (id, val) VALUES(37, 'v37')
+2026-11-25 10:01:33,169[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(38, 'v38')
+INSERT INTO db1.mig_src (id, val) VALUES(38, 'v38')
+2026-11-25 10:01:33,259[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(39, 'v39')
+INSERT INTO db1.mig_src (id, val) VALUES(39, 'v39')
+2026-11-25 10:01:33,284[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(40, 'v40')
+INSERT INTO db1.mig_src (id, val) VALUES(40, 'v40')
+2026-11-25 10:01:33,318[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(41, 'v41')
+INSERT INTO db1.mig_src (id, val) VALUES(41, 'v41')
+2026-11-25 10:01:33,369[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(42, 'v42')
+INSERT INTO db1.mig_src (id, val) VALUES(42, 'v42')
+2026-11-25 10:01:33,454[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(43, 'v43')
+INSERT INTO db1.mig_src (id, val) VALUES(43, 'v43')
+2026-11-25 10:01:33,515[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(44, 'v44')
+INSERT INTO db1.mig_src (id, val) VALUES(44, 'v44')
+2026-11-25 10:01:33,549[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(45, 'v45')
+INSERT INTO db1.mig_src (id, val) VALUES(45, 'v45')
+2026-11-25 10:01:33,625[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(46, 'v46')
+INSERT INTO db1.mig_src (id, val) VALUES(46, 'v46')
+2026-11-25 10:01:33,711[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(47, 'v47')
+INSERT INTO db1.mig_src (id, val) VALUES(47, 'v47')
+2026-11-25 10:01:33,792[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(48, 'v48')
+INSERT INTO db1.mig_src (id, val) VALUES(48, 'v48')
+2026-11-25 10:01:33,817[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(49, 'v49')
+INSERT INTO db1.mig_src (id, val) VALUES(49, 'v49')
+2026-11-25 10:01:33,881[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(50, 'v50')
+INSERT INTO db1.mig_src (id, val) VALUES(50, 'v50')
+2026-11-25 10:01:33,978[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(51, 'v51')
+INSERT INTO db1.mig_src (id, val) VALUES(51, 'v51')
+2026-11-25 10:01:33,999[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(52, 'v52')
+INSERT INTO db1.mig_src (id, val) VALUES(52, 'v52')
+2026-11-25 10:01:34,072[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(53, 'v53')
+INSERT INTO db1.mig_src (id, val) VALUES(53, 'v53')
+2026-11-25 10:01:34,100[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(54, 'v54')
+INSERT INTO db1.mig_src (id, val) VALUES(54, 'v54')
+2026-11-25 10:01:34,168[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(55, 'v55')
+INSERT INTO db1.mig_src (id, val) VALUES(55, 'v55')
+2026-11-25 10:01:34,258[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(56, 'v56')
+INSERT INTO db1.mig_src (id, val) VALUES(56, 'v56')
+2026-11-25 10:01:34,297[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(57, 'v57')
+INSERT INTO db1.mig_src (id, val) VALUES(57, 'v57')
+2026-11-25 10:01:34,337[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(58, 'v58')
+INSERT INTO db1.mig_src (id, val) VALUES(58, 'v58')
+2026-11-25 10:01:34,423[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(59, 'v59')
+INSERT INTO db1.mig_src (id, val) VALUES(59, 'v59')
+2026-11-25 10:01:34,515[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(60, 'v60')
+INSERT INTO db1.mig_src (id, val) VALUES(60, 'v60')
+2026-11-25 10:01:34,593[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(61, 'v61')
+INSERT INTO db1.mig_src (id, val) VALUES(61, 'v61')
+2026-11-25 10:01:34,672[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(62, 'v62')
+INSERT INTO db1.mig_src (id, val) VALUES(62, 'v62')
+2026-11-25 10:01:34,759[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO db1.mig_src (id, val) VALUES(63, 'v63')
+INSERT INTO db1.mig_src (id, val) VALUES(63, 'v63')
+2026-11-25 10:01:34,791[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE IF NOT EXISTS db1.`mig_dst` (
+  `id` bigint NOT NULL,
+  `val` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+CREATE TABLE IF NOT EXISTS db1.`mig_dst` (
+  `id` bigint NOT NULL,
+  `val` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+2026-11-25 10:01:34,952[INFO]io.mycat.assemble.MycatTest.execute:105DELETE FROM db1.mig_dst
+DELETE FROM db1.mig_dst
+2026-11-25 10:01:35,275[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE{
+  "name" : "matrixNormalToNormal",
+  "input" : {
+    "schemaName" : "db1",
+    "tableName" : "mig_src",
+    "type" : null,
+    "url" : null,
+    "username" : null,
+    "password" : null,
+    "sql" : null,
+    "count" : 0,
+    "properties" : { }
+  },
+  "output" : {
+    "schemaName" : "db1",
+    "tableName" : "mig_dst",
+    "type" : null,
+    "url" : null,
+    "username" : null,
+    "password" : null,
+    "properties" : { },
+    "parallelism" : 1,
+    "batch" : 1000
+  },
+  "cmd" : "MIGRATE"
+} */;
+2026-11-25 10:01:35,642[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:35,856[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:36,072[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:36,287[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:36,503[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:36,718[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:36,932[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:37,147[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:37,363[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:37,580[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:37,793[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,008[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,227[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,441[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,657[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,873[INFO]io.mycat.assemble.MycatTest.executeQuery:120/*+ mycat:MIGRATE_LIST{} */;
+2026-11-25 10:01:38,879[INFO]io.mycat.assemble.MycatTest.executeQuery:120SELECT COUNT(*) AS cnt FROM db1.mig_src
+2026-11-25 10:01:38,901[INFO]io.mycat.assemble.MycatTest.executeQuery:120SELECT COUNT(*) AS cnt FROM db1.mig_dst
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.977 s -- in io.mycat.compat.MigrateMatrixTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  26.763 s
+[INFO] Finished at: 2026-11-25T10:01:39+08:00
+[INFO] ------------------------------------------------------------------------

@@ -1,0 +1,12 @@
+2026-11-24 10:59:59,554[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 10:59:59,557[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 10:59:59,557[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 10:59:59,557[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 10:59:59,566[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 10:59:59,617[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 10:59:59,617[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 10:59:59,617[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 10:59:59,626[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 10:59:59,650[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+SETUP smokeLastInsertId=[1]
+RESULT tag=setup setup=OK verdict=PASS

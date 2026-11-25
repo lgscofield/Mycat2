@@ -1,0 +1,3 @@
+tag	config	verdict	detail
+small-setup	small	PASS	RESULT tag=setup setup=OK verdict=PASS
+small-saturate	small	PASS	RESULT tag=saturate permits=3 rejectCode=MYCAT-3007 rejectWaitMs=80 rejectWaitLimitMs=500 warmupMs=1234 connAliveAfterRelease=true activeAfterReject=3 activeAfterBoundaries=3 allFinished=true sleeperErrors=0 sleeper0Error=none sleeper1Error=none sleeper2Error=none boundaryChecks=4 boundarySkipped=0 boundary3007=4 boundaryOther=0 boundaryUnexpected=0 boundaryOtherCodes=none boundaryMaxMs=62 boundaryResults=0:MYCAT-3007:ms=61:active=3;1:MYCAT-3007:ms=59:active=3;2:MYCAT-3007:ms=59:active=3;3:MYCAT-3007:ms=62:active=3; tableRowsAfter=1 verdict=PASS

@@ -1,0 +1,707 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] parent                                                             [pom]
+[INFO] config                                                             [jar]
+[INFO] Mycat2 Protocol                                                    [jar]
+[INFO] common                                                             [jar]
+[INFO] router                                                             [jar]
+[INFO] plug                                                               [jar]
+[INFO] replica                                                            [jar]
+[INFO] datasource                                                         [jar]
+[INFO] va                                                                 [jar]
+[INFO] proxy                                                              [jar]
+[INFO] calcite-core (Mycat fork)                                          [jar]
+[INFO] hbt                                                                [jar]
+[INFO] executor                                                           [jar]
+[INFO] server                                                             [jar]
+[INFO] 
+[INFO] --------------------------< io.mycat:parent >---------------------------
+[INFO] Building parent 1.22-release                                      [1/14]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --------------------------< io.mycat:config >---------------------------
+[INFO] Building config 1.22-release                                      [2/14]
+[INFO]   from config\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ config ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\config\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ config ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ config ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\config\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ config ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ config ---
+[INFO] 
+[INFO] -------------------------< io.mycat:protocol >--------------------------
+[INFO] Building Mycat2 Protocol 1.22-release                             [3/14]
+[INFO]   from protocol\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ protocol ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ protocol ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ protocol ---
+[INFO] Copying 0 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ protocol ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ protocol ---
+[INFO] 
+[INFO] --------------------------< io.mycat:common >---------------------------
+[INFO] Building common 1.22-release                                      [4/14]
+[INFO]   from common\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ common ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\common\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ common ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 223 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/BackendTableInfo.java:[29,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/SchemaInfo.java:[27,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/IndexBackendTableInfo.java:[28,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[241,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[244,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[246,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[248,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[250,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[252,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[254,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[256,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[258,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[260,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[262,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[264,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[266,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[268,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[270,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[272,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[274,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[276,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[278,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[280,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[282,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[283,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[285,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[287,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[290,34] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[292,30] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[293,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[295,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[297,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[299,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[301,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[724,32] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[725,35] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ common ---
+[INFO] Copying 0 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ common ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 15 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/test/java/io/mycat/IOExecutorFromVertxTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/test/java/io/mycat/IOExecutorFromVertxTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ common ---
+[INFO] 
+[INFO] --------------------------< io.mycat:router >---------------------------
+[INFO] Building router 1.22-release                                      [5/14]
+[INFO]   from router\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ router ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ router ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 52 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[10,1] Not generating toString(): A method with that name already exists
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ router ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\router\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ router ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/test/java/io/mycat/router/mycat1xfunction/PartitionByHotDateTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/test/java/io/mycat/router/mycat1xfunction/PartitionByHotDateTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ router ---
+[INFO] 
+[INFO] ---------------------------< io.mycat:plug >----------------------------
+[INFO] Building plug 1.22-release                                        [6/14]
+[INFO]   from plug\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ plug ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ plug ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 19 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\java\io\mycat\plug\sequence\SequenceGenerator.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ plug ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\plug\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ plug ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ plug ---
+[INFO] 
+[INFO] --------------------------< io.mycat:replica >--------------------------
+[INFO] Building replica 1.22-release                                     [7/14]
+[INFO]   from replica\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ replica ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\replica\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ replica ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 21 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[111,17] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[112,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ replica ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\replica\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ replica ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ replica ---
+[INFO] 
+[INFO] ------------------------< io.mycat:datasource >-------------------------
+[INFO] Building datasource 1.22-release                                  [8/14]
+[INFO]   from datasource\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ datasource ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\datasource\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ datasource ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 33 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ datasource ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\datasource\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ datasource ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/test/java/io/mycat/datasource/jdbc/datasource/DefaultConnectionAbortTest.java: D:\Workspaces\IdeaProjects\Mycat2\datasource\src\test\java\io\mycat\datasource\jdbc\datasource\DefaultConnectionAbortTest.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/test/java/io/mycat/datasource/jdbc/datasource/DefaultConnectionAbortTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ datasource ---
+[INFO] 
+[INFO] ----------------------------< io.mycat:va >-----------------------------
+[INFO] Building va 1.22-release                                          [9/14]
+[INFO]   from va\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ va ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\va\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ va ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 23 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ va ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\va\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ va ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 7 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/test/java/cn/mycat/vertx/xa/impl/XaRecoveryIdempotencyTest.java: D:\Workspaces\IdeaProjects\Mycat2\va\src\test\java\cn\mycat\vertx\xa\impl\XaRecoveryIdempotencyTest.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/test/java/cn/mycat/vertx/xa/impl/XaRecoveryIdempotencyTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ va ---
+[INFO] 
+[INFO] ---------------------------< io.mycat:proxy >---------------------------
+[INFO] Building proxy 1.22-release                                      [10/14]
+[INFO]   from proxy\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ proxy ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\proxy\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ proxy ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 92 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/handler/backend/MySQLSynContextImpl.java:[26,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[353,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[354,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[136,18] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[137,10] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[467,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[468,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ proxy ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\proxy\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ proxy ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/test/java/io/mycat/MySQLVariablesUtilSqlModeTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/test/java/io/mycat/MySQLVariablesUtilSqlModeTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ proxy ---
+[INFO] 
+[INFO] -----------------------< io.mycat:calcite-core >------------------------
+[INFO] Building calcite-core (Mycat fork) 1.42.0-mycat                  [11/14]
+[INFO]   from calcite-core\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ calcite-core ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ calcite-core ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\calcite-core\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ calcite-core ---
+[INFO] 
+[INFO] ----------------------------< io.mycat:hbt >----------------------------
+[INFO] Building hbt 1.22-release                                        [12/14]
+[INFO]   from hbt\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hbt ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\hbt\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ hbt ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 578 source files with javac [debug target 21] to target\classes
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[50,17] (immutables:incompat) 'singleton' feature contains potentially unsafe cast with generics  <C extends io.mycat.calcite.rewriter.MycatFilterJoinRule.Config>. Can be safe if immutable covariant conversion is possible
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MycatSchema.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/Explains.java:[41,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/ModifyFromSql.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MetadataManager.java:[55,5] Not generating getPrototype(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Expr.java:[29,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Fun.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/AggregateCall.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Param.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/MergeModify.java:[10,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Identifier.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Literal.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/FieldType.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Schema.java:[25,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/spm/DbPlanManagerPersistorImpl.java:[32,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/prototypeserver/mysql/PrototypeService.java:[51,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/sql/visitor/MycatOutputVisitor.java:[61,18] java.security 中的 java.security.AccessControlException 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/query/AnonyTableSchema.java:[44,40] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ hbt ---
+[INFO] Copying 5 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ hbt ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 82 source files with javac [debug target 21] to target\test-classes
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/test/java/io/mycat/calcite/MycatBindableContractTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/test/java/io/mycat/calcite/MycatBindableContractTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ hbt ---
+[INFO] 
+[INFO] -------------------------< io.mycat:executor >--------------------------
+[INFO] Building executor 1.22-release                                   [13/14]
+[INFO]   from executor\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ executor ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ executor ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 486 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/record/RecordImpl.java:[26,1] Not generating equals and hashCode: A method with one of those names already exists. (Either both or none of these methods will be generated).
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ executor ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\executor\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ executor ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 6 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ executor ---
+[INFO] 
+[INFO] --------------------------< io.mycat:server >---------------------------
+[INFO] Building server 1.22-release                                     [14/14]
+[INFO]   from server\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- buildnumber:3.2.1:create (default) @ server ---
+[WARNING] The timestampFormat parameter now uses java.text.SimpleDateFormat.
+[WARNING] Please update your POM as support for java.text.MessageFormat may be removed.
+[INFO] Storing buildNumber: {1} at timestamp: 20261124182209
+[INFO] Executing: cmd.exe /X /C "git symbolic-ref HEAD"
+[INFO] Working directory: D:\Workspaces\IdeaProjects\Mycat2\server
+[INFO] Storing scmBranch: main
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version) @ server ---
+[INFO] Replacement run on 1 file.
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ server ---
+[INFO] Copying 19 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 274 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogStopHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineUpdateHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/InterruptThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/PauseServerHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineParameterizeHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateStopHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[230,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogClearHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/DropSchemaHint.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/ReadyToCloseSQLHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/CreateUserHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogSyncHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineAddHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineListHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogSnapshotHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/KillThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/exporter/MySQLLogConsumer.java:[25,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[289,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[62,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[63,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[549,79] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[585,96] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ server ---
+[INFO] Copying 4 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 67 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/commands/JdbcDatasourcePoolAbandonTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/commands/JdbcDatasourcePoolAbandonTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/vertx/FrontendStartTlsUpgradeTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/vertx/FrontendStartTlsUpgradeTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ server ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running io.mycat.commands.MycatdbCommandVersionCommentTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.344 s -- in io.mycat.commands.MycatdbCommandVersionCommentTest
+[INFO] Running io.mycat.FrontendAdmissionWiringTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (D:\Nexus\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-11-24 18:22:53,414[DEBUG]io.netty.util.internal.logging.InternalLoggerFactory.useSlf4JLoggerFactory:63Using SLF4J as the default logging framework
+2026-11-24 18:22:53,426[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:129-Dio.netty.leakDetection.level: simple
+2026-11-24 18:22:53,427[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:130-Dio.netty.leakDetection.targetRecords: 4
+2026-11-24 18:22:53,507[DEBUG]io.netty.util.internal.PlatformDependent0.explicitNoUnsafeCause0:554-Dio.netty.noUnsafe: false
+2026-11-24 18:22:53,508[DEBUG]io.netty.util.internal.PlatformDependent0.javaVersion0:1072Java version: 21
+2026-11-24 18:22:53,513[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:140sun.misc.Unsafe.theUnsafe: available
+2026-11-24 18:22:53,515[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:203sun.misc.Unsafe base methods: all available
+2026-11-24 18:22:53,517[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:235sun.misc.Unsafe.storeFence: available
+2026-11-24 18:22:53,519[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:278java.nio.Buffer.address: available
+2026-11-24 18:22:53,521[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:364direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
+2026-11-24 18:22:53,522[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:442java.nio.Bits.unaligned: available, true
+2026-11-24 18:22:53,525[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:510jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @3ec300f1
+2026-11-24 18:22:53,528[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:540java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+2026-11-24 18:22:53,528[DEBUG]io.netty.util.internal.PlatformDependent.unsafeUnavailabilityCause0:1196sun.misc.Unsafe: available
+2026-11-24 18:22:53,530[DEBUG]io.netty.util.internal.PlatformDependent.tmpdir0:1342-Dio.netty.tmpdir: C:\Users\ligh208\AppData\Local\Temp (java.io.tmpdir)
+2026-11-24 18:22:53,531[DEBUG]io.netty.util.internal.PlatformDependent.bitMode0:1421-Dio.netty.bitMode: 64 (sun.arch.data.model)
+2026-11-24 18:22:53,532[DEBUG]io.netty.util.internal.PlatformDependent.isWindows0:1156Platform: Windows
+2026-11-24 18:22:53,534[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:180-Dio.netty.maxDirectMemory: -1 bytes
+2026-11-24 18:22:53,535[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:187-Dio.netty.uninitializedArrayAllocationThreshold: -1
+2026-11-24 18:22:53,540[DEBUG]io.netty.util.internal.CleanerJava9.<clinit>:71java.nio.ByteBuffer.cleaner(): available
+2026-11-24 18:22:53,540[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:207-Dio.netty.noPreferDirect: false
+2026-11-24 18:22:53,543[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:161-Dio.netty.allocator.numHeapArenas: 24
+2026-11-24 18:22:53,543[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:162-Dio.netty.allocator.numDirectArenas: 24
+2026-11-24 18:22:53,545[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:164-Dio.netty.allocator.pageSize: 8192
+2026-11-24 18:22:53,545[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:169-Dio.netty.allocator.maxOrder: 9
+2026-11-24 18:22:53,546[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:173-Dio.netty.allocator.chunkSize: 4194304
+2026-11-24 18:22:53,546[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:174-Dio.netty.allocator.smallCacheSize: 256
+2026-11-24 18:22:53,547[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:175-Dio.netty.allocator.normalCacheSize: 64
+2026-11-24 18:22:53,548[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:176-Dio.netty.allocator.maxCachedBufferCapacity: 32768
+2026-11-24 18:22:53,549[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:177-Dio.netty.allocator.cacheTrimInterval: 8192
+2026-11-24 18:22:53,549[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:178-Dio.netty.allocator.cacheTrimIntervalMillis: 0
+2026-11-24 18:22:53,549[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:179-Dio.netty.allocator.useCacheForAllThreads: false
+2026-11-24 18:22:53,550[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:180-Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+2026-11-24 18:22:53,550[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:182-Dio.netty.allocator.disableCacheFinalizersForFastThreadLocalThreads: false
+2026-11-24 18:22:53,560[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:100-Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+2026-11-24 18:22:53,560[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:101-Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+2026-11-24 18:22:53,593[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:63-Dio.netty.buffer.checkAccessible: true
+2026-11-24 18:22:53,593[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:64-Dio.netty.buffer.checkBounds: true
+2026-11-24 18:22:53,596[DEBUG]io.netty.util.ResourceLeakDetectorFactory.newResourceLeakDetector:196Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@23cbbd07
+2026-11-24 18:22:53,742[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:53,742[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66show @@thread # /*
+; DELETE FROM t
+2026-11-24 18:22:53,749[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:53,751[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66select 1
+2026-11-24 18:22:53,764[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:53,764[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66select 1
+2026-11-24 18:22:53,767[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select 1
+2026-11-24 18:22:54,376[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:54,377[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66select 1
+2026-11-24 18:22:54,450[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:54,452[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66select 1
+tempDirectory:C:\Users\ligh208\AppData\Local\Temp\mycat_temp_directory17315823571215369311
+path:C:\Users\ligh208\AppData\Local\Temp\mycat-pr1-wiring-11430625700691421366
+2026-11-24 18:22:55,260[DEBUG]io.vertx.core.logging.LoggerFactory.?:?Using io.vertx.core.logging.SLF4JLogDelegateFactory
+2026-11-24 18:22:55,404[DEBUG]io.netty.channel.MultithreadEventLoopGroup.<clinit>:44-Dio.netty.eventLoopThreads: 24
+2026-11-24 18:22:55,435[DEBUG]io.netty.util.concurrent.GlobalEventExecutor.<clinit>:54-Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+2026-11-24 18:22:55,463[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:110-Dio.netty.noKeySetOptimization: false
+2026-11-24 18:22:55,464[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:111-Dio.netty.selectorAutoRebuildThreshold: 512
+2026-11-24 18:22:55,492[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:1030org.jctools-core.MpscChunkedArrayQueue: available
+2026-11-24 18:22:55,727[DEBUG]io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:98Default DNS servers: [/10.35.5.11:53, /114.114.114.114:53] (sun.net.dns.ResolverConfiguration)
+2026-11-24 18:22:55,778[DEBUG]io.netty.util.NetUtil.<clinit>:149-Djava.net.preferIPv4Stack: false
+2026-11-24 18:22:55,778[DEBUG]io.netty.util.NetUtil.<clinit>:150-Djava.net.preferIPv6Addresses: false
+2026-11-24 18:22:55,785[DEBUG]io.netty.util.NetUtilInitializations.determineLoopback:145Loopback interface: loopback_0 (Software Loopback Interface 1, 0:0:0:0:0:0:0:1)
+2026-11-24 18:22:55,788[DEBUG]io.netty.util.NetUtil.run:216Failed to get SOMAXCONN from sysctl and file \proc\sys\net\core\somaxconn. Default: 200
+2026-11-24 18:22:55,790[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:149Default ResolvedAddressTypes: IPV4_PREFERRED
+2026-11-24 18:22:55,790[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:150Localhost address: localhost/127.0.0.1
+2026-11-24 18:22:55,813[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:159Windows hostname: DESKTOP-PBM6UFB
+2026-11-24 18:22:55,814[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:172Default search domains: []
+2026-11-24 18:22:55,822[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:181Default UnixResolverOptions{ndots=1, timeout=5, attempts=16}
+2026-11-24 18:22:55,847[DEBUG]io.netty.resolver.DefaultHostsFileEntriesResolver.<clinit>:53-Dio.netty.hostsFileRefreshInterval: 0
+2026-11-24 18:22:55,936[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:216I-PR-1: workerPool.corePoolSize=1 被忽略——虚拟线程车道无 core 线程，每任务一条 VT，用完即终止
+2026-11-24 18:22:55,937[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:218I-PR-1: workerPool.keepAliveTime=1MINUTES 被忽略——虚拟线程车道无 idle 回收，VT 不缓存不复用
+2026-11-24 18:22:55,938[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:220I-PR-1: workerPool.maxPendingLimit=65535 被忽略——虚拟线程车道无队列；真正界住并发的是 workerPool.maxPoolSize=7（准入许可数）与 workerPool.admitTimeoutMillis=50（准入等待上限，超时即 MYCAT-3007）
+2026-11-24 18:22:55,939[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:223I-PR-1: timeWorkerPool 整段被忽略（corePoolSize=0, maxPoolSize=2）——无队列、无 core、无 idle 回收，该配置当前无消费点
+2026-11-24 18:22:56,143[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:84-Dio.netty.processId: 15240 (auto-detected)
+2026-11-24 18:22:56,149[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:106-Dio.netty.machineId: 90:2e:16:ff:fe:e0:98:1c (auto-detected)
+2026-11-24 18:22:56,184[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:89-Dio.netty.allocator.type: pooled
+2026-11-24 18:22:56,185[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:101-Dio.netty.threadLocalDirectBufferSize: 0
+2026-11-24 18:22:56,185[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:104-Dio.netty.maxThreadLocalCharBufferSize: 16384
+2026-11-24 18:22:56,193[DEBUG]io.netty.bootstrap.ChannelInitializerExtensions.getExtensions:54-Dio.netty.bootstrap.extensions: null
+2026-11-24 18:22:56,378[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:56,378[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66select 1
+2026-11-24 18:22:56,383[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:65-----------------reveice--------------------
+2026-11-24 18:22:56,383[DEBUG]io.mycat.commands.DefaultCommandHandler.handleQuery:66show @@thread; select 1
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.20 s -- in io.mycat.FrontendAdmissionWiringTest
+[INFO] Running io.mycat.mycatmysql.ControlPlaneSqlTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in io.mycat.mycatmysql.ControlPlaneSqlTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] parent 1.22-release ................................ SUCCESS [  0.006 s]
+[INFO] config 1.22-release ................................ SUCCESS [  2.813 s]
+[INFO] Mycat2 Protocol 1.22-release ....................... SUCCESS [  0.767 s]
+[INFO] common 1.22-release ................................ SUCCESS [ 30.266 s]
+[INFO] router 1.22-release ................................ SUCCESS [ 15.678 s]
+[INFO] plug 1.22-release .................................. SUCCESS [  9.358 s]
+[INFO] replica 1.22-release ............................... SUCCESS [  9.422 s]
+[INFO] datasource 1.22-release ............................ SUCCESS [ 12.154 s]
+[INFO] va 1.22-release .................................... SUCCESS [  9.032 s]
+[INFO] proxy 1.22-release ................................. SUCCESS [ 14.637 s]
+[INFO] calcite-core (Mycat fork) 1.42.0-mycat ............. SUCCESS [  2.255 s]
+[INFO] hbt 1.22-release ................................... SUCCESS [01:21 min]
+[INFO] executor 1.22-release .............................. SUCCESS [ 23.378 s]
+[INFO] server 1.22-release ................................ SUCCESS [ 54.915 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  04:26 min
+[INFO] Finished at: 2026-11-24T18:23:02+08:00
+[INFO] ------------------------------------------------------------------------

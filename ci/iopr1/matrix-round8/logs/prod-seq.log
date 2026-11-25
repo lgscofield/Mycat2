@@ -1,0 +1,11 @@
+2026-11-24 11:00:52,661[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 11:00:52,667[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 11:00:52,667[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 11:00:52,667[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 11:00:52,674[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 11:00:52,744[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 11:00:52,744[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 11:00:52,745[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 11:00:52,749[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 11:00:52,770[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+RESULT tag=seq C=8 permits=1024 perThread=10 hardTimeoutS=60 finished=true wallMs=1913 ok=80 err3007=0 errOther=0 maxId=241 tableRows=80 firstErr= firstOtherErr= verdict=PASS

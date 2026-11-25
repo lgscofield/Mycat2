@@ -1,0 +1,11 @@
+2026-11-24 15:16:32,549[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 15:16:32,559[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 15:16:32,565[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 15:16:32,565[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 15:16:32,573[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 15:16:32,732[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 15:16:32,733[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 15:16:32,734[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 15:16:32,738[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 15:16:32,771[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+RESULT tag=threads lowC=8 highC=32 loadSeconds=8 lowFinished=true lowOps=823 lowErrors=0 highFinished=true highOps=927 highErrors=0 baselineIoVt=1 baselinePlatform=46 lowPeakIoVt=30 highPeakIoVt=104 lowPeakPlatform=59 highPeakPlatform=58 lowPlatformGrowth=13 highPlatformGrowth=12 allowedExtraPlatformGrowth=2 noPlatformCarrier=true lowSamples=34 highSamples=34 lowAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 highAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,RxComputationThreadPool-10,JNA_Cleaner,RxComputationThreadPool-12,RxComputationThreadPool-11 lowWallMs=8211 highWallMs=8380 verdict=PASS

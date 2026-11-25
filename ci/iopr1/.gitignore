@@ -1,0 +1,7 @@
+# 运行态产物，不入库：隔离 MYCAT_HOME（含 boot 配置与运行期回写）与探针编译输出。
+# 证据入库的是 matrix-round*/logs/*.log（需 git add -f，根 .gitignore:5 的 *.log 会静默丢弃）、
+# matrix-round*/guard-logs/*.log.gz（保留原始字节并压缩，避免超过 Git 单文件上限）、summary.tsv、
+# guard-summary.tsv、test-live-matrix-driver.sh、LiveMatrixProbe.java、run-live-matrix.sh —— 脚本自包含，
+# 可据以复跑重建运行态目录。
+homes/
+classes/

@@ -18,13 +18,23 @@ public class LocalLockServiceImpl implements LockService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalLockServiceImpl.class);
 
 
+    // I-PR-1：原 synchronized 单例方法持实例监视器跨整个 supplier，supplier 内阻塞 JDBC
+    // （活体实测 park 在 NativeProtocol.readMessage）会钉住 VT 载体线程。换每实例单把 ReentrantLock。
+    // 保持**全局串行**语义：不改成 per-name 锁，那会放大 DDL 并发，属行为变更、超出本票。
+    private final ReentrantLock lock = new ReentrantLock();
+
     @Override
-    public synchronized Future<Void> lock(String name, Supplier<Future<Void>> runnable) {
-        LOGGER.info("lock_service_worker is running with '" + name + "'");
+    public Future<Void> lock(String name, Supplier<Future<Void>> runnable) {
+        lock.lock();
         try {
-            return runnable.get();
-        }catch (Throwable throwable){
-            return Future.failedFuture(throwable);
+            LOGGER.info("lock_service_worker is running with '" + name + "'");
+            try {
+                return runnable.get();
+            } catch (Throwable throwable) {
+                return Future.failedFuture(throwable);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 

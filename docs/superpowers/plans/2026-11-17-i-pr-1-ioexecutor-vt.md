@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 把 IOExecutor 从无界 cached 平台线程池换成「具名虚拟线程 + 只装在 5 个前端语句入口的 Semaphore 准入闸」，并修好 count()、线程发现、配置接线与 P0 22 处阻塞锁。
+**Goal:** 把 IOExecutor 从无界 cached 平台线程池换成「具名虚拟线程 + 只装在 5 个前端语句入口的 Semaphore 准入闸」，并修好 count()、线程发现、配置接线与初始 P0 22 处阻塞锁；活体新发现的阻塞锁按 Step 3 升级条款继续补换。
 
 **Architecture:** 闸只装最外层客户端入口（COM_QUERY / COM_STMT_PREPARE / COM_STMT_EXECUTE × 两前端），内层 25 处腿全部走**永不拒绝**的既有 `executeBlocking` —— 这既让「释放腿永不拒绝」成为构造性保证，又避开嵌套准入死锁。许可与 count() 都挂在 **promise 完成钩子**上（不是 handler 返回），泄漏由 I-DEBT-84 语句 deadline 兜底。VT 不属任何 ThreadGroup ⇒ 用活体注册表补线程发现，渲染层零改动。
 
@@ -55,8 +55,7 @@
   `.gitignore:5 = *.log`、`:71 = .superpowers/` ⇒ 证据日志入库须 `git add -f` 并写明归档例外。
 - origin = `https://github.com/lgscofield/Mycat2.git`。**严禁替换成任何临时代理地址。**
   **gh 未安装**。push 失败自行重试。
-- **Explore / Plan / general-purpose 子代理不可用** ⇒ 全程 inline；
-  最终 review 只能 **self-review（较弱，须如实披露）**。
+- **子代理工具可用** ⇒ 实现仍按已选 executing-plans inline 执行；最终 review 必须使用真 fresh reviewer，不得退回 self-review。
 - **吞吐收益不可宣称**：spike interleaved 重复已证吞吐差异不可分辨，相关 qps 数字已撤回。
   本票收益是**线程治理 + 有界 + 名实相符**，不是「更快」。
 - **Task 3 之后、Task 6 的 L1 通过之前，不得对外宣称本票完成。**
@@ -69,8 +68,8 @@
 1. **异步型 body**（`h.handle()` 立即返回而 IO 仍在飞，如 wrapper `query:36` 的 `.onComplete(promise)` 形态）
    ⇒ 若在 `finally` 释放许可/减 count，闸测到的是提交重叠数而非在飞语句数。
    合理预期：许可与 count 必须到 **promise 完成**才释放。**Task 3 Step 1 / Task 4 Step 1 用异步 body 钉住。**
-2. **饱和 + 序列密集 INSERT** ⇒ `DefaultPrototypeGenerator.get()` 自旋睡眠 + 递归等一个被同一道闸拦住的
-   异步 `fetch()` ⇒ **永久挂住**（不是变慢）。合理预期：取号持续前进。**Task 6 L5 钉住。**
+2. **饱和 + 序列密集 INSERT** ⇒ 若取号的异步 `fetch()` 被同一道闸拦住，调用方会永久等待（不是变慢）。
+   合理预期：取号持续前进。**Task 6 L5 以活体 `SequenceMySQLGenerator` 钉住；`DefaultPrototypeGenerator` 只是死码机制样本。**
 3. **饱和 + 卡死查询** ⇒ promise 永不完成 ⇒ 许可永久泄漏 ⇒ 闸单调收缩至 0 ⇒ 全库不可用。
    合理预期：I-DEBT-84 deadline 触发后许可被回收。**Task 6 L6 钉住。**
 4. **嵌套 3～4 层 `executeBlocking` 在闸饱和下** ⇒ 外层持满许可等内层许可 ⇒ 死锁。
@@ -550,17 +549,17 @@ git commit -m "feat(I-PR-1): 5 处前端语句入口接准入闸 + 控制面 SQL
 - Consumes: Task 1–5 全部产出
 - Produces: **L1–L10** 与 R1–R5 的实测证据（入库、可复跑）；两板与本 spec 的收口回写
 
-- [ ] **Step 1: 重打 fat jar（改生产必重打）**
+- [x] **Step 1: 重打 fat jar（改生产必重打）**
 
 Run: `mvn -q -pl server -am package -DskipTests`
 Expected: 产出 `server/target/server-1.22-release-jar-with-dependencies.jar`，时间戳新于 Task 5 提交。
 
-- [ ] **Step 2: 确认后端就绪**
+- [x] **Step 2: 确认后端就绪**
 
 Run: `docker exec m1-mysql-a mysqladmin ping -uroot -p123456 --silent`（对 `m1-mysql-b`、`m6-mariadb-a` 同）
 Expected: 三个都 `mysqld is alive`。未起则先起，**不得跳过活体直接标绿**。
 
-- [ ] **Step 3: L1 零 pinning（本轮最重要单条断言）**
+- [x] **Step 3: L1 零 pinning（本轮最重要单条断言）**
 
 Run: 以 `-Djdk.tracePinnedThreads=full` 启动 jar，跑满负载 proxy（并发 ≥ 许可数），
 日志落 `ci/iopr1/logs/l1-pinning.log`，然后 `grep -c '<== monitors' ci/iopr1/logs/l1-pinning.log`
@@ -570,7 +569,7 @@ Expected: **0**。
 机制须读准：JDK21 只在 **pinned 状态下 park** 时打印，纯 CPU 短临界区不触发
 ⇒ P1 40 处 / P2 约 78 处不预先换锁（spec §9 L1）。
 
-- [ ] **Step 4: L2/L3/L4/L7 —— 线程治理与饱和语义**
+- [x] **Step 4: L2/L3/L4/L7 —— 线程治理与饱和语义**
 
 Run: `ci/iopr1/run-live-matrix.sh`（各场景独立日志）
 Expected:
@@ -579,21 +578,21 @@ Expected:
 - **L4**：饱和中主动断连 / abandon ⇒ Druid 活跃连接数**回落**，无泄漏。
 - **L7**：饱和中心跳持续 ⇒ 后端不被误判死。
 
-- [ ] **Step 5: L5 序列自死锁（Review Focus #2）**
+- [x] **Step 5: L5 序列自死锁（Review Focus #2）**
 
-Run: 饱和 + **序列密集 INSERT** 工作负载（配 `DefaultPrototypeGenerator` 的 prototype 序列），
+Run: 饱和 + **序列密集 INSERT** 工作负载（配 `SequenceMySQLGenerator` 的 prototype 序列），
 设 **60s 硬超时**
 Expected: **不得挂住**，取号持续前进，INSERT 持续成功。
 这是「加界」类改动最典型的翻车点：无闸 VT 不会饿死，**有界准入闸会**。
-若挂住 ⇒ 说明序列 fetch 腿被误接闸 ⇒ 回 Task 5 修 `innerLegsStillUseExecuteBlocking`。
+若挂住 ⇒ 说明序列取号腿被误接闸或锁拓扑破坏 ⇒ 回 Task 5 修 `innerLegsStillUseExecuteBlocking` / Task 6 锁回归。`DefaultPrototypeGenerator` 无生产调用方，不得拿它冒充活体覆盖。
 
-- [ ] **Step 6: L6 许可回收（Review Focus #3）**
+- [x] **Step 6: L6 许可回收（Review Focus #3）**
 
 Run: 饱和 + 卡死查询（后端 `SELECT SLEEP(...)` 或锁等待），等 I-DEBT-84 deadline 触发
 Expected: deadline 以 3013 界住客户端后，**许可被回收**，闸不单调收缩；
 后续语句可正常准入。**若许可未回收 ⇒ 本票不得标完成**（spec §3.4 硬依赖）。
 
-- [ ] **Step 7: L8 运维面恢复（Review Focus #5）**
+- [x] **Step 7: L8 运维面恢复（Review Focus #5）**
 
 Run: 饱和中发 `/*mycat:cmd=showThreadInfo*/`、`killThread`、`interruptThread`（目标为 IO VT 的 id）
 Expected:
@@ -602,12 +601,12 @@ Expected:
   **不能只看 OK 包**——`HintHandler:161`/`:168` 无论命中与否都 `sendOk()`，失效是静默的。
 - 控制面 SQL **在饱和中仍被受理**（豁免生效）。
 
-- [ ] **Step 8: L9 反地雷活体**
+- [x] **Step 8: L9 反地雷活体**
 
 Run: 用**生产 server.json 原值**启动，跑并发负载
 Expected: 有效并发 **> 1**（不是 spike 里 129.1 qps / inFlight=1 那种静默串行化）。
 
-- [ ] **Step 8b: L10 配置生效性活体（用户「必须可配置」条件的端到端证明）**
+- [x] **Step 8b: L10 配置生效性活体（用户「必须可配置」条件的端到端证明）**
 
 Run: 把 `server/src/main/resources/server.json` 的 `workerPool.maxPoolSize` 改 **3**、
 `admitTimeoutMillis` 改 **50** ⇒ **重打 fat jar** ⇒ 起活体 ⇒ 4 条并发长查询
@@ -618,7 +617,7 @@ Expected:
   否则 L9 用的是被污染的配置，反地雷断言失去意义。
 **只测默认值证明不了配置通路**：`MycatCore:135` 若仍写死 `IOExecutor.DEFAULT`，默认值测试照样全绿。
 
-- [ ] **Step 9: R1–R5 残留补证（spike 明确留下的缺口）**
+- [x] **Step 9: R1–R5 残留补证（spike 明确留下的缺口）**
 
 Run: 活体矩阵覆盖以下五项，各自独立日志：
 - **R1** vertx-core **4.5.14** Future 链在 VT 上的行为（spike 用裸 JDK，未覆盖 vertx Future）。
@@ -628,19 +627,21 @@ Run: 活体矩阵覆盖以下五项，各自独立日志：
 - **R5** `MySQLLogConsumer:75` 后台 JDBC INSERT 与前端争连接池的行为。
 Expected: 五项均无挂住、无 pinning 命中、无数据竞争。**任一项失败 ⇒ 挂账并如实标注，不得伪绿。**
 
-- [ ] **Step 10: 全量既有护栏（不回退）**
+- [x] **Step 10: 全量既有护栏（不回退）**
 
 Run: M1/M2/M3/M4 矩阵、I-DEBT-84 deadline 全套、旧 Java Connector 线 STAGE6 full-CRUD 矩阵、TLS 轴矩阵。
 **长护栏用 Monitor persistent**（>10min；Bash run_in_background 的 600000ms 上限会静默杀）。
 Expected: 全绿。任何红测**按名字**写进汇报与 ledger。
+实测：Monitor `bbe5qorn9` 12/12 rc=0，`GUARD_RC=0`；失败/中断轮次单独保留，未拼成绿证。
 
-- [ ] **Step 11: 证据入库**
+- [x] **Step 11: 证据入库**
 
 Run: `git add -f ci/iopr1/logs/*.log`（`.gitignore:5 = *.log` 会静默丢弃）+ 脚本 + TSV
 Expected: `git status` 确认日志**真的进了暂存区**（此前 I-PR-3 就在这里翻过车）。
+实测：最终 215 个授权文件已暂存；6 组归档清单共 134 条均对工作树与 Git index blob 双重校验通过，禁止路径/密钥命中/超 100 MiB 文件均为 0。
 在 spec 里写明**归档例外说明**（原始 trace 是 L1 的决定性证据，必须可审计）。
 
-- [ ] **Step 12: 收口回写复核 + 实测回填（spec §12 五义务已于 spec 期落盘，此步是复核不是重做）**
+- [x] **Step 12: 收口回写复核 + 实测回填（spec §12 五义务已于 spec 期落盘，此步是复核不是重做）**
 
 **下列 1–5 与「另」项已在 spec 期执行完毕**（报告 §8.1 取代标注、两板裁定取代、30/15 订正、
 三处订正补记、inventory §2 标题 4→3 文件）。此步职责：**逐条复核仍然准确**，
@@ -653,28 +654,29 @@ Expected: `git status` 确认日志**真的进了暂存区**（此前 I-PR-3 就
 4. **两板凡「35 处 / 18 文件」订正为「30 处 / 15 文件」**。
 5. **两板补记三处订正**：A3/A5 是 **COM_STMT_EXECUTE** 非管理命令；
    可拒绝集是 **5 处前端入口**非 19 处（**危险性订正**：按旧口径实现会直接嵌套死锁）；
-   `DefaultPrototypeGenerator` 是**活体自死锁靶**（机制已定位到真实载体，L5 是其运行时证明）。
+   `DefaultPrototypeGenerator` 是**死代码机制样本，不得冒充活体证据**；活体序列靶已据源码订正为
+   `SequenceMySQLGenerator`（实现 `SequenceHandler`，由 `AddSequenceTest` 配置并经真实后端取号）。
 另：`2026-11-17-i-pr-3-pinning-inventory.md` **§2 标题仍写「共 4 文件 / 22 处」**（§2.5 已订正为 3）
 ⇒ 顺手把标题订正为 3 文件，消除自相矛盾。
 
-- [ ] **Step 13: 双态标签与诚实边界回填**
+- [x] **Step 13: 双态标签与诚实边界回填**
 
 本 spec 与两板每格标 **本地✅ / CI⏳ / CI✅**。
 **只有 CI 绿才是对外 Evidenced-Done。** CI 未跑或未绿 ⇒ 标 **CI⏳**，**宁挂账不伪绿**。
 回填实测数字；**吞吐收益不可宣称**（spike 已撤回相关 qps 数字）。
 
-- [ ] **Step 14: Final review（self-review，须披露）**
+- [x] **Step 14: Final review（fresh reviewer）**
 
-子代理不可用 ⇒ 按 `requesting-code-review/code-reviewer.md` **自己另起一遍**审全分支
-（`git merge-base` 到 HEAD），ledger 写 `Final review: self-review (no subagent tool)`。
+用 Agent 工具按 `requesting-code-review/code-reviewer.md` 审全分支（`git merge-base` 到 HEAD），
+以 review-package、spec、plan 与 ledger 的 Ruling 为输入；不得用作者自审替代。
 Critical/Important ⇒ **一轮** fix pass，每处 RED→GREEN + 全套绿；Minor ⇒ ledger 挂账。
-**最终消息必须如实披露 self-review 弱于 fresh reviewer，由用户决定是否足够。**
+实测：fresh review 与 control-plane fresh review 均已完成；Important 修复后 targeted 37/37、driver 12/12、完整护栏 12/12；R5 资源角色 Minor 保留挂账。
 
 - [ ] **Step 15: Commit + push**
 
 ```bash
 git add ci/iopr1 docs/superpowers/specs
-git commit -m "test(I-PR-1): 活体矩阵 L1-L9 + 残留 R1-R5 补证 + 全量护栏 + 两板收口回写（含三处危险性订正）"
+git commit -m "test(I-PR-1): 活体矩阵 L1-L10 + 残留 R1-R5 补证 + 全量护栏 + 两板收口回写"
 git push origin main
 ```
 push 失败**自行重试**（GitHub 时不时连不上）。**严禁替换 origin 为任何代理地址。**

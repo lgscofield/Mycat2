@@ -1,0 +1,2891 @@
+鎶崌 127.0.0.1:3306 max_connections=1000 (I-DEBT-7B)
+鎶崌 127.0.0.1:3307 max_connections=1000 (I-DEBT-7B)
+POSTURE(persona=MYSQL_5_7) front(8066)=[5.7.33-mycat-2.0] want=^5\.7\.
+POSTURE OK
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------------< io.mycat:example >--------------------------
+[INFO] Building example 1.22-release
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ example ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\example\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ example ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ example ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ example ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ example ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running io.mycat.compat.BackendAuthMatrixTest
+2026-11-24 18:51:59,576[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-24 18:52:00,244[INFO]io.mycat.assemble.MycatTest.executeQuery:120select version()
+2026-11-24 18:52:00,260[INFO]io.mycat.assemble.MycatTest.execute:105drop user if exists 'i9a_native'@'%'
+drop user if exists 'i9a_native'@'%'
+2026-11-24 18:52:00,276[INFO]io.mycat.assemble.MycatTest.execute:105drop user if exists 'i9a_sha2'@'%'
+drop user if exists 'i9a_sha2'@'%'
+2026-11-24 18:52:00,287[INFO]io.mycat.assemble.MycatTest.execute:105create user 'i9a_native'@'%' identified with mysql_native_password by 'I9a_pass_1'
+create user 'i9a_native'@'%' identified with mysql_native_password by 'I9a_pass_1'
+2026-11-24 18:52:00,306[INFO]io.mycat.assemble.MycatTest.execute:105grant all on *.* to 'i9a_native'@'%'
+grant all on *.* to 'i9a_native'@'%'
+2026-11-24 18:52:00,324[INFO]io.mycat.assemble.MycatTest.execute:105create user 'i9a_sha2'@'%' identified with caching_sha2_password by 'I9a_pass_1'
+create user 'i9a_sha2'@'%' identified with caching_sha2_password by 'I9a_pass_1'
+2026-11-24 18:52:00,347[INFO]io.mycat.assemble.MycatTest.execute:105grant all on *.* to 'i9a_sha2'@'%'
+grant all on *.* to 'i9a_sha2'@'%'
+[BackendAuthMatrix] 后端=8.0.46 native可用=true sha2可用=true
+2026-11-24 18:52:00,410[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-2} inited
+2026-11-24 18:52:00,965[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:52:01,168[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_g_deadjdbc
+drop database if exists dbauth_g_deadjdbc
+2026-11-24 18:52:01,379[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:52:01,558[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_g_deadjdbc_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_g_deadjdbc_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:52:01,593[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_g_deadjdbc_ds1",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_g_deadjdbc_ds1",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:52:01,654[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_g_deadjdbc_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_g_deadjdbc_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:52:01,682[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_g_deadjdbc_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_g_deadjdbc_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:52:01,700[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_g_deadjdbc
+create database dbauth_g_deadjdbc
+2026-11-24 18:52:01,746[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_g_deadjdbc
+use dbauth_g_deadjdbc
+2026-11-24 18:52:01,750[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+2026-11-24 18:52:33,750[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (1,'i9a');
+2026-11-24 18:53:04,643[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_g_deadjdbc
+drop database if exists dbauth_g_deadjdbc
+2026-11-24 18:53:04,746[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:04,791[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:04,797[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_native
+drop database if exists dbauth_j_native
+2026-11-24 18:53:04,906[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:04,912[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_native_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_native_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:04,928[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_native_ds1",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_native_ds1",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:04,943[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_native_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_native_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:04,960[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_native_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_native_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:04,975[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_j_native
+create database dbauth_j_native
+2026-11-24 18:53:05,015[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_j_native
+use dbauth_j_native
+2026-11-24 18:53:05,018[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+2026-11-24 18:53:05,400[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (1,'i9a');
+insert into `authprobe`(`id`,`note`) values (1,'i9a');
+2026-11-24 18:53:05,473[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (2,'i9b');
+insert into `authprobe`(`id`,`note`) values (2,'i9b');
+2026-11-24 18:53:05,498[INFO]io.mycat.assemble.MycatTest.executeQuery:120select note from dbauth_j_native.authprobe order by id
+2026-11-24 18:53:05,765[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_native
+drop database if exists dbauth_j_native
+2026-11-24 18:53:05,856[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:05,884[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-3} inited
+2026-11-24 18:53:06,064[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:06,069[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:06,073[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2warm
+drop database if exists dbauth_n_sha2warm
+2026-11-24 18:53:06,174[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:06,179[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_native_0`
+drop database if exists `dbauth_j_native_0`
+2026-11-24 18:53:06,241[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_native_1`
+drop database if exists `dbauth_j_native_1`
+2026-11-24 18:53:06,301[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_n_sha2warm_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_n_sha2warm_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:06,375[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_sha2warm_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_sha2warm_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:06,389[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_n_sha2warm
+create database dbauth_n_sha2warm
+2026-11-24 18:53:06,422[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_n_sha2warm
+use dbauth_n_sha2warm
+2026-11-24 18:53:06,425[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:06,463[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2warm
+drop database if exists dbauth_n_sha2warm
+2026-11-24 18:53:06,567[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:06,587[INFO]io.mycat.assemble.MycatTest.execute:105flush privileges
+flush privileges
+2026-11-24 18:53:06,599[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:06,603[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2cold
+drop database if exists dbauth_n_sha2cold
+2026-11-24 18:53:06,724[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:06,729[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_n_sha2cold_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_n_sha2cold_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:06,769[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_sha2cold_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_sha2cold_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:06,782[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_n_sha2cold
+create database dbauth_n_sha2cold
+2026-11-24 18:53:06,818[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_n_sha2cold
+use dbauth_n_sha2cold
+2026-11-24 18:53:06,821[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:06,857[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2cold
+drop database if exists dbauth_n_sha2cold
+2026-11-24 18:53:06,955[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:06,972[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:06,977[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_native
+drop database if exists dbauth_n_native
+2026-11-24 18:53:07,074[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:07,080[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_n_native_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_n_native_ds0",
+  "user" : "i9a_native",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?useUnicode=true&allowPublicKeyRetrieval=true&socketFactory=io.mycat.compat.NoSuchSocketFactory__poison&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "NATIVE",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:07,110[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_native_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_n_native_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:07,125[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_n_native
+create database dbauth_n_native
+2026-11-24 18:53:07,164[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_n_native
+use dbauth_n_native
+2026-11-24 18:53:07,167[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:07,206[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_native
+drop database if exists dbauth_n_native
+2026-11-24 18:53:07,293[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:07,309[INFO]io.mycat.assemble.MycatTest.execute:105flush privileges
+flush privileges
+2026-11-24 18:53:07,318[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:07,323[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2cold
+drop database if exists dbauth_j_sha2cold
+2026-11-24 18:53:07,418[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:07,424[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2cold_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2cold_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:07,436[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2cold_ds1",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2cold_ds1",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:07,449[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2cold_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2cold_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:07,464[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2cold_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2cold_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:07,483[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_j_sha2cold
+create database dbauth_j_sha2cold
+2026-11-24 18:53:07,533[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_j_sha2cold
+use dbauth_j_sha2cold
+2026-11-24 18:53:07,537[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+2026-11-24 18:53:07,881[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (1,'i9a');
+insert into `authprobe`(`id`,`note`) values (1,'i9a');
+2026-11-24 18:53:07,929[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (2,'i9b');
+insert into `authprobe`(`id`,`note`) values (2,'i9b');
+2026-11-24 18:53:07,952[INFO]io.mycat.assemble.MycatTest.executeQuery:120select note from dbauth_j_sha2cold.authprobe order by id
+2026-11-24 18:53:08,003[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2cold
+drop database if exists dbauth_j_sha2cold
+2026-11-24 18:53:08,068[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:08,086[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:08,090[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:08,100[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2warm
+drop database if exists dbauth_j_sha2warm
+2026-11-24 18:53:08,189[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:08,192[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_sha2cold_0`
+drop database if exists `dbauth_j_sha2cold_0`
+2026-11-24 18:53:08,258[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_sha2cold_1`
+drop database if exists `dbauth_j_sha2cold_1`
+2026-11-24 18:53:08,316[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2warm_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2warm_ds0",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:08,329[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2warm_ds1",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "i9a_j_sha2warm_ds1",
+  "user" : "i9a_sha2",
+  "password" : "I9a_pass_1",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:08,341[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2warm_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2warm_ds0" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:08,355[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2warm_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "i9a_j_sha2warm_ds1" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:08,367[INFO]io.mycat.assemble.MycatTest.execute:105create database dbauth_j_sha2warm
+create database dbauth_j_sha2warm
+2026-11-24 18:53:08,412[INFO]io.mycat.assemble.MycatTest.execute:105use dbauth_j_sha2warm
+use dbauth_j_sha2warm
+2026-11-24 18:53:08,416[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+CREATE TABLE `authprobe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(id) tbpartition by mod_hash(id) tbpartitions 2 dbpartitions 2;
+2026-11-24 18:53:08,825[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (1,'i9a');
+insert into `authprobe`(`id`,`note`) values (1,'i9a');
+2026-11-24 18:53:08,902[INFO]io.mycat.assemble.MycatTest.execute:105insert into `authprobe`(`id`,`note`) values (2,'i9b');
+insert into `authprobe`(`id`,`note`) values (2,'i9b');
+2026-11-24 18:53:08,924[INFO]io.mycat.assemble.MycatTest.executeQuery:120select note from dbauth_j_sha2warm.authprobe order by id
+2026-11-24 18:53:08,970[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2warm
+drop database if exists dbauth_j_sha2warm
+2026-11-24 18:53:09,026[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:09,048[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_g_deadjdbc
+drop database if exists dbauth_g_deadjdbc
+2026-11-24 18:53:09,142[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_native
+drop database if exists dbauth_j_native
+2026-11-24 18:53:09,157[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2warm
+drop database if exists dbauth_n_sha2warm
+2026-11-24 18:53:09,175[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_sha2cold
+drop database if exists dbauth_n_sha2cold
+2026-11-24 18:53:09,191[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_n_native
+drop database if exists dbauth_n_native
+2026-11-24 18:53:09,209[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2cold
+drop database if exists dbauth_j_sha2cold
+2026-11-24 18:53:09,223[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbauth_j_sha2warm
+drop database if exists dbauth_j_sha2warm
+2026-11-24 18:53:09,239[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:09,243[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbauth%'
+2026-11-24 18:53:09,248[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_sha2warm_0`
+drop database if exists `dbauth_j_sha2warm_0`
+2026-11-24 18:53:09,305[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbauth_j_sha2warm_1`
+drop database if exists `dbauth_j_sha2warm_1`
+2026-11-24 18:53:09,361[INFO]io.mycat.assemble.MycatTest.execute:105drop user if exists 'i9a_native'@'%'
+drop user if exists 'i9a_native'@'%'
+2026-11-24 18:53:09,380[INFO]io.mycat.assemble.MycatTest.execute:105drop user if exists 'i9a_sha2'@'%'
+drop user if exists 'i9a_sha2'@'%'
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 70.97 s -- in io.mycat.compat.BackendAuthMatrixTest
+[INFO] Running io.mycat.compat.BinaryRepresentationFidelityDifferentialTest
+2026-11-24 18:53:09,409[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:09,413[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbbin35
+drop database if exists dbbin35
+2026-11-24 18:53:09,459[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbbin35%'
+2026-11-24 18:53:09,466[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:09,481[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:09,497[INFO]io.mycat.assemble.MycatTest.execute:105create database dbbin35
+create database dbbin35
+2026-11-24 18:53:09,531[INFO]io.mycat.assemble.MycatTest.execute:105use dbbin35
+use dbbin35
+2026-11-24 18:53:09,534[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists tb1
+drop table if exists tb1
+2026-11-24 18:53:09,580[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE tb1(id bigint primary key, b binary(4), vb varbinary(16), blb blob)
+CREATE TABLE tb1(id bigint primary key, b binary(4), vb varbinary(16), blb blob)
+2026-11-24 18:53:09,892[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists tb2
+drop table if exists tb2
+2026-11-24 18:53:09,907[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE tb2(id bigint primary key, b binary(4), vb varbinary(16), blb blob) dbpartition by mod_hash(`id`) dbpartitions 2
+CREATE TABLE tb2(id bigint primary key, b binary(4), vb varbinary(16), blb blob) dbpartition by mod_hash(`id`) dbpartitions 2
+2026-11-24 18:53:10,224[INFO]io.mycat.assemble.MycatTest.execute:105use dbbin35
+use dbbin35
+2026-11-24 18:53:10,228[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe35_direct
+drop database if exists probe35_direct
+2026-11-24 18:53:10,241[INFO]io.mycat.assemble.MycatTest.execute:105create database probe35_direct
+create database probe35_direct
+2026-11-24 18:53:10,263[INFO]io.mycat.assemble.MycatTest.execute:105create table probe35_direct.tb(id bigint primary key, b binary(4), vb varbinary(16), blb blob)
+create table probe35_direct.tb(id bigint primary key, b binary(4), vb varbinary(16), blb blob)
+
+=========== I-DEBT-78 显式 cast 值对拍【⑤跨片 cast(b as char)】 ===========
+期望(直连真 MySQL 8.0)：[Long:1|null|, Long:2|null|]
+实际(经 Mycat)        ：[Long:1|null|, Long:2|null|]
+VERDICT[⑤跨片显式cast] = 自洽(benign)
+=================================================================
+
+================= I-DEBT-35 差分对拍【①单片直通】 =================
+期望(直连真 MySQL 8.0)：[#types: BIGINT/java.lang.Long  BINARY/[B  VARBINARY/[B  BLOB/[B  , Long:1|0x000AFFAA|0xDEADBEEF|0x00010203FAFBFC|, Long:2|0xC328007F|0x1020|0xFF|]
+实际(经 Mycat)        ：[#types: BIGINT/java.lang.Long  BINARY/[B  VARBINARY/[B  BLOB/[B  , Long:1|0x000AFFAA|0xDEADBEEF|0x00010203FAFBFC|, Long:2|0xC328007F|0x1020|0xFF|]
+VERDICT[①单片直通] = 自洽(benign)
+=================================================================
+
+================= I-DEBT-35 差分对拍【③本地函数求值】 =================
+期望(直连真 MySQL 8.0)：[#types: BIGINT/java.lang.Long  BIGINT/java.lang.Long  BIGINT/java.lang.Long  , Long:4|Long:4|Long:7|, Long:4|Long:2|Long:1|]
+实际(经 Mycat)        ：[#types: BIGINT/java.lang.Long  BIGINT/java.lang.Long  BIGINT/java.lang.Long  , Long:4|Long:2|Long:1|, Long:4|Long:4|Long:7|]
+VERDICT[③本地函数求值] = 自洽(benign)
+=================================================================
+
+================= I-DEBT-35 差分对拍【④字面量】 =================
+期望(直连真 MySQL 8.0)：[#types: VARBINARY/[B  , 0x000A00FF|]
+实际(经 Mycat)        ：[#types: LONGBLOB/[B  , 0x000A00FF|]
+VERDICT[④字面量] = 自洽(benign)
+=================================================================
+
+================= I-DEBT-35 差分对拍【②跨片归并】 =================
+期望(直连真 MySQL 8.0)：[#types: BIGINT/java.lang.Long  BINARY/[B  VARBINARY/[B  BLOB/[B  , Long:1|0x000AFFAA|0xDEADBEEF|0x00010203FAFBFC|, Long:2|0xC328007F|0x1020|0xFF|]
+实际(经 Mycat)        ：[#types: BIGINT/java.lang.Long  BINARY/[B  VARBINARY/[B  BLOB/[B  , Long:1|0x000AFFAA|0xDEADBEEF|0x00010203FAFBFC|, Long:2|0xC328007F|0x1020|0xFF|]
+VERDICT[②跨片归并] = 自洽(benign)
+=================================================================
+2026-11-24 18:53:10,917[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbbin35
+drop database if exists dbbin35
+2026-11-24 18:53:11,023[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:11,038[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe35_direct
+drop database if exists probe35_direct
+2026-11-24 18:53:11,082[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbbin35%'
+2026-11-24 18:53:11,087[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbbin35_0`
+drop database if exists `dbbin35_0`
+2026-11-24 18:53:11,132[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbbin35_1`
+drop database if exists `dbbin35_1`
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.760 s -- in io.mycat.compat.BinaryRepresentationFidelityDifferentialTest
+[INFO] Running io.mycat.compat.ConnectionSmokeTest
+2026-11-24 18:53:11,177[INFO]io.mycat.assemble.MycatTest.execute:105/*M!100100 SET @@MAX_STATEMENT_TIME=0.000000 */
+/*M!100100 SET @@MAX_STATEMENT_TIME=0.000000 */
+2026-11-24 18:53:11,180[INFO]io.mycat.assemble.MycatTest.execute:105/* just a comment */
+/* just a comment */
+2026-11-24 18:53:11,184[INFO]io.mycat.assemble.MycatTest.execute:105/*!40101 SET @@SQL_MODE='' */
+/*!40101 SET @@SQL_MODE='' */
+2026-11-24 18:53:11,188[INFO]io.mycat.assemble.MycatTest.execute:105SELEC bad syntax zzz
+2026-11-24 18:53:11,192[INFO]io.mycat.assemble.MycatTest.execute:105/*M!100100 */ SELECT FROM WHERE
+[compat-smoke] target db = unknown, mycat url = jdbc:mysql://localhost:8066/mysql?username=root&password=123456&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+2026-11-24 18:53:11,198[INFO]io.mycat.assemble.MycatTest.executeQuery:120SELECT 1
+2026-11-24 18:53:11,229[INFO]io.mycat.assemble.MycatTest.executeQuery:120SHOW DATABASES
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in io.mycat.compat.ConnectionSmokeTest
+[INFO] Running io.mycat.compat.CrossShardUnionHeaderDifferentialTest
+2026-11-24 18:53:11,292[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:11,302[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdiff
+drop database if exists dbdiff
+2026-11-24 18:53:11,431[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbdiff%'
+2026-11-24 18:53:11,437[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "prototypeDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "prototypeDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:11,456[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "diffDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "diffDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:11,469[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "diffC",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "diffDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "diffC",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "diffDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:11,481[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdiff
+create database dbdiff
+2026-11-24 18:53:11,540[INFO]io.mycat.assemble.MycatTest.execute:105use dbdiff
+use dbdiff
+2026-11-24 18:53:11,543[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists t_bit
+drop table if exists t_bit
+2026-11-24 18:53:11,591[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `t_bit` (`id` bigint NOT NULL, `c` bit(8), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 1
+CREATE TABLE `t_bit` (`id` bigint NOT NULL, `c` bit(8), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 1
+2026-11-24 18:53:11,776[INFO]io.mycat.assemble.MycatTest.execute:105insert into t_bit(`id`,`c`) values (99, b'0')
+insert into t_bit(`id`,`c`) values (99, b'0')
+2026-11-24 18:53:11,832[INFO]io.mycat.assemble.MycatTest.execute:105delete from t_bit where `id` = 99
+delete from t_bit where `id` = 99
+2026-11-24 18:53:11,975[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbdiff.t_bit_0 values (1, b'00000001'),(2, b'10101010'),(3, b'11111111')
+insert into dbdiff.t_bit_0 values (1, b'00000001'),(2, b'10101010'),(3, b'11111111')
+2026-11-24 18:53:11,993[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists t_bigint
+drop table if exists t_bigint
+2026-11-24 18:53:12,009[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `t_bigint` (`id` bigint NOT NULL, `c` bigint, PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+CREATE TABLE `t_bigint` (`id` bigint NOT NULL, `c` bigint, PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+2026-11-24 18:53:12,282[INFO]io.mycat.assemble.MycatTest.execute:105insert into t_bigint(`id`,`c`) values (1, 123),(2, 45),(3, 7),(4, 170)
+insert into t_bigint(`id`,`c`) values (1, 123),(2, 45),(3, 7),(4, 170)
+2026-11-24 18:53:12,367[INFO]io.mycat.assemble.MycatTest.execute:105use dbdiff
+use dbdiff
+2026-11-24 18:53:12,372[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-4} inited
+2026-11-24 18:53:12,397[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe_direct
+drop database if exists probe_direct
+2026-11-24 18:53:12,406[INFO]io.mycat.assemble.MycatTest.execute:105create database probe_direct
+create database probe_direct
+2026-11-24 18:53:12,425[INFO]io.mycat.assemble.MycatTest.execute:105create table probe_direct.t_bit(`c` bit(8))
+create table probe_direct.t_bit(`c` bit(8))
+2026-11-24 18:53:12,490[INFO]io.mycat.assemble.MycatTest.execute:105insert into probe_direct.t_bit values (b'00000001'),(b'10101010'),(b'11111111')
+insert into probe_direct.t_bit values (b'00000001'),(b'10101010'),(b'11111111')
+2026-11-24 18:53:12,503[INFO]io.mycat.assemble.MycatTest.execute:105create table probe_direct.t_bigint(`c` bigint)
+create table probe_direct.t_bigint(`c` bigint)
+2026-11-24 18:53:12,558[INFO]io.mycat.assemble.MycatTest.execute:105insert into probe_direct.t_bigint values (123),(45),(7),(170)
+insert into probe_direct.t_bigint values (123),(45),(7),(170)
+
+---- I-DEBT-41 lookup(in 子查询) 对拍：期望(直连)={typeName=BIGINT, jdbcType=-5, javaClass=java.lang.Long, displaySize=19, precision=19, scale=0, signed=true, nullable=1, rows=[Long:170]} 实际(经 Mycat)={typeName=BIGINT, jdbcType=-5, javaClass=java.lang.Long, displaySize=6, precision=19, scale=0, signed=true, nullable=1, rows=[Long:170]} ----
+
+
+================= I-DEBT-41 对拍差异表（异构 bit(8) ∪ bigint） =================
+2026-11-24 18:53:13,059[INFO]io.mycat.assemble.MycatTest.executeQuery:120select version()
+后端版本(实测)：8.0.46；Mycat 自称：见 select version()
+期望(直连真 MySQL 8.0)：{typeName=DECIMAL, jdbcType=3, javaClass=java.math.BigDecimal, displaySize=19, precision=19, scale=0, signed=true, nullable=1, rows=[BigDecimal:1, BigDecimal:7, BigDecimal:45, BigDecimal:123, BigDecimal:170, BigDecimal:170, BigDecimal:255]}
+实际(经 Mycat 跨源)  ：{typeName=DECIMAL, jdbcType=3, javaClass=java.math.BigDecimal, displaySize=84, precision=254, scale=0, signed=true, nullable=1, rows=[BigDecimal:1, BigDecimal:7, BigDecimal:45, BigDecimal:123, BigDecimal:170, BigDecimal:170, BigDecimal:255]}
+五元组对拍 Type：期望=DECIMAL/3 实际=DECIMAL/3
+五元组对拍 Length：期望 p=19/ds=19 实际 p=254/ds=84
+五元组对拍 Decimals：期望=0 实际=0
+五元组对拍 Flags：期望 signed=true/nullable=1 实际 signed=true/nullable=1
+参照(直连真 MySQL prepared)：{typeName=DECIMAL, jdbcType=3, javaClass=java.math.BigDecimal, displaySize=19, precision=19, scale=0, signed=true, nullable=1, rows=[BigDecimal:1, BigDecimal:7, BigDecimal:45, BigDecimal:123, BigDecimal:170, BigDecimal:170, BigDecimal:255]}
+================================================================================
+
+五元组对拍 Length 差异（挂账）：直连文本 p=19/ds=19，直连 prepared p=19/ds=19，经 Mycat p=254/ds=84
+2026-11-24 18:53:13,102[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcross%'
+2026-11-24 18:53:13,109[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-5} inited
+2026-11-24 18:53:13,141[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcross%'
+2026-11-24 18:53:13,157[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "crossDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "crossDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:13,172[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "crossDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "crossDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:13,186[INFO]io.mycat.assemble.MycatTest.execute:105create database dbcross
+create database dbcross
+2026-11-24 18:53:13,221[INFO]io.mycat.assemble.MycatTest.execute:105use dbcross
+use dbcross
+2026-11-24 18:53:13,223[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `t_bitx` (`id` bigint NOT NULL, `c` bit(8), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 1
+CREATE TABLE `t_bitx` (`id` bigint NOT NULL, `c` bit(8), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 1
+2026-11-24 18:53:13,442[INFO]io.mycat.assemble.MycatTest.execute:105insert into t_bitx(`id`,`c`) values (99, b'0')
+insert into t_bitx(`id`,`c`) values (99, b'0')
+2026-11-24 18:53:13,504[INFO]io.mycat.assemble.MycatTest.execute:105delete from t_bitx where `id` = 99
+delete from t_bitx where `id` = 99
+2026-11-24 18:53:13,574[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcross.t_bitx_0 values (1, b'00000001'),(2, b'10101010'),(3, b'11111111')
+insert into dbcross.t_bitx_0 values (1, b'00000001'),(2, b'10101010'),(3, b'11111111')
+2026-11-24 18:53:13,595[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `t_bigx` (`id` bigint NOT NULL, `c` bigint, PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+CREATE TABLE `t_bigx` (`id` bigint NOT NULL, `c` bigint, PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+2026-11-24 18:53:13,976[INFO]io.mycat.assemble.MycatTest.execute:105insert into t_bigx(`id`,`c`) values (1, 123),(2, 45),(3, 7),(4, 170)
+insert into t_bigx(`id`,`c`) values (1, 123),(2, 45),(3, 7),(4, 170)
+2026-11-24 18:53:14,038[INFO]io.mycat.assemble.MycatTest.execute:105use dbcross
+use dbcross
+
+---- I-DEBT-41 跨 ds 边界对拍：期望(直连单实例)={typeName=DECIMAL, jdbcType=3, javaClass=java.math.BigDecimal, displaySize=19, precision=19, scale=0, signed=true, nullable=1, rows=[BigDecimal:1, BigDecimal:7, BigDecimal:45, BigDecimal:123, BigDecimal:170, BigDecimal:170, BigDecimal:255]} 实际(经 Mycat 跨 ds，应回 ③ 计划轨)={typeName=BIGINT, jdbcType=-5, javaClass=java.lang.Long, displaySize=6, precision=19, scale=0, signed=true, nullable=1, rows=[Long:1, Long:7, Long:45, Long:123, Long:170, Long:170, Long:255]} ----
+
+2026-11-24 18:53:14,113[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbcross
+drop database if exists dbcross
+2026-11-24 18:53:14,213[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcross%'
+2026-11-24 18:53:14,218[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbcross_0`
+drop database if exists `dbcross_0`
+2026-11-24 18:53:14,274[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcross%'
+2026-11-24 18:53:14,278[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbcross_1`
+drop database if exists `dbcross_1`
+2026-11-24 18:53:14,349[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdiff
+drop database if exists dbdiff
+2026-11-24 18:53:14,434[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:14,444[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe_direct
+drop database if exists probe_direct
+2026-11-24 18:53:14,503[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbdiff%'
+2026-11-24 18:53:14,507[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbdiff_0`
+drop database if exists `dbdiff_0`
+2026-11-24 18:53:14,544[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbdiff_1`
+drop database if exists `dbdiff_1`
+2026-11-24 18:53:14,579[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbdiff%'
+2026-11-24 18:53:14,582[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcross%'
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.295 s -- in io.mycat.compat.CrossShardUnionHeaderDifferentialTest
+[INFO] Running io.mycat.compat.CrossShardWarningRelayTest
+2026-11-24 18:53:14,589[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:14,594[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbwarnrelay
+drop database if exists dbwarnrelay
+2026-11-24 18:53:14,660[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbwarnrelay%'
+2026-11-24 18:53:14,665[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbwarnrelay_0`
+drop database if exists `dbwarnrelay_0`
+2026-11-24 18:53:14,706[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbwarnrelay_1`
+drop database if exists `dbwarnrelay_1`
+2026-11-24 18:53:14,753[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:14,767[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:14,778[INFO]io.mycat.assemble.MycatTest.execute:105create database dbwarnrelay
+create database dbwarnrelay
+2026-11-24 18:53:14,809[INFO]io.mycat.assemble.MycatTest.execute:105use dbwarnrelay
+use dbwarnrelay
+2026-11-24 18:53:14,812[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists shg
+drop table if exists shg
+2026-11-24 18:53:14,848[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `shg` (`id` bigint NOT NULL, `note` varchar(255), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+CREATE TABLE `shg` (`id` bigint NOT NULL, `note` varchar(255), PRIMARY KEY(`id`)) dbpartition by mod_hash(`id`) dbpartitions 2
+2026-11-24 18:53:15,070[INFO]io.mycat.assemble.MycatTest.execute:105insert into shg(`id`,`note`) values (1,'abc'),(2,'xyz'),(3,'123')
+insert into shg(`id`,`note`) values (1,'abc'),(2,'xyz'),(3,'123')
+2026-11-24 18:53:15,136[INFO]io.mycat.assemble.MycatTest.execute:105use dbwarnrelay
+use dbwarnrelay
+2026-11-24 18:53:15,138[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe_warnrelay
+drop database if exists probe_warnrelay
+2026-11-24 18:53:15,147[INFO]io.mycat.assemble.MycatTest.execute:105create database probe_warnrelay
+create database probe_warnrelay
+2026-11-24 18:53:15,165[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists probe_warnrelay.shg
+drop table if exists probe_warnrelay.shg
+2026-11-24 18:53:15,174[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE probe_warnrelay.shg (`id` bigint NOT NULL, `note` varchar(255), PRIMARY KEY(`id`))
+CREATE TABLE probe_warnrelay.shg (`id` bigint NOT NULL, `note` varchar(255), PRIMARY KEY(`id`))
+2026-11-24 18:53:15,230[INFO]io.mycat.assemble.MycatTest.execute:105insert into probe_warnrelay.shg values (1,'abc'),(2,'xyz'),(3,'123')
+insert into probe_warnrelay.shg values (1,'abc'),(2,'xyz'),(3,'123')
+2026-11-24 18:53:15,246[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:15,249[INFO]io.mycat.assemble.MycatTest.executeQuery:120select cast(note as signed) from probe_warnrelay.shg order by id
+2026-11-24 18:53:15,252[INFO]io.mycat.assemble.MycatTest.executeQuery:120select @@warning_count
+2026-11-24 18:53:15,256[INFO]io.mycat.assemble.MycatTest.executeQuery:120select cast(note as signed) as n from shg order by id
+2026-11-24 18:53:15,301[INFO]io.mycat.assemble.MycatTest.executeQuery:120select @@warning_count
+2026-11-24 18:53:15,331[INFO]io.mycat.assemble.MycatTest.executeQuery:120select cast(note as signed) as n from shg order by id
+2026-11-24 18:53:15,353[INFO]io.mycat.assemble.MycatTest.executeQuery:120show warnings
+2026-11-24 18:53:15,362[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbwarnrelay
+drop database if exists dbwarnrelay
+2026-11-24 18:53:15,418[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:15,431[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists probe_warnrelay
+drop database if exists probe_warnrelay
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.882 s -- in io.mycat.compat.CrossShardWarningRelayTest
+[INFO] Running io.mycat.compat.CrudResultMatrixOracleShapeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.compat.CrudResultMatrixOracleShapeTest
+[INFO] Running io.mycat.compat.CrudResultMatrixTest
+2026-11-24 18:53:15,482[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:15,486[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbcrud
+drop database if exists dbcrud
+2026-11-24 18:53:15,549[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcrud%'
+2026-11-24 18:53:15,553[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "newDs",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:15,567[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "newDs" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:15,579[INFO]io.mycat.assemble.MycatTest.execute:105create database dbcrud
+create database dbcrud
+2026-11-24 18:53:15,614[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:15,655[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 18:53:15,656[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: clickhouse-jdbc 0.7.2 (revision: 33b1fad)
+2026-11-24 18:53:15,659[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:53:15,659[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:53:15,662[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 18:53:15,705[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: clickhouse-jdbc 0.7.2 (revision: 33b1fad)
+2026-11-24 18:53:15,705[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:53:15,705[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:53:15,710[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 18:53:15,738[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+2026-11-24 18:53:15,797[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1/0 as d
+2026-11-24 18:53:15,835[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:15,863[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `no_such_col_zzz` from (select 1) t
+2026-11-24 18:53:15,869[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 2
+2026-11-24 18:53:15,876[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:15,879[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c4
+drop table if exists crud_c4
+2026-11-24 18:53:15,912[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c4` (
+  `id` bigint NOT NULL, `c_date` date, `c_dt` datetime(6), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c4` (
+  `id` bigint NOT NULL, `c_date` date, `c_dt` datetime(6), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:16,103[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c4(`id`,`c_date`,`c_dt`) values (1, '2021-02-22', '2021-02-22 18:34:05.983692')
+insert into dbcrud.crud_c4(`id`,`c_date`,`c_dt`) values (1, '2021-02-22', '2021-02-22 18:34:05.983692')
+2026-11-24 18:53:16,142[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_date`,`c_dt` from dbcrud.crud_c4 where `id`=1
+2026-11-24 18:53:16,191[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:16,193[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c8
+drop table if exists crud_c8
+2026-11-24 18:53:16,209[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c8` (
+  `id` bigint NOT NULL, `val` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c8` (
+  `id` bigint NOT NULL, `val` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:16,370[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (1, 1)
+insert into dbcrud.crud_c8(`id`,`val`) values (1, 1)
+2026-11-24 18:53:16,412[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (2, 2)
+insert into dbcrud.crud_c8(`id`,`val`) values (2, 2)
+2026-11-24 18:53:16,434[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (3, 3)
+insert into dbcrud.crud_c8(`id`,`val`) values (3, 3)
+2026-11-24 18:53:16,454[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (4, 4)
+insert into dbcrud.crud_c8(`id`,`val`) values (4, 4)
+2026-11-24 18:53:16,475[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (5, 5)
+insert into dbcrud.crud_c8(`id`,`val`) values (5, 5)
+2026-11-24 18:53:16,496[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c8(`id`,`val`) values (6, 6)
+insert into dbcrud.crud_c8(`id`,`val`) values (6, 6)
+2026-11-24 18:53:16,517[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `val` from dbcrud.crud_c8 order by `val` limit 2 offset 1
+2026-11-24 18:53:16,566[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:16,569[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c11
+drop table if exists crud_c11
+2026-11-24 18:53:16,583[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c11` (
+  `id` bigint NOT NULL, `i` int, `d` decimal(20, 4), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c11` (
+  `id` bigint NOT NULL, `i` int, `d` decimal(20, 4), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:16,778[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (1, 1, 1.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (1, 1, 1.0000)
+2026-11-24 18:53:16,829[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (2, 2, 2.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (2, 2, 2.0000)
+2026-11-24 18:53:16,853[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (3, 3, 3.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (3, 3, 3.0000)
+2026-11-24 18:53:16,876[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (4, 4, 4.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (4, 4, 4.0000)
+2026-11-24 18:53:16,898[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (5, 5, 5.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (5, 5, 5.0000)
+2026-11-24 18:53:16,919[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c11(`id`,`i`,`d`) values (6, 7, 7.0000)
+insert into dbcrud.crud_c11(`id`,`i`,`d`) values (6, 7, 7.0000)
+2026-11-24 18:53:16,939[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists c11_ref
+drop table if exists c11_ref
+2026-11-24 18:53:16,948[INFO]io.mycat.assemble.MycatTest.execute:105create table c11_ref(`id` bigint primary key, `i` int, `d` decimal(20, 4))
+create table c11_ref(`id` bigint primary key, `i` int, `d` decimal(20, 4))
+2026-11-24 18:53:17,019[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (1, 1, 1.0000)
+insert into c11_ref(`id`,`i`,`d`) values (1, 1, 1.0000)
+2026-11-24 18:53:17,033[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (2, 2, 2.0000)
+insert into c11_ref(`id`,`i`,`d`) values (2, 2, 2.0000)
+2026-11-24 18:53:17,046[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (3, 3, 3.0000)
+insert into c11_ref(`id`,`i`,`d`) values (3, 3, 3.0000)
+2026-11-24 18:53:17,058[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (4, 4, 4.0000)
+insert into c11_ref(`id`,`i`,`d`) values (4, 4, 4.0000)
+2026-11-24 18:53:17,071[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (5, 5, 5.0000)
+insert into c11_ref(`id`,`i`,`d`) values (5, 5, 5.0000)
+2026-11-24 18:53:17,082[INFO]io.mycat.assemble.MycatTest.execute:105insert into c11_ref(`id`,`i`,`d`) values (6, 7, 7.0000)
+insert into c11_ref(`id`,`i`,`d`) values (6, 7, 7.0000)
+2026-11-24 18:53:17,095[INFO]io.mycat.assemble.MycatTest.executeQuery:120select avg(`i`) from dbcrud.crud_c11
+2026-11-24 18:53:17,232[INFO]io.mycat.assemble.MycatTest.executeQuery:120select avg(`i`) from c11_ref
+C11：跨分片 AVG(int) => mycat=3.6667 [java.math.BigDecimal] oracle=3.6667 [java.math.BigDecimal]
+2026-11-24 18:53:17,241[INFO]io.mycat.assemble.MycatTest.executeQuery:120select avg(`d`) from dbcrud.crud_c11
+2026-11-24 18:53:17,335[INFO]io.mycat.assemble.MycatTest.executeQuery:120select avg(`d`) from c11_ref
+C11：跨分片 AVG(decimal(20,4)) => mycat=3.66666667 [java.math.BigDecimal] oracle=3.66666667 [java.math.BigDecimal]
+2026-11-24 18:53:17,339[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists c11_ref
+drop table if exists c11_ref
+2026-11-24 18:53:17,379[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:17,382[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c5
+drop table if exists crud_c5
+2026-11-24 18:53:17,396[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c5` (
+  `id` bigint NOT NULL, `c_bin` varbinary(64), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c5` (
+  `id` bigint NOT NULL, `c_bin` varbinary(64), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:17,625[INFO]io.mycat.assemble.MycatTest.execute:160insert into dbcrud.crud_c5(`id`,`c_bin`) values (1, ?)
+2026-11-24 18:53:17,675[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_bin` from dbcrud.crud_c5 where `id`=1
+2026-11-24 18:53:17,710[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:17,714[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c3
+drop table if exists crud_c3
+2026-11-24 18:53:17,729[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c3` (
+  `id` bigint NOT NULL, `c_dec` decimal(20,4), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c3` (
+  `id` bigint NOT NULL, `c_dec` decimal(20,4), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:17,936[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c3(`id`,`c_dec`) values (1, 12345678901234.5678)
+insert into dbcrud.crud_c3(`id`,`c_dec`) values (1, 12345678901234.5678)
+2026-11-24 18:53:17,982[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_dec` from dbcrud.crud_c3 where `id`=1
+2026-11-24 18:53:18,015[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:18,017[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c1
+drop table if exists crud_c1
+2026-11-24 18:53:18,030[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c1` (
+  `id` bigint NOT NULL, `c_int` int, `c_var` varchar(255), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c1` (
+  `id` bigint NOT NULL, `c_int` int, `c_var` varchar(255), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:18,235[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c1(`id`,`c_int`,`c_var`) values (1, 42, 'hello-mycat')
+insert into dbcrud.crud_c1(`id`,`c_int`,`c_var`) values (1, 42, 'hello-mycat')
+2026-11-24 18:53:18,291[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_int`,`c_var` from dbcrud.crud_c1 where `id`=1
+2026-11-24 18:53:18,328[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:18,330[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c9
+drop table if exists crud_c9
+2026-11-24 18:53:18,344[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c9` (
+  `id` bigint NOT NULL, `a` datetime, `b` datetime, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c9` (
+  `id` bigint NOT NULL, `a` datetime, `b` datetime, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:18,599[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c9(`id`,`a`,`b`) values (1, '2021-03-01 00:00:00', '2022-02-28 00:00:00')
+insert into dbcrud.crud_c9(`id`,`a`,`b`) values (1, '2021-03-01 00:00:00', '2022-02-28 00:00:00')
+2026-11-24 18:53:18,680[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(SECOND, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:18,758[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(MINUTE, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:18,814[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(HOUR, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:18,854[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(DAY, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:18,890[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(MONTH, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:18,973[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(YEAR, `a`, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:19,003[INFO]io.mycat.assemble.MycatTest.executeQuery:120select timestampdiff(SECOND, NULL, `b`) as d from dbcrud.crud_c9 where `id`=1
+2026-11-24 18:53:19,040[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:19,043[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c7
+drop table if exists crud_c7
+2026-11-24 18:53:19,054[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c7` (
+  `id` bigint NOT NULL, `val` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c7` (
+  `id` bigint NOT NULL, `val` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:19,263[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (1, 10)
+insert into dbcrud.crud_c7(`id`,`val`) values (1, 10)
+2026-11-24 18:53:19,310[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (2, 20)
+insert into dbcrud.crud_c7(`id`,`val`) values (2, 20)
+2026-11-24 18:53:19,339[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (3, 30)
+insert into dbcrud.crud_c7(`id`,`val`) values (3, 30)
+2026-11-24 18:53:19,364[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (4, 40)
+insert into dbcrud.crud_c7(`id`,`val`) values (4, 40)
+2026-11-24 18:53:19,390[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (5, 50)
+insert into dbcrud.crud_c7(`id`,`val`) values (5, 50)
+2026-11-24 18:53:19,417[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c7(`id`,`val`) values (6, 60)
+insert into dbcrud.crud_c7(`id`,`val`) values (6, 60)
+2026-11-24 18:53:19,442[INFO]io.mycat.assemble.MycatTest.executeQuery:120select count(*) from dbcrud.crud_c7
+2026-11-24 18:53:19,508[INFO]io.mycat.assemble.MycatTest.executeQuery:120select sum(`val`) from dbcrud.crud_c7
+2026-11-24 18:53:19,584[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `val` from dbcrud.crud_c7 order by `val` desc
+2026-11-24 18:53:19,627[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:19,629[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c12
+drop table if exists crud_c12
+2026-11-24 18:53:19,641[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c12` (
+  `id` bigint NOT NULL, `i` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c12` (
+  `id` bigint NOT NULL, `i` int, PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:19,884[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (1, 1)
+insert into dbcrud.crud_c12(`id`,`i`) values (1, 1)
+2026-11-24 18:53:19,933[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (2, 2)
+insert into dbcrud.crud_c12(`id`,`i`) values (2, 2)
+2026-11-24 18:53:19,952[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (3, 3)
+insert into dbcrud.crud_c12(`id`,`i`) values (3, 3)
+2026-11-24 18:53:19,970[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (4, 4)
+insert into dbcrud.crud_c12(`id`,`i`) values (4, 4)
+2026-11-24 18:53:19,988[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (5, 5)
+insert into dbcrud.crud_c12(`id`,`i`) values (5, 5)
+2026-11-24 18:53:20,009[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c12(`id`,`i`) values (6, 7)
+insert into dbcrud.crud_c12(`id`,`i`) values (6, 7)
+2026-11-24 18:53:20,028[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists c12_ref
+drop table if exists c12_ref
+2026-11-24 18:53:20,037[INFO]io.mycat.assemble.MycatTest.execute:105create table c12_ref(`id` bigint primary key, `i` int)
+create table c12_ref(`id` bigint primary key, `i` int)
+2026-11-24 18:53:20,090[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (1, 1)
+insert into c12_ref(`id`,`i`) values (1, 1)
+2026-11-24 18:53:20,104[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (2, 2)
+insert into c12_ref(`id`,`i`) values (2, 2)
+2026-11-24 18:53:20,117[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (3, 3)
+insert into c12_ref(`id`,`i`) values (3, 3)
+2026-11-24 18:53:20,130[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (4, 4)
+insert into c12_ref(`id`,`i`) values (4, 4)
+2026-11-24 18:53:20,143[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (5, 5)
+insert into c12_ref(`id`,`i`) values (5, 5)
+2026-11-24 18:53:20,155[INFO]io.mycat.assemble.MycatTest.execute:105insert into c12_ref(`id`,`i`) values (6, 7)
+insert into c12_ref(`id`,`i`) values (6, 7)
+2026-11-24 18:53:20,167[INFO]io.mycat.assemble.MycatTest.executeQuery:120select stddev(`i`) from dbcrud.crud_c12
+2026-11-24 18:53:20,287[INFO]io.mycat.assemble.MycatTest.executeQuery:120select stddev(`i`) from c12_ref
+C12：跨分片 STDDEV(int) => mycat=1.9720265943665385 [java.lang.Double] oracle=1.9720265943665387 [java.lang.Double]
+2026-11-24 18:53:20,294[INFO]io.mycat.assemble.MycatTest.executeQuery:120select variance(`i`) from dbcrud.crud_c12
+2026-11-24 18:53:20,397[INFO]io.mycat.assemble.MycatTest.executeQuery:120select variance(`i`) from c12_ref
+C12：跨分片 VARIANCE(int) => mycat=3.888888888888888 [java.lang.Double] oracle=3.8888888888888893 [java.lang.Double]
+2026-11-24 18:53:20,402[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists c12_ref
+drop table if exists c12_ref
+2026-11-24 18:53:20,459[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:20,463[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c6
+drop table if exists crud_c6
+2026-11-24 18:53:20,480[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c6` (
+  `id` bigint NOT NULL, `c_bit1` bit(1), `c_bit8` bit(8), `c_bit16` bit(16), `c_bitnull` bit(8), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c6` (
+  `id` bigint NOT NULL, `c_bit1` bit(1), `c_bit8` bit(8), `c_bit16` bit(16), `c_bitnull` bit(8), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:20,931[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c6(`id`,`c_bit1`,`c_bit8`,`c_bit16`,`c_bitnull`) values (1, b'1', b'10110011', b'1000000000000001', NULL)
+insert into dbcrud.crud_c6(`id`,`c_bit1`,`c_bit8`,`c_bit16`,`c_bitnull`) values (1, b'1', b'10110011', b'1000000000000001', NULL)
+2026-11-24 18:53:21,002[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_bit1`,`c_bit8`,`c_bit16`,`c_bitnull` from dbcrud.crud_c6 where `id`=1
+2026-11-24 18:53:21,045[INFO]io.mycat.assemble.MycatTest.execute:105use dbcrud
+use dbcrud
+2026-11-24 18:53:21,048[INFO]io.mycat.assemble.MycatTest.execute:105drop table if exists crud_c2
+drop table if exists crud_c2
+2026-11-24 18:53:21,066[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `crud_c2` (
+  `id` bigint NOT NULL, `c_var` varchar(64), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `crud_c2` (
+  `id` bigint NOT NULL, `c_var` varchar(64), PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:21,424[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbcrud.crud_c2(`id`,`c_var`) values (1,'a'),(2,'b')
+insert into dbcrud.crud_c2(`id`,`c_var`) values (1,'a'),(2,'b')
+2026-11-24 18:53:21,553[INFO]io.mycat.assemble.MycatTest.execute:105update dbcrud.crud_c2 set `c_var`='z' where `id`=1
+update dbcrud.crud_c2 set `c_var`='z' where `id`=1
+2026-11-24 18:53:21,655[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `c_var` from dbcrud.crud_c2 where `id`=1
+2026-11-24 18:53:21,703[INFO]io.mycat.assemble.MycatTest.execute:105delete from dbcrud.crud_c2 where `id`=1
+delete from dbcrud.crud_c2 where `id`=1
+2026-11-24 18:53:21,752[INFO]io.mycat.assemble.MycatTest.executeQuery:120select count(*) from dbcrud.crud_c2
+2026-11-24 18:53:21,820[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbcrud
+drop database if exists dbcrud
+2026-11-24 18:53:21,888[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:21,907[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbcrud%'
+2026-11-24 18:53:21,913[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbcrud_0`
+drop database if exists `dbcrud_0`
+2026-11-24 18:53:22,243[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbcrud_1`
+drop database if exists `dbcrud_1`
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.030 s -- in io.mycat.compat.CrudResultMatrixTest
+[INFO] Running io.mycat.compat.DumpRestoreRoundTripMatrixTest
+2026-11-24 18:53:22,589[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:22,592[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-24 18:53:22,655[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump
+create database dbdump
+2026-11-24 18:53:22,685[INFO]io.mycat.assemble.MycatTest.execute:105create table dbdump.t1 (id int not null primary key, name varchar(64), amount decimal(10,2), ts datetime null, gen int as (id * 2) stored, b bit(8), txt text)
+create table dbdump.t1 (id int not null primary key, name varchar(64), amount decimal(10,2), ts datetime null, gen int as (id * 2) stored, b bit(8), txt text)
+2026-11-24 18:53:22,863[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbdump.t1 (id,name,amount,ts,b,txt) values (1,'a',10.50,'2026-01-01 10:00:00',b'10101010','hello')
+insert into dbdump.t1 (id,name,amount,ts,b,txt) values (1,'a',10.50,'2026-01-01 10:00:00',b'10101010','hello')
+2026-11-24 18:53:22,903[INFO]io.mycat.assemble.MycatTest.execute:105insert into dbdump.t1 (id,name,amount,ts,b,txt) values (2,'b',20.75,null,b'11111111','plain')
+insert into dbdump.t1 (id,name,amount,ts,b,txt) values (2,'b',20.75,null,b'11111111','plain')
+2026-11-24 18:53:23,003[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump_restore
+drop database if exists dbdump_restore
+2026-11-24 18:53:23,012[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump_restore
+create database dbdump_restore
+2026-11-24 18:53:23,031[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE IF NOT EXISTS `dbdump_restore`.t1 (
+	id int NOT NULL PRIMARY KEY,
+	name varchar(64),
+	amount decimal(10, 2),
+	ts datetime NULL,
+	gen int AS (id * 2) STORED,
+	b bit(8),
+	txt text
+)
+CREATE TABLE IF NOT EXISTS `dbdump_restore`.t1 (
+	id int NOT NULL PRIMARY KEY,
+	name varchar(64),
+	amount decimal(10, 2),
+	ts datetime NULL,
+	gen int AS (id * 2) STORED,
+	b bit(8),
+	txt text
+)
+2026-11-24 18:53:23,277[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-24 18:53:23,398[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:23,429[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump_restore
+drop database if exists dbdump_restore
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.960 s -- in io.mycat.compat.DumpRestoreRoundTripMatrixTest
+[INFO] Running io.mycat.compat.DumpSurfaceMatrixTest
+2026-11-24 18:53:23,593[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:23,605[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-24 18:53:23,672[INFO]io.mycat.assemble.MycatTest.execute:105create database dbdump
+create database dbdump
+2026-11-24 18:53:23,721[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-24 18:53:23,727[INFO]io.mycat.assemble.MycatTest.execute:105create table t1 (id int not null primary key, name varchar(64), amount decimal(10,2) default null, ts timestamp null, gen int as (id * 2), key idx_name(name))
+create table t1 (id int not null primary key, name varchar(64), amount decimal(10,2) default null, ts timestamp null, gen int as (id * 2), key idx_name(name))
+2026-11-24 18:53:23,971[INFO]io.mycat.assemble.MycatTest.execute:105insert into t1 (id, name, amount) values (1, 'a', 10.5), (2, 'b', 20.75)
+insert into t1 (id, name, amount) values (1, 'a', 10.5), (2, 'b', 20.75)
+2026-11-24 18:53:24,183[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-24 18:53:24,658[INFO]io.mycat.assemble.MycatTest.execute:105use dbdump
+use dbdump
+2026-11-24 18:53:25,045[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbdump
+drop database if exists dbdump
+2026-11-24 18:53:25,139[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.666 s -- in io.mycat.compat.DumpSurfaceMatrixTest
+[INFO] Running io.mycat.compat.FrontAuthMatrixTest
+2026-11-24 18:53:25,147[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,153[INFO]io.mycat.assemble.MycatTest.executeQuery:120select version()
+2026-11-24 18:53:25,188[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+2026-11-24 18:53:25,193[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+2026-11-24 18:53:25,197[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+2026-11-24 18:53:25,200[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,230[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:53:25,230[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:53:25,231[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+2026-11-24 18:53:25,235[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+2026-11-24 18:53:25,238[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+2026-11-24 18:53:25,242[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,247[INFO]io.mycat.assemble.MycatTest.executeQuery:120select version()
+2026-11-24 18:53:25,251[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+2026-11-24 18:53:25,254[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+2026-11-24 18:53:25,258[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+2026-11-24 18:53:25,261[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,275[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createUser{
+  "username" : "i9bfe_ok",
+  "password" : "I9b_pass_1",
+  "ip" : null,
+  "transactionType" : "proxy",
+  "dialect" : "mysql",
+  "schema" : null,
+  "isolation" : 3,
+  "readOnly" : false,
+  "loginLimit" : -1,
+  "encryptType" : "",
+  "encodeKey" : "",
+  "role" : null
+} */;
+/*+ mycat:createUser{
+  "username" : "i9bfe_ok",
+  "password" : "I9b_pass_1",
+  "ip" : null,
+  "transactionType" : "proxy",
+  "dialect" : "mysql",
+  "schema" : null,
+  "isolation" : 3,
+  "readOnly" : false,
+  "loginLimit" : -1,
+  "encryptType" : "",
+  "encodeKey" : "",
+  "role" : null
+} */;
+2026-11-24 18:53:25,345[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+2026-11-24 18:53:25,377[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+2026-11-24 18:53:25,383[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+2026-11-24 18:53:25,386[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+2026-11-24 18:53:25,389[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,394[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createUser{
+  "username" : "i9bfe_ok",
+  "password" : "I9b_pass_1",
+  "ip" : null,
+  "transactionType" : "proxy",
+  "dialect" : "mysql",
+  "schema" : null,
+  "isolation" : 3,
+  "readOnly" : false,
+  "loginLimit" : -1,
+  "encryptType" : "",
+  "encodeKey" : "",
+  "role" : null
+} */;
+/*+ mycat:createUser{
+  "username" : "i9bfe_ok",
+  "password" : "I9b_pass_1",
+  "ip" : null,
+  "transactionType" : "proxy",
+  "dialect" : "mysql",
+  "schema" : null,
+  "isolation" : 3,
+  "readOnly" : false,
+  "loginLimit" : -1,
+  "encryptType" : "",
+  "encodeKey" : "",
+  "role" : null
+} */;
+2026-11-24 18:53:25,415[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 18:53:25,415[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 18:53:25,415[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+/*+ mycat:dropUser{"username":"i9bfe_ok"} */
+2026-11-24 18:53:25,421[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha"} */
+2026-11-24 18:53:25,424[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+/*+ mycat:dropUser{"username":"i9bfe_sha_bad"} */
+2026-11-24 18:53:25,427[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,431[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+[WARNING] Tests run: 5, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.289 s -- in io.mycat.compat.FrontAuthMatrixTest
+[INFO] Running io.mycat.compat.MariadbEd25519BackendTest
+2026-11-24 18:53:25,457[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:25,462[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbm6
+drop database if exists dbm6
+2026-11-24 18:53:25,495[ERROR]com.alibaba.druid.pool.DruidDataSource.validationQueryCheck:1112testWhileIdle is true, validationQuery not set
+2026-11-24 18:53:25,496[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-6} inited
+2026-11-24 18:53:25,672[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:25,674[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:25,682[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:25,682[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:25,682[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:25,691[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:25,701[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+2026-11-24 18:53:25,702[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+2026-11-24 18:53:25,713[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "m6_ed25519_ds",
+  "user" : "e25519",
+  "password" : "p@ssw0rd",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mariadb://localhost:3308/mysql",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "m6_ed25519_ds",
+  "user" : "e25519",
+  "password" : "p@ssw0rd",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mariadb://localhost:3308/mysql",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:25,724[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "m6_ed25519_ds" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "m6_ed25519_ds" ],
+  "replicas" : [ ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:25,735[INFO]io.mycat.assemble.MycatTest.execute:105create database dbm6
+create database dbm6
+2026-11-24 18:53:25,766[INFO]io.mycat.assemble.MycatTest.execute:105use dbm6
+use dbm6
+2026-11-24 18:53:25,767[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE `edprobe` (
+  `id` bigint NOT NULL,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+CREATE TABLE `edprobe` (
+  `id` bigint NOT NULL,
+  `note` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 dbpartition by mod_hash(`id`) dbpartitions 2;
+2026-11-24 18:53:26,094[INFO]io.mycat.assemble.MycatTest.execute:105insert into `edprobe`(`id`,`note`) values (1,'m6a')
+insert into `edprobe`(`id`,`note`) values (1,'m6a')
+2026-11-24 18:53:26,132[INFO]io.mycat.assemble.MycatTest.execute:105insert into `edprobe`(`id`,`note`) values (2,'m6b')
+insert into `edprobe`(`id`,`note`) values (2,'m6b')
+2026-11-24 18:53:26,145[INFO]io.mycat.assemble.MycatTest.execute:105insert into `edprobe`(`id`,`note`) values (3,'m6c')
+insert into `edprobe`(`id`,`note`) values (3,'m6c')
+2026-11-24 18:53:26,162[INFO]io.mycat.assemble.MycatTest.executeQuery:120select `note` from dbm6.`edprobe` order by `id`
+2026-11-24 18:53:26,207[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,207[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,209[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,209[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,209[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,210[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:26,212[INFO]io.mycat.assemble.MycatTest.executeQuery:120select count(*) as cnt from `dbm6_0`.`edprobe_0`
+2026-11-24 18:53:26,213[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR select count(*) as cnt from `dbm6_0`.`edprobe_0`
+2026-11-24 18:53:26,216[INFO]io.mycat.assemble.MycatTest.executeQuery:120select count(*) as cnt from `dbm6_1`.`edprobe_0`
+2026-11-24 18:53:26,216[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR select count(*) as cnt from `dbm6_1`.`edprobe_0`
+2026-11-24 18:53:26,219[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbm6
+drop database if exists dbm6
+2026-11-24 18:53:26,267[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:26,283[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+2026-11-24 18:53:26,284[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+2026-11-24 18:53:26,303[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,303[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,306[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,306[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,306[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,306[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:26,309[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbm6_1`
+2026-11-24 18:53:26,309[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR drop database if exists `dbm6_1`
+drop database if exists `dbm6_1`
+2026-11-24 18:53:26,342[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,342[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,345[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,345[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,345[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,345[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:26,347[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists `dbm6_0`
+2026-11-24 18:53:26,348[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR drop database if exists `dbm6_0`
+drop database if exists `dbm6_0`
+2026-11-24 18:53:26,427[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,428[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,431[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,432[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,432[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,433[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1 as one
+2026-11-24 18:53:26,433[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: select 1 as one
+2026-11-24 18:53:26,440[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists dbm6
+drop database if exists dbm6
+2026-11-24 18:53:26,506[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:26,522[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,522[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,524[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,525[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,525[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,525[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:26,538[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59Database change: is 'mysql'
+2026-11-24 18:53:26,538[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: set sql_mode=CONCAT(@@sql_mode,',STRICT_TRANS_TABLES'),session_track_system_variables = CONCAT(@@global.session_track_system_variables,',tx_isolation'),NAMES utf8mb4
+2026-11-24 18:53:26,541[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_client = utf8mb4
+2026-11-24 18:53:26,541[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_connection = utf8mb4
+2026-11-24 18:53:26,541[DEBUG]org.mariadb.jdbc.message.server.OkPacket.debug:59System variable change:  character_set_results = utf8mb4
+2026-11-24 18:53:26,541[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SELECT @@session.tx_isolation
+2026-11-24 18:53:26,544[INFO]io.mycat.assemble.MycatTest.executeQuery:120select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+2026-11-24 18:53:26,544[DEBUG]org.mariadb.jdbc.client.impl.StandardClient.debug:59execute query: SET STATEMENT max_statement_time=1000 FOR select schema_name from information_schema.schemata where schema_name like 'dbm6%'
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.111 s -- in io.mycat.compat.MariadbEd25519BackendTest
+[INFO] Running io.mycat.compat.MetadataGuiMatrixTest
+[WARNING] Tests run: 7, Failures: 0, Errors: 0, Skipped: 7, Time elapsed: 0.019 s -- in io.mycat.compat.MetadataGuiMatrixTest
+[INFO] Running io.mycat.compat.MigrateMatrixTest
+2026-11-24 18:53:26,629[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:26,632[INFO]io.mycat.assemble.MycatTest.execute:105CREATE DATABASE IF NOT EXISTS db1
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 30.08 s <<< FAILURE! -- in io.mycat.compat.MigrateMatrixTest
+[ERROR] io.mycat.compat.MigrateMatrixTest.migrateNormalToNormalCompletes -- Time elapsed: 30.03 s <<< ERROR!
+com.mysql.cj.jdbc.exceptions.CommunicationsException: 
+Communications link failure
+
+The last packet successfully received from the server was 30,014 milliseconds ago. The last packet sent successfully to the server was 30,014 milliseconds ago.
+	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:165)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:55)
+	at com.mysql.cj.jdbc.StatementImpl.executeInternal(StatementImpl.java:837)
+	at com.mysql.cj.jdbc.StatementImpl.execute(StatementImpl.java:685)
+	at io.mycat.assemble.MycatTest.execute(MycatTest.java:114)
+	at io.mycat.compat.MigrateMatrixTest.migrateNormalToNormalCompletes(MigrateMatrixTest.java:64)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+
+The last packet successfully received from the server was 30,014 milliseconds ago. The last packet sent successfully to the server was 30,014 milliseconds ago.
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:52)
+	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:95)
+	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:140)
+	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:156)
+	at com.mysql.cj.protocol.a.NativeProtocol.readMessage(NativeProtocol.java:592)
+	at com.mysql.cj.protocol.a.NativeProtocol.checkErrorMessage(NativeProtocol.java:769)
+	at com.mysql.cj.protocol.a.NativeProtocol.sendCommand(NativeProtocol.java:708)
+	at com.mysql.cj.protocol.a.NativeProtocol.sendQueryPacket(NativeProtocol.java:940)
+	at com.mysql.cj.NativeSession.execSQL(NativeSession.java:817)
+	at com.mysql.cj.jdbc.StatementImpl.executeInternal(StatementImpl.java:789)
+	... 6 more
+Caused by: java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:304)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099)
+	at com.mysql.cj.protocol.ReadAheadInputStream.fill(ReadAheadInputStream.java:91)
+	at com.mysql.cj.protocol.ReadAheadInputStream.readFromUnderlyingStreamIfNecessary(ReadAheadInputStream.java:130)
+	at com.mysql.cj.protocol.ReadAheadInputStream.read(ReadAheadInputStream.java:157)
+	at java.base/java.io.FilterInputStream.read(FilterInputStream.java:119)
+	at com.mysql.cj.protocol.FullReadInputStream.readFully(FullReadInputStream.java:55)
+	at com.mysql.cj.protocol.a.SimplePacketReader.readHeaderLocal(SimplePacketReader.java:72)
+	at com.mysql.cj.protocol.a.SimplePacketReader.readHeader(SimplePacketReader.java:54)
+	at com.mysql.cj.protocol.a.SimplePacketReader.readHeader(SimplePacketReader.java:36)
+	at com.mysql.cj.protocol.a.TimeTrackingPacketReader.readHeader(TimeTrackingPacketReader.java:43)
+	at com.mysql.cj.protocol.a.TimeTrackingPacketReader.readHeader(TimeTrackingPacketReader.java:32)
+	at com.mysql.cj.protocol.a.MultiPacketReader.readHeader(MultiPacketReader.java:45)
+	at com.mysql.cj.protocol.a.MultiPacketReader.readHeader(MultiPacketReader.java:35)
+	at com.mysql.cj.protocol.a.NativeProtocol.readMessage(NativeProtocol.java:586)
+	... 11 more
+
+[INFO] Running io.mycat.compat.OrderByNullCollationMatrixTest
+2026-11-24 18:53:56,707[INFO]io.mycat.assemble.MycatTest.execute:105DROP DATABASE IF EXISTS i55_ctrl
+DROP DATABASE IF EXISTS i55_ctrl
+2026-11-24 18:53:56,776[INFO]io.mycat.assemble.MycatTest.execute:105CREATE DATABASE i55_ctrl
+CREATE DATABASE i55_ctrl
+2026-11-24 18:53:56,793[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE i55_ctrl.c8 (id BIGINT PRIMARY KEY, user_id VARCHAR(100), days INT)
+CREATE TABLE i55_ctrl.c8 (id BIGINT PRIMARY KEY, user_id VARCHAR(100), days INT)
+2026-11-24 18:53:56,854[INFO]io.mycat.assemble.MycatTest.execute:105CREATE TABLE i55_ctrl.c4 (id BIGINT PRIMARY KEY, user_id VARCHAR(100), days INT)
+CREATE TABLE i55_ctrl.c4 (id BIGINT PRIMARY KEY, user_id VARCHAR(100), days INT)
+2026-11-24 18:53:56,916[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (5, NULL, 50)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (5, NULL, 50)
+2026-11-24 18:53:56,932[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (2, NULL, 20)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (2, NULL, 20)
+2026-11-24 18:53:56,950[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (8, NULL, null)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (8, NULL, null)
+2026-11-24 18:53:56,962[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (1, 'u1', 10)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (1, 'u1', 10)
+2026-11-24 18:53:56,975[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (6, 'u6', null)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (6, 'u6', null)
+2026-11-24 18:53:56,988[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (3, 'u3', null)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (3, 'u3', null)
+2026-11-24 18:53:57,000[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (7, 'u7', 70)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (7, 'u7', 70)
+2026-11-24 18:53:57,013[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (4, 'u4', 40)
+INSERT INTO i55_ctrl.c8 (id, user_id, days) VALUES (4, 'u4', 40)
+2026-11-24 18:53:57,026[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (3, 'u3', null)
+INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (3, 'u3', null)
+2026-11-24 18:53:57,040[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (1, 'u1', 10)
+INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (1, 'u1', 10)
+2026-11-24 18:53:57,057[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (4, 'u4', 40)
+INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (4, 'u4', 40)
+2026-11-24 18:53:57,073[INFO]io.mycat.assemble.MycatTest.execute:105INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (2, NULL, 20)
+INSERT INTO i55_ctrl.c4 (id, user_id, days) VALUES (2, NULL, 20)
+2026-11-24 18:53:57,087[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 18:53:57,119[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "dw0",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "dw0",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:57,131[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "dr0",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "dr0",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:57,144[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "dw1",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "dw1",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:57,158[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createDataSource{
+  "name" : "dr1",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+/*+ mycat:createDataSource{
+  "name" : "dr1",
+  "user" : "root",
+  "password" : "123456",
+  "maxCon" : 1000,
+  "minCon" : 1,
+  "maxRetryCount" : 5,
+  "maxConnectTimeout" : 30000,
+  "dbType" : "mysql",
+  "url" : "jdbc:mysql://localhost:3307/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+  "weight" : 0,
+  "initSqls" : [ ],
+  "initSqlsGetConnection" : true,
+  "instanceType" : "READ_WRITE",
+  "idleTimeout" : 60000,
+  "jdbcDriverClass" : null,
+  "type" : "JDBC",
+  "queryTimeout" : 0,
+  "statementTimeout" : 30000,
+  "removeAbandoned" : false,
+  "removeAbandonedTimeoutSecond" : 180,
+  "logAbandoned" : true
+} */;
+2026-11-24 18:53:57,172[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "dw0" ],
+  "replicas" : [ "dr0" ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c0",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "dw0" ],
+  "replicas" : [ "dr0" ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:57,185[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "dw1" ],
+  "replicas" : [ "dr1" ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+/*+ mycat:createCluster{
+  "clusterType" : "MASTER_SLAVE",
+  "switchType" : "SWITCH",
+  "readBalanceType" : "BALANCE_ALL",
+  "name" : "c1",
+  "readBalanceName" : null,
+  "writeBalanceName" : null,
+  "masters" : [ "dw1" ],
+  "replicas" : [ "dr1" ],
+  "heartbeat" : {
+    "maxRetryCount" : 3,
+    "minSwitchTimeInterval" : 300,
+    "heartbeatTimeout" : 1000,
+    "slaveThreshold" : 0.0,
+    "showLog" : false
+  },
+  "maxCon" : 2000,
+  "timer" : null
+} */;
+2026-11-24 18:53:57,198[INFO]io.mycat.assemble.MycatTest.execute:105DROP DATABASE IF EXISTS i55db
+2026-11-24 19:10:38,288[DEBUG]com.alibaba.druid.pool.DruidDataSource.getConnectionDirect:1424skip not validated connection.
+2026-11-24 19:10:38,294[INFO]io.mycat.assemble.MycatTest.execute:105DROP DATABASE IF EXISTS i55db
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 2003 s <<< FAILURE! -- in io.mycat.compat.OrderByNullCollationMatrixTest
+[ERROR] io.mycat.compat.OrderByNullCollationMatrixTest -- Time elapsed: 2003 s <<< ERROR!
+com.mysql.cj.jdbc.exceptions.MySQLTimeoutException: Statement cancelled due to timeout or client request
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:105)
+	at com.mysql.cj.jdbc.StatementImpl.checkCancelTimeout(StatementImpl.java:2409)
+	at com.mysql.cj.protocol.a.NativeProtocol.sendQueryPacket(NativeProtocol.java:1022)
+	at com.mysql.cj.NativeSession.execSQL(NativeSession.java:817)
+	at com.mysql.cj.jdbc.StatementImpl.executeInternal(StatementImpl.java:789)
+	at com.mysql.cj.jdbc.StatementImpl.execute(StatementImpl.java:685)
+	at com.alibaba.druid.pool.DruidPooledStatement.execute(DruidPooledStatement.java:635)
+	at io.mycat.assemble.MycatTest.execute(MycatTest.java:114)
+	at io.mycat.compat.OrderByNullCollationMatrixTest.prepare(OrderByNullCollationMatrixTest.java:127)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: com.mysql.cj.jdbc.exceptions.MySQLTimeoutException: Statement cancelled due to timeout or client request
+		at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:105)
+		at com.mysql.cj.jdbc.StatementImpl.checkCancelTimeout(StatementImpl.java:2409)
+		at com.mysql.cj.protocol.a.NativeProtocol.sendQueryPacket(NativeProtocol.java:1022)
+		at com.mysql.cj.NativeSession.execSQL(NativeSession.java:817)
+		at com.mysql.cj.jdbc.StatementImpl.executeInternal(StatementImpl.java:789)
+		at com.mysql.cj.jdbc.StatementImpl.execute(StatementImpl.java:685)
+		at com.alibaba.druid.pool.DruidPooledStatement.execute(DruidPooledStatement.java:635)
+		at io.mycat.assemble.MycatTest.execute(MycatTest.java:114)
+		at io.mycat.compat.OrderByNullCollationMatrixTest.purge(OrderByNullCollationMatrixTest.java:152)
+		at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+		at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+		at java.base/java.util.Collections$UnmodifiableCollection.forEach(Collections.java:1116)
+		... 1 more
+
+[INFO] Running io.mycat.compat.ShowCreateDatabaseCharsetTest
+2026-11-24 19:27:19,318[DEBUG]com.alibaba.druid.pool.DruidDataSource.getConnectionDirect:1424skip not validated connection.
+2026-11-24 19:27:19,378[INFO]io.mycat.assemble.MycatTest.executeQuery:120SELECT 1
+2026-11-24 19:27:19,399[INFO]io.mycat.assemble.MycatTest.execute:105/*+ mycat:resetConfig{} */
+/*+ mycat:resetConfig{} */
+2026-11-24 19:27:19,416[INFO]io.mycat.assemble.MycatTest.execute:105drop database if exists idebt58_cs
+[NO_DATA] 8066/建库面未通 → SHOW CREATE DATABASE 字符集格待 infra：Statement cancelled due to timeout or client request
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 1001 s -- in io.mycat.compat.ShowCreateDatabaseCharsetTest
+[INFO] Running io.mycat.compat.SqlModeSessionDumpSurfaceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.311 s -- in io.mycat.compat.SqlModeSessionDumpSurfaceTest
+[INFO] Running io.mycat.compat.TlsAxisMatrixTest
+2026-11-24 19:44:00,809[INFO]io.mycat.assemble.MycatTest.executeQuery:120select 1
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.069 s -- in io.mycat.compat.TlsAxisMatrixTest
+2026-11-24 19:44:00,882[DEBUG]io.vertx.core.logging.LoggerFactory.?:?Using io.vertx.core.logging.SLF4JLogDelegateFactory
+[INFO] Running io.mycat.xa.BaseXaSavepointTest
+2026-11-24 19:44:00,925[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-7} inited
+2026-11-24 19:44:01,519[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-8} inited

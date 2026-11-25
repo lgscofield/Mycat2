@@ -211,3 +211,61 @@ pinning 只是性能问题。下面这条是**功能静默失效**，比性能�
 - 真实 Mycat 全代理路径（前端协议 / 路由 / calcite / 跨片归并）、多后端、TLS、prepared 协议、大结果集、长事务
 - `DbPlanManagerPersistorImpl` 的 DDL 型 JDBC（`CREATE DATABASE`/`CREATE TABLE`）与 `DefaultPrototypeGenerator`
   的 `SELECT ... FOR UPDATE` 型序列语句——两者形状与探针的纯 SELECT 流式读不同
+
+## 10. I-PR-1 实现后的活体订正（2026-11-24）
+
+> 本节追加实现与活体证据，不删除 §2–9 的历史计数与误判记录。
+
+### 10.1 活性与 P0 计数演进
+
+- **`DefaultPrototypeGenerator` 是死代码机制样本**：全仓无生产调用方，且其构造器/接口不满足
+  `SequenceGenerator` 的实际实例化契约。§2.3/§2.5/§7 的“配置门控活体”判断据此撤回。
+- **活体序列靶 = `server/.../plug/sequence/SequenceMySQLGenerator.java`**：实现 `SequenceHandler`，
+  `AddSequenceTest` 指名该类，真实 INSERT 经后端 `MYCAT_SEQUENCE` / `mycat_seq_nextval` 取号。
+  原 `public synchronized Number get()` 在锁内借 JDBC 连接并执行查询，属 P0，已换每实例单把 `ReentrantLock`。
+- **`SequenceFileGenerator` 不换锁**：临界区只有 `MappedByteBuffer` 读写，无 Java park 与活体 pinning 帧；
+  §4 将其笼统归为“低 pinning 风险”的表述不精确，但本票不做无证据 churn。
+- 静态 P0 口径保留演进链：**3 文件 / 22 处 → Task 2 后 5 文件 / 25 处 → 活体再升级 4 文件**。
+  新增/升级站点为 `AsyncMycatDataContextImpl`、`LocalLockServiceImpl`、`CreateTableSQLHandler`、
+  `VertxExecuter`；后者是 JDK `ConcurrentHashMap.computeIfAbsent` bin monitor 内执行阻塞取连接，
+  不是 synchronized 关键字扫描能发现的形态。
+
+### 10.2 已修站点与未改边界
+
+| 站点 | 处置 | 证据/边界 |
+|---|---|---|
+| `AsyncMycatDataContextImpl` | 5 个 synchronized 方法换单把 `ReentrantLock`；阻塞取连接移出 `computeIfAbsent` | 活体 10 帧归因；`transactionConnnectionMap` 实为 `HashMap`，改 mapping function 是一致性加固，不记作消帧功劳 |
+| `VertxExecuter` | 局部 map 改 get-then-put，阻塞 `transactionSession.getConnection` 移出 CHM mapping function | 活体 105 帧；局部 map 无并发访问，语义等价 |
+| `LocalLockServiceImpl` | 单例方法换每实例单把 `ReentrantLock` | 保持不同 name 仍全局串行，不放大 DDL 并发 |
+| `CreateTableSQLHandler` | 静态单例方法换单把 `ReentrantLock` | 单例下仍全局串行 |
+| `HttpCustomRuleFunction` | OkHttp 同步 `execute()` 换 `enqueue()` + 有界 `CompletableFuture.get()` | 绕开 `RealCall.execute()` 跨 socket 工作持有内部 monitor 的路径；R4 活体补证 |
+| `MemPlanCache.synchronized(plan)` | **未改** | 本票活体未命中；不把无证据换锁混入 P0 修复 |
+| `SequenceFileGenerator` | **未改** | 无阻塞/park 证据，见 §10.1 |
+
+### 10.3 第三方残差与 Future 覆盖
+
+- 第三轮曾有 10 帧 `ObservableRefCount.subscribeActual`，由 `AsyncMycatDataContextImpl.share()` 引入。
+  删除 `.share()` 会让复用节点的后端查询按消费者重复执行，属正确性/负载回归；VT 安全多播替代品
+  须另立架构票。历史残差保留为 **RESIDUAL**，不得伪报 PASS。
+- R1 的 vertx-core Future 链已由真实 `MycatVertxMySQLHandler` COM_QUERY →
+  `handleQuery(...).onComplete(...)` → `executeAdmitted` VT 路径覆盖，不再只是裸 JDK 推测。
+
+### 10.4 round 12 最终零 pinning 证据
+
+- JDK 21 + `-Djdk.tracePinnedThreads=full`，生产与 `maxPoolSize=3/admitTimeoutMillis=50`
+  两档同一 fat jar；prod/small 服务端日志各 **0 帧**，合计 ours=0、RxJava 豁免=0。
+- 先过流量闸：`prod-load`、`prod-threads`、`small-saturate` 三个真实场景 PASS，故不是“无流量零帧”的空断言。
+- 本轮未观测到 `ObservableRefCount.subscribeActual` 残差；§10.3 的架构债仍保留，**若后续复现必须单列 RESIDUAL，不得计入 PASS**。
+- 原始证据：`ci/iopr1/matrix-round12/logs/{prod,small}-server.log` 与 `summary.tsv`；双态＝本地✅ / CI⏳。
+
+### 10.5 round 15 最终零 pinning 复核
+
+- JDK 21 + `-Djdk.tracePinnedThreads=full`，同一 fat jar 的生产与 `maxPoolSize=3/admitTimeoutMillis=50`
+  两档服务端日志均为 `pinnedFrames=0`、`ours=0`、`exemptRxJava=0`。
+- 先过 `prod-load`、`prod-threads`、`small-saturate` 三个真实流量场景，避免“无流量零帧”的空断言；
+  L2 同时证明 C=8→32 时 IO VT 峰值 25→102、平台线程峰值 60→59，且 `noPlatformCarrier=true`。
+- round15 在控制面行注释 fail-open 与 Sleeper RuntimeException 漏记修复后重打 jar 并复跑；受测 jar SHA-256 为
+  `6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66`，归档
+  `ci/iopr1/matrix-round15-final/` 的 35 个文件校验通过。
+- 首轮完整护栏已中断；第二轮 Monitor `b8vtxa1hx` 为 11/12 阶段通过，唯一失败是 `LoaddataTest` 两条相对路径文件找不到，已修测试落盘目录并聚焦 2/2 PASS。两轮失败证据分别保留在 `guard-round15-interrupted1/` 与 `guard-round15-failed1/`；第三轮 Monitor `bbe5qorn9` 从零重跑 12 阶段并返回 `GUARD_RC=0`，归档 `guard-round15-final/`，21 条 SHA-256 清单校验通过。CI 未背书，双态保持本地✅ / 完整护栏✅ / CI⏳。§10.3 的
+  `ObservableRefCount.subscribeActual` 架构债不因本轮未复现而关闭。

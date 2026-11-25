@@ -1,0 +1,5 @@
+PASS 残留 8066 监听在启动前被拒绝
+PASS TCP 可连但本轮进程未 started up 时拒绝放行
+PASS Mycat 进程早退被立即识别
+PASS 正常启动放行且退出清理监听
+RUN_EXAMPLE_STARTUP_TESTS_DONE

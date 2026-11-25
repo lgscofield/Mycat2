@@ -1,0 +1,19 @@
+round: guard-round15-failed1
+archived_at: 2026-11-25T10:15:28+08:00
+head_at_run: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+fat_jar_sha256: 6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66
+monitor_task: b8vtxa1hx
+monitor_result: GUARD_RC=1
+summary_result: stages=12 passed=11 failed=1
+failed_stage: m1-m2-mysql57
+failed_tests:
+- LoaddataTest.testLoaddata:79
+- LoaddataTest.testLoaddata2:137
+failure: FileNotFoundException for target/mycat_loaddata_example*.csv
+root_cause: Surefire created the files under example/target while Mycat resolved target/ from the repository root
+fix: create the files under the repository-root target directory and keep sending the relative target/<name> path; production I-DEBT-125 path policy unchanged
+focused_verification: LoaddataTest 2/2 PASS after the test-only path fix
+conclusion: retained failure evidence; not a complete guard green certificate
+retry_monitor_task: bbe5qorn9
+retry_archive: ci/iopr1/guard-round15-final/
+encoding: logs and TSV retain original bytes; SHA256SUMS locks the archive bytes

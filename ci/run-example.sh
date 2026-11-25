@@ -7,6 +7,31 @@ set -euo pipefail
 JAR="server/target/server-1.22-release-jar-with-dependencies.jar"
 [ -f "$JAR" ] || { echo "找不到构建产物 $JAR（先 mvn package）"; exit 1; }
 
+MYCAT_PID=""
+SERVER_LOG="${MYCAT_SERVER_LOG:-target/ci/mycat-server-${MYCAT_PERSONA:-default}.log}"
+PORT_RELEASE_WAIT_SECONDS="${MYCAT_PORT_RELEASE_WAIT_SECONDS:-30}"
+STARTUP_WAIT_SECONDS="${MYCAT_STARTUP_WAIT_SECONDS:-60}"
+SETTLE_SECONDS="${MYCAT_SETTLE_SECONDS:-15}"
+mkdir -p "$(dirname "$SERVER_LOG")"
+: > "$SERVER_LOG"
+
+port_ready() {
+  (exec 3<>"/dev/tcp/127.0.0.1/8066") 2>/dev/null
+}
+
+stop_mycat() {
+  [ -n "${MYCAT_PID:-}" ] || return 0
+  local winpid=""
+  if command -v taskkill >/dev/null 2>&1; then
+    winpid=$(ps -l -p "$MYCAT_PID" 2>/dev/null | awk 'NR>1 {print $4}' || true)
+    taskkill //PID "${winpid:-$MYCAT_PID}" //T //F >/dev/null 2>&1 || true
+  else
+    kill "$MYCAT_PID" 2>/dev/null || true
+  fi
+  wait "$MYCAT_PID" 2>/dev/null || true
+  MYCAT_PID=""
+}
+
 # I-DEBT-7B 后端连接容量前置：Mycat 后端池 maxCon 默认 1000（config/DatasourceConfig.java），
 # 而 MySQL/MariaDB 服务默认 max_connections=151。e2e 分片扇出（如 tbpartitions 12）+ 空闲保活
 # (keepAlive=true) 会在 MySQL 侧累积到 >151，触发 "Too many connections" → createError 递增
@@ -28,26 +53,44 @@ fi
 # dump 面版本门/迁移 DDL 方言随画像变）。置空则保持缺省 MYSQL_5_7，既有四件套 CI 行为不变。
 PERSONA_ARG=""
 if [ -n "${MYCAT_PERSONA:-}" ]; then PERSONA_ARG="-Dmycat.persona=${MYCAT_PERSONA}"; fi
+
+# 端口预检：纯 TCP 就绪会把上一轮残留实例误当本轮被测 jar，必须拒跑。
+port_busy=1
+for i in $(seq 1 "$PORT_RELEASE_WAIT_SECONDS"); do
+  if port_ready; then sleep 1; else port_busy=0; break; fi
+done
+[ "$port_busy" = 0 ] || {
+  echo "ABORT(startup): 8066 已被占用，拒绝测试残留或未知实例"
+  exit 1
+}
+
 # --add-opens=java.base/java.nio=ALL-UNNAMED: Apache Arrow 18 (vector() 算子用其堆外内存,
 # MemoryUtil 反射 java.nio.Buffer.address) 在 JDK17+ 必需,否则 VectorTest 挂死。
-java $PERSONA_ARG --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" & MYCAT_PID=$!
-trap 'kill $MYCAT_PID 2>/dev/null || true' EXIT
+java $PERSONA_ARG --add-opens=java.base/java.nio=ALL-UNNAMED -Duser.timezone=Asia/Shanghai -Dfile.encoding=UTF-8 -jar "$JAR" >"$SERVER_LOG" 2>&1 & MYCAT_PID=$!
+trap stop_mycat EXIT
 
-# 2) 轮询前端 8066 就绪（最多 60s），替代旧 CI 不稳定的 sleep 10s。
-#    I-DEBT-79 刀② 教训：曾把此就绪判据从「纯 TCP 可连」升级为「读 5 字节握手包首字节」，
-#    但在 GitHub runner 上该 dd 读取路径令 compat step 连续三轮假红（本地 guard 走 ps1、
-#    不经此 bash 路径，无法复现定位）。故就绪判据回退到 ffeaad0c2 已验证绿的纯 TCP 可连版本；
-#    刀② 的真正价值在下方 persona posture gate（与 MYCAT_PERSONA 绑定），保留。
+# 2) 本轮进程必须存活，且同时满足 TCP 可连与本轮日志 started up。
+#    只检查 TCP 会在新进程 bind 失败但仍存活时误放行；只检查日志则可能读到旧实例。
 ready=0
-for i in $(seq 1 60); do
-  if (exec 3<>"/dev/tcp/127.0.0.1/8066") 2>/dev/null; then
-    exec 3<&- 3>&- 2>/dev/null || true; ready=1; break
+for i in $(seq 1 "$STARTUP_WAIT_SECONDS"); do
+  if ! kill -0 "$MYCAT_PID" 2>/dev/null; then
+    echo "ABORT(startup): Mycat 进程提前退出（pid=$MYCAT_PID）"
+    tail -n 40 "$SERVER_LOG"
+    exit 1
+  fi
+  if port_ready && grep -qE 'Mycat Vertx server .* started up\.' "$SERVER_LOG"; then
+    ready=1
+    break
   fi
   sleep 1
 done
-[ "$ready" = 1 ] || { echo "Mycat 8066 未就绪"; exit 1; }
+[ "$ready" = 1 ] || {
+  echo "ABORT(startup): Mycat 未在 ${STARTUP_WAIT_SECONDS}s 内完成监听启动（要求 TCP 可连且本轮日志出现 started up）"
+  tail -n 40 "$SERVER_LOG"
+  exit 1
+}
 # settle：端口可连≠配置/心跳全部就绪，留初始化时间（本地 guard 同口径实测取 15s）
-sleep 15
+sleep "$SETTLE_SECONDS"
 
 # 2b) I-DEBT-79 刀②：posture gate —— MYCAT_PERSONA 一旦设定，就必须被 select version() 证实。
 #     真根因（实测）：-Dmycat.persona 拼错时 PersonaOverride 只记 WARN 并**静默回退**缺省画像，

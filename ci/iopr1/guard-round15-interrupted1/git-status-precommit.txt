@@ -1,0 +1,116 @@
+ M .qoder/commit-msg.txt
+ M .qoder/skills/brainstorming/SKILL.md
+ M .qoder/skills/brainstorming/visual-companion.md
+ M .qoder/skills/executing-plans/SKILL.md
+ M .qoder/skills/finishing-a-development-branch/SKILL.md
+ M .qoder/skills/requesting-code-review/SKILL.md
+ M .qoder/skills/requesting-code-review/code-reviewer.md
+ M .qoder/skills/subagent-driven-development/SKILL.md
+ M .qoder/skills/subagent-driven-development/implementer-prompt.md
+ M .qoder/skills/subagent-driven-development/re-review-prompt.md
+ M .qoder/skills/subagent-driven-development/scripts/review-package
+ M .qoder/skills/subagent-driven-development/scripts/sdd-workspace
+ M .qoder/skills/subagent-driven-development/scripts/task-brief
+ M .qoder/skills/subagent-driven-development/task-reviewer-prompt.md
+ M .qoder/skills/systematic-debugging/root-cause-tracing.md
+ M .qoder/skills/test-driven-development/SKILL.md
+ M .qoder/skills/using-superpowers/SKILL.md
+ M .qoder/skills/using-superpowers/references/codex-tools.md
+ M .qoder/skills/writing-plans/SKILL.md
+ M .qoder/skills/writing-skills/SKILL.md
+ M .qoder/skills/writing-skills/render-graphs.js
+AM ci/iopr1/.gitignore
+AM ci/iopr1/LiveMatrixProbe.java
+A  ci/iopr1/matrix-round8/LiveMatrixProbe.java
+A  ci/iopr1/matrix-round8/logs/prod-ddl.log
+A  ci/iopr1/matrix-round8/logs/prod-load.log
+A  ci/iopr1/matrix-round8/logs/prod-r4.log
+A  ci/iopr1/matrix-round8/logs/prod-seq.log
+A  ci/iopr1/matrix-round8/logs/prod-server.log
+A  ci/iopr1/matrix-round8/logs/prod-setup.log
+A  ci/iopr1/matrix-round8/logs/prod-threads.log
+A  ci/iopr1/matrix-round8/logs/small-abandon.log
+A  ci/iopr1/matrix-round8/logs/small-deadline.log
+A  ci/iopr1/matrix-round8/logs/small-ops.log
+A  ci/iopr1/matrix-round8/logs/small-r5.log
+A  ci/iopr1/matrix-round8/logs/small-saturate.log
+A  ci/iopr1/matrix-round8/logs/small-seq-fit.log
+A  ci/iopr1/matrix-round8/logs/small-seq-sat.log
+A  ci/iopr1/matrix-round8/logs/small-server.log
+A  ci/iopr1/matrix-round8/logs/small-setup.log
+A  ci/iopr1/matrix-round8/run-live-matrix.sh
+A  ci/iopr1/matrix-round8/summary.tsv
+A  ci/iopr1/matrix-round9/LiveMatrixProbe.java
+A  ci/iopr1/matrix-round9/fat-jar.sha256
+A  ci/iopr1/matrix-round9/logs/prod-ddl.log
+A  ci/iopr1/matrix-round9/logs/prod-load.log
+A  ci/iopr1/matrix-round9/logs/prod-r4.log
+A  ci/iopr1/matrix-round9/logs/prod-seq.log
+A  ci/iopr1/matrix-round9/logs/prod-server.log
+A  ci/iopr1/matrix-round9/logs/prod-setup.log
+A  ci/iopr1/matrix-round9/logs/prod-threads.log
+A  ci/iopr1/matrix-round9/logs/small-abandon.log
+A  ci/iopr1/matrix-round9/logs/small-deadline.log
+A  ci/iopr1/matrix-round9/logs/small-ops.log
+A  ci/iopr1/matrix-round9/logs/small-r5.log
+A  ci/iopr1/matrix-round9/logs/small-saturate.log
+A  ci/iopr1/matrix-round9/logs/small-seq-fit.log
+A  ci/iopr1/matrix-round9/logs/small-seq-sat.log
+A  ci/iopr1/matrix-round9/logs/small-server.log
+A  ci/iopr1/matrix-round9/logs/small-setup.log
+A  ci/iopr1/matrix-round9/run-live-matrix.sh
+A  ci/iopr1/matrix-round9/summary.tsv
+AM ci/iopr1/run-guards.sh
+AM ci/iopr1/run-live-matrix.sh
+AM ci/iopr1/summary.tsv
+ M ci/run-example.sh
+M  common/src/main/java/io/mycat/LocalLockServiceImpl.java
+A  common/src/test/java/io/mycat/LocalLockServiceImplPinTest.java
+M  docs/superpowers/plans/2026-11-17-i-pr-1-ioexecutor-vt.md
+MM docs/superpowers/specs/2026-09-30-mysql-mariadb-compat-PROGRESS.md
+MM docs/superpowers/specs/2026-11-17-i-pr-1-ioexecutor-vt-design.md
+MM docs/superpowers/specs/2026-11-17-i-pr-3-pinning-inventory.md
+MM docs/superpowers/specs/DEBT-QUEUE.md
+ M example/src/test/java/io/mycat/compat/DumpSurfaceMatrixTest.java
+ M example/src/test/java/io/mycat/sql/LoaddataTest.java
+M  hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java
+M  hbt/src/main/java/io/mycat/calcite/spm/MemPlanCache.java
+M  hbt/src/main/java/io/mycat/calcite/spm/QueryPlanner.java
+M  hbt/src/main/java/io/mycat/vertx/VertxExecuter.java
+A  hbt/src/test/java/io/mycat/AsyncMycatDataContextImplLockTest.java
+A  hbt/src/test/java/io/mycat/calcite/spm/SpmBlockingLockTest.java
+A  hbt/src/test/java/io/mycat/vertx/VertxExecuterComputeIfAbsentPinTest.java
+M  router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java
+A  router/src/test/java/io/mycat/router/custom/HttpCustomRuleFunctionLockTest.java
+ M server/src/main/java/io/mycat/mycatmysql/ControlPlaneSql.java
+M  server/src/main/java/io/mycat/plug/sequence/SequenceMySQLGenerator.java
+M  server/src/main/java/io/mycat/sqlhandler/ddl/CreateTableSQLHandler.java
+ M server/src/test/java/io/mycat/FrontendAdmissionWiringTest.java
+ M server/src/test/java/io/mycat/commands/MycatdbCommandVersionCommentTest.java
+ M server/src/test/java/io/mycat/mycatmysql/ControlPlaneSqlTest.java
+A  server/src/test/java/io/mycat/plug/sequence/SequenceMySQLGeneratorLockTest.java
+A  server/src/test/java/io/mycat/sqlhandler/ddl/CreateTableSQLHandlerLockTest.java
+?? ci/iopr1/LiveMatrixProbeSelfTest.java
+?? ci/iopr1/focused-debug-summary.tsv
+?? ci/iopr1/focused-debug2-summary.tsv
+?? ci/iopr1/focused-debug3-homes/
+?? ci/iopr1/focused-debug3-summary.tsv
+?? ci/iopr1/focused-debug4-summary.tsv
+?? ci/iopr1/focused-debug5-summary.tsv
+?? ci/iopr1/focused-debug6-summary.tsv
+?? ci/iopr1/focused-homes/
+?? ci/iopr1/focused-summary.tsv
+?? ci/iopr1/guard-logs/
+?? ci/iopr1/guard-round14-final/
+?? ci/iopr1/guard-round15-final/
+?? ci/iopr1/matrix-round10/
+?? ci/iopr1/matrix-round11/
+?? ci/iopr1/matrix-round12/
+?? ci/iopr1/matrix-round14-final/
+?? ci/iopr1/matrix-round14/
+?? ci/iopr1/matrix-round15-final/
+?? ci/iopr1/matrix-round9/guard-logs/
+?? ci/iopr1/matrix-round9/guard-summary.tsv
+?? ci/iopr1/test-live-matrix-driver.sh
+?? ci/test-run-example-startup.sh
+?? scratch/

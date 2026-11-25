@@ -185,7 +185,7 @@ public class DumpSurfaceMatrixTest implements MycatTest {
             // 真 8.4 后端直接拒旧语法（ERROR 1064 near 'MASTER STATUS'）。现代 mysqldump 按 server
             // 版本发新语法，本格须忠实回放——探测后端版本，≥8.4 发 SHOW BINARY LOG STATUS（经 Mycat
             // 透传分类器 I-DEBT-53），否则发 SHOW MASTER STATUS，避免用旧语法对 8.4 后端测出假回归。
-            surface.add(new String[]{sourceDataShowCommand(c), "mysqldump80.cc:5160（--source-data 轴，I-ME-4/I-DEBT-53 判据复用本格）"});
+            surface.add(new String[]{sourceDataShowCommand(), "mysqldump80.cc:5160（--source-data 轴，I-ME-4/I-DEBT-53 判据复用本格）"});
             for (String[] q : surface) {
                 replayDumpQuery(c, q[0], q[1]);
             }
@@ -199,11 +199,13 @@ public class DumpSurfaceMatrixTest implements MycatTest {
      * 任何版本（含 10.6/10.11/11.4，其 {@code version()} 报 {@code 10.x}/{@code 11.x} 大版本）都不认，
      * 真 mysqldump 对 MariaDB 恒发 {@code SHOW MASTER STATUS}。故门控须先排除 MariaDB 版本线，
      * 否则 MariaDB 的 10.x/11.x 大版本号（{@code >8}）会被数值比较误判成 MySQL 现代线而发新语法致假红。
-     * 版本经 Mycat {@code select version()} 透传取后端真实版本（同 {@code FrontAuthMatrixTest} 探针）。
+     * 版本必须直连物理后端探测：Mycat persona 只改变前端广告版本，不代表物理库支持新语法；
+     * persona=8.4 + 物理 MySQL 8.0 时按广告版本选命令会制造假红。
      */
-    private String sourceDataShowCommand(Connection c) throws Exception {
+    private String sourceDataShowCommand() throws Exception {
         String v;
-        try (java.sql.Statement st = c.createStatement();
+        try (Connection backend = getMySQLConnection(DB1);
+                java.sql.Statement st = backend.createStatement();
                 java.sql.ResultSet rs = st.executeQuery("select version()")) {
             rs.next();
             v = rs.getString(1);

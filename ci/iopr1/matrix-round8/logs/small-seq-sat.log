@@ -1,0 +1,11 @@
+2026-11-24 11:02:35,159[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.load:30Loading the 'proxy' JDBC driver into DriverManager.
+2026-11-24 11:02:35,167[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 11:02:35,172[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 11:02:35,174[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 11:02:35,181[DEBUG]com.clickhouse.jdbc.DriverV1.<clinit>:72Initializing ClickHouse JDBC driver V1
+2026-11-24 11:02:35,235[INFO]com.clickhouse.jdbc.ClickHouseDriver.<init>:23ClickHouse JDBC driver version: null
+2026-11-24 11:02:35,235[DEBUG]com.clickhouse.jdbc.ClickHouseDriver.isV2:51Checking if V2 driver is requested
+2026-11-24 11:02:35,235[INFO]com.clickhouse.jdbc.ClickHouseDriver.getDriver:84v1 driver
+2026-11-24 11:02:35,239[DEBUG]com.clickhouse.jdbc.Driver.<clinit>:62Initializing ClickHouse JDBC driver V2
+2026-11-24 11:02:35,250[INFO]com.clickhouse.jdbc.Driver.<clinit>:65ClickHouse JDBC driver version: 0.7.2-SNAPSHOT
+RESULT tag=seq C=9 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=1939 ok=86 err3007=4 errOther=0 maxId=117 tableRows=86 firstErr=ERROR-CODE:_[MYCAT-3007][ERR_IO_CONCURRENCY_LIMIT]_IO_并发已达许可上界_3，等待_50ms_仍未获准入；请稍后重试，或调大_workerPool.maxPoolSize firstOtherErr= verdict=PASS

@@ -1,0 +1,14 @@
+round: matrix-round15-final
+archived_at: 2026-11-24T18:42:05+08:00
+head_at_run: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+fat_jar_sha256: 6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66
+monitor_task: b7u19u64x
+monitor_result: LIVE_MATRIX_RC=0
+summary_result: rows=16 all_verdicts=PASS
+source_scripts: ci/iopr1/{LiveMatrixProbe.java,LiveMatrixProbeSelfTest.java,run-live-matrix.sh,test-live-matrix-driver.sh}
+source_logs: ci/iopr1/logs (only the 16 round15-final scenario/server logs; focused saturate-a/b logs excluded)
+diagnostics: copied byte-for-byte from ci/iopr1/focused-debug{4,5,6}-summary.tsv and ci/iopr1/guard-round14-final/{package-round15.log,reactor-round15.log,control-plane-javap-round15.txt,targeted-round15.log,live-driver-red3.log,live-driver-green2.log,startup-retry3.log}
+source_hashes: source-files.sha256 pins the three production entry/classifier files, three regression-test files, and the two live-probe sources using staged Git blob bytes; only CRLF/LF normalization differs from the tested working files.
+encoding: summary.tsv and logs retain their original bytes; SHA256SUMS locks those bytes.
+git_attributes: .gitattributes marks ci/iopr1 evidence as -text; all 35 staged blobs verify against SHA256SUMS without line-ending conversion.
+scope: local evidence only; complete guard and CI results are recorded separately under guard-round15-final.

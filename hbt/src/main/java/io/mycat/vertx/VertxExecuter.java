@@ -134,18 +134,23 @@ public class VertxExecuter {
                     String sql = eachSQL.getSql();
                     List<Object> params = eachSQL.getParams();
 
-                    // MYCAT CHANGE (I-DEBT-F7): DML 下推借出窗口内携带会话 sql_mode。借出
-                    // （transactionSession.getConnection→JDBC 腿 JdbcConnectionManager.getConnection）
-                    // 同步发生在本 lambda 内，故窄窗口 set/finally reset 即可覆盖，且不污染同线程的
-                    // 元数据借出（变量表/SPM/统计）。会话从未 SET（getSessionSqlMode()==null）时
-                    // 传导为 no-op，存量会话零变化。
-                    io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(context.getSessionSqlMode());
-                    Future<NewMycatConnection> connectionFuture;
-                    try {
-                        connectionFuture = map.computeIfAbsent(target, s -> transactionSession.getConnection(target));
-                    } finally {
-                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                    // I-PR-1：阻塞取连接必须移出 CHM 的 mapping function——computeIfAbsent 执行 function 期间
+                    // 持 bin 监视器，VT 在其中 park 会钉住载体线程（活体实测 105 帧）。
+                    // map 是本 apply() 内的局部 CHM，整个 for 循环单线程、lambda 不捕获 map，
+                    // 循环期间无并发访问，故 get-then-put 与 computeIfAbsent 语义等价。
+                    Future<NewMycatConnection> cachedConnection = map.get(target);
+                    if (cachedConnection == null) {
+                        // MYCAT CHANGE (I-DEBT-F7): DML 下推借出窗口内携带会话 sql_mode。
+                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(context.getSessionSqlMode());
+                        try {
+                            cachedConnection = transactionSession.getConnection(target);
+                        } finally {
+                            io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                        }
+                        map.put(target, cachedConnection);
                     }
+                    // 下面 returnConnectionFuture 的 lambda 要捕获它，故须 effectively final。
+                    final Future<NewMycatConnection> connectionFuture = cachedConnection;
                     Future<SqlResult> future;
                     if (insert) {
                         future = connectionFuture.flatMap(c -> c.insert(sql, params));

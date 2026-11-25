@@ -1,0 +1,9 @@
+round: matrix-round14-final
+archived_at: 2026-11-25T10:48:29+08:00
+head_at_run: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+fat_jar_sha256: 6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66
+summary_result: rows=16 passed=16 failed=0
+boundary_coverage: 4 control-plane boundary checks; all MYCAT-3007
+superseded_by: ci/iopr1/matrix-round15-final/ (adds the fifth executable-comment boundary and final archive diagnostics)
+conclusion: retained intermediate green evidence; terminal live-matrix certificate is matrix-round15-final
+encoding: logs and TSV retain original bytes; SHA256SUMS locks the archive bytes

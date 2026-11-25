@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.alibaba.druid.sql.ast.statement.SQLDeleteStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSetStatement;
 import org.junit.jupiter.api.Test;
 
@@ -139,5 +140,13 @@ public class MycatdbCommandVersionCommentTest {
     public void plainCommentStillParsesToEmptyList() {
         assertTrue(MycatdbCommand.INSTANCE.parse("/* just a comment */").isEmpty(),
                 "I-DEBT-57 空语句表→Query OK 现状不受影响");
+    }
+
+    @Test
+    public void versionCommentedDmlBeforeHintParsesAsDml() {
+        var statements = MycatdbCommand.INSTANCE.parse(
+                "/*!40100 DELETE FROM t */ /*mycat:cmd=showThreadInfo*/");
+        assertEquals(1, statements.size(), "前导版本注释解包后应暴露真正的 DML AST");
+        assertInstanceOf(SQLDeleteStatement.class, statements.get(0));
     }
 }

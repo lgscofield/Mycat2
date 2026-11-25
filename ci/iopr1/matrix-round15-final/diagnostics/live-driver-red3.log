@@ -1,0 +1,5 @@
+Exception in thread "sleeper-1" Exception in thread "main" java.lang.AssertionError: RuntimeException was not recorded: null
+	at LiveMatrixProbeSelfTest.main(LiveMatrixProbeSelfTest.java:36)
+java.lang.RuntimeException: injected sleeper failure
+	at LiveMatrixProbeSelfTest.main(LiveMatrixProbeSelfTest.java:9)
+FAIL Sleeper RuntimeException 未被记录

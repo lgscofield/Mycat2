@@ -1,0 +1,10 @@
+round: matrix-round14
+archived_at: 2026-11-25T10:48:29+08:00
+head_at_run: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+summary_result: rows=16 passed=14 failed=2
+failed_scenarios:
+- small-saturate: boundaryUnexpected=2
+- small-deadline: NO_DATA after the scenario removed its target table
+superseded_by: ci/iopr1/matrix-round15-final/
+conclusion: retained failure evidence; not a green certificate
+encoding: logs and TSV retain original bytes; SHA256SUMS locks the archive bytes

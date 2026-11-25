@@ -1,0 +1,26 @@
+=== GUARD_START run-example-startup ===
+=== GUARD_EXIT run-example-startup rc=0 ===
+=== GUARD_START live-matrix-driver ===
+=== GUARD_EXIT live-matrix-driver rc=0 ===
+=== GUARD_START reactor ===
+=== GUARD_EXIT reactor rc=0 ===
+=== GUARD_START m1-m2-mysql57 ===
+=== GUARD_EXIT m1-m2-mysql57 rc=0 ===
+=== GUARD_START m3-m4-MYSQL_5_7 ===
+=== GUARD_EXIT m3-m4-MYSQL_5_7 rc=0 ===
+=== GUARD_START m3-m4-MYSQL_8_0 ===
+=== GUARD_EXIT m3-m4-MYSQL_8_0 rc=0 ===
+=== GUARD_START m3-m4-MYSQL_8_4 ===
+=== GUARD_EXIT m3-m4-MYSQL_8_4 rc=0 ===
+=== GUARD_START m3-m4-MYSQL_9_X ===
+=== GUARD_EXIT m3-m4-MYSQL_9_X rc=0 ===
+=== GUARD_START m3-m4-MARIADB_10_6 ===
+=== GUARD_EXIT m3-m4-MARIADB_10_6 rc=0 ===
+=== GUARD_START m3-m4-MARIADB_10_11 ===
+=== GUARD_EXIT m3-m4-MARIADB_10_11 rc=0 ===
+=== GUARD_START m3-m4-MARIADB_11_4 ===
+=== GUARD_EXIT m3-m4-MARIADB_11_4 rc=0 ===
+=== GUARD_START old-connector-stage6-tls ===
+=== GUARD_EXIT old-connector-stage6-tls rc=0 ===
+=== GUARDS_DONE failed=0 ===
+=== GUARD_RC 0 ===

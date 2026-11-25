@@ -4,11 +4,16 @@ import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.commands.DefaultCommandHandler;
 import io.mycat.config.MycatServerConfig;
 import io.mycat.config.ThreadPoolExecutorConfig;
+import io.mycat.mycatmysql.MycatVertxMySQLHandler;
+import io.mycat.mycatmysql.MycatVertxMysqlSession;
+import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.proxy.session.MySQLServerSession;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetSocket;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -128,6 +133,86 @@ public class FrontendAdmissionWiringTest {
         assertEquals(1, counting.admittedBodies.get(),
                 "许可释放后下一条语句必须被放行并真进入 body（会话未被拒绝路径打死）");
         Mockito.verify(session, Mockito.never()).close(Mockito.anyBoolean(), Mockito.anyString());
+    }
+
+    @Test
+    public void defaultCommandHandlerDoesNotExemptShowAtAtMultiStatement() throws Exception {
+        IOExecutor real = IOExecutor.create(new IOExecutorConfig(1, 0));
+        CountingExecutor counting = new CountingExecutor(real);
+        MetaClusterCurrent.register(IOExecutor.class, counting);
+        MySQLServerSession session = Mockito.mock(MySQLServerSession.class);
+        CountDownLatch release = saturate(real, 1);
+
+        Throwable cause = awaitFailure(new DefaultCommandHandler().handleQuery(
+                sql("show @@thread; select 1"), session), 3);
+        assertEquals(0, counting.blockingBodies.get(), "多语句不得借控制面豁免进入 blocking body");
+        assertIoLimit(cause);
+        assertEquals(0, counting.admittedBodies.get(), "多语句不得进入准入 body");
+        release.countDown();
+    }
+
+    @Test
+    public void defaultCommandHandlerDoesNotExemptShowAtAtLineCommentBypass() throws Exception {
+        IOExecutor real = IOExecutor.create(new IOExecutorConfig(1, 0));
+        CountingExecutor counting = new CountingExecutor(real);
+        MetaClusterCurrent.register(IOExecutor.class, counting);
+        MySQLServerSession session = Mockito.mock(MySQLServerSession.class);
+        CountDownLatch release = saturate(real, 1);
+
+        Throwable cause = awaitFailure(new DefaultCommandHandler().handleQuery(
+                sql("show @@thread # /*\n; DELETE FROM t"), session), 3);
+        assertEquals(0, counting.blockingBodies.get(), "行注释绕过形态不得进入 blocking body");
+        assertIoLimit(cause);
+        assertEquals(0, counting.admittedBodies.get(), "行注释绕过形态不得进入准入 body");
+        release.countDown();
+    }
+
+    @Test
+    public void vertxCommandHandlerDoesNotExemptShowAtAtMultiStatement() throws Exception {
+        IOExecutor real = IOExecutor.create(new IOExecutorConfig(1, 0));
+        CountingExecutor counting = new CountingExecutor(real);
+        MetaClusterCurrent.register(IOExecutor.class, counting);
+        MycatVertxMysqlSession session = Mockito.mock(MycatVertxMysqlSession.class);
+        Mockito.when(session.getDataContext()).thenReturn(Mockito.mock(MycatDataContext.class));
+        Mockito.when(session.getSocket()).thenReturn(Mockito.mock(NetSocket.class));
+        Mockito.when(session.writeErrorEndPacketBySyncInProcessError(Mockito.anyInt()))
+                .thenReturn(Future.succeededFuture());
+        MycatVertxMySQLHandler handler = new CompletingVertxHandler(session);
+        CountDownLatch release = saturate(real, 1);
+        Buffer query = Buffer.buffer()
+                .appendByte((byte) MySQLCommandType.COM_QUERY)
+                .appendString("show @@thread; delete from t");
+
+        settle(handler.handle0(1, query), 3);
+        Mockito.verify(session).writeErrorEndPacketBySyncInProcessError(
+                MycatErrorCode.ERR_IO_CONCURRENCY_LIMIT);
+        assertEquals(0, counting.admittedBodies.get(), "多语句不得进入准入 body");
+        assertEquals(0, counting.blockingBodies.get(), "多语句不得借控制面豁免进入 blocking body");
+        release.countDown();
+    }
+
+    @Test
+    public void vertxCommandHandlerDoesNotExemptShowAtAtLineCommentBypass() throws Exception {
+        IOExecutor real = IOExecutor.create(new IOExecutorConfig(1, 0));
+        CountingExecutor counting = new CountingExecutor(real);
+        MetaClusterCurrent.register(IOExecutor.class, counting);
+        MycatVertxMysqlSession session = Mockito.mock(MycatVertxMysqlSession.class);
+        Mockito.when(session.getDataContext()).thenReturn(Mockito.mock(MycatDataContext.class));
+        Mockito.when(session.getSocket()).thenReturn(Mockito.mock(NetSocket.class));
+        Mockito.when(session.writeErrorEndPacketBySyncInProcessError(Mockito.anyInt()))
+                .thenReturn(Future.succeededFuture());
+        MycatVertxMySQLHandler handler = new CompletingVertxHandler(session);
+        CountDownLatch release = saturate(real, 1);
+        Buffer query = Buffer.buffer()
+                .appendByte((byte) MySQLCommandType.COM_QUERY)
+                .appendString("show @@thread # /*\n; DELETE FROM t");
+
+        settle(handler.handle0(1, query), 3);
+        Mockito.verify(session).writeErrorEndPacketBySyncInProcessError(
+                MycatErrorCode.ERR_IO_CONCURRENCY_LIMIT);
+        assertEquals(0, counting.admittedBodies.get(), "行注释绕过形态不得进入准入 body");
+        assertEquals(0, counting.blockingBodies.get(), "行注释绕过形态不得进入 blocking body");
+        release.countDown();
     }
 
     /** 协议合法性：拒绝发生在任何字节写出之前，receiver 根本没被构造，合法 ERR 留给外层 recover。 */
@@ -264,9 +349,21 @@ public class FrontendAdmissionWiringTest {
     // ---- 测试替身与工具 ----
 
     /** 只统计「闸放行后真进入 body」的次数；许可仍由底下那个真闸把守。 */
+    private static final class CompletingVertxHandler extends MycatVertxMySQLHandler {
+        CompletingVertxHandler(MycatVertxMysqlSession session) {
+            super(session);
+        }
+
+        @Override
+        public Future<Void> handleQuery(String sql, MycatVertxMysqlSession session) {
+            return Future.succeededFuture();
+        }
+    }
+
     static final class CountingExecutor implements IOExecutor {
         final IOExecutor delegate;
         final AtomicInteger admittedBodies = new AtomicInteger();
+        final AtomicInteger blockingBodies = new AtomicInteger();
 
         CountingExecutor(IOExecutor delegate) {
             this.delegate = delegate;
@@ -274,7 +371,10 @@ public class FrontendAdmissionWiringTest {
 
         @Override
         public <T> Future<T> executeBlocking(Handler<Promise<T>> blockingCodeHandler) {
-            return delegate.executeBlocking(blockingCodeHandler);
+            return delegate.executeBlocking(p -> {
+                blockingBodies.incrementAndGet();
+                blockingCodeHandler.handle(p);
+            });
         }
 
         @Override

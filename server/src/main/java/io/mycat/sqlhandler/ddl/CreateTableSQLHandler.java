@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.mycat.config.MycatRouterConfigOps.getAutoHashProperties;
 
@@ -45,6 +46,11 @@ import static io.mycat.config.MycatRouterConfigOps.getAutoHashProperties;
 public class CreateTableSQLHandler extends AbstractSQLHandler<MySqlCreateTableStatement> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateTableSQLHandler.class);
     public static final CreateTableSQLHandler INSTANCE = new CreateTableSQLHandler();
+
+    // I-PR-1：createTable0 原为 synchronized，且 INSTANCE 是静态单例 ⇒ 全局监视器跨整个建表
+    // （含 ops.commit() 里的物理建表阻塞 JDBC，活体实测 park 在 MySQL socket read）⇒ VT 钉住载体。
+    // 换每实例单把 ReentrantLock；单例下仍是全局串行，语义不变。
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Override
     protected Future<Void> onExecute(SQLRequest<MySqlCreateTableStatement> request, MycatDataContext dataContext, Response response) {
@@ -103,10 +109,23 @@ public class CreateTableSQLHandler extends AbstractSQLHandler<MySqlCreateTableSt
         createTable0(hint, schemaName, tableName, createTableSql);
     }
 
-    public synchronized void createTable0(Map hint,
-                                          String schemaName,
-                                          String tableName,
-                                          MySqlCreateTableStatement createTableSql) throws Exception {
+    public void createTable0(Map hint,
+                             String schemaName,
+                             String tableName,
+                             MySqlCreateTableStatement createTableSql) throws Exception {
+        lock.lock();
+        try {
+            doCreateTable0(hint, schemaName, tableName, createTableSql);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // 持锁入口委托到此，body 原样保留（58 行，重排缩进的转录风险大于收益）。
+    private void doCreateTable0(Map hint,
+                                String schemaName,
+                                String tableName,
+                                MySqlCreateTableStatement createTableSql) throws Exception {
         if (createTableSql == null && hint != null) {
             Object sql = hint.get("createTableSql");
             if (sql instanceof MySqlCreateTableStatement) {

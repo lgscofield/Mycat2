@@ -1,0 +1,17 @@
+round: guard-round15-final
+archived_at: 2026-11-25T10:48:29+08:00
+head_at_run: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+fat_jar_sha256: 6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66
+monitor_task: bbe5qorn9
+monitor_result: GUARD_RC=0
+summary_result: stages=12 passed=12 failed=0
+reactor_result: 14 modules SUCCESS, BUILD SUCCESS
+m1_m2_result: MYSQL_5_7 posture 5.7.33-mycat-2.0; Tests run: 559, Failures: 0, Errors: 0, Skipped: 40; LoaddataTest 2/2 PASS
+m3_m4_result: 7 personas; each Tests run: 6, Failures: 0, Errors: 0, Skipped: 0; posture gates passed
+old_connector_result: mysql-connector-java 5.1.49 and mysql-connector-j 8.0.33; plaintext and TLS-required; STAGE6 full-CRUD matrix PASS
+source_hash_basis: source/tests/scripts use staged Git blob bytes (only CRLF/LF normalization differs from tested working files); fat jar uses the tested working artifact bytes
+prior_failed_run: ci/iopr1/guard-round15-failed1/ (11/12; LoaddataTest working-directory mismatch)
+prior_interrupted_run: ci/iopr1/guard-round15-interrupted1/ (no terminal GUARD_RC)
+live_matrix_archive: ci/iopr1/matrix-round15-final/ (16/16 PASS)
+conclusion: clean local full-guard green certificate; CI for the eventual pushed HEAD remains a separate gate
+encoding: logs and TSV retain original bytes; SHA256SUMS locks the archive bytes

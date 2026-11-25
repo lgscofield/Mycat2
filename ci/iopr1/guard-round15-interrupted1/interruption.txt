@@ -1,0 +1,16 @@
+round: guard-round15-interrupted1
+observed_at: 2026-11-25T09:19:10+08:00
+head: 7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9
+fat_jar_sha256: 6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66
+monitor_task: b1tphn0cg
+status: interrupted; no GUARD_EXIT for m1-m2-mysql57 and no GUARD_RC
+last_log_write: 2026-11-24T19:44:01+08:00
+observed_failures:
+- MigrateMatrixTest.migrateNormalToNormalCompletes: CommunicationsException / SocketTimeoutException after 30.014 s on CREATE DATABASE IF NOT EXISTS db1
+- OrderByNullCollationMatrixTest.prepare: MySQLTimeoutException after 2003 s on DROP DATABASE IF EXISTS i55db
+process_state: no java.exe process was present when inspected on 2026-11-25
+docker_state_at_inspection: Docker daemon unavailable; m1-mysql-a and m1-mysql-b were exited
+focused_reproduction: after Docker Desktop and both MySQL containers were restored, MigrateMatrixTest and OrderByNullCollationMatrixTest passed together against the same fat jar (focused-debug7.log, rc=0)
+conclusion: this archive is failure/interruption evidence only; it is not a completed guard green certificate
+retry_monitor_task: b8vtxa1hx
+retry_archive: ci/iopr1/guard-round15-final/

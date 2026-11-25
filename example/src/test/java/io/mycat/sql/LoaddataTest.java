@@ -66,7 +66,7 @@ public class LoaddataTest implements MycatTest {
             deleteData(mycatConnection,"db1","travelrecord");
 
             CSVFormat format = CSVFormat.MYSQL;
-            Path mycat_loaddata_example = Files.createTempFile("", "mycat_loaddata_example");
+            Path mycat_loaddata_example = Files.createTempFile(Path.of("..", "target"), "mycat_loaddata_example", ".csv");
             StringBuilder sb = new StringBuilder();
             CSVPrinter printer = format.print(sb);
             int size = 1050;
@@ -76,7 +76,8 @@ public class LoaddataTest implements MycatTest {
             Files.write(mycat_loaddata_example, sb.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
 
 
-            execute(mycatConnection, LoaddataHint.create("db1", "travelrecord", mycat_loaddata_example.toString()));
+            execute(mycatConnection, LoaddataHint.create("db1", "travelrecord",
+                    "target/" + mycat_loaddata_example.getFileName()));
 
             List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from db1.travelrecord");
             Assert.assertEquals(1050, maps.size());
@@ -124,7 +125,7 @@ public class LoaddataTest implements MycatTest {
             deleteData(mycatConnection,"db1","travelrecord");
 
             CSVFormat format = CSVFormat.MYSQL.withDelimiter(',');
-            Path mycat_loaddata_example = Files.createTempFile("", "mycat_loaddata_example");
+            Path mycat_loaddata_example = Files.createTempFile(Path.of("..", "target"), "mycat_loaddata_example", ".csv");
             StringBuilder sb = new StringBuilder();
             CSVPrinter printer = format.print(sb);
             printer.printRecord(new Object[]{"1", null, null, null, null, null});
@@ -134,7 +135,7 @@ public class LoaddataTest implements MycatTest {
 
 
             execute(mycatConnection, LoaddataHint.create("db1", "travelrecord",
-                    mycat_loaddata_example.toString(),Collections.singletonMap("delimiter",",")));
+                    "target/" + mycat_loaddata_example.getFileName(), Collections.singletonMap("delimiter", ",")));
 
             List<Map<String, Object>> maps = executeQuery(mycatConnection, "select * from db1.travelrecord");
             Assert.assertEquals(3, maps.size());

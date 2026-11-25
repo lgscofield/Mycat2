@@ -18,9 +18,11 @@ package io.mycat.mycatmysql;
  * I-PR-1 D2：控制面 SQL 豁免准入闸。许可耗尽时运维仍须能发 hint 查线程/杀线程，
  * 否则「越忙越查不了」——准入闸最容易把运维自己锁在门外的一处。
  *
- * <p>只做前缀判定，不引解析器（成本与范围）。口径与 {@code HintHandler} 对齐：
+ * <p>不引解析器（成本与范围）。口径与 {@code HintHandler} 对齐：
  * hint 须是整条语句（hint-only），且接受 {@code SqlHints.unWrapperHint} 认可的加号/感叹号标记变体
  * ——{@code HintBuilder.build()} 实际发出的正是带标记、带尾分号的文本。
+ * {@code show @@} 同样只豁免单条语句，分号后若还有可执行内容必须落回准入闸。
+ * MySQL/MariaDB 版本注释也是可执行内容，不得当作无执行效果的尾部噪声。
  * 若「带 hint 前缀」就豁免，任何客户端给 DML 挂个假 hint 即可永久绕过准入闸。
  *
  * @author chen junwen
@@ -48,7 +50,11 @@ public final class ControlPlaneSql {
             } else if (c == '/' && i + 1 < len && sql.charAt(i + 1) == '*') {
                 int end = sql.indexOf("*/", i + 2);
                 int bodyEnd = end < 0 ? len : end;
-                if (isMycatHintBody(sql.substring(i + 2, bodyEnd))) {
+                boolean mycatHint = isMycatHintBody(sql.substring(i + 2, bodyEnd));
+                if (isExecutableComment(sql, i) && !mycatHint) {
+                    return false;
+                }
+                if (mycatHint) {
                     sawHint = true;
                 }
                 i = end < 0 ? len : end + 2;
@@ -79,6 +85,9 @@ public final class ControlPlaneSql {
             if (Character.isWhitespace(c) || c == ';') {
                 i++;
             } else if (c == '/' && i + 1 < len && sql.charAt(i + 1) == '*') {
+                if (isExecutableComment(sql, i)) {
+                    return false;
+                }
                 int end = sql.indexOf("*/", i + 2);
                 i = end < 0 ? len : end + 2;
             } else {
@@ -86,6 +95,15 @@ public final class ControlPlaneSql {
             }
         }
         return true;
+    }
+
+    private static boolean isExecutableComment(String sql, int start) {
+        int body = start + 2;
+        if (body >= sql.length()) {
+            return false;
+        }
+        char c = sql.charAt(body);
+        return c == '!' || (c == 'M' && body + 1 < sql.length() && sql.charAt(body + 1) == '!');
     }
 
     private static boolean isShowAtAt(String sql, int from) {
@@ -97,6 +115,27 @@ public final class ControlPlaneSql {
         while (i < len && Character.isWhitespace(sql.charAt(i))) {
             i++;
         }
-        return sql.regionMatches(true, i, AT_AT, 0, AT_AT.length());
+        if (!sql.regionMatches(true, i, AT_AT, 0, AT_AT.length())) {
+            return false;
+        }
+        i += AT_AT.length();
+        while (i < len) {
+            char c = sql.charAt(i);
+            if (c == '#' || (c == '-' && i + 1 < len && sql.charAt(i + 1) == '-')) {
+                return false;
+            }
+            if (c == '/' && i + 1 < len && sql.charAt(i + 1) == '*') {
+                if (isExecutableComment(sql, i)) {
+                    return false;
+                }
+                int end = sql.indexOf("*/", i + 2);
+                i = end < 0 ? len : end + 2;
+            } else if (c == ';') {
+                return isTrailingNoiseOnly(sql, i + 1);
+            } else {
+                i++;
+            }
+        }
+        return true;
     }
 }

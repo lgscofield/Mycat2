@@ -2,3 +2,8 @@
 # 脚本带 CRLF，bash 会把 `set -euo pipefail` 读成 `pipefail\r` 之类的坏行直接失败。
 # 先例：M2-1 的 ci/verify-l1.sh 与既有的 ci/run-example.sh 都在 WSL/Git Bash 下本机跑过。
 *.sh text eol=lf
+
+# I-PR-1 证据按原始字节审计；禁止 core.autocrlf 改写日志、TSV 与 SHA-256 清单。
+ci/iopr1/summary.tsv -text
+ci/iopr1/matrix-round*/** -text
+ci/iopr1/guard-round*/** -text

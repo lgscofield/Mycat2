@@ -32,6 +32,7 @@ import java.text.MessageFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SequenceMySQLGenerator implements SequenceHandler {
     protected static final Logger LOGGER = LoggerFactory
@@ -41,6 +42,10 @@ public class SequenceMySQLGenerator implements SequenceHandler {
     private BiFunction<String, String, String> function;
     private long count = 0;
     private long limit = -1;
+    // I-PR-1：get() 原为 synchronized，临界区内 function.apply 走阻塞 JDBC 取号段
+    // ⇒ VT 在其中 park 会钉住载体线程（离线探针实测 holdsLock=true）。换每实例单把 ReentrantLock。
+    // count/limit 只在本锁内读写，无锁外读点，故不需要 volatile（区别于 DefaultPrototypeGenerator 的 value）。
+    private final ReentrantLock lock = new ReentrantLock();
 
     public void init(String sql, String targetName) {
         init(sql, targetName, (s, s2) -> {
@@ -68,20 +73,25 @@ public class SequenceMySQLGenerator implements SequenceHandler {
     }
 
     @Override
-    public synchronized Number get() {
-        if (count >= limit) {
-            try {
-                String s = function.apply(queryTargetName, sql);
-                String[] split = SplitUtil.split(s, ',');
-                this.count = Long.parseLong(split[0]);
-                long inc = Long.parseLong(split[1]);
-                this.limit = this.count + inc;
-            } catch (Throwable e) {
-                LOGGER.error("", e);
-                throw new RuntimeException(e);
+    public Number get() {
+        lock.lock();
+        try {
+            if (count >= limit) {
+                try {
+                    String s = function.apply(queryTargetName, sql);
+                    String[] split = SplitUtil.split(s, ',');
+                    this.count = Long.parseLong(split[0]);
+                    long inc = Long.parseLong(split[1]);
+                    this.limit = this.count + inc;
+                } catch (Throwable e) {
+                    LOGGER.error("", e);
+                    throw new RuntimeException(e);
+                }
             }
+            return (count++);
+        } finally {
+            lock.unlock();
         }
-        return (count++);
     }
 
     @Override

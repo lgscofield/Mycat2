@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 饱和时运维还得能发 hint 查线程 / 杀线程，否则「越忙越查不了」——
  * 这正是准入闸最容易把运维自己锁在门外的一处。
  *
- * <p>判定只做前缀，不引解析器：跳过前导空白与块注释后，
- * 大小写不敏感匹配 mycat hint 前缀或 show @@ 前缀。
+ * <p>判定不引解析器：跳过前导空白与块注释后，只接受整条 mycat hint 或单条 show @@；
+ * 分号后的可执行内容与 MySQL/MariaDB 版本注释都必须落回准入闸。
  */
 public class ControlPlaneSqlTest {
 
@@ -30,6 +30,56 @@ public class ControlPlaneSqlTest {
         assertTrue(ControlPlaneSql.isControlPlane("show @@thread"), "show @@ 管理语句必须豁免");
         assertTrue(ControlPlaneSql.isControlPlane("SHOW @@datasource"), "大小写不敏感");
         assertTrue(ControlPlaneSql.isControlPlane("show  @@thread"), "show 与 @@ 之间的多余空白不得漏判");
+    }
+
+    @Test
+    public void showAtAtFollowedByAnotherStatementIsNotExempt() {
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread; select 1"),
+                "show @@ 后跟第二条语句必须整条经闸，不得按前缀豁免");
+        assertFalse(ControlPlaneSql.isControlPlane("SHOW @@datasource; DELETE FROM t"),
+                "大小写与 DML 类型均不得改变多语句判定");
+        assertFalse(ControlPlaneSql.isControlPlane("/*lead*/ show @@thread; /*between*/ select 1"),
+                "前导与语句间注释不得藏住第二条语句");
+    }
+
+    @Test
+    public void showAtAtLineCommentsFailClosed() {
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread # /*\n; DELETE FROM t"),
+                "行注释内的块注释起始符不得吞掉后续分号与 DML");
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread -- /*\n; DELETE FROM t"),
+                "双横线行注释同样不得藏住第二条语句");
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread # ordinary comment"),
+                "轻量分类器不解析行注释边界，带行注释的 show @@ 必须 fail-closed");
+    }
+
+    @Test
+    public void showAtAtAllowsOnlyTrailingNoiseAfterTerminator() {
+        assertTrue(ControlPlaneSql.isControlPlane("show @@thread;"), "单个尾分号必须仍可豁免");
+        assertTrue(ControlPlaneSql.isControlPlane("show @@thread; \n/*done*/"),
+                "尾分号后的空白与块注释必须仍可豁免");
+        assertTrue(ControlPlaneSql.isControlPlane("show @@thread /*done*/"),
+                "语句体内的尾块注释不得造成漏判");
+    }
+
+    @Test
+    public void versionExecutableCommentsAreNotTrailingNoise() {
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread; /*!40100 DELETE FROM t */"),
+                "show @@ 后出现版本可执行注释时不得按无执行内容的尾部注释豁免");
+        assertFalse(ControlPlaneSql.isControlPlane("/*mycat:cmd=showThreadInfo*/; /*!40100 DELETE FROM t */"),
+                "hint 后的版本可执行注释同样不得绕过准入闸");
+        assertFalse(ControlPlaneSql.isControlPlane("show @@thread; /*M!100100 DELETE FROM t */"),
+                "MariaDB 版本注释也不能按普通无执行内容注释处理");
+    }
+
+    @Test
+    public void versionExecutableCommentBeforeControlPlaneStatementIsNotExempt() {
+        assertFalse(ControlPlaneSql.isControlPlane("/*!40100 SET @x=1 */ show @@thread"),
+                "show 前的版本可执行注释使整条 COM_QUERY 不再是单条控制面语句");
+        assertFalse(ControlPlaneSql.isControlPlane("/*M!100100 SET @x=1 */ show @@thread"),
+                "MariaDB 版本注释也不能藏在 show 前缀前");
+        assertFalse(ControlPlaneSql.isControlPlane(
+                        "/*!40100 DELETE FROM t */ /*mycat:cmd=showThreadInfo*/"),
+                "版本注释 DML 在前、mycat hint 在后时，解包后就是带 hint 的 DML，不得豁免");
     }
 
     /**

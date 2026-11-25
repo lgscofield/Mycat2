@@ -22,11 +22,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MemPlanCache implements QueryPlanCache {
+    private final ReentrantLock lock = new ReentrantLock();
     private PlanIds planIds = new PlanIds();
     private PlanManagerPersistor persistor;
     private ConcurrentHashMap<Constraint, Baseline> map = new ConcurrentHashMap<>();
@@ -186,7 +188,16 @@ public class MemPlanCache implements QueryPlanCache {
         return list;
     }
 
-    public synchronized PlanResultSet add(boolean fix, DrdsSql drdsSql) {
+    public PlanResultSet add(boolean fix, DrdsSql drdsSql) {
+        lock.lock();
+        try {
+            return add0(fix, drdsSql);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private PlanResultSet add0(boolean fix, DrdsSql drdsSql) {
         Long baselineId = null;
         Baseline baseline = this.getBaseline(drdsSql);
         DrdsSqlCompiler drdsSqlCompiler = MetaClusterCurrent.wrapper(DrdsSqlCompiler.class);
@@ -235,7 +246,16 @@ public class MemPlanCache implements QueryPlanCache {
     }
 
     @Override
-    public synchronized void loadPlan(long value) {
+    public void loadPlan(long value) {
+        lock.lock();
+        try {
+            loadPlan0(value);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void loadPlan0(long value) {
         persistor.loadPlan(value).ifPresent(new Consumer<BaselinePlan>() {
             @Override
             public void accept(BaselinePlan baselinePlan) {

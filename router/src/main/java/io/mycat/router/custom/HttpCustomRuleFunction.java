@@ -14,12 +14,17 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class HttpCustomRuleFunction extends CustomRuleFunction {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCustomRuleFunction.class);
+    private final ReentrantLock lock = new ReentrantLock();
     Map<String, Object> properties;
 
     List<Partition> allScanPartitions;
@@ -94,8 +99,17 @@ public class HttpCustomRuleFunction extends CustomRuleFunction {
     }
 
     @NotNull
+    private List<Partition> fetchPartitions(Map<String, RangeVariable> values) {
+        lock.lock();
+        try {
+            return fetchPartitions0(values);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @SneakyThrows
-    private synchronized List<Partition> fetchPartitions(Map<String, RangeVariable> values) {
+    private List<Partition> fetchPartitions0(Map<String, RangeVariable> values) {
         try {
             ShardingTableHandler tableHandler = getTable();
             String router_service_address = (String) properties.getOrDefault("routerServiceAddress", "http://localhost:9066/routerserivce");
@@ -119,9 +133,38 @@ public class HttpCustomRuleFunction extends CustomRuleFunction {
                     .post(body)
                     .build();
             Call call = okHttpClient.newCall(request);
-            Response response = call.execute();
-            ResponseBody responseBody = response.body();
-            String s = new String(responseBody.bytes());
+            CompletableFuture<String> responseBody = new CompletableFuture<>();
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    responseBody.completeExceptionally(e);
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try (Response ignored = response) {
+                        ResponseBody body = response.body();
+                        if (body == null) {
+                            responseBody.completeExceptionally(new IllegalStateException("HTTP routing response has no body"));
+                            return;
+                        }
+                        responseBody.complete(body.string());
+                    } catch (IOException e) {
+                        responseBody.completeExceptionally(e);
+                    }
+                }
+            });
+            String s;
+            try {
+                s = responseBody.get();
+            } catch (InterruptedException e) {
+                call.cancel();
+                Thread.currentThread().interrupt();
+                throw e;
+            } catch (ExecutionException e) {
+                call.cancel();
+                throw e;
+            }
             List<Map<String, Object>> list = JsonUtil.from(s, List.class);
             return getPartitions(list);
         } catch (Throwable throwable) {

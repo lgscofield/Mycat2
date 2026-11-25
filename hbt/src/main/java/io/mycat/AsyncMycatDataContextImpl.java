@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Getter
@@ -58,6 +59,11 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
     final Map<String, LimitQueue> connectionlimitMap = new HashMap<>();//not int transaction
     final List<NewMycatConnection> connectionlList = Collections.synchronizedList(new ArrayList<>());//not int transaction
     final Map<String, List<Observable<Object[]>>> shareObservable = new HashMap<>();
+
+    // I-PR-1：本类 5 个 synchronized 方法共用实例监视器，其中 getConnection/getObservables 在临界区内
+    // 做阻塞 JDBC（活体实测 park 在 logback appender 锁）⇒ VT 钉住载体线程。换每实例单把可重入锁，
+    // 五个方法仍互斥于同一把锁，语义与原实例监视器一致（可重入性也一致）。
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * I-DEBT-34 两缝同移侧信道：跨片首分片后端忠实轨 {@code MycatMySQLRowMetaData}（{@code onColumnDef} 于
@@ -128,25 +134,30 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
      * 门槛全过才探测：分支数吻合、同 ds、无参；取不到（跨 ds/超时/报错）返回 null →
      * 列头缝照旧回 ③ 计划轨。一次查询只探一次，结果缓存。
      */
-    public synchronized MycatRowMetaData probeMergedBackendMeta() {
-        if (mergedProbeDone) {
+    public MycatRowMetaData probeMergedBackendMeta() {
+        lock.lock();
+        try {
+            if (mergedProbeDone) {
+                return mergedProbeMeta;
+            }
+            mergedProbeDone = true;
+            if (!mergedHeterogeneousOutput || mergedProbeUnavailable
+                    || mergedExpectedBranches < 2 || mergedBranchSqls.size() != mergedExpectedBranches) {
+                return null;
+            }
+            MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
+            mergedProbeMeta = io.mycat.calcite.BackendMergedMetaProbe.probe(mySQLManager, mergedBranchDsKey,
+                    new ArrayList<>(mergedBranchSqls), 2000);
+            // I-DEBT-41 终审 Important-2：探测权威若是 binary 族列头（5.7/MariaDB 把 bit∪bigint 归并
+            // 为 VARBINARY），与一律走计划轨 numeric 的解码缝分叉→客户端读到 null（实测 5.7 行值全 null）。
+            // 整体拒绝回 ③ 计划轨，两缝同 numeric 保持一致（仅失列头类型忠实，值不丢）。
+            if (io.mycat.beans.mycat.RowMetaDataFidelity.isBinaryFamilyAuthority(mergedProbeMeta)) {
+                mergedProbeMeta = null;
+            }
             return mergedProbeMeta;
+        } finally {
+            lock.unlock();
         }
-        mergedProbeDone = true;
-        if (!mergedHeterogeneousOutput || mergedProbeUnavailable
-                || mergedExpectedBranches < 2 || mergedBranchSqls.size() != mergedExpectedBranches) {
-            return null;
-        }
-        MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
-        mergedProbeMeta = io.mycat.calcite.BackendMergedMetaProbe.probe(mySQLManager, mergedBranchDsKey,
-                new ArrayList<>(mergedBranchSqls), 2000);
-        // I-DEBT-41 终审 Important-2：探测权威若是 binary 族列头（5.7/MariaDB 把 bit∪bigint 归并
-        // 为 VARBINARY），与一律走计划轨 numeric 的解码缝分叉→客户端读到 null（实测 5.7 行值全 null）。
-        // 整体拒绝回 ③ 计划轨，两缝同 numeric 保持一致（仅失列头类型忠实，值不丢）。
-        if (io.mycat.beans.mycat.RowMetaDataFidelity.isBinaryFamilyAuthority(mergedProbeMeta)) {
-            mergedProbeMeta = null;
-        }
-        return mergedProbeMeta;
     }
 
     /** 两缝（列头/解码）共读的异构权威决策。 */
@@ -205,74 +216,88 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         AtomicInteger countDown = new AtomicInteger();
     }
 
-    public synchronized Future<NewMycatConnection> getConnection(String key) {
-        XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
-        // MYCAT CHANGE (I-DEBT-F7): SELECT 下推借出窗口内携带会话 sql_mode（context 即本查询的
-        // MycatDataContext）。两条借出支路（事务复用腿/直连腿）的 JDBC 池借出都同步发生在窗口内；
-        // native 腿借出在窗口内读不到 JDBC 连接、no-op。会话从未 SET 时传导为 no-op，零回归。
-        String sessionSqlMode = context.getSessionSqlMode();
-        if (context.isInTransaction()) {
-            return transactionConnnectionMap
-                    .computeIfAbsent(key, s -> {
-                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
-                        try {
-                            return transactionSession.getConnection(key);
-                        } finally {
-                            io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
-                        }
-                    });
-        }
-        MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
-        int limit = Math.min(AsyncMycatDataContextImpl.FULL_TABLE_SCAN_LIMIT, mySQLManager.getAvailableNumber(key));
-        if (limit < 1) {
-            limit = 1;
-        }
-        LimitQueue limitQueue = connectionlimitMap.computeIfAbsent(key, s -> {
-            return new LimitQueue();
-        });
-
-        int index = limitQueue.queue.size();
-        Future<NewMycatConnection> connectionFuture;
-        if (index < limit) {
-            io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
-            Future<NewMycatConnection> borrowed;
-            try {
-                borrowed = mySQLManager.getConnection(key);
-            } finally {
-                io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+    public Future<NewMycatConnection> getConnection(String key) {
+        lock.lock();
+        try {
+            XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
+            // MYCAT CHANGE (I-DEBT-F7): SELECT 下推借出窗口内携带会话 sql_mode（context 即本查询的
+            // MycatDataContext）。两条借出支路（事务复用腿/直连腿）的 JDBC 池借出都同步发生在窗口内；
+            // native 腿借出在窗口内读不到 JDBC 连接、no-op。会话从未 SET 时传导为 no-op，零回归。
+            String sessionSqlMode = context.getSessionSqlMode();
+            if (context.isInTransaction()) {
+                // I-PR-1：阻塞取连接移出 mapping function；HashMap 本身不持 bin 监视器，
+                // 统一避免在 mapping function 内做阻塞 IO，并避开递归更新 hazard。
+                Future<NewMycatConnection> cached = transactionConnnectionMap.get(key);
+                if (cached == null) {
+                    io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
+                    try {
+                        cached = transactionSession.getConnection(key);
+                    } finally {
+                        io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                    }
+                    transactionConnnectionMap.put(key, cached);
+                }
+                return cached;
             }
-            connectionFuture = borrowed.flatMap(newMycatConnection -> {
-                connectionlList.add(newMycatConnection);
-                return Future.succeededFuture( newMycatConnection);
+            MySQLManager mySQLManager = MetaClusterCurrent.wrapper(MySQLManager.class);
+            int limit = Math.min(AsyncMycatDataContextImpl.FULL_TABLE_SCAN_LIMIT, mySQLManager.getAvailableNumber(key));
+            if (limit < 1) {
+                limit = 1;
+            }
+            LimitQueue limitQueue = connectionlimitMap.computeIfAbsent(key, s -> {
+                return new LimitQueue();
             });
-            LimitQueueItem limitQueueItem = new LimitQueueItem();
-            limitQueueItem.future = connectionFuture;
-            limitQueueItem.countDown.incrementAndGet();
-            limitQueue.queue.add(index, limitQueueItem);
-        } else {
-            limitQueue.tmpIndex = (limitQueue.index++) % limitQueue.queue.size();
-            LimitQueueItem limitQueueItem = limitQueue.queue.get(limitQueue.tmpIndex);
-            return limitQueueItem.future;
+
+            int index = limitQueue.queue.size();
+            Future<NewMycatConnection> connectionFuture;
+            if (index < limit) {
+                io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.beginSessionBorrow(sessionSqlMode);
+                Future<NewMycatConnection> borrowed;
+                try {
+                    borrowed = mySQLManager.getConnection(key);
+                } finally {
+                    io.mycat.datasource.jdbc.datasource.SessionSqlModeAligner.endSessionBorrow();
+                }
+                connectionFuture = borrowed.flatMap(newMycatConnection -> {
+                    connectionlList.add(newMycatConnection);
+                    return Future.succeededFuture( newMycatConnection);
+                });
+                LimitQueueItem limitQueueItem = new LimitQueueItem();
+                limitQueueItem.future = connectionFuture;
+                limitQueueItem.countDown.incrementAndGet();
+                limitQueue.queue.add(index, limitQueueItem);
+            } else {
+                limitQueue.tmpIndex = (limitQueue.index++) % limitQueue.queue.size();
+                LimitQueueItem limitQueueItem = limitQueue.queue.get(limitQueue.tmpIndex);
+                return limitQueueItem.future;
+            }
+            return connectionFuture;
+        } finally {
+            lock.unlock();
         }
-        return connectionFuture;
     }
 
-    public synchronized void recycleConnection(String key, Future<NewMycatConnection> connectionFuture) {
-        XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
-        if (context.isInTransaction()) {
-            transactionConnnectionMap.put(key, connectionFuture);
-            return;
-        }
-        LimitQueue limitQueue = connectionlimitMap.get(key);
-        LimitQueueItem limitQueueItem = limitQueue.queue.get(limitQueue.tmpIndex);
-        limitQueueItem.future = connectionFuture.onComplete(newMycatConnectionAsyncResult -> {
-            if (newMycatConnectionAsyncResult.succeeded()) {
-                NewMycatConnection mycatConnection = newMycatConnectionAsyncResult.result();
-                if (limitQueueItem.countDown.decrementAndGet() < 1) {
-                    mycatConnection.close();
-                }
+    public void recycleConnection(String key, Future<NewMycatConnection> connectionFuture) {
+        lock.lock();
+        try {
+            XaSqlConnection transactionSession = (XaSqlConnection) context.getTransactionSession();
+            if (context.isInTransaction()) {
+                transactionConnnectionMap.put(key, connectionFuture);
+                return;
             }
-        });
+            LimitQueue limitQueue = connectionlimitMap.get(key);
+            LimitQueueItem limitQueueItem = limitQueue.queue.get(limitQueue.tmpIndex);
+            limitQueueItem.future = connectionFuture.onComplete(newMycatConnectionAsyncResult -> {
+                if (newMycatConnectionAsyncResult.succeeded()) {
+                    NewMycatConnection mycatConnection = newMycatConnectionAsyncResult.result();
+                    if (limitQueueItem.countDown.decrementAndGet() < 1) {
+                        mycatConnection.close();
+                    }
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
     }
 
     public static interface Queryer<T> {
@@ -281,7 +306,17 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
     }
 
     @NotNull
-    public synchronized <T> List<Observable<T>> getObservables(ImmutableMultimap<String, SqlString> expand, MycatRowMetaData calciteRowMetaData, Queryer<T> queryer) {
+    public <T> List<Observable<T>> getObservables(ImmutableMultimap<String, SqlString> expand, MycatRowMetaData calciteRowMetaData, Queryer<T> queryer) {
+        lock.lock();
+        try {
+            return getObservables0(expand, calciteRowMetaData, queryer);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // 持锁入口委托到此，body 原样保留（47 行，重排缩进的转录风险大于收益）。
+    private <T> List<Observable<T>> getObservables0(ImmutableMultimap<String, SqlString> expand, MycatRowMetaData calciteRowMetaData, Queryer<T> queryer) {
         LinkedList<Observable<T>> observables = new LinkedList<>();
         for (Map.Entry<String, SqlString> entry : expand.entries()) {
             String key = context.resolveDatasourceTargetName(entry.getKey());
@@ -330,10 +365,15 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
         return observables;
     }
 
-    public synchronized CompositeFuture endFuture() {
-        return CompositeFuture.join((List) ImmutableList.builder()
-                .addAll(transactionConnnectionMap.values())
-                .addAll(connectionlList.stream().map(i->i.close()).collect(Collectors.toList())).build());
+    public CompositeFuture endFuture() {
+        lock.lock();
+        try {
+            return CompositeFuture.join((List) ImmutableList.builder()
+                    .addAll(transactionConnnectionMap.values())
+                    .addAll(connectionlList.stream().map(i->i.close()).collect(Collectors.toList())).build());
+        } finally {
+            lock.unlock();
+        }
     }
 
     public abstract List<Observable<Object[]>> getObservableList(String node);
@@ -366,6 +406,7 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
 
         private DrdsSqlWithParams drdsSqlWithParams;
         private ConcurrentMap<String, List<PartitionGroup>> cache = new ConcurrentHashMap<>();
+        private final ReentrantLock partitionLock = new ReentrantLock();
         MycatDataContext dataContext;
 
         public SqlMycatDataContextImpl(MycatDataContext dataContext, CodeExecuterContext context, DrdsSqlWithParams drdsSqlWithParams) {
@@ -408,7 +449,21 @@ public abstract class AsyncMycatDataContextImpl extends NewMycatDataContextImpl 
             MycatRelDatasourceSourceInfo mycatRelDatasourceSourceInfo = this.codeExecuterContext.getRelContext().get(node);
             if (mycatRelDatasourceSourceInfo == null) return Optional.empty();
             MycatView view = mycatRelDatasourceSourceInfo.getRelNode();
-            return Optional.ofNullable(cache.computeIfAbsent(node, s -> getSqlMap(codeExecuterContext.getConstantMap(), view, drdsSqlWithParams, drdsSqlWithParams.getHintDataNodeFilter())));
+            List<PartitionGroup> cached = cache.get(node);
+            if (cached != null) return Optional.of(cached);
+            // CHM mapping function 持 bin 监视器；分区计算可能阻塞 HTTP，不能在其中执行。
+            partitionLock.lock();
+            try {
+                cached = cache.get(node);
+                if (cached == null) {
+                    cached = getSqlMap(codeExecuterContext.getConstantMap(), view, drdsSqlWithParams,
+                            drdsSqlWithParams.getHintDataNodeFilter());
+                    if (cached != null) cache.put(node, cached);
+                }
+                return Optional.ofNullable(cached);
+            } finally {
+                partitionLock.unlock();
+            }
         }
 
 

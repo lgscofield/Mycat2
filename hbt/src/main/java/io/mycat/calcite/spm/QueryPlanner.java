@@ -10,8 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class QueryPlanner {
+    private final ReentrantLock lock = new ReentrantLock();
     QueryPlanCache planCache;
 
     public QueryPlanner(QueryPlanCache planCache2) {
@@ -61,16 +63,18 @@ public class QueryPlanner {
     public   List<CodeExecuterContext> getAcceptedMycatRelList(DrdsSql drdsSql) {
         List<CodeExecuterContext> acceptedMycatRelList = planCache.getAcceptedMycatRelList(drdsSql);
         if (acceptedMycatRelList.isEmpty()) {
-            synchronized (this){
+            lock.lock();
+            try {
                 acceptedMycatRelList = planCache.getAcceptedMycatRelList(drdsSql);
-                if (!acceptedMycatRelList.isEmpty()){
+                if (!acceptedMycatRelList.isEmpty()) {
                     return acceptedMycatRelList;
-                }else {
+                } else {
                     PlanResultSet add = planCache.add(false, drdsSql);
                     return Collections.singletonList(add.getContext());
                 }
+            } finally {
+                lock.unlock();
             }
-
         } else {
             return acceptedMycatRelList;
         }

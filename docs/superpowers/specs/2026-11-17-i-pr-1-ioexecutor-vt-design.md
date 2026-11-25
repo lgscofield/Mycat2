@@ -5,7 +5,7 @@
 **形态拍板**：用户选择 **「一步到位上 VT」**——加界 + 虚拟线程 + P0 22 处换锁 + 线程发现重写，全部进本轮。
 **前置证据**：`docs/superpowers/specs/2026-11-17-i-pr-3-vt-spike-report.md`（53 跑实测）、
 `docs/superpowers/specs/2026-11-17-i-pr-3-pinning-inventory.md`（静态清单 + 活体订正）
-**状态**：spec 草成，**待拍板**。架构级变更，未拍板前不动生产码。
+**状态**：D1–D6 已于 2026-11-17 全部拍板；实现与活体收口进行中。Task 6 新发现按「命中即升级 P0」条款补换，最终状态以 §12.1 实测回填为准。
 
 ---
 
@@ -339,7 +339,7 @@ DEFAULT 与 fromVertx **同一套修法**：提交时 `++`，**promise 完成钩
 
 ---
 
-## 4. P0 22 处换锁（3 文件）
+## 4. 初始 P0 22 处换锁（3 文件；活体增补见 §12.1）
 
 | 文件 | 处数 | 站点 | 锁拓扑 |
 |---|---|---|---|
@@ -457,10 +457,12 @@ public static int ERR_IO_CONCURRENCY_LIMIT = 3007;
 
 ---
 
-## 7. 活体自死锁约束：`DefaultPrototypeGenerator`
+## 7. 活体自死锁约束：`SequenceMySQLGenerator`
 
-**这是本轮新发现的活体靶**（此前我把自死锁机制降级为「待证推演」，现在找到了真实载体；
-**仍未运行时复现**，故仍是「机制已定位、待活体证明」）。
+> **2026-11-24 活性订正**：`DefaultPrototypeGenerator` 无生产调用方，且实际装载链只接受
+> `SequenceHandler` + 无参构造器，它与该接口/构造形状均不匹配，故是**死码机制样本**，不是活体靶。
+> 真正的活体序列生成器是 `server/.../plug/sequence/SequenceMySQLGenerator`；L5 与取号并发锁均以它为准。
+> 以下保留 `DefaultPrototypeGenerator` 的机制说明，作为「取号等待异步 fetch」为什么会自死的样本，不冒充活体证据。
 
 ```java
 public Number get() {                       // :63
@@ -513,7 +515,7 @@ public void fetch() {                       // :86
 | D2 | **(a) 控制面 SQL 豁免准入** | 仅作用 A1/A4 两个 COM_QUERY 入口；A2/A3/A5 拿不到原始 SQL 文本 ⇒ 一律不豁免，运维须用文本协议发 hint |
 | D3 | **(b) `admitTimeoutMillis` 默认 200ms** | **必须可配置**（用户原话「最好是可以配置的，默认值可以用你推荐的值」） |
 | D4 | **(a) 许可数复用 `workerPool.maxPoolSize`**，默认沿用生产 1024 | **必须可配置**（同上）。它本就是 `server.json` 既存字段 ⇒ 条件天然满足，不新增独立旋钮 |
-| D5 | **(a) `DefaultPrototypeGenerator.value` 加 `volatile`** | 非配置项 |
+| D5 | **(a) `DefaultPrototypeGenerator.value` 加 `volatile`**（该机制样本为死码；活体序列类是 `SequenceMySQLGenerator`，不得混称） | 非配置项 |
 | D6 | **(a) VT-only，不留平台线程开关** | 回滚＝revert 本轮提交 |
 
 **「可配置」不是有字段就算数——必须证明非默认值真的生效。**
@@ -616,8 +618,8 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 - **`.qoder/*`（含 `.qoder/wt-baseline`）与 `scratch/` 不是我的，不得提交。**
 - origin = `https://github.com/lgscofield/Mycat2.git`（合法 origin，**严禁替换成任何临时代理地址**）。
   **gh 未安装**。push 失败须自行重试（GitHub 时不时连不上）。
-- **Explore / Plan / general-purpose 子代理已不可用** ⇒ 全部工作 inline；
-  最终 review 只能是 **self-review（较弱，须如实披露）**。
+- **Agent 工具已恢复可用** ⇒ 实现仍按 executing-plans inline；Task 6 最终 review 改用
+  fresh-context reviewer。旧“子代理不可用 / 只能 self-review”描述不再成立。
 
 ---
 
@@ -647,8 +649,72 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 3. **`DEBT-QUEUE.md`**：仪表盘 M5 段 + §5 M5 五个子条目 + 下一个开工位，同上。
 4. **两板凡出现「35 处 / 18 文件」处订正为「30 处 / 15 文件」**（§1.3 订正一）。
 5. **两板补记三处订正**：A3/A5 是 COM_STMT_EXECUTE 非管理命令（订正二）；
-   可拒绝集是 5 处前端入口非 19 处（订正三）；`DefaultPrototypeGenerator` 是**活体自死锁靶**
-   （此前降级为「待证推演」的机制现已定位到真实载体，仍未运行时复现）。
+   可拒绝集是 5 处前端入口非 19 处（订正三）；`DefaultPrototypeGenerator` 经全仓活性核对为
+   **死代码机制样本**，活体 L5 靶是 `SequenceMySQLGenerator`。
+
+### 12.1 最终活体结果（2026-11-25，round 15 final，本地✅ / 完整护栏✅ / CI⏳）
+
+**判据口径**：同一 fat jar 跑生产原值与隔离小许可两档；16 个汇总项（14 场景 + L1/L7）全部 PASS，
+且驱动要求行数恰为 16、每个预期 tag 恰出现一次、全部 verdict=PASS。受测 HEAD 为
+`7a7e6f2b34f33bb2ccac053c91f3c3db8536d2d9`，jar SHA-256 为
+`6b9368df712a0ae14cdba5cddf0acb0ec05b27216973d3e56386a20d28304e66`；原始日志、探针、驱动、Monitor
+输出与 SHA-256 manifest 见 `ci/iopr1/matrix-round15-final/`，35 个归档文件校验通过。round14 旧失败轮
+（14/16）保留在 `ci/iopr1/matrix-round14/`，不得用 corrected PASS 抹去。
+
+| 验收格 | 实测结果 | 双态 |
+|---|---|---|
+| L1 | prod/small 均 pinnedFrames=0、ours=0、RxJava=0；`prod-load`、`prod-threads`、`small-saturate` 三个真实流量场景 PASS 后才判定 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L2 | C=8→32：IO VT 峰值 25→102，平台线程峰值 60→59；平台增长 13/12（允许额外 2），`noPlatformCarrier=true` | 本地✅ / 完整护栏✅ / CI⏳ |
+| L3 | permits=3 时预热后拒绝 `MYCAT-3007`，墙钟 81ms；五条绕过边界 60–66ms 全部 3007，`boundaryUnexpected=0`，Sleeper 无错误，目标表 `tableRowsAfter=1` | 本地✅ / 完整护栏✅ / CI⏳ |
+| L4 | abandon 活跃连接 0→4→0，`peakWaitMs=4`，无泄漏 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L5 | 生产 80/80；小许可拟合 30/30；饱和 83 成功 + 7 个预期 3007，60s 内完成 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L6 | 3 条卡死腿均 3013 有界（首条 2404ms），deadline 后新语句 44ms 获准入 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L7 | 心跳错误行 0，3 个真实流量场景，`heartbeatAdvanced=true` | 本地✅ / 完整护栏✅ / CI⏳ |
+| L8 | 列出 70 行、10 个 IO VT、60 行栈非空；kill/interrupt 均 `affectedRows=1`（各 1 次命中），bogus kill=0 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L9 | 生产原值下 C=32、640 ops、errors=0、`maxClientInFlight=32`，非静默串行 | 本地✅ / 完整护栏✅ / CI⏳ |
+| L10 | 隔离 `MYCAT_HOME` 非默认 `maxPoolSize=3/admitTimeoutMillis=50` 真生效；拒绝文案明确 50ms | 本地✅ / 完整护栏✅ / CI⏳ |
+| R1 | 真实 `MycatVertxMySQLHandler` COM_QUERY → Future 链 → `executeAdmitted` VT 路径随全部前端场景覆盖 | 本地✅ / 完整护栏✅ / CI⏳ |
+| R2 | 80 次 DDL 全成功，错误 0 | 本地✅ / 完整护栏✅ / CI⏳ |
+| R3 | `SequenceMySQLGenerator` 后端函数含 `GET_LOCK` 与 `SELECT … FOR UPDATE`，序列场景全绿 | 本地✅ / 完整护栏✅ / CI⏳ |
+| R4 | 3 次真实 HTTP custom-rule 请求，路由行 1，stub 无错 | 本地✅ / 完整护栏✅ / CI⏳ |
+| R5 | `maxCon=3` 资源模型为 sessionHeld=1 + blockedSqlLog=1 + frontendQuery=1（前两项为角色推断，非池计数采样）；阻塞 INSERT 已观测，前端 40ms 完成，解锁后日志 3 行可见 | 本地✅ / 完整护栏✅ / CI⏳ |
+
+**控制面多语句负边界**：`ControlPlaneSql` 已修复 `SHOW @@` 前缀豁免、MySQL/MariaDB 版本可执行注释，
+以及 fresh review 发现的行注释 fail-open。饱和中五条负边界为：`show @@thread; select 1`、
+`show @@thread # /*\n; DELETE FROM dbshort.stuck_t`、前导 `/*!40100 DELETE ... */` + mycat hint、
+前导 `/*M!100100 DELETE ... */` + mycat hint、hint 后接 `/*!40100 DELETE ... */`；五条全部
+`MYCAT-3007`（60–66ms），`boundarySkipped=0`、`boundaryOther=0`、`boundaryUnexpected=0`。
+`show @@thread; ...` 在当前生产 Druid parser 会抛 `ParserException`，故该边界只证明整条 COM_QUERY
+不再被豁免，不冒充已活体执行第二条 DML。轻量分类器遇到 `#` 或 `--` 直接 fail-closed，因此合法但带行注释的
+`show @@` 也会经准入闸，这是有意的保守边界。
+
+**L10 时延诚实边界**：配置值 50ms 已由运行 WARN 与 MYCAT-3007 文案双重证明。客户端
+`rejectWaitMs=81` 是“整条查询提交→收到协议错误”的墙钟，包含调度/协议开销，**不得写成 Semaphore
+实际等待 81ms，也不得声称墙钟本身≈50ms**。focused 取证观察到：未预热首次拒绝约 1267–1614ms，
+同一连接预热真实 ERR 应答后为 80/87/69ms；约 1.2 秒量级位于首次 ERR 应答链路，具体子阶段尚未拆分。
+本轮 `warmupMs=974` 还包含 JDBC/驱动初始化，不能把它单独归因于 `generateError` 或
+`closeStatementState`，也不得把预热后的稳态数字冒充冷启动性能。
+
+**隔离配置裁决**：Step 8b 要求“改生产配置再恢复”，但 `ServerConfigurationImpl` 只读
+`<MYCAT_HOME>/server.json`。本轮用两个隔离 home、同一个 jar 跑生产原值与 3/50 非默认值，既证明同一配置通路，
+又避免修改/重打仓内生产资源；效果强于原步骤，生产 `server.json` 自始至终未改。
+
+**独立债务与设计边界**：R5 第八轮 `maxCon=2` 因会话 1 + 阻塞日志 1 占满池而饿死前端查询，已作为容量语义债保留；
+候选 C（热替换后四分片 Druid holder 失效）与候选 B（DDL 失败原子性）亦独立挂账。候选 A 已由 I-DEBT-86 覆盖，
+不重复立票。当前闸只保证“已准入执行并发有界 + 等待时间有界”，没有全局待提交队列上限；`executeBlocking`
+明确绕过闸，SQL-log 与业务共用 prototype 连接池的容量问题不能归因于准入闸泄漏。首条 ERR 应答冷路径约 1.2 秒
+仍是待取证的独立性能项。
+
+**完整护栏状态**：round15 首轮 Monitor `b1tphn0cg` 在 M1/M2 阶段中断且无退出码，已保留为
+`ci/iopr1/guard-round15-interrupted1/` 失败/中断证据；第二轮 Monitor `b8vtxa1hx` 完成 12 阶段但
+`m1-m2-mysql57` rc=1，仅 `LoaddataTest` 两条因 Surefire 与 Mycat 工作目录不一致找不到相对路径文件，
+其余 11 阶段 rc=0，保留为 `ci/iopr1/guard-round15-failed1/`。测试已改为在仓库根目录 `target` 落盘，
+生产相对路径安全门不变，聚焦回归 2/2 PASS。第三轮 Monitor `bbe5qorn9` 从零重跑 12 阶段并返回
+`GUARD_RC=0`：startup、driver、14 模块 reactor、M1/M2 559 测试（0 失败/0 错误/40 跳过）、七个 M3/M4
+persona（各 6/6）、旧 Connector/J 5.1.49/8.0.33 明文与 TLS-required STAGE6 全部通过；归档
+`ci/iopr1/guard-round15-final/`，21 条 SHA-256 清单校验通过。上表“完整护栏✅”仅指本地完整护栏；
+CI 未绿前仍不得称 Evidenced-Done。
+首条 ERR 应答冷路径需后续分段取证；`executeBlocking` bypass 与本地计划腿全库最小 deadline 仍是明确设计边界。
 
 ---
 
@@ -671,8 +737,9 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 
 - **吞吐收益不可宣称**：spike 的 interleaved 重复已证明吞吐差异在宿主负载方差下**不可分辨**，
   相关 qps 数字已**撤回**。本票的收益是**线程治理 + 有界 + 名实相符**，不是「更快」。
-- **`DefaultPrototypeGenerator` 自死锁是「机制已定位到活体载体」，不是「已运行时复现」**。
-  L5 是它的证明步骤，不是它的既有证据。
+- **`DefaultPrototypeGenerator` 是死代码机制样本，不是活体靶**：其构造器/接口与
+  `SequenceGenerator` 的实际实例化契约不匹配，全仓无生产调用方。L5 使用真实可达的
+  `SequenceMySQLGenerator` 与后端 `MYCAT_SEQUENCE` 取号路径，不得把死代码验证冒充活体证据。
 - **静态清单已两次自我订正**（`TransactionSessionTemplate` 死代码误判为 P0；
   「VT −24% 吞吐」与「core16 贴天花板」撤回）。本轮的 30/15、5 处闸位、22 处换锁
   均为**实读核对**结果，且 **§4.1 外部监视器预检已执行并通过**（全参考图逐点列出）。
@@ -680,4 +747,5 @@ TLS 轴矩阵。**hbt 验证须 `-am`**。
 - **本轮又新增三处自我订正**（§1.3 订正一/二/三）：35/18→30/15；
   A3/A5 从「管理命令」订正为 **COM_STMT_EXECUTE**；可拒绝集从 19 处订正为 **5 处前端入口**。
   第三处是**危险性订正**：按旧口径实现会直接触发嵌套准入死锁。
-- **最终 review 只能是 self-review**（子代理不可用），弱于 fresh reviewer，须如实披露后再由用户决定是否足够。
+- **最终 review 使用 fresh-context reviewer**（Agent 工具已恢复可用），不以作者自审替代；
+  旧“子代理不可用”前提已按 2026-11-24 的实际工具状态订正。

@@ -1,0 +1,17 @@
+tag	config	verdict	detail
+prod-setup	prod	PASS	RESULT tag=setup setup=OK verdict=PASS
+prod-load	prod	PASS	RESULT tag=load C=32 iter=20 finished=true ops=640 errors=0 wallMs=13504 maxClientInFlight=32 verdict=PASS
+prod-threads	prod	PASS	RESULT tag=threads lowC=8 highC=32 loadSeconds=8 lowFinished=true lowOps=738 lowErrors=0 highFinished=true highOps=767 highErrors=0 baselineIoVt=1 baselinePlatform=46 lowPeakIoVt=26 highPeakIoVt=99 lowPeakPlatform=59 highPeakPlatform=58 lowPlatformGrowth=13 highPlatformGrowth=12 allowedExtraPlatformGrowth=2 noPlatformCarrier=true lowSamples=35 highSamples=34 lowAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,RxComputationThreadPool-10,RxComputationThreadPool-12,RxComputationThreadPool-11 highAddedPlatformNames=RxCachedWorkerPoolEvictor-1,RxComputationThreadPool-7,RxComputationThreadPool-6,RxComputationThreadPool-9,RxComputationThreadPool-8,RxComputationThreadPool-1,RxComputationThreadPool-3,RxComputationThreadPool-2,RxComputationThreadPool-5,RxComputationThreadPool-4,RxComputationThreadPool-10,JNA_Cleaner,RxComputationThreadPool-12,RxComputationThreadPool-11 lowWallMs=8197 highWallMs=8282 verdict=PASS
+prod-seq	prod	PASS	RESULT tag=seq C=8 permits=1024 perThread=10 hardTimeoutS=60 finished=true wallMs=1913 ok=80 err3007=0 errOther=0 maxId=241 tableRows=80 firstErr= firstOtherErr= verdict=PASS
+prod-ddl	prod	PASS	RESULT tag=ddl C=8 rounds=10 finished=true ok=80 errors=0 firstErr= verdict=PASS
+prod-r4	prod	PASS	RESULT tag=http-rule httpRequests=3 routedRows=1 wallMs=1484 stubError= verdict=PASS
+small-setup	small	PASS	RESULT tag=setup setup=OK verdict=PASS
+small-saturate	small	PASS	RESULT tag=saturate permits=3 rejectCode=MYCAT-3007 rejectWaitMs=891 connAliveAfterRelease=true verdict=PASS
+small-ops	small	PASS	RESULT tag=ops threadRows=75 ioVtRows=16 nonEmptyStack=62 opsLatencyMs=244 killAffected=1 interruptAffected=1 bogusKillAffected=0 verdict=PASS
+small-seq-fit	small	PASS	RESULT tag=seq C=3 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=849 ok=30 err3007=0 errOther=0 maxId=31 tableRows=30 firstErr= firstOtherErr= verdict=PASS
+small-seq-sat	small	PASS	RESULT tag=seq C=9 permits=3 perThread=10 hardTimeoutS=60 finished=true wallMs=1939 ok=86 err3007=4 errOther=0 maxId=117 tableRows=86 firstErr=ERROR-CODE:_[MYCAT-3007][ERR_IO_CONCURRENCY_LIMIT]_IO_并发已达许可上界_3，等待_50ms_仍未获准入；请稍后重试，或调大_workerPool.maxPoolSize firstOtherErr= verdict=PASS
+small-deadline	small	PASS	RESULT tag=deadline  unexpected=0 unexpectedFirst=none afterErr=none permits=3 bounded3013=3 firstBoundMs=2154 admittedAfterDeadline=true admitMs=2 verdict=PASS
+small-abandon	small	PASS	RESULT tag=abandon useConBefore=0 useConPeak=3 peakWaitMs=6 useConAfter=0 rose=true fellBack=true verdict=PASS
+small-r5	small	NO_DATA	RESULT tag=sql-log exception=SQLException:com.alibaba.druid.pool.GetConnectionTimeoutException:_wait_millis_30003,_active_2,_maxActive_2,_creating_0 verdict=NO_DATA
+L1-pinning	both	PASS	pinnedFrames=0 ours=0 exemptRxJava=0 trafficScenarios=3
+L7-heartbeat	both	PASS	heartbeatErrorLines=0 trafficScenarios=3
