@@ -1,0 +1,18 @@
+round: live-round1
+archived_at: 2026-11-26T19:53:05+08:00
+head_at_run: 1eef519ca with uncommitted I-DEBT-143 changes
+server_pid: 43020
+persona: MYSQL_8_0
+front_posture: 8.0.34-mycat-2.0
+backend: m1-mysql-a MySQL 8.0.46; m1-mysql-b and m6-mariadb-a also ready
+fat_jar_sha256: c4ed2b3766313b2481a7f3e2bf330fe73cd5542cd009b338f7844a161f145d30
+probe_sha256: fd252c11670a949899b352b5fe082b80da568b2c3f34588bbe7637d44d8bd1c0
+probe_result: PASS; real mysql client through backend container to frontend 8066
+result_shape: 19 columns in the fixed showDataSources order
+password_column: ******
+url_assertions: target preserved; authority user-info absent; raw credential strings absent; password/user/token/api_key masked; useSSL=false preserved
+driver: com.alibaba.druid.pool.DruidDataSource; no object identity text
+front_alive: SELECT 1 returned 1
+cleanup: dropDataSource hint succeeded
+offline_regressions: HintHandlerShowDataSourcesMaskingTest 26/26, zero failures/errors
+conclusion: live masking criterion passed for the tested jar; full guard and current HEAD CI remain separate gates

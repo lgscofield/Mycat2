@@ -1,0 +1,19 @@
+round: guard-round2
+archived_at: 2026-11-26T21:18:12+08:00
+head_at_run: 1eef519ca with uncommitted I-DEBT-143 changes
+persona: MYSQL_8_0
+jar_sha256: f5bb693e4c7549c2a87819dadcf217dc96a270007bb7c9150fdf6181fd927164
+command: pwsh -NoProfile -File ci/run-example-guard.ps1 -Persona MYSQL_8_0 -Modules server,example -Jar server/target/server-1.22-release-jar-with-dependencies.jar
+posture: PASS; frontend 8.0.34, backend MySQL 8.0.46
+maven_exit: 0
+guard_exit: 0
+result: PASS
+reactor: 15/15 SUCCESS
+duration: 24:27 min
+module_tests: config 33; common 89; router 22; plug 7; replica 13; datasource 19; va 36; proxy 33; calcite-core 5; hbt 414; executor 6; server 328; example 559 with 38 skipped
+masking_regressions: 28/28, zero failures/errors
+failures: 0
+errors: 0
+cleanup: guard stopped frontend 8066 pid 14368
+summary: summary.tsv
+conclusion: full server/example guard passed for the final jar; current HEAD CI remains a separate closure gate

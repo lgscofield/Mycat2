@@ -1,0 +1,22 @@
+round: live-round2
+archived_at: 2026-11-26T20:50:23+08:00
+head_at_run: 1eef519ca with uncommitted I-DEBT-143 changes
+server_pid: 41848
+persona: MYSQL_8_0
+front_posture: 8.0.34-mycat-2.0
+backend: m1-mysql-a MySQL 8.0.46; m1-mysql-b and m6-mariadb-a also ready
+fat_jar_sha256: f5bb693e4c7549c2a87819dadcf217dc96a270007bb7c9150fdf6181fd927164
+probe_sha256: fd252c11670a949899b352b5fe082b80da568b2c3f34588bbe7637d44d8bd1c0
+package: BUILD SUCCESS; 07:19 min
+posture_gate: PASS; exit 0
+probe_result: PASS; real mysql client through backend container to frontend 8066
+result_shape: 19 columns in the fixed showDataSources order
+password_column: ******
+url_assertions: target preserved; authority user-info absent; raw credential strings absent; password/user/token/api_key masked; useSSL=false preserved
+driver: com.alibaba.druid.pool.DruidDataSource; no object identity text
+front_alive: SELECT 1 returned 1
+cleanup: dropDataSource hint succeeded
+review_repair: MySQL ordinary-parenthesis authority bypass and Oracle LDAP DN @ over-masking reproduced RED, then fixed; 28/28 offline regressions GREEN
+full_guard: PASS in guard-round2; 15/15 reactor modules SUCCESS; server 328 and example 559 with 38 skipped; zero failures/errors; 24:27 min
+current_head_ci: pending commit and push at archive time
+conclusion: final-jar live masking criterion and full guard passed; current HEAD CI remains the separate closure gate

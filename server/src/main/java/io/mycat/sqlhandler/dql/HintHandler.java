@@ -68,10 +68,16 @@ import org.apache.commons.csv.QuoteMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.sql.DataSource;
+import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.sql.JDBCType;
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -95,6 +101,319 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
      */
     static String maskPassword(String raw) {
         return raw == null ? null : "******";
+    }
+
+    private static final Set<String> SENSITIVE_URL_QUERY_KEYS = Set.of(
+            "password", "passwd", "pwd", "user", "username", "token", "accesstoken", "key", "apikey",
+            "secret", "accesskey", "secretkey", "truststorepassword", "keystorepassword");
+
+    static String maskDataSourceUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        String masked = maskAuthorityUserInfo(url);
+        masked = maskOracleThinCredentials(masked);
+        masked = maskMysqlAddressProperties(masked);
+        masked = maskMysqlBracketAuthorityProperties(masked);
+        return maskUrlProperties(masked);
+    }
+
+    private static String maskAuthorityUserInfo(String url) {
+        int authorityStart = url.indexOf("://");
+        if (authorityStart < 0 || !url.regionMatches(true, 0, "jdbc:", 0, 5)) {
+            return url;
+        }
+        boolean mysqlFamily = url.regionMatches(true, 0, "jdbc:mysql:", 0, 11)
+                || url.regionMatches(true, 0, "jdbc:mariadb:", 0, 14);
+        int authorityEnd = url.length();
+        for (int i = authorityStart + 3; i < url.length(); i++) {
+            char value = url.charAt(i);
+            if (value == '/' || value == '?' || value == '#' || (!mysqlFamily && value == ';')) {
+                authorityEnd = i;
+                break;
+            }
+        }
+        int userInfoEnd = -1;
+        int bracketEnd = -1;
+        if (mysqlFamily && authorityStart + 3 < authorityEnd
+                && url.charAt(authorityStart + 3) == '[') {
+            bracketEnd = url.indexOf(']', authorityStart + 4);
+            if (bracketEnd < 0 || bracketEnd > authorityEnd) {
+                bracketEnd = -1;
+            }
+        }
+        for (int i = authorityStart + 3; i < authorityEnd; i++) {
+            if (i == authorityStart + 3 && bracketEnd >= 0) {
+                i = bracketEnd;
+                continue;
+            }
+            if (mysqlFamily && (i == authorityStart + 3 || userInfoEnd == i - 1)
+                    && i + 8 < authorityEnd && url.regionMatches(true, i, "address=", 0, 8)
+                    && url.charAt(i + 8) == '(') {
+                int skippedThrough = i + 8;
+                while (skippedThrough < authorityEnd && url.charAt(skippedThrough) == '(') {
+                    int groupEnd = url.indexOf(')', skippedThrough + 1);
+                    if (groupEnd < 0 || groupEnd >= authorityEnd) {
+                        break;
+                    }
+                    skippedThrough = groupEnd + 1;
+                }
+                if (skippedThrough > i + 8) {
+                    i = skippedThrough - 1;
+                    continue;
+                }
+            }
+            if (url.charAt(i) == '@') {
+                userInfoEnd = i;
+            }
+        }
+        if (userInfoEnd < authorityStart + 3) {
+            return url;
+        }
+        return url.substring(0, authorityStart + 3) + url.substring(userInfoEnd + 1);
+    }
+
+    private static String maskMysqlAddressProperties(String url) {
+        if (!url.regionMatches(true, 0, "jdbc:mysql:", 0, 11)
+                && !url.regionMatches(true, 0, "jdbc:mariadb:", 0, 14)) {
+            return url;
+        }
+        int authorityStart = url.indexOf("://");
+        if (authorityStart < 0) {
+            return url;
+        }
+        int authorityEnd = url.length();
+        for (int i = authorityStart + 3; i < url.length(); i++) {
+            char value = url.charAt(i);
+            if (value == '/' || value == '?' || value == '#') {
+                authorityEnd = i;
+                break;
+            }
+        }
+        StringBuilder masked = new StringBuilder();
+        int copied = 0;
+        for (int i = authorityStart + 3; i + 8 <= authorityEnd; i++) {
+            if (!url.regionMatches(true, i, "address=", 0, 8)) {
+                continue;
+            }
+            int groupStart = i + 8;
+            if (groupStart >= authorityEnd || url.charAt(groupStart) != '(') {
+                continue;
+            }
+            int copiedBeforeAddress = copied;
+            while (groupStart < authorityEnd && url.charAt(groupStart) == '(') {
+                int groupEnd = url.indexOf(')', groupStart + 1);
+                if (groupEnd < 0 || groupEnd >= authorityEnd) {
+                    break;
+                }
+                masked.append(url, copied, groupStart + 1);
+                masked.append(maskUrlParameter(url.substring(groupStart + 1, groupEnd)));
+                masked.append(')');
+                copied = groupEnd + 1;
+                groupStart = copied;
+            }
+            if (copied > copiedBeforeAddress) {
+                i = copied - 1;
+            }
+        }
+        if (copied == 0) {
+            return url;
+        }
+        return masked.append(url, copied, url.length()).toString();
+    }
+
+    private static String maskMysqlBracketAuthorityProperties(String url) {
+        if (!url.regionMatches(true, 0, "jdbc:mysql:", 0, 11)
+                && !url.regionMatches(true, 0, "jdbc:mariadb:", 0, 14)) {
+            return url;
+        }
+        int authorityStart = url.indexOf("://");
+        int propertiesStart = authorityStart + 3;
+        if (authorityStart < 0 || propertiesStart >= url.length() || url.charAt(propertiesStart) != '[') {
+            return url;
+        }
+        int propertiesEnd = url.indexOf(']', propertiesStart + 1);
+        if (propertiesEnd < 0) {
+            return url;
+        }
+        StringBuilder masked = new StringBuilder(url.substring(0, propertiesStart + 1));
+        int parameterStart = propertiesStart + 1;
+        while (parameterStart <= propertiesEnd) {
+            int parameterEnd = Math.min(findParameterEnd(url, parameterStart, ','), propertiesEnd);
+            masked.append(maskUrlParameter(url.substring(parameterStart, parameterEnd)));
+            if (parameterEnd < propertiesEnd) {
+                masked.append(',');
+            }
+            parameterStart = parameterEnd + 1;
+        }
+        return masked.append(url, propertiesEnd, url.length()).toString();
+    }
+
+    private static String maskOracleThinCredentials(String url) {
+        String prefix = null;
+        for (String candidate : new String[]{"jdbc:oracle:thin:", "jdbc:oracle:oci:"}) {
+            if (url.regionMatches(true, 0, candidate, 0, candidate.length())) {
+                prefix = candidate;
+                break;
+            }
+        }
+        if (prefix == null) {
+            return url;
+        }
+        int credentialsEnd = url.length();
+        for (int i = prefix.length(); i < url.length(); i++) {
+            char value = url.charAt(i);
+            if (value == '?' || value == ';') {
+                credentialsEnd = i;
+                break;
+            }
+        }
+        if (prefix.length() < url.length() && url.charAt(prefix.length()) == '@'
+                && url.regionMatches(true, prefix.length() + 1, "ldap://", 0, 7)) {
+            return url;
+        }
+        int userInfoEnd = url.lastIndexOf('@', credentialsEnd);
+        if (userInfoEnd <= prefix.length()) {
+            return url;
+        }
+        return url.substring(0, prefix.length()) + url.substring(userInfoEnd);
+    }
+
+    private static String maskUrlProperties(String url) {
+        int propertiesStart = url.length();
+        int queryStart = url.indexOf('?');
+        boolean mysqlFamily = url.regionMatches(true, 0, "jdbc:mysql:", 0, 11)
+                || url.regionMatches(true, 0, "jdbc:mariadb:", 0, 14);
+        if (mysqlFamily && queryStart >= 0) {
+            propertiesStart = queryStart;
+        } else {
+            for (int i = 0; i < url.length(); i++) {
+                char value = url.charAt(i);
+                if (value == '?' || value == ';') {
+                    propertiesStart = i;
+                    break;
+                }
+            }
+        }
+        if (propertiesStart == url.length()) {
+            return url;
+        }
+        char separator = url.charAt(propertiesStart) == '?' ? '&' : ';';
+        StringBuilder masked = new StringBuilder(url.substring(0, propertiesStart + 1));
+        int parameterStart = propertiesStart + 1;
+        while (parameterStart <= url.length()) {
+            int parameterEnd = findParameterEnd(url, parameterStart, separator);
+            masked.append(maskUrlParameter(url.substring(parameterStart, parameterEnd)));
+            if (parameterEnd < url.length()) {
+                masked.append(url.charAt(parameterEnd));
+            }
+            parameterStart = parameterEnd + 1;
+        }
+        return masked.toString();
+    }
+
+    private static int findParameterEnd(String url, int start, char separator) {
+        boolean quoted = false;
+        boolean valueStart = false;
+        boolean hasSeparator = false;
+        int braceDepth = 0;
+        for (int i = start; i < url.length(); i++) {
+            char value = url.charAt(i);
+            if (quoted) {
+                if (value == '\'') {
+                    if (i + 1 < url.length() && url.charAt(i + 1) == '\'') {
+                        i++;
+                    } else {
+                        quoted = false;
+                    }
+                }
+                continue;
+            }
+            if (braceDepth > 0) {
+                if (value == '}') {
+                    if (i + 1 < url.length() && url.charAt(i + 1) == '}') {
+                        i++;
+                    } else {
+                        braceDepth--;
+                    }
+                }
+                continue;
+            }
+            if ((separator == ';' || separator == ',') && hasSeparator && value == '{') {
+                braceDepth++;
+                continue;
+            }
+            if (value == separator) {
+                return i;
+            }
+            if (!hasSeparator && value == '=') {
+                hasSeparator = true;
+                valueStart = true;
+            } else if (valueStart) {
+                if ((separator == ';' || separator == ',') && value == '\'') {
+                    quoted = true;
+                    valueStart = false;
+                } else if (!Character.isWhitespace(value)) {
+                    valueStart = false;
+                }
+            }
+        }
+        return url.length();
+    }
+
+    private static String maskUrlParameter(String parameter) {
+        int separator = parameter.indexOf('=');
+        if (separator < 0) {
+            return parameter;
+        }
+        String encodedKey = parameter.substring(0, separator);
+        boolean sensitive;
+        try {
+            String key = decodeUrlParameterKeyStrict(encodedKey).trim()
+                    .toLowerCase(Locale.ROOT).replace("_", "").replace("-", "");
+            sensitive = SENSITIVE_URL_QUERY_KEYS.contains(key)
+                    || key.endsWith("password") || key.endsWith("passwd") || key.endsWith("pwd")
+                    || key.endsWith("token") || key.endsWith("secret") || key.endsWith("apikey");
+        } catch (CharacterCodingException | IllegalArgumentException malformedEncoding) {
+            sensitive = true;
+        }
+        return sensitive ? parameter.substring(0, separator + 1) + "******" : parameter;
+    }
+
+    private static String decodeUrlParameterKeyStrict(String encodedKey)
+            throws CharacterCodingException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(encodedKey.length());
+        for (int i = 0; i < encodedKey.length();) {
+            char value = encodedKey.charAt(i);
+            if (value == '%') {
+                if (i + 2 >= encodedKey.length()) {
+                    throw new IllegalArgumentException("Incomplete percent encoding");
+                }
+                int high = Character.digit(encodedKey.charAt(i + 1), 16);
+                int low = Character.digit(encodedKey.charAt(i + 2), 16);
+                if (high < 0 || low < 0) {
+                    throw new IllegalArgumentException("Invalid percent encoding");
+                }
+                bytes.write((high << 4) | low);
+                i += 3;
+            } else if (value == '+') {
+                bytes.write(' ');
+                i++;
+            } else {
+                int codePoint = encodedKey.codePointAt(i);
+                byte[] decoded = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
+                bytes.writeBytes(decoded);
+                i += Character.charCount(codePoint);
+            }
+        }
+        return StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes.toByteArray())).toString();
+    }
+
+    static String dataSourceClassName(DataSource dataSource) {
+        return dataSource == null ? null : dataSource.getClass().getName();
     }
 
     /**
@@ -411,64 +730,9 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
                         return response.sendResultSet(mycatServer.showNativeDataSources());
                     }
                     if ("showDataSources".equalsIgnoreCase(cmd)) {
-
                         Optional<JdbcConnectionManager> connectionManager = Optional.ofNullable(jdbcConnectionManager);
                         Collection<JdbcDataSource> jdbcDataSources = new HashSet<>(connectionManager.map(i -> i.getDatasourceInfo()).map(i -> i.values()).orElse(Collections.emptyList()));
-                        ResultSetBuilder resultSetBuilder = ResultSetBuilder.create();
-
-                        resultSetBuilder.addColumnInfo("NAME", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("USERNAME", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("PASSWORD", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("MAX_CON", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("MIN_CON", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("EXIST_CON", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("USE_CON", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("MAX_RETRY_COUNT", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("MAX_CONNECT_TIMEOUT", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("DB_TYPE", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("URL", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("WEIGHT", JDBCType.VARCHAR);
-
-                        resultSetBuilder.addColumnInfo("INIT_SQL", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("INIT_SQL_GET_CONNECTION", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("INSTANCE_TYPE", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("IDLE_TIMEOUT", JDBCType.BIGINT);
-                        resultSetBuilder.addColumnInfo("DRIVER", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("TYPE", JDBCType.VARCHAR);
-                        resultSetBuilder.addColumnInfo("IS_MYSQL", JDBCType.VARCHAR);
-
-                        for (JdbcDataSource jdbcDataSource : jdbcDataSources) {
-                            DatasourceConfig config = jdbcDataSource.getConfig();
-                            String NAME = config.getName();
-                            String USERNAME = config.getUser();
-                            // I-DEBT-88：凭据不外显——明文口令不再进结果集（活体 RED：audit/2026-11-08-capability-audit/logs/P-D-01.log 曾回显 prototypeDs 明文口令）。
-                            // 注意：URL 若含内嵌口令形参仍在，本票只锁 PASSWORD 列；URL/DRIVER 面与消费点清单在实现轮取证簿登记。
-                            String PASSWORD = maskPassword(config.getPassword());
-                            int MAX_CON = config.getMaxCon();
-                            int MIN_CON = config.getMinCon();
-
-                            int USED_CON = jdbcDataSource.getUsedCount();//注意显示顺序
-                            int EXIST_CON = USED_CON;//jdbc连接池已经存在连接数量是内部状态,未知
-                            int MAX_RETRY_COUNT = config.getMaxRetryCount();
-                            long MAX_CONNECT_TIMEOUT = config.getMaxConnectTimeout();
-                            String DB_TYPE = config.getDbType();
-                            String URL = config.getUrl();
-                            int WEIGHT = config.getWeight();
-                            String INIT_SQL = Optional.ofNullable(config.getInitSqls()).map(o -> String.join(";", o)).orElse("");
-                            boolean INIT_SQL_GET_CONNECTION = config.isInitSqlsGetConnection();
-
-                            String INSTANCE_TYPE = Optional.ofNullable(replicaSelectorRuntime.getPhysicsInstanceByName(NAME)).map(i -> i.getType().name()).orElse(config.getInstanceType());
-                            long IDLE_TIMEOUT = config.getIdleTimeout();
-                            String DRIVER = jdbcDataSource.getDataSource().toString();//保留属性
-                            String TYPE = config.getType();
-                            boolean IS_MYSQL = jdbcDataSource.isMySQLType();
-
-                            resultSetBuilder.addObjectRowPayload(Arrays.asList(NAME, USERNAME, PASSWORD, MAX_CON, MIN_CON, EXIST_CON, USED_CON,
-                                    MAX_RETRY_COUNT, MAX_CONNECT_TIMEOUT, DB_TYPE, URL, WEIGHT, INIT_SQL, INIT_SQL_GET_CONNECTION, INSTANCE_TYPE,
-                                    IDLE_TIMEOUT, DRIVER, TYPE, IS_MYSQL));
-                        }
-
-                        return response.sendResultSet(() -> resultSetBuilder.build());
+                        return response.sendResultSet(showDataSources(jdbcDataSources, replicaSelectorRuntime));
                     }
                     if ("showHeartbeats".equalsIgnoreCase(cmd)) {
                         RowBaseIterator rowBaseIterator = showHeatbeatStat();
@@ -1015,6 +1279,59 @@ public class HintHandler extends AbstractSQLHandler<MySqlHintStatement> {
         }
         mySqlInsertStatement.setValues(valuesClause);
         return mySqlInsertStatement.toString();
+    }
+
+    static RowBaseIterator showDataSources(Collection<JdbcDataSource> jdbcDataSources,
+                                           ReplicaSelectorManager replicaSelectorRuntime) {
+        ResultSetBuilder resultSetBuilder = ResultSetBuilder.create();
+        resultSetBuilder.addColumnInfo("NAME", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("USERNAME", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("PASSWORD", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("MAX_CON", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("MIN_CON", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("EXIST_CON", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("USE_CON", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("MAX_RETRY_COUNT", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("MAX_CONNECT_TIMEOUT", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("DB_TYPE", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("URL", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("WEIGHT", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("INIT_SQL", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("INIT_SQL_GET_CONNECTION", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("INSTANCE_TYPE", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("IDLE_TIMEOUT", JDBCType.BIGINT);
+        resultSetBuilder.addColumnInfo("DRIVER", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("TYPE", JDBCType.VARCHAR);
+        resultSetBuilder.addColumnInfo("IS_MYSQL", JDBCType.VARCHAR);
+
+        for (JdbcDataSource jdbcDataSource : jdbcDataSources) {
+            DatasourceConfig config = jdbcDataSource.getConfig();
+            String name = config.getName();
+            int usedCon = jdbcDataSource.getUsedCount();
+            String instanceType = Optional.ofNullable(replicaSelectorRuntime.getPhysicsInstanceByName(name))
+                    .map(i -> i.getType().name()).orElse(config.getInstanceType());
+            resultSetBuilder.addObjectRowPayload(Arrays.asList(
+                    name,
+                    config.getUser(),
+                    maskPassword(config.getPassword()),
+                    config.getMaxCon(),
+                    config.getMinCon(),
+                    usedCon,
+                    usedCon,
+                    config.getMaxRetryCount(),
+                    config.getMaxConnectTimeout(),
+                    config.getDbType(),
+                    maskDataSourceUrl(config.getUrl()),
+                    config.getWeight(),
+                    String.join(";", config.getInitSqls()),
+                    config.isInitSqlsGetConnection(),
+                    instanceType,
+                    config.getIdleTimeout(),
+                    dataSourceClassName(jdbcDataSource.getDataSource()),
+                    config.getType(),
+                    jdbcDataSource.isMySQLType()));
+        }
+        return resultSetBuilder.build();
     }
 
     public static RowBaseIterator showHeatbeatStat() {

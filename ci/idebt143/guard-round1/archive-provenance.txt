@@ -1,0 +1,8 @@
+round: guard-round1
+status: STOPPED_BEFORE_COMPLETION
+reason: final read-only review found a reproducible MySQL authority masking bypass and an Oracle LDAP over-masking defect
+stopped_log: logs/guard-round1-stopped.log
+review_red: logs/review-fix-red.log; 28 tests, 2 failures, 0 errors
+review_green: logs/review-fix-green.log; 28 tests, 0 failures, 0 errors
+summary: review-fix-summary.tsv
+conclusion: this round is not a full-guard pass certificate; final jar, live probe and full guard are recorded separately in live-round2 and guard-round2

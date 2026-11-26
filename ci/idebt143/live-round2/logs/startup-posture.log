@@ -1,0 +1,11 @@
+JAVA_HOME=D:\Program Files\BellSoft\LibericaJDK-21-Full  major=21
+REPO=D:\Workspaces\IdeaProjects\Mycat2  persona=MYSQL_8_0  jar=server-1.22-release-jar-with-dependencies.jar mtime=11/26/2026 20:43:16  home=D:\Workspaces\IdeaProjects\Mycat2\server\target\.mycat-home
+GIT_HEAD=1eef519ca  dirtyFiles=2
+BACKEND UP m1-mysql-a
+BACKEND UP m1-mysql-b
+BACKEND UP m6-mariadb-a
+POSTURE front(8066)=8.0.34 via host.docker.internal | back(localhost:3306, disk prototypeDs, mtime 11/26/2026 20:47:40)=8.0.46 via host.docker.internal  [persona 引擎族=MySQL]
+POSTURE OK
+GATE_ONLY: 前置校验通过，未跑测试
+RESULT=PASS gate_only=true
+KEEP_RUNNING: 按 -KeepRunning 保留 8066（下次务必带 -SkipRestart 或先手工杀）

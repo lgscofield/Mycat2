@@ -1,0 +1,16 @@
+round	guard-round1
+purpose	final-review repair before final jar
+red_command	mvn -o -B -pl server -am -Dtest=HintHandlerShowDataSourcesMaskingTest -Dsurefire.failIfNoSpecifiedTests=false test
+red_tests	28
+red_failures	2
+red_errors	0
+red_case_1	mysqlAuthorityParenthesesDoNotHideUserInfo
+red_case_2	oracleLdapDnAtSignIsPreserved
+green_tests	28
+green_failures	0
+green_errors	0
+green_skipped	0
+green_build	SUCCESS
+red_log	logs/review-fix-red.log
+green_log	logs/review-fix-green.log
+conclusion	review findings reproduced RED and fixed GREEN; final jar and full guard are separate round2 gates

@@ -1,0 +1,9 @@
+fd252c11670a949899b352b5fe082b80da568b2c3f34588bbe7637d44d8bd1c0 *ci/idebt143/verify-show-datasources-masking.ps1
+781d0851c26ab93df7ff95317b2f8ddc57a8558cfd63e8c55e89c2e45f8597e5 *ci/idebt143/live-round2/fat-jar.sha256
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 *ci/idebt143/live-round2/logs/live-probe.log
+84f262540e414ebd9ef4438566ba43b41090a1df8f0d19dd08da7b427553e99f *ci/idebt143/live-round2/logs/package.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 *ci/idebt143/live-round2/logs/server.err.log
+b255d902c245337c1d8e26f5c76e25c29d60f97a114b0b53dfab75bd331fe3c2 *ci/idebt143/live-round2/logs/server.log
+9a0f5cdd4248bc4efbdb3a3e33b4270435bc38f794694f0fb9ed33e19cee7c10 *ci/idebt143/live-round2/logs/startup-posture.log
+f4da15ed46311d414ae1dd9416ea6eb8ca8cf661b2bdebfc2e795cae3d2be925 *ci/idebt143/live-round2/summary.tsv
+4a912630172e5c26f82db130c063146324e6efeabeeaf2b771dc8a805c2cda21 *ci/idebt143/live-round2/archive-provenance.txt
