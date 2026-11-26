@@ -1,8 +1,8 @@
 # 开放债务队列（当前执行清单）
 
-> **最后对账**：2026-11-26 · HEAD `cdb056d07` + I-DEBT-136 未提交工作树 · 只相信代码、测试与活体证据。
+> **最后对账**：2026-11-26 · HEAD `dd6e145dd`（I-DEBT-136 实现与 CI 背书基线）· 只相信代码、测试与活体证据。
 > **历史档案**：[DEBT-COMPLETED.md](DEBT-COMPLETED.md)。已关闭、已失效、历史订正与里程碑证据均在该文件，不在本队列重复堆叠。
-> **当前阶段**：P0 资源与安全，0/5。用户指定顺序：136 → 143 → 127 → 134 → 133 → P1 验证地基 → P1 架构专轮 → P2 容量与兼容。
+> **当前阶段**：P0 资源与安全，1/5。用户指定顺序：136 → 143 → 127 → 134 → 133 → P1 验证地基 → P1 架构专轮 → P2 容量与兼容。
 
 ## 0. 状态与关闭铁律
 
@@ -25,17 +25,16 @@
 | 维度 | 当前事实 |
 |---|---|
 | 招牌路径 | I-PR-1 / M5 已 Evidenced-Done；准入仅五个批准前端入口，控制面 SQL 仅两个文本 COM_QUERY 入口；VT-only，`fromVertx` 保留并加界 |
-| P0 资源与安全 | 0/5 已关闭：136 为 PARTIAL（本地回归/活体/完整护栏通过，待当前 HEAD CI）；143、127、134、133 仍 OPEN |
+| P0 资源与安全 | 1/5 已关闭：136 为 CI✅ / Evidenced-Done；143、127、134、133 仍 OPEN，下一票为 I-DEBT-143 |
 | P1 验证地基 | 未开始：server 定向测试未进 CI；full-suite/soak 触发器与测试范围仍不完整；轮2 多版本证据未归档 |
 | P1 架构专轮 | 未开始：146–149 均须 spec/plan/拍板 |
 | P2 容量与兼容 | 未开始：容量、deadline、事务、引擎、字符集、协议与配置残留仍在 |
-| 证据基线 | 文档提交 `cdb056d07`；CI run `45588042665` 成功，9 个实际 job 成功，2 个触发门控 job skipped；该结论不覆盖后续生产代码修改 |
+| 证据基线 | 实现提交 `dd6e145dd`；CI run `45779385914` 成功，9 个实际 job 成功，`full-suite`/`soak-g6` 按 main 分支规则 skipped；[CI 摘要](../../../ci/idebt136/ci-round1/summary.tsv) |
 
 ## 2. 🔴 第一步：P0 资源与安全（严格按序）
 
 | 票据 | 当前问题 | 完成判据 |
 |---|---|---|
-| **I-DEBT-136** | **PARTIAL / 待 CI**：fallback 前关闭 native 池；raw 池 close 已覆盖 timer、idle/used、pending client/socket/handshake、迟到连接与指标归零。本地 17/17、5 次失败热重载后 native/raw 堆对象=0、14 模块完整护栏 PASS 均已归档；残留仅为提交后当前 HEAD CI 背书 | [guard-round1](../../../ci/idebt136/guard-round1/archive-provenance.txt) · [live-round2](../../../ci/idebt136/live-round2/archive-provenance.txt) · jar `4678657b5e04…`；CI 全绿后才迁入完成档案 |
 | **I-DEBT-143** | `showDataSources` 的 PASSWORD 已掩码，但 URL 可含 user-info/敏感 query 参数并原样回显；DRIVER 当前 Druid 1.2.28 的凭据暴露子项已 STALE | URL 只裁剪敏感片段且保留可展示语义；DRIVER 不直接回显原始 `toString()`；回归锁覆盖 password/user/pwd/token/key 等敏感键、无密码 URL、编码参数与功能可用性 |
 | **I-DEBT-127** | ①未知异常错误码 0、自定义 3034 撞真实 GIS 错误；②COM_RESET_CONNECTION 空实现；③MycatdbCommand 静态初始化吞异常；④MERGE_UNION_SIZE 缺 break；⑤无前端 idle timeout；⑥NIO prepare 平台编码且列数恒 0；⑦connect-attrs 按 char 而非 byte 计长 | 七案各有失败回归与最小修复；未知异常不再发 0；reset 清理会话/事务态；初始化失败响亮；hint 路由不误入超时；idle 关闭可配置；prepare 元数据/编码正确；非 ASCII attrs 不越界 |
 | **I-DEBT-134** | native 池忽略 `DatasourceConfig.maxCon/minCon`，实现恒为 1000/1 | 配置值、默认值与非法值行为有测试；native 创建路径真实应用容量；非默认配置端到端可观测 |

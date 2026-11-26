@@ -8,10 +8,22 @@
 
 ## 迁移索引
 
-- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、127、128、129、133、134、136、137、138、143、145。
+- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、127、128、129、133、134、137、138、143、145。
 - I-DEBT-79 的三刀已落地并 CI 复验，收入本文件；mysql client 缺失时不得软跳过的新验证债另立 I-CI-8。
 - I-DEBT-143 的 DRIVER 凭据子项按当前 Druid 1.2.28 行为判 STALE；URL 子项仍在主队列。
 - I-DEBT-110 / 116 的代码或活体修复保留在主队列 PARTIAL，离线回归锁与剩余证据未补齐前不得标 Evidenced-Done。
+
+## 2026-11-26 关闭记录
+
+### I-DEBT-136 native 池失败回退与关闭资源 — CLOSED / CI✅ / Evidenced-Done
+
+- 实现提交：`dd6e145dd10a719d7be9a78a593763fa639a905c`。
+- CI：run [`45779385914`](https://github.com/lgscofield/Mycat2/actions/runs/45779385914) `success`；9 个实际 job 全部 success（cleanroom、7 档 compat、old-connector），`full-suite` 与 `soak-g6` 按 main 分支规则 skipped，skipped 不计作通过证据。[逐 job 摘要](../../../ci/idebt136/ci-round1/summary.tsv)
+- 回归：17/17，覆盖 fallback 关闭顺序、close 幂等与 timer、idle/used/pending client/socket/handshake、迟到连接、失败握手、关闭异常隔离、raw/wrapper 指标恰好结算一次。
+- 完整护栏：[guard-round1](../../../ci/idebt136/guard-round1/archive-provenance.txt)，14 模块 BUILD SUCCESS，28:23，server 304、example 559（40 skipped），零失败/零错误。
+- 活体：[live-round2](../../../ci/idebt136/live-round2/archive-provenance.txt)，5 次 NATIVE 失败热重载全部回退 JDBC；等待 deferred close 并 GC 后 `MycatNativeDatasourcePool`/`VertxPoolConnectionImpl` 均为 0，前端 `SELECT 1` 返回 1，清理成功。
+- 被测 jar SHA-256：`4678657b5e048618134dc9d35d29664aaa683a0f60675a2a2f569a78919a92e8`；四组证据目录的 SHA-256 清单均已复核。
+- 关闭边界：仅覆盖 native 探测失败回退、连接池关闭/在途资源与连接指标生命周期；不覆盖 I-DEBT-134 的容量旋钮、I-DEBT-143 的展示脱敏或后续 P0 票据。首轮 Docker 不可用护栏为 NO_DATA，保留在 [guard-round1-nodata](../../../ci/idebt136/guard-round1-nodata/archive-provenance.txt)，不作通过证书。
 
 ---
 
