@@ -8,9 +8,9 @@
 
 ## 迁移索引
 
-- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、127、128、129、133、134、137、138、143、145。
+- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、127、128、129、133、134、137、138、145。
 - I-DEBT-79 的三刀已落地并 CI 复验，收入本文件；mysql client 缺失时不得软跳过的新验证债另立 I-CI-8。
-- I-DEBT-143 的 DRIVER 凭据子项按当前 Druid 1.2.28 行为判 STALE；URL 子项仍在主队列。
+- I-DEBT-143 的 URL 与 DRIVER 展示子项已修复并 CI 复验，收入本文件；原 DRIVER 凭据暴露指控按 Druid 1.2.28 行为判 STALE。
 - I-DEBT-110 / 116 的代码或活体修复保留在主队列 PARTIAL，离线回归锁与剩余证据未补齐前不得标 Evidenced-Done。
 
 ## 2026-11-26 关闭记录
@@ -25,6 +25,16 @@
 - 活体：[live-round2](../../../ci/idebt136/live-round2/archive-provenance.txt)，5 次 NATIVE 失败热重载全部回退 JDBC；等待 deferred close 并 GC 后 `MycatNativeDatasourcePool`/`VertxPoolConnectionImpl` 均为 0，前端 `SELECT 1` 返回 1，清理成功。
 - 被测 jar SHA-256：`4678657b5e048618134dc9d35d29664aaa683a0f60675a2a2f569a78919a92e8`；四组证据目录的 SHA-256 清单均已复核。
 - 关闭边界：仅覆盖 native 探测失败回退、连接池关闭/在途资源与连接指标生命周期；不覆盖 I-DEBT-134 的容量旋钮、I-DEBT-143 的展示脱敏或后续 P0 票据。首轮 Docker 不可用护栏为 NO_DATA，保留在 [guard-round1-nodata](../../../ci/idebt136/guard-round1-nodata/archive-provenance.txt)，不作通过证书。
+
+### I-DEBT-143 showDataSources 凭据回显 — CLOSED / CI✅ / Evidenced-Done
+
+- 实现提交：`9b960a73a4321442b2570af4c07a399afe4486a2`。
+- CI：run [`45829181264`](https://github.com/lgscofield/Mycat2/actions/runs/45829181264) `success`；9 个实际 job 全部 success（cleanroom、7 档 compat、old-connector），`full-suite` 与 `soak-g6` 按 main 分支规则 skipped，skipped 不计作通过证据。[逐 job 摘要](../../../ci/idebt143/ci-round1/summary.tsv)
+- 回归：28/28，覆盖固定 19 列形状、PASSWORD 掩码、JDBC authority user-info、Oracle Thin/OCI、query 与分号属性、MySQL address/方括号 authority、敏感键后缀、非法编码 fail-closed、DRIVER 显式类名与不调用 `DataSource.toString()`。
+- 完整护栏：[guard-round2](../../../ci/idebt143/guard-round2/archive-provenance.txt)，15/15 reactor 模块 BUILD SUCCESS，24:27，server 328、example 559（38 skipped），零失败/零错误。
+- 活体：[live-round2](../../../ci/idebt143/live-round2/archive-provenance.txt)，最终 jar 下 19 列顺序锁定，PASSWORD 与 URL 内嵌凭据/敏感属性均掩码，URL 目标与 `useSSL` 保留，DRIVER 为 `com.alibaba.druid.pool.DruidDataSource`，前端 `SELECT 1` 返回 1，临时数据源清理成功。
+- 被测 jar SHA-256：`f5bb693e4c7549c2a87819dadcf217dc96a270007bb7c9150fdf6181fd927164`；round1 历史、round2 护栏、round2 活体与 CI 摘要的 SHA-256 清单均已复核。
+- 关闭边界：仅覆盖 `showDataSources` 的展示脱敏与驱动可展示语义；不覆盖 datasource URL 合法性校验、其他日志/接口的脱敏、native 池容量或后续 P0 票据。原 DRIVER 凭据暴露子项按当前 Druid 1.2.28 行为判 STALE，不作为未修缺陷保留。
 
 ---
 

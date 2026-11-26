@@ -16,4 +16,5 @@ failures: 0
 errors: 0
 cleanup: guard stopped frontend 8066 pid 14368
 summary: summary.tsv
-conclusion: full server/example guard passed for the final jar; current HEAD CI remains a separate closure gate
+current_head_ci: implementation commit 9b960a73a4321442b2570af4c07a399afe4486a2; run 45829181264 success; 9 actual jobs succeeded; full-suite and soak-g6 skipped
+conclusion: full server/example guard and implementation-commit CI closure gate passed for the final jar
