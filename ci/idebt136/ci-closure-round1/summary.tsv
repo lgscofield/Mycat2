@@ -1,0 +1,25 @@
+run_id	45783445085
+head_sha	1eef519caedf7b5721df94c72dc253440c0f349a
+workflow	Java CI - Mycat2 Compat Matrix
+run_attempt	2
+conclusion	success
+initial_conclusion	failure
+rerun_failed_jobs	old-connector;compat (mariadb:10.11, MARIADB_10_11, false)
+rerun_old_connector	success
+rerun_mariadb_10_11	success
+actual_jobs	9
+actual_success	9
+actual_failed	0
+skipped_jobs	soak-g6;full-suite
+cleanroom	success
+compat_mysql_5_7	success
+compat_mysql_8_0	success
+compat_mysql_8_4	success
+compat_mysql_9_0	success
+compat_mariadb_10_6	success
+compat_mariadb_10_11	success
+compat_mariadb_11_4	success
+old_connector	success
+run_url	https://github.com/lgscofield/Mycat2/actions/runs/45783445085
+jobs_api_url	https://api.github.com/repos/lgscofield/Mycat2/actions/runs/45783445085/jobs?per_page=100
+closure_rule	All non-skipped jobs succeeded; main-branch full-suite and soak-g6 skips are not passing evidence.

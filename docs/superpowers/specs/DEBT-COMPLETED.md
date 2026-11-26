@@ -19,6 +19,7 @@
 
 - 实现提交：`dd6e145dd10a719d7be9a78a593763fa639a905c`。
 - CI：run [`45779385914`](https://github.com/lgscofield/Mycat2/actions/runs/45779385914) `success`；9 个实际 job 全部 success（cleanroom、7 档 compat、old-connector），`full-suite` 与 `soak-g6` 按 main 分支规则 skipped，skipped 不计作通过证据。[逐 job 摘要](../../../ci/idebt136/ci-round1/summary.tsv)
+- 关闭文档 CI：提交 `1eef519caedf7b5721df94c72dc253440c0f349a` 的 run [`45783445085`](https://github.com/lgscofield/Mycat2/actions/runs/45783445085) 首轮 failure，重跑两个失败 job 后 attempt 2 `success`；old-connector 与 mariadb:10.11 均转绿，9 个实际 job 全 success。[重跑终态](../../../ci/idebt136/ci-closure-round1/summary.tsv)
 - 回归：17/17，覆盖 fallback 关闭顺序、close 幂等与 timer、idle/used/pending client/socket/handshake、迟到连接、失败握手、关闭异常隔离、raw/wrapper 指标恰好结算一次。
 - 完整护栏：[guard-round1](../../../ci/idebt136/guard-round1/archive-provenance.txt)，14 模块 BUILD SUCCESS，28:23，server 304、example 559（40 skipped），零失败/零错误。
 - 活体：[live-round2](../../../ci/idebt136/live-round2/archive-provenance.txt)，5 次 NATIVE 失败热重载全部回退 JDBC；等待 deferred close 并 GC 后 `MycatNativeDatasourcePool`/`VertxPoolConnectionImpl` 均为 0，前端 `SELECT 1` 返回 1，清理成功。
