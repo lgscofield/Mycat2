@@ -37,48 +37,49 @@ public class MycatNativeDatasourcePool extends AbstractMycatDatasourcePool {
     public MycatNativeDatasourcePool(VertxPoolConnectionImpl vertxConnectionPool, String targetName) {
         super(targetName);
         this.vertxPoolConnection = vertxConnectionPool;
+        DatabaseInstanceEntry stat = DatabaseInstanceEntry.stat(targetName);
+        vertxConnectionPool.setConnectionLifecycleListeners(connection -> {
+            stat.plusCon();
+            stat.plusQps();
+        }, connection -> stat.decCon());
     }
 
     @Override
     public Future<NewMycatConnection> getConnection() {
         return vertxPoolConnection.getConnection().map(connection -> {
-            DatabaseInstanceEntry stat = DatabaseInstanceEntry.stat(targetName);
-            stat.plusCon();
-            stat.plusQps();
-            return new RemoveAbandonedTimeoutConnectionImpl(new VertxMycatConnectionPool(targetName,connection, vertxPoolConnection){
-                long start;
+            try {
+                return new RemoveAbandonedTimeoutConnectionImpl(new VertxMycatConnectionPool(targetName, connection, vertxPoolConnection) {
+                    long start;
 
-                @Override
-                public void onSend() {
-                    start = System.currentTimeMillis();
-                    onActiveTimestamp(start);
-                }
+                    @Override
+                    public void onSend() {
+                        start = System.currentTimeMillis();
+                        onActiveTimestamp(start);
+                    }
 
-                @Override
-                public void onRev() {
-                    long end = System.currentTimeMillis();
-                    onActiveTimestamp(end);
-                    InstanceMonitor.plusPrt(end - start);
-                }
+                    @Override
+                    public void onRev() {
+                        long end = System.currentTimeMillis();
+                        onActiveTimestamp(end);
+                        InstanceMonitor.plusPrt(end - start);
+                    }
 
-                @Override
-                public Future<Void> close() {
-                    stat.decCon();
-                    return super.close();
-                }
+                    @Override
+                    public Observable<VectorSchemaRoot> prepareQuery(String sql, List<Object> params, BufferAllocator allocator) {
+                        // MYCAT CHANGE (I-DEBT-131)：回退腿抽为静态纯组合（借出的 jdbc 连接生命周期集中管理）
+                        return prepareQueryFallback(new JdbcDatasourcePoolImpl(targetName).getConnection(), sql, params, allocator);
+                    }
 
-                @Override
-                public Observable<VectorSchemaRoot> prepareQuery(String sql, List<Object> params, BufferAllocator allocator) {
-                    // MYCAT CHANGE (I-DEBT-131)：回退腿抽为静态纯组合（借出的 jdbc 连接生命周期集中管理）
-                    return prepareQueryFallback(new JdbcDatasourcePoolImpl(targetName).getConnection(), sql, params, allocator);
-                }
-
-                @Override
-                public Future<List<Object>> call(String sql) {
-                    // MYCAT CHANGE (I-DEBT-131)：回退腿抽为静态纯组合（借出的 jdbc 连接生命周期集中管理）
-                    return callFallback(new JdbcDatasourcePoolImpl(targetName).getConnection(), sql);
-                }
-            });
+                    @Override
+                    public Future<List<Object>> call(String sql) {
+                        // MYCAT CHANGE (I-DEBT-131)：回退腿抽为静态纯组合（借出的 jdbc 连接生命周期集中管理）
+                        return callFallback(new JdbcDatasourcePoolImpl(targetName).getConnection(), sql);
+                    }
+                });
+            } catch (RuntimeException | Error throwable) {
+                vertxPoolConnection.kill(connection);
+                throw throwable;
+            }
         });
     }
 

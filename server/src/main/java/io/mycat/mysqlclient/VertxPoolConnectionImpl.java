@@ -29,12 +29,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class VertxPoolConnectionImpl implements VertxConnectionPool {
@@ -42,8 +44,14 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     Config config;
     ConcurrentLinkedQueue<VertxConnection> connections = new ConcurrentLinkedQueue<>();
     ConcurrentHashMap<Long,VertxConnection> usedConnections = new ConcurrentHashMap<>();
+    private final Set<NetClient> pendingClients = ConcurrentHashMap.newKeySet();
+    private final Set<NetSocket> pendingSockets = ConcurrentHashMap.newKeySet();
+    private final Set<Promise<VertxConnection>> pendingConnections = ConcurrentHashMap.newKeySet();
+    private volatile Consumer<VertxConnection> borrowListener;
+    private volatile Consumer<VertxConnection> releaseListener;
     Vertx vertx;
-    boolean closed;
+    volatile boolean closed;
+    private final long timerId;
 
     long lastActiveTime = System.currentTimeMillis();
 
@@ -125,10 +133,16 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     public VertxPoolConnectionImpl(Config config, Vertx vertx) {
         this.config = config;
         this.vertx = vertx;
-        this.vertx.setPeriodic(config.timer, event -> {
+        this.timerId = this.vertx.setPeriodic(config.timer, event -> {
+            if (closed) {
+                return;
+            }
             long dur = System.currentTimeMillis() - lastActiveTime;
             if (dur > TimeUnit.MINUTES.toMillis(1)) {
                 synchronized (VertxPoolConnectionImpl.this) {
+                    if (closed) {
+                        return;
+                    }
                     Integer availableNumber = getAvailableNumber();
                     int minCon = config.getMinCon();
                     int distance = availableNumber - minCon;
@@ -170,21 +184,125 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     private Future<VertxConnection> innerCreateConnection() {
         return Future.future(promise -> {
             NetClient netClient = vertx.createNetClient();
-            Future<NetSocket> netSocketFuture = netClient.connect(config.getPort(), config.getHost());
-            netSocketFuture = netSocketFuture.onSuccess(netSocket -> {
+            synchronized (VertxPoolConnectionImpl.this) {
+                if (closed) {
+                    closeClient(netClient, "failed to close native client after pool close");
+                    promise.tryFail("pool has closed");
+                    return;
+                }
+                pendingClients.add(netClient);
+                pendingConnections.add(promise);
+            }
+            Future<NetSocket> netSocketFuture;
+            try {
+                netSocketFuture = netClient.connect(config.getPort(), config.getHost());
+            } catch (Throwable throwable) {
+                pendingClients.remove(netClient);
+                pendingConnections.remove(promise);
+                closeClient(netClient, "failed to close native client after connect failure");
+                promise.tryFail(throwable);
+                return;
+            }
+            netSocketFuture.onSuccess(netSocket -> {
+                synchronized (VertxPoolConnectionImpl.this) {
+                    pendingClients.remove(netClient);
+                    if (closed) {
+                        closeSocket(netSocket, "failed to close native socket after pool close");
+                        promise.tryFail("pool has closed");
+                        return;
+                    }
+                    pendingSockets.add(netSocket);
+                }
                 netSocket.exceptionHandler(event -> {
                     logger.error("", event);
                     promise.tryFail(event);
                 });
                 ConnectHandler connectHandler = new ConnectHandler(netSocket, config, VertxPoolConnectionImpl.this);
                 Future<VertxConnection> vertxConnectionFuture = connectHandler.handleInitialHandshake();
-                vertxConnectionFuture.onSuccess(vertxConnection -> promise.tryComplete(vertxConnection));
-                vertxConnectionFuture.onFailure(event -> promise.tryFail(event));
+                vertxConnectionFuture.onComplete(event -> {
+                    synchronized (VertxPoolConnectionImpl.this) {
+                        pendingSockets.remove(netSocket);
+                        pendingConnections.remove(promise);
+                    }
+                    if (event.succeeded()) {
+                        VertxConnection connection = event.result();
+                        if (closed) {
+                            closeConnection(connection, "failed to close late native connection");
+                            promise.tryFail("pool has closed");
+                        } else {
+                            promise.tryComplete(connection);
+                        }
+                    } else {
+                        closeSocket(netSocket, "failed to close native socket after handshake failure");
+                        promise.tryFail(event.cause());
+                    }
+                });
             });
-            netSocketFuture.onFailure(event -> promise.tryFail(event));
+            netSocketFuture.onFailure(event -> {
+                pendingClients.remove(netClient);
+                pendingConnections.remove(promise);
+                promise.tryFail(event);
+            });
         });
     }
 
+    private void closeClient(NetClient client, String message) {
+        try {
+            observeCloseFailure(client.close(), message);
+        } catch (Throwable throwable) {
+            logger.warn(message, throwable);
+        }
+    }
+
+    private void closeSocket(NetSocket socket, String message) {
+        try {
+            observeCloseFailure(socket.close(), message);
+        } catch (Throwable throwable) {
+            logger.warn(message, throwable);
+        }
+    }
+
+    private void closeConnection(VertxConnection connection, String message) {
+        try {
+            observeCloseFailure(connection.close(), message);
+        } catch (Throwable throwable) {
+            logger.warn(message, throwable);
+        }
+    }
+
+    private void observeCloseFailure(Future<Void> closeFuture, String message) {
+        if (closeFuture != null) {
+            closeFuture.onFailure(throwable -> logger.warn(message, throwable));
+        }
+    }
+
+
+    void setConnectionLifecycleListeners(Consumer<VertxConnection> borrowListener,
+                                         Consumer<VertxConnection> releaseListener) {
+        this.borrowListener = borrowListener;
+        this.releaseListener = releaseListener;
+    }
+
+    private void notifyBorrowed(VertxConnection connection) {
+        Consumer<VertxConnection> listener = borrowListener;
+        if (listener != null) {
+            listener.accept(connection);
+        }
+    }
+
+    private void releaseUsedConnection(VertxConnection connection) {
+        if (!usedConnections.remove(connection.getConnectionId(), connection)) {
+            return;
+        }
+        Consumer<VertxConnection> listener = releaseListener;
+        if (listener != null) {
+            try {
+                listener.accept(connection);
+            } catch (Throwable throwable) {
+                logger.warn("failed to release native connection metric", throwable);
+            }
+        }
+    }
 
     @Override
     public Future<VertxConnection> getConnection() {
@@ -231,17 +349,73 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
                 promise.tryComplete(connection);
                 return;
             }
-        }).map(connection -> {
-            usedConnections.put(connection.getConnectionId(),connection);
-            return connection;
+        }).compose(connection -> {
+            synchronized (VertxPoolConnectionImpl.this) {
+                if (closed) {
+                    kill(connection);
+                    return Future.failedFuture("pool has closed");
+                }
+                usedConnections.put(connection.getConnectionId(), connection);
+                try {
+                    notifyBorrowed(connection);
+                } catch (Throwable throwable) {
+                    kill(connection);
+                    return Future.failedFuture(throwable);
+                }
+                return Future.succeededFuture(connection);
+            }
         });
     }
 
     @Override
-    public synchronized void close() {
-        closed = true;
-        for (VertxConnection connection : connections) {
-            connection.close();
+    public void close() {
+        List<Promise<VertxConnection>> pendingPromises;
+        List<NetSocket> sockets;
+        List<NetClient> clients;
+        List<VertxConnection> idleConnections;
+        List<VertxConnection> borrowedConnections;
+        synchronized (this) {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            try {
+                vertx.cancelTimer(timerId);
+            } catch (Throwable throwable) {
+                logger.warn("failed to cancel native pool timer", throwable);
+            }
+            pendingPromises = new ArrayList<>(pendingConnections);
+            sockets = new ArrayList<>(pendingSockets);
+            clients = new ArrayList<>(pendingClients);
+            idleConnections = new ArrayList<>(connections);
+            borrowedConnections = new ArrayList<>(usedConnections.values());
+            pendingConnections.clear();
+            pendingSockets.clear();
+            pendingClients.clear();
+            connections.clear();
+        }
+        for (Promise<VertxConnection> promise : pendingPromises) {
+            try {
+                promise.tryFail("pool has closed");
+            } catch (Throwable throwable) {
+                logger.warn("failed to fail pending native borrow during pool close", throwable);
+            }
+        }
+        for (NetSocket socket : sockets) {
+            closeSocket(socket, "failed to close pending native socket");
+        }
+        for (NetClient client : clients) {
+            closeClient(client, "failed to close pending native client");
+        }
+        for (VertxConnection connection : idleConnections) {
+            closeConnection(connection, "failed to close idle native connection");
+        }
+        for (VertxConnection connection : borrowedConnections) {
+            try {
+                closeConnection(connection, "failed to close used native connection");
+            } finally {
+                releaseUsedConnection(connection);
+            }
         }
         usedConnections.clear();
     }
@@ -249,9 +423,13 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     @Override
     public void recycle(VertxConnection connection) {
         synchronized (this) {
+            if (closed) {
+                kill(connection);
+                return;
+            }
             if(connection.checkVaildForRecycle()){
                 connections.offer(connection);
-                usedConnections.remove(connection.getConnectionId());
+                releaseUsedConnection(connection);
             }else {
                 logger.info("because connectionId:{} maybe have transcation,so kill it in recycling connection",connection.getConnectionId());
                 kill(connection);
@@ -262,9 +440,9 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     @Override
     public void kill(VertxConnection connection) {
         synchronized (this) {
-            usedConnections.remove(connection.getConnectionId());
+            releaseUsedConnection(connection);
             connections.remove(connection);
-            connection.close();
+            closeConnection(connection, "failed to close killed native connection");
         }
     }
 

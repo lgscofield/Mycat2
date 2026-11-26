@@ -81,6 +81,12 @@ public class MycatMySQLManagerImpl extends AbstractMySQLManagerImpl {
                             .recover(throwable -> {
                                 LOGGER.warn("native datasource pool failed for {}, falling back to JDBC pool: {}",
                                         name, throwable.toString());
+                                try {
+                                    nativeDatasourcePool.close();
+                                } catch (Throwable closeFailure) {
+                                    LOGGER.warn("failed to close native datasource pool {} after probe failure: {}",
+                                            name, closeFailure.toString());
+                                }
                                 return Future.succeededFuture(createJdbcDatasourcePool(name));
                             }));
                     break;

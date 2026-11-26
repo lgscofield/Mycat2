@@ -1,0 +1,2301 @@
+path:D:\Workspaces\IdeaProjects\Mycat2\server\target\.mycat-home
+2026-11-26 09:40:34,744[INFO]io.mycat.config.PersonaOverride.apply:42persona overridden by -Dmycat.persona to MYSQL_5_7
+2026-11-26 09:40:34,767[WARN]io.mycat.util.MySQLDatabaseMetadata.parse:71Incorrect parsing server version tokens
+java.lang.NumberFormatException: For input string: ""
+	at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)
+	at java.base/java.lang.Integer.parseInt(Integer.java:672)
+	at java.base/java.lang.Integer.parseInt(Integer.java:778)
+	at io.mycat.util.MySQLDatabaseMetadata.parse(MySQLDatabaseMetadata.java:66)
+	at io.mycat.config.ServerConfig.computeClientDeprecateEof(ServerConfig.java:140)
+	at io.mycat.MycatCore.<init>(MycatCore.java:122)
+	at io.mycat.MycatCore.main(MycatCore.java:264)
+2026-11-26 09:40:34,782[DEBUG]io.vertx.core.logging.LoggerFactory.?:?Using io.vertx.core.logging.SLF4JLogDelegateFactory
+2026-11-26 09:40:34,924[DEBUG]io.netty.util.internal.logging.InternalLoggerFactory.useSlf4JLoggerFactory:63Using SLF4J as the default logging framework
+2026-11-26 09:40:34,926[DEBUG]io.netty.util.internal.PlatformDependent0.explicitNoUnsafeCause0:554-Dio.netty.noUnsafe: false
+2026-11-26 09:40:34,927[DEBUG]io.netty.util.internal.PlatformDependent0.javaVersion0:1072Java version: 21
+2026-11-26 09:40:34,931[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:140sun.misc.Unsafe.theUnsafe: available
+2026-11-26 09:40:34,933[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:203sun.misc.Unsafe base methods: all available
+2026-11-26 09:40:34,934[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:235sun.misc.Unsafe.storeFence: available
+2026-11-26 09:40:34,935[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:278java.nio.Buffer.address: available
+2026-11-26 09:40:34,936[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:364direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
+2026-11-26 09:40:34,937[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:442java.nio.Bits.unaligned: available, true
+2026-11-26 09:40:34,939[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:510jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @2b552920
+2026-11-26 09:40:34,940[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:540java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+2026-11-26 09:40:34,942[DEBUG]io.netty.util.internal.PlatformDependent.unsafeUnavailabilityCause0:1196sun.misc.Unsafe: available
+2026-11-26 09:40:34,943[DEBUG]io.netty.util.internal.PlatformDependent.tmpdir0:1342-Dio.netty.tmpdir: C:\Users\ligh208\AppData\Local\Temp (java.io.tmpdir)
+2026-11-26 09:40:34,944[DEBUG]io.netty.util.internal.PlatformDependent.bitMode0:1421-Dio.netty.bitMode: 64 (sun.arch.data.model)
+2026-11-26 09:40:34,946[DEBUG]io.netty.util.internal.PlatformDependent.isWindows0:1156Platform: Windows
+2026-11-26 09:40:34,947[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:180-Dio.netty.maxDirectMemory: -1 bytes
+2026-11-26 09:40:34,948[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:187-Dio.netty.uninitializedArrayAllocationThreshold: -1
+2026-11-26 09:40:34,951[DEBUG]io.netty.util.internal.CleanerJava9.<clinit>:71java.nio.ByteBuffer.cleaner(): available
+2026-11-26 09:40:34,951[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:207-Dio.netty.noPreferDirect: false
+2026-11-26 09:40:34,974[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:129-Dio.netty.leakDetection.level: simple
+2026-11-26 09:40:34,975[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:130-Dio.netty.leakDetection.targetRecords: 4
+2026-11-26 09:40:35,015[DEBUG]io.netty.channel.MultithreadEventLoopGroup.<clinit>:44-Dio.netty.eventLoopThreads: 24
+2026-11-26 09:40:35,031[DEBUG]io.netty.util.concurrent.GlobalEventExecutor.<clinit>:54-Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+2026-11-26 09:40:35,042[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:100-Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+2026-11-26 09:40:35,043[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:101-Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+2026-11-26 09:40:35,050[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:110-Dio.netty.noKeySetOptimization: false
+2026-11-26 09:40:35,051[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:111-Dio.netty.selectorAutoRebuildThreshold: 512
+2026-11-26 09:40:35,057[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:1030org.jctools-core.MpscChunkedArrayQueue: available
+2026-11-26 09:40:35,255[DEBUG]io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:98Default DNS servers: [/10.35.5.11:53, /114.114.114.114:53] (sun.net.dns.ResolverConfiguration)
+2026-11-26 09:40:35,273[DEBUG]io.netty.util.NetUtil.<clinit>:149-Djava.net.preferIPv4Stack: false
+2026-11-26 09:40:35,274[DEBUG]io.netty.util.NetUtil.<clinit>:150-Djava.net.preferIPv6Addresses: false
+2026-11-26 09:40:35,279[DEBUG]io.netty.util.NetUtilInitializations.determineLoopback:145Loopback interface: loopback_0 (Software Loopback Interface 1, 0:0:0:0:0:0:0:1)
+2026-11-26 09:40:35,281[DEBUG]io.netty.util.NetUtil.run:216Failed to get SOMAXCONN from sysctl and file \proc\sys\net\core\somaxconn. Default: 200
+2026-11-26 09:40:35,282[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:149Default ResolvedAddressTypes: IPV4_ONLY
+2026-11-26 09:40:35,282[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:150Localhost address: localhost/127.0.0.1
+2026-11-26 09:40:35,298[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:159Windows hostname: DESKTOP-PBM6UFB
+2026-11-26 09:40:35,299[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:172Default search domains: []
+2026-11-26 09:40:35,304[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:181Default UnixResolverOptions{ndots=1, timeout=5, attempts=16}
+2026-11-26 09:40:35,315[DEBUG]io.netty.resolver.DefaultHostsFileEntriesResolver.<clinit>:53-Dio.netty.hostsFileRefreshInterval: 0
+2026-11-26 09:40:35,344[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:216I-PR-1: workerPool.corePoolSize=12 被忽略——虚拟线程车道无 core 线程，每任务一条 VT，用完即终止
+2026-11-26 09:40:35,345[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:218I-PR-1: workerPool.keepAliveTime=1MINUTES 被忽略——虚拟线程车道无 idle 回收，VT 不缓存不复用
+2026-11-26 09:40:35,346[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:220I-PR-1: workerPool.maxPendingLimit=65535 被忽略——虚拟线程车道无队列；真正界住并发的是 workerPool.maxPoolSize=1024（准入许可数）与 workerPool.admitTimeoutMillis=200（准入等待上限，超时即 MYCAT-3007）
+2026-11-26 09:40:35,347[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:223I-PR-1: timeWorkerPool 整段被忽略（corePoolSize=0, maxPoolSize=2）——无队列、无 core、无 idle 回收，该配置当前无消费点
+2026-11-26 09:40:35,441[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:161-Dio.netty.allocator.numHeapArenas: 24
+2026-11-26 09:40:35,442[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:162-Dio.netty.allocator.numDirectArenas: 24
+2026-11-26 09:40:35,443[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:164-Dio.netty.allocator.pageSize: 8192
+2026-11-26 09:40:35,444[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:169-Dio.netty.allocator.maxOrder: 9
+2026-11-26 09:40:35,445[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:173-Dio.netty.allocator.chunkSize: 4194304
+2026-11-26 09:40:35,446[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:174-Dio.netty.allocator.smallCacheSize: 256
+2026-11-26 09:40:35,446[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:175-Dio.netty.allocator.normalCacheSize: 64
+2026-11-26 09:40:35,447[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:176-Dio.netty.allocator.maxCachedBufferCapacity: 32768
+2026-11-26 09:40:35,447[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:177-Dio.netty.allocator.cacheTrimInterval: 8192
+2026-11-26 09:40:35,448[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:178-Dio.netty.allocator.cacheTrimIntervalMillis: 0
+2026-11-26 09:40:35,449[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:179-Dio.netty.allocator.useCacheForAllThreads: false
+2026-11-26 09:40:35,449[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:180-Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+2026-11-26 09:40:35,450[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:182-Dio.netty.allocator.disableCacheFinalizersForFastThreadLocalThreads: false
+2026-11-26 09:40:35,485[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:84-Dio.netty.processId: 37248 (auto-detected)
+2026-11-26 09:40:35,490[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:106-Dio.netty.machineId: 90:2e:16:ff:fe:e0:98:1c (auto-detected)
+2026-11-26 09:40:35,511[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:89-Dio.netty.allocator.type: pooled
+2026-11-26 09:40:35,512[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:101-Dio.netty.threadLocalDirectBufferSize: 0
+2026-11-26 09:40:35,513[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:104-Dio.netty.maxThreadLocalCharBufferSize: 16384
+2026-11-26 09:40:35,520[DEBUG]io.netty.bootstrap.ChannelInitializerExtensions.getExtensions:54-Dio.netty.bootstrap.extensions: null
+2026-11-26 09:40:36,000[INFO]io.mycat.config.MycatRouterConfig.fixPrototypeTargetName:61containsPrototypeTargetName = true
+2026-11-26 09:40:36,002[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ ],
+  "datasources" : [ ],
+  "users" : [ ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:40:36,003[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:40:36,034[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:40:38,902[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-26 09:40:39,634[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.getConnection:159get connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@27da994b ,used count:1 
+2026-11-26 09:40:39,717[DEBUG]io.mycat.datasource.jdbc.datasource.DefaultConnection.close:111close com.alibaba.druid.pool.DruidStatementConnection@5b0902b4
+2026-11-26 09:40:39,719[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:194close :io.mycat.datasource.jdbc.datasource.DefaultConnection@27da994b com.alibaba.druid.pool.DruidStatementConnection@5b0902b4
+2026-11-26 09:40:39,720[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:214rec connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@27da994b ,used count:0 
+2026-11-26 09:40:39,742[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.getConnection:159get connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@4c7d7430 ,used count:1 
+2026-11-26 09:40:39,802[DEBUG]io.mycat.datasource.jdbc.datasource.DefaultConnection.close:111close com.alibaba.druid.pool.DruidStatementConnection@5b0902b4
+2026-11-26 09:40:39,803[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:194close :io.mycat.datasource.jdbc.datasource.DefaultConnection@4c7d7430 com.alibaba.druid.pool.DruidStatementConnection@5b0902b4
+2026-11-26 09:40:39,803[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:214rec connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@4c7d7430 ,used count:0 
+2026-11-26 09:40:39,883[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:40:39,884[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:40:39,886[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:40:39,920[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 08094c27-9fd2-49d8-86fa-24780338c147 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 04a58751-b1fe-4557-81b4-ea6369fb5c59 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server b5968628-7790-4d64-9de6-bf9911570be6 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 49555c1f-2f1d-4eea-ac5d-e9e06795bb9c started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 3bf29ced-8d3b-40ea-b53b-b24a09f331c5 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 7738f85c-d263-4ea7-9beb-2855478684be started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server f5989be5-4d31-46e5-a87c-0acbbb0acff8 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server c6432177-9ed2-4558-9c85-30b579eb6ac2 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 026af634-9419-4430-b83e-24a3842e4e9a started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 504bc971-56bc-4cf3-83f1-eb2125cfbfd6 started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server e763220b-fd80-4508-9649-9b77c319f42d started up.
+2026-11-26 09:40:39,922[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:172Mycat Vertx server 5b3c5b76-ce4c-4418-9dc2-7ec1f5e9086d started up.
+2026-11-26 09:40:41,858[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:63-Dio.netty.buffer.checkAccessible: true
+2026-11-26 09:40:41,859[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:64-Dio.netty.buffer.checkBounds: true
+2026-11-26 09:40:41,861[DEBUG]io.netty.util.ResourceLeakDetectorFactory.newResourceLeakDetector:196Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@759ac297
+2026-11-26 09:40:41,881[DEBUG]io.netty.util.Recycler.<clinit>:96-Dio.netty.recycler.maxCapacityPerThread: 4096
+2026-11-26 09:40:41,882[DEBUG]io.netty.util.Recycler.<clinit>:97-Dio.netty.recycler.ratio: 8
+2026-11-26 09:40:41,883[DEBUG]io.netty.util.Recycler.<clinit>:98-Dio.netty.recycler.chunkSize: 32
+2026-11-26 09:40:41,884[DEBUG]io.netty.util.Recycler.<clinit>:99-Dio.netty.recycler.blocking: false
+2026-11-26 09:40:41,884[DEBUG]io.netty.util.Recycler.<clinit>:100-Dio.netty.recycler.batchFastThreadLocalOnly: true
+2026-11-26 09:40:41,902[ERROR]io.vertx.core.net.impl.ConnectionBase.?:?Connection reset
+java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)
+	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)
+	at io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:151)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:40:57,330[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:40:58,662[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalSort(fetch=[?0])
+  LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:58,931[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#0: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#6:LogicalProject]
+2026-11-26 09:40:58,933[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:58,936[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1               3,667
+* Total                                                                        1               3,667
+
+2026-11-26 09:40:58,936[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#8:LogicalSort.NONE.[](input=HepRelVertex#7,fetch=?0)
+2026-11-26 09:40:58,939[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#6:LogicalProject.NONE.[](input=HepRelVertex#5,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-26 09:40:58,941[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:58,945[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:58,946[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:58,947[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#13:LogicalSort.NONE.[](input=HepRelVertex#12,fetch=?0)
+2026-11-26 09:40:58,948[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#11:LogicalProject.NONE.[](input=HepRelVertex#10,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-26 09:40:58,949[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,012[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,013[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,014[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#18:LogicalSort.NONE.[](input=HepRelVertex#17,fetch=?0)
+2026-11-26 09:40:59,015[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#16:LogicalProject.NONE.[](input=HepRelVertex#15,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-26 09:40:59,016[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,044[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#1: Apply rule [SortProjectTransposeRule] to [rel#23:LogicalSort,rel#21:LogicalProject]
+2026-11-26 09:40:59,071[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#1: Full plan for rule input [rel#23:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,072[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#1: Full plan for rule input [rel#21:LogicalProject]: 
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,073[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#1: Rule [SortProjectTransposeRule] produced [rel#26:LogicalProject]
+2026-11-26 09:40:59,074[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#1: Full plan for [rel#26:LogicalProject]:
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalSort(fetch=[?0])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,079[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,080[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+SortProjectTransposeRule                                                       1               6,035
+* Total                                                                        1               6,035
+
+2026-11-26 09:40:59,081[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#28:LogicalProject.NONE.[](input=HepRelVertex#27,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-26 09:40:59,083[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#25:LogicalSort.NONE.[](input=HepRelVertex#20,fetch=?0)
+2026-11-26 09:40:59,083[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,107[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,136[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,138[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#0]
+2026-11-26 09:40:59,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#4: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#0:LogicalValues]
+2026-11-26 09:40:59,144[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#37 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,145[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#4: Full plan for rule input [rel#0:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,146[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#4: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#37:MycatValues]
+2026-11-26 09:40:59,146[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#4: Full plan for [rel#37:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,182[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#4 generated 1 successors: [rel#37:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-26 09:40:59,183[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,185[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatSortRule(in:NONE,out:MYCAT2)] rels [#31]
+2026-11-26 09:40:59,186[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#6: Apply rule [MycatSortRule(in:NONE,out:MYCAT2)] to [rel#31:LogicalSort]
+2026-11-26 09:40:59,190[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#39 via MycatSortRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,191[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#6: Full plan for rule input [rel#31:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,192[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#6: Rule [MycatSortRule(in:NONE,out:MYCAT2)] produced [rel#39:MycatMemSort]
+2026-11-26 09:40:59,193[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#6: Full plan for [rel#39:MycatMemSort]:
+MycatMemSort(fetch=[?0])
+  MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,194[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#6 generated 1 successors: [rel#39:MycatMemSort.MYCAT2.[](input=RelSubset#38,fetch=?0)]
+2026-11-26 09:40:59,195[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,196[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatTopNRule(in:NONE,out:MYCAT2)] rels [#31]
+2026-11-26 09:40:59,197[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#8: Apply rule [MycatTopNRule(in:NONE,out:MYCAT2)] to [rel#31:LogicalSort]
+2026-11-26 09:40:59,199[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#41 via MycatTopNRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,201[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#8: Full plan for rule input [rel#31:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,202[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#8: Rule [MycatTopNRule(in:NONE,out:MYCAT2)] produced [rel#41:MycatTopN]
+2026-11-26 09:40:59,203[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#8: Full plan for [rel#41:MycatTopN]:
+MycatTopN(fetch=[?0])
+  MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,205[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#8 generated 1 successors: [rel#41:MycatTopN.MYCAT2.[](input=RelSubset#38,fetch=?0)]
+2026-11-26 09:40:59,206[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,207[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#33]
+2026-11-26 09:40:59,208[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#10: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#33:LogicalProject]
+2026-11-26 09:40:59,234[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#42 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,235[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#10: Full plan for rule input [rel#33:LogicalProject]: 
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalSort(subset=[rel#32:RelSubset#1.NONE.[]], fetch=[?0])
+    LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,236[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#10: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#42:MycatProject]
+2026-11-26 09:40:59,238[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#10: Full plan for [rel#42:MycatProject]:
+MycatProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  MycatMemSort(subset=[rel#40:RelSubset#1.MYCAT2.[]], fetch=[?0])
+    MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,239[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#10 generated 1 successors: [rel#42:MycatProject.MYCAT2.[](input=RelSubset#40,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])]
+2026-11-26 09:40:59,241[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {3.0 rows, 18.0 cpu, 0.0 io}
+2026-11-26 09:40:59,244[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-26 09:40:59,245[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1              43,701
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1              32,553
+MycatSortRule(in:NONE,out:MYCAT2)                                              1               9,622
+MycatTopNRule(in:NONE,out:MYCAT2)                                              1               8,704
+* Total                                                                        4              94,580
+
+2026-11-26 09:40:59,264[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')]): rowcount = 1.0, cumulative cost = {3.0 rows, 18.0 cpu, 0.0 io}, id = 44
+  MycatMemSort(fetch=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 17.0 cpu, 0.0 io}, id = 43
+    MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 37
+
+2026-11-26 09:40:59,269[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#44:MycatProject.MYCAT2.[](input=MycatMemSort#43,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  direct
+    rel#42:MycatProject.MYCAT2.[](input=RelSubset#40,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+      call#10 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#33:LogicalProject.NONE.[](input=RelSubset#32,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+          no parent
+rel#43:MycatMemSort.MYCAT2.[](input=MycatValues#37,fetch=?0)
+  direct
+    rel#39:MycatMemSort.MYCAT2.[](input=RelSubset#38,fetch=?0)
+      call#6 rule [MycatSortRule(in:NONE,out:MYCAT2)]
+        rel#31:LogicalSort.NONE.[](input=RelSubset#30,fetch=?0)
+          no parent
+rel#37:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#4 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-26 09:40:59,396[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-26 09:40:59,397[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final java.util.Comparator comparator = new java.util.Comparator(){
+    public int compare(Long v0, Long v1) {
+      int c;
+      return 0;
+    }
+
+    public int compare(Object o0, Object o1) {
+      return this.compare((Long) o0, (Long) o1);
+    }
+
+  };
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.EnumerableDefaults.orderBy(org.apache.calcite.util.RxBuiltInMethodImpl.toEnumerable(org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)})), org.apache.calcite.linq4j.function.Functions.identitySelector(), comparator, 0, (Integer) root.get("?0"));
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return root.getSessionVariable("version_comment") == null ? null : root.getSessionVariable("version_comment").toString();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-26 09:40:59,410[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final java.util.Comparator comparator = new java.util.Comparator(){
+    public int compare(Long v0, Long v1) {
+      int c;
+      return 0;
+    }
+
+    public int compare(Object o0, Object o1) {
+      return this.compare((Long) o0, (Long) o1);
+    }
+
+  };
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.EnumerableDefaults.orderBy(org.apache.calcite.util.RxBuiltInMethodImpl.toEnumerable(org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)})), org.apache.calcite.linq4j.function.Functions.identitySelector(), comparator, 0, (Integer) root.get("?0"));
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return root.getSessionVariable("version_comment") == null ? null : root.getSessionVariable("version_comment").toString();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-26 09:40:59,568[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select version()
+2026-11-26 09:40:59,581[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(version()=[VERSION()])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,583[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#11: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#50:LogicalProject]
+2026-11-26 09:40:59,584[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,585[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 884
+* Total                                                                        1                 884
+
+2026-11-26 09:40:59,585[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#50:LogicalProject.NONE.[](input=HepRelVertex#49,exprs=[VERSION()])
+2026-11-26 09:40:59,586[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,587[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,588[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,589[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#53:LogicalProject.NONE.[](input=HepRelVertex#52,exprs=[VERSION()])
+2026-11-26 09:40:59,590[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,592[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,593[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,594[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#56:LogicalProject.NONE.[](input=HepRelVertex#55,exprs=[VERSION()])
+2026-11-26 09:40:59,595[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,597[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:40:59,598[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,598[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#59:LogicalProject.NONE.[](input=HepRelVertex#58,exprs=[VERSION()])
+2026-11-26 09:40:59,599[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:40:59,601[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:40:59,620[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,621[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#46]
+2026-11-26 09:40:59,622[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#14: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#46:LogicalValues]
+2026-11-26 09:40:59,624[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#66 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,625[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#14: Full plan for rule input [rel#46:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,626[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#14: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#66:MycatValues]
+2026-11-26 09:40:59,627[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#14: Full plan for [rel#66:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,645[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#14 generated 1 successors: [rel#66:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-26 09:40:59,647[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:40:59,648[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#62]
+2026-11-26 09:40:59,649[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#16: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#62:LogicalProject]
+2026-11-26 09:40:59,650[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#68 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-26 09:40:59,651[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#16: Full plan for rule input [rel#62:LogicalProject]: 
+LogicalProject(version()=[VERSION()])
+  LogicalValues(subset=[rel#61:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,652[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#16: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#68:MycatProject]
+2026-11-26 09:40:59,653[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#16: Full plan for [rel#68:MycatProject]:
+MycatProject(version()=[VERSION()])
+  MycatValues(subset=[rel#67:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:40:59,654[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#16 generated 1 successors: [rel#68:MycatProject.MYCAT2.[](input=RelSubset#67,exprs=[VERSION()])]
+2026-11-26 09:40:59,655[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-26 09:40:59,656[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-26 09:40:59,657[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1              23,799
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               6,205
+* Total                                                                        2              30,004
+
+2026-11-26 09:40:59,672[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(version()=[VERSION()]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 69
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 66
+
+2026-11-26 09:40:59,674[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#69:MycatProject.MYCAT2.[](input=MycatValues#66,exprs=[VERSION()])
+  direct
+    rel#68:MycatProject.MYCAT2.[](input=RelSubset#67,exprs=[VERSION()])
+      call#16 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#62:LogicalProject.NONE.[](input=RelSubset#61,exprs=[VERSION()])
+          no parent
+rel#66:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#14 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-26 09:40:59,679[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-26 09:40:59,680[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunction.version();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-26 09:40:59,681[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunction.version();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-26 09:40:59,723[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@2860652c is closing
+2026-11-26 09:41:09,911[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-1} closing ...
+2026-11-26 09:41:09,923[INFO]com.alibaba.druid.pool.DruidDataSource.close:2156{dataSource-1} closed
+2026-11-26 09:41:09,924[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:41:38,698[DEBUG]oshi.util.platform.windows.PerfCounterQuery.localizeUsingPerfIndex:192Localized Processor Information to Processor Information
+2026-11-26 09:46:23,314[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:46:23,326[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:createDataSource{"name":"debt136NativeReload","user":"root","password":"123456","type":"NATIVE","dbType":"mysql","url":"jdbc:mysql://127.0.0.1:13301/mysql","maxCon":1,"minCon":0,"maxRetryCount":0,"idleTimeout":120000} */
+2026-11-26 09:46:23,344[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:23,345[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:46:23,348[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13301/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:23,409[ERROR]io.mycat.MycatCore.lambda$getConnection$17:312try get connection fail
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13301
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:784)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:46:23,411[WARN]io.mycat.commands.MycatMySQLManagerImpl.lambda$new$1:82native datasource pool failed for debt136NativeReload, falling back to JDBC pool: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13301
+2026-11-26 09:46:23,436[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@41d42e83 is closing
+2026-11-26 09:46:24,061[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:46:24,076[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:createDataSource{"name":"debt136NativeReload","user":"root","password":"123456","type":"NATIVE","dbType":"mysql","url":"jdbc:mysql://127.0.0.1:13302/mysql","maxCon":1,"minCon":0,"maxRetryCount":0,"idleTimeout":120000} */
+2026-11-26 09:46:24,092[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13301/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:24,093[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:46:24,105[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13302/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:24,114[ERROR]io.mycat.MycatCore.lambda$getConnection$17:312try get connection fail
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13302
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:784)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:46:24,118[WARN]io.mycat.commands.MycatMySQLManagerImpl.lambda$new$1:82native datasource pool failed for debt136NativeReload, falling back to JDBC pool: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13302
+2026-11-26 09:46:24,160[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@43057266 is closing
+2026-11-26 09:46:24,745[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:46:24,758[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:createDataSource{"name":"debt136NativeReload","user":"root","password":"123456","type":"NATIVE","dbType":"mysql","url":"jdbc:mysql://127.0.0.1:13303/mysql","maxCon":1,"minCon":0,"maxRetryCount":0,"idleTimeout":120000} */
+2026-11-26 09:46:24,766[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13302/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:24,768[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:46:24,770[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13303/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:24,779[ERROR]io.mycat.MycatCore.lambda$getConnection$17:312try get connection fail
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13303
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:784)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:46:24,780[WARN]io.mycat.commands.MycatMySQLManagerImpl.lambda$new$1:82native datasource pool failed for debt136NativeReload, falling back to JDBC pool: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13303
+2026-11-26 09:46:24,801[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@663bc616 is closing
+2026-11-26 09:46:25,360[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:46:25,370[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:createDataSource{"name":"debt136NativeReload","user":"root","password":"123456","type":"NATIVE","dbType":"mysql","url":"jdbc:mysql://127.0.0.1:13304/mysql","maxCon":1,"minCon":0,"maxRetryCount":0,"idleTimeout":120000} */
+2026-11-26 09:46:25,379[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13303/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:25,379[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:46:25,381[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13304/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:25,389[ERROR]io.mycat.MycatCore.lambda$getConnection$17:312try get connection fail
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13304
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:784)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:46:25,390[WARN]io.mycat.commands.MycatMySQLManagerImpl.lambda$new$1:82native datasource pool failed for debt136NativeReload, falling back to JDBC pool: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13304
+2026-11-26 09:46:25,408[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@15ba661 is closing
+2026-11-26 09:46:25,876[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:46:25,884[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:createDataSource{"name":"debt136NativeReload","user":"root","password":"123456","type":"NATIVE","dbType":"mysql","url":"jdbc:mysql://127.0.0.1:13305/mysql","maxCon":1,"minCon":0,"maxRetryCount":0,"idleTimeout":120000} */
+2026-11-26 09:46:25,890[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13304/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:25,891[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:46:25,893[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13305/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:46:25,900[ERROR]io.mycat.MycatCore.lambda$getConnection$17:312try get connection fail
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13305
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)
+	at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)
+	at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:784)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-26 09:46:25,901[WARN]io.mycat.commands.MycatMySQLManagerImpl.lambda$new$1:82native datasource pool failed for debt136NativeReload, falling back to JDBC pool: io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: getsockopt: /127.0.0.1:13305
+2026-11-26 09:46:25,919[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@45c04b21 is closing
+2026-11-26 09:46:54,124[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:54,125[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:46:54,126[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:54,127[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:debt136NativeReload closed
+2026-11-26 09:46:54,789[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:54,790[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:46:54,791[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:54,791[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:debt136NativeReload closed
+2026-11-26 09:46:55,405[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:55,407[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:46:55,407[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:55,407[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:debt136NativeReload closed
+2026-11-26 09:46:55,905[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:55,905[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:46:55,907[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:46:55,909[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:debt136NativeReload closed
+2026-11-26 09:47:02,928[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:47:02,938[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184SELECT 1
+2026-11-26 09:47:02,945[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(?=[?0])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:47:02,951[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#17: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#76:LogicalProject]
+2026-11-26 09:47:02,951[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:47:02,953[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1               1,372
+* Total                                                                        1               1,372
+
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#76:LogicalProject.NONE.[](input=HepRelVertex#75,exprs=[?0])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#79:LogicalProject.NONE.[](input=HepRelVertex#78,exprs=[?0])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#82:LogicalProject.NONE.[](input=HepRelVertex#81,exprs=[?0])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:47:02,955[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#85:LogicalProject.NONE.[](input=HepRelVertex#84,exprs=[?0])
+2026-11-26 09:47:02,970[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-26 09:47:02,972[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-26 09:47:02,975[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:47:02,975[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#71]
+2026-11-26 09:47:02,975[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#20: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#71:LogicalValues]
+2026-11-26 09:47:02,975[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#92 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#20: Full plan for rule input [rel#71:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#20: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#92:MycatValues]
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#20: Full plan for [rel#92:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#20 generated 1 successors: [rel#92:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#88]
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#22: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#88:LogicalProject]
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#94 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-26 09:47:02,978[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#22: Full plan for rule input [rel#88:LogicalProject]: 
+LogicalProject(1=[?0])
+  LogicalValues(subset=[rel#87:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:47:02,985[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#22: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#94:MycatProject]
+2026-11-26 09:47:02,987[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#22: Full plan for [rel#94:MycatProject]:
+MycatProject(1=[?0])
+  MycatValues(subset=[rel#93:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-26 09:47:02,988[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#22 generated 1 successors: [rel#94:MycatProject.MYCAT2.[](input=RelSubset#93,exprs=[?0])]
+2026-11-26 09:47:02,988[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-26 09:47:02,990[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-26 09:47:02,990[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               6,451
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               5,901
+* Total                                                                        2              12,352
+
+2026-11-26 09:47:02,992[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(1=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 95
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 92
+
+2026-11-26 09:47:02,992[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#95:MycatProject.MYCAT2.[](input=MycatValues#92,exprs=[?0])
+  direct
+    rel#94:MycatProject.MYCAT2.[](input=RelSubset#93,exprs=[?0])
+      call#22 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#88:LogicalProject.NONE.[](input=RelSubset#87,exprs=[?0])
+          no parent
+rel#92:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#20 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-26 09:47:02,992[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-26 09:47:02,992[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-26 09:47:02,992[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-26 09:47:03,029[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@1db093ad is closing
+2026-11-26 09:47:03,513[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184select @@version_comment limit 1
+2026-11-26 09:47:03,523[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:184/*+ mycat:dropDataSource{"name":"debt136NativeReload"} */
+2026-11-26 09:47:03,529[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  }, {
+    "name" : "debt136NativeReload",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1,
+    "minCon" : 0,
+    "maxRetryCount" : 0,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://127.0.0.1:13305/mysql?useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 120000,
+    "jdbcDriverClass" : null,
+    "type" : "NATIVE",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:47:03,531[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-26 09:47:03,532[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-26 09:47:03,544[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:258session:io.mycat.mycatmysql.MycatVertxMysqlSession@6f75e972 is closing
+2026-11-26 09:47:33,543[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:47:33,547[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:prototypeDs closed
+2026-11-26 09:47:33,547[INFO]com.alibaba.druid.pool.DruidDataSource.close:2083{dataSource-0} closing ...
+2026-11-26 09:47:33,547[INFO]io.mycat.datasource.jdbc.datasource.JdbcDataSource.lambda$close$0:150JdbcDataSource:debt136NativeReload closed

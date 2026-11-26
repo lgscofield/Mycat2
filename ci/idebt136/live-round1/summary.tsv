@@ -1,0 +1,13 @@
+phase	MycatNativeDatasourcePool	VertxPoolConnectionImpl	MycatDatasourcePool
+baseline`t0`t0`t0
+reload_1	create_hint_ok	port=13301
+reload_2	create_hint_ok	port=13302
+reload_3	create_hint_ok	port=13303
+reload_4	create_hint_ok	port=13304
+reload_5	create_hint_ok	port=13305
+fallback_log_count	5
+after`t0`t0`t0
+verdict	PASS	5_failed_native_probes_fell_back_and_collected
+front_alive	mysql: [Warning] Using a password on the command line interface can be insecure.
+1
+cleanup`tdrop_hint_ok

@@ -1,0 +1,10 @@
+round: guard-round1-nodata
+archived_at: 2026-11-26T09:34:46+08:00
+head_at_run: cdb056d07 with uncommitted I-DEBT-136 changes
+monitor_task: b9zqf9rkp
+monitor_result: stopped after environment failure was established
+reactor_result: parent through server passed; server Tests run: 304, Failures: 0, Errors: 0, Skipped: 0
+example_result: BackendAuthMatrixTest Tests run: 1, Failures: 0, Errors: 1, Skipped: 0
+root_cause: Docker daemon unavailable; backend JDBC connection refused; Druid createErrorCount reached 195/196 before 100013 ms timeout
+conclusion: NO_DATA for the complete guard; not a code regression and not a passing certificate
+retry_requirement: start Docker and all required backend containers, then rerun the complete guard from a clean server

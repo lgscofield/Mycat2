@@ -1,0 +1,18 @@
+round: live-round2
+archived_at: 2026-11-26T09:49:38+08:00
+head_at_run: cdb056d07 with uncommitted I-DEBT-136 changes
+server_pid: 37248
+persona: MYSQL_5_7
+front_posture: 5.7.33-mycat-2.0
+backend: m1-mysql-a MySQL 8.0.46
+fat_jar_sha256: 4678657b5e048618134dc9d35d29664aaa683a0f60675a2a2f569a78919a92e8
+probe_sha256: 6d0221260f3f2b70cae9d896b6009a4df811779ddaa3e4aad3707726793275b8
+probe_result: PASS; five NATIVE datasource replacements targeted refused ports 13301-13305; all fell back to JDBC
+fallback_log_count: 10 across live-round1 and live-round2; each round contributed five
+heap_baseline: no MycatNativeDatasourcePool or VertxPoolConnectionImpl instances
+heap_after_35s_and_deferred_close: no MycatNativeDatasourcePool or VertxPoolConnectionImpl instances after GC.run
+front_alive: SELECT 1 returned 1
+cleanup: dropDataSource hint succeeded; server process stopped after evidence collection
+timer_evidence: VertxPoolConnectionLifecycleTest closeCancelsTimerAndClosesIdleAndUsedConnections (offline regression)
+prior_round: ci/idebt136/live-round1 (same PASS result; retained to show probe output cleanup)
+conclusion: live no-accumulation criterion passed for the tested jar; full guard and CI remain separate gates

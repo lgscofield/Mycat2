@@ -1,0 +1,312 @@
+JAVA_HOME=D:/Program Files/BellSoft/LibericaJDK-21-Full  major=21
+REPO=D:\Workspaces\IdeaProjects\Mycat2  persona=MYSQL_5_7  jar=server-1.22-release-jar-with-dependencies.jar mtime=11/26/2026 09:40:09  home=D:\Workspaces\IdeaProjects\Mycat2\server\target\.mycat-home
+GIT_HEAD=cdb056d07  dirtyFiles=6
+BACKEND UP m1-mysql-a
+BACKEND UP m1-mysql-b
+BACKEND UP m6-mariadb-a
+STARTED 8066 pid 38484
+POSTURE front(8066)=5.7.33-mycat-2.0 via host.docker.internal | back(localhost:3306, disk prototypeDs, mtime 11/26/2026 09:53:28)=8.0.46 via host.docker.internal  [persona 引擎族=MySQL]
+WARN(posture): 后端 minor 与 persona 宣称 minor 不同（属常见组合，仅提示不阻断）
+POSTURE OK
+MVN -o -B -pl server,example -am test  →  D:\Workspaces\IdeaProjects\Mycat2\target\ci-guard\guard-20261126-095347.log
+MVN_EXIT=0
+RESULT=PASS
+=== 汇总（各模块）===
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.131 s -- in io.mycat.config.DatasourceConfigUrlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in io.mycat.config.PersonaOverrideTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in io.mycat.config.ThreadPoolExecutorConfigDefaultsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in io.mycat.config.TlsModeOverrideTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in io.mycat.config.VersionProfileTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.453 s -- in io.mycat.util.JsonUtilTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in io.mycat.util.MySQLDatabaseMetadataTest
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.112 s -- in io.mycat.beans.mycat.MycatErrorCodeIoLimitTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.149 s -- in io.mycat.ColumnDefRawPassthroughTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.189 s -- in io.mycat.IOExecutorAdmissionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.991 s -- in io.mycat.IOExecutorFromVertxTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in io.mycat.IOExecutorVtTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.435 s -- in io.mycat.LocalLockServiceImplPinTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.newquery.JdbcWarningMappingTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.524 s -- in io.mycat.newquery.NewMycatConnectionImplLockTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in io.mycat.newquery.SqlResultWarningsTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.util.MySQLSqlTextCodecTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in io.mycat.beans.mycat.MycatMySQLRowMetaDataColumnTypeTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.mycat.beans.mycat.RowMetaDataFidelityTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.mycat.beans.mysql.MySQLDialectTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in io.mycat.MySQLPacketUtilBitHeaderTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.858 s -- in io.mycat.util.MycatRowMetaDataImplPrecisionScaleTest
+[INFO] Tests run: 89, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.168 s -- in io.mycat.router.custom.HttpCustomRuleFunctionLockTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in io.mycat.router.custom.DefaultCustomRuleFunctionTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in io.mycat.router.migrate.MigrateUtilsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in io.mycat.router.mycat1xfunction.PartitionByCRC32PreSlotTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in io.mycat.router.mycat1xfunction.PartitionByDateExTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in io.mycat.router.mycat1xfunction.PartitionByDateTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.router.mycat1xfunction.PartitionByHotDateTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.mycat.router.mycat1xfunction.PartitionByRangeModContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.mycat.router.range.IntEnumeratorTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.mycat.router.range.RangeTest
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.400 s -- in io.mycat.plug.sequence.DefaultPrototypeGeneratorLockTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.176 s -- in io.mycat.replica.EmptyClusterRoutingTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 s -- in io.mycat.replica.heartbeat.HeartbeatStrategyNullDefenseTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.582 s -- in io.mycat.datasource.jdbc.datasource.DefaultConnectionAbortTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.137 s -- in io.mycat.datasource.jdbc.datasource.SessionSqlModeAlignerBorrowLockTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.086 s -- in io.mycat.datasource.jdbc.DriverRoutingTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.datasource.MariadbDriverOnClasspathTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.124 s -- in cn.mycat.vertx.xa.impl.XaLogCommitMarkTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.401 s -- in cn.mycat.vertx.xa.impl.XaReaperSchedulingTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.152 s -- in cn.mycat.vertx.xa.impl.CommitDecidedFlagTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in cn.mycat.vertx.xa.impl.LocalXaConcurrentFirstBorrowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.090 s -- in cn.mycat.vertx.xa.impl.RetryCommitYieldTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.815 s -- in cn.mycat.vertx.xa.impl.XaExtraConnectionDrainTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.553 s -- in cn.mycat.vertx.xa.impl.XaRecoveryIdempotencyTest
+[INFO] Tests run: 36, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.605 s -- in io.mycat.MySQLVariablesUtilSqlModeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s -- in io.mycat.proxy.handler.front.HandshakePayloadRegressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.973 s -- in io.mycat.proxy.session.ProxyServerSessionErrorDiagnosticTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in io.mycat.runtime.MycatDataContextSqlModeReadTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.121 s -- in io.mycat.runtime.MycatDataContextWarningVariableTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in io.mycat.runtime.MycatXaTranscationCommitFlagDelegationTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in io.mycat.runtime.SessionWarningBufferTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.mycat.runtime.StatementErrorRecordTest
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.086 s -- in org.apache.calcite.mycat.MycatCastStringFallbackTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in org.apache.calcite.runtime.SqlFunctionsCastSemanticsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.192 s -- in io.mycat.AsyncMycatDataContextImplLockTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.34 s -- in io.mycat.calcite.BareHavingAsWhereTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in io.mycat.calcite.BinaryIntroducerParameterizeTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in io.mycat.calcite.BinaryParamPrecisionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.mycat.calcite.BinaryParamToByteStringTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.313 s -- in io.mycat.calcite.CalciteValidatorGoldenTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in io.mycat.calcite.DynamicParamCoercionTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in io.mycat.calcite.metadata.MycatViewCollationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.141 s -- in io.mycat.calcite.metadata.MycatViewUniqueKeysTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.069 s -- in io.mycat.calcite.metadata.SortParamRowCountTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.445 s -- in io.mycat.calcite.MycatBindableContractTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in io.mycat.calcite.MycatDurationTimeMappingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in io.mycat.calcite.MycatFloatJavaClassTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in io.mycat.calcite.MycatIntervalLiteralCoercionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in io.mycat.calcite.MycatTemporalJavaClassTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.calcite.MycatTypeSystemRoundingModeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.calcite.MysqlStddevVarianceKindTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.calcite.MysqlTypeSystemAvgTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in io.mycat.calcite.MysqlTypeSystemDivideTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.128 s -- in io.mycat.calcite.OnlyFullGroupBySqlModeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in io.mycat.calcite.OrderByDuplicateAliasTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in io.mycat.calcite.OrderByNullCollationConfigTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.147 s -- in io.mycat.calcite.rewriter.JoinPushdownParamOrderTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.150 s -- in io.mycat.calcite.rewriter.SQLRBORewriterJoinPushdownMatrixTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.311 s -- in io.mycat.calcite.rules.EmptyVisualTableSubtreeRuleTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.064 s -- in io.mycat.calcite.rules.MycatExistsInSubQueryToSemiJoinRuleTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.mycat.calcite.rules.MycatSemiAntiJoinExecTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in io.mycat.calcite.shadow.CollationNullGuardReproTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.596 s -- in io.mycat.calcite.shadow.MycatCalciteRuntimeHooksTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.calcite.shadow.MycatCalciteRuntimeTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in io.mycat.calcite.shadow.MycatViewJsonRoundTripTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.mycat.calcite.shadow.RexLiteralDynamicParamTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in io.mycat.calcite.ShardingInsertBitLiteralTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.446 s -- in io.mycat.calcite.spm.DbPlanManagerPersistorImplLockTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.mycat.calcite.spm.SpmBlockingLockTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in io.mycat.calcite.sqlfunction.arith.MysqlDivideDiagnosticSlotTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.calcite.sqlfunction.arith.MysqlDivideFunctionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in io.mycat.calcite.sqlfunction.arith.SqlFunctionsModSemanticsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in io.mycat.calcite.sqlfunction.datefunction.DateStringArgFunctionsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in io.mycat.calcite.sqlfunction.datefunction.DayOfWeekFunctionTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in io.mycat.calcite.sqlfunction.datefunction.StringToTimestampFunctionSemanticsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.mycat.calcite.sqlfunction.datefunction.WeekFunctionModeTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in io.mycat.calcite.sqlfunction.hashfunction.MysqlHashFunctionTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunctionTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.calcite.SqlModeTokensTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.mycat.calcite.StrictEqualOperatorTypeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in io.mycat.calcite.TinyIntParamTypeTest
+[INFO] Tests run: 34, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.162 s -- in io.mycat.calcite.TypeRepresentationThreePathConsistencyTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in io.mycat.calcite.ValidatorOrphanScanTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.055 s -- in io.mycat.calcite.VariantReprintFidelityTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in io.mycat.ColumnTypeAuthorityTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.131 s -- in io.mycat.CompileFailureLogRawSqlTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.080 s -- in io.mycat.CrossShardHeaderFidelityTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in io.mycat.DumpSurfaceRegressionTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.EmptyVisualTableMarkerTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in io.mycat.InternalArtifactWarningFilterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.MysqlVariableServiceImplCleanroomSeedTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.MysqlVariableServiceImplFixValueTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.131 s -- in io.mycat.MysqlVariableServiceImplMaxErrorCountTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in io.mycat.MysqlVariableServiceImplPersonaVersionTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in io.mycat.PerformanceSchemaRegressionTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 s -- in io.mycat.PersonaCollationsTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in io.mycat.ShowBinlogStatusRoutingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.130 s -- in io.mycat.sql.DruidOutputGoldenTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in io.mycat.util.CalciteConvertorsRelDataTypeTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.159 s -- in io.mycat.vertx.BaseRowObservableYearDecodeTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.vertx.CrossShardBitRowDecodeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.107 s -- in io.mycat.vertx.QueryBackendWarningsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in io.mycat.vertx.ShardUpdateIgnoreFidelityTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in io.mycat.vertx.ShardUpdateWarningsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in io.mycat.vertx.StatementDeadlineTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in io.mycat.vertx.StatementStateReclaimTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.124 s -- in io.mycat.vertx.StreamingProducerErrorTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.376 s -- in io.mycat.vertx.VertxExecuterComputeIfAbsentPinTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in org.apache.calcite.mycat.MycatCastMatrixSemanticsTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.214 s -- in org.apache.calcite.util.RxBuiltInMethodImplRxOperatorsTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.apache.calcite.util.RxBuiltInMethodImplSelectTest
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.123 s -- in io.mycat.calcite.rewriter.ColumnMappingTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in io.mycat.calcite.shadow.CalciteSingleVersionGuardTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in io.mycat.calcite.shadow.RelMdUtilSingleVersionGuardTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.calcite.shadow.ShadowRexToLixTranslatorJoinConditionTest
+[INFO] Tests run: 414, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.178 s -- in io.ordinate.engine.AvgDecimalFidelityGapTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in io.ordinate.engine.VectorLegDecimalArithmeticTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.120 s -- in io.ordinate.engine.VectorLegDecimalColumnReaderTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.084 s -- in io.mycat.commands.JdbcDatasourcePoolAbandonTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.151 s -- in io.mycat.commands.MycatdbCommandDiagnosticResetTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in io.mycat.commands.MycatdbCommandMariaDbVersionProfileTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.commands.MycatdbCommandShowSalvageTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.058 s -- in io.mycat.commands.MycatdbCommandVersionCommentTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.514 s -- in io.mycat.commands.MysqlPayloadObjectObserverErrorTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.353 s -- in io.mycat.commands.NativeDatasourceFallbackTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in io.mycat.commands.ReceiverBackendWarningTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.440 s -- in io.mycat.commands.ReceiverCommitLegDeadlineTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.048 s -- in io.mycat.commands.ReceiverStatementDeadlineForceCloseTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.373 s -- in io.mycat.commands.ReceiverTransactionLegDeadlineTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.750 s -- in io.mycat.config.CommitAtomicityOrderTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in io.mycat.config.ConfigLogMaskingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.config.ResetPreservesPrototypeCredentialsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.553 s -- in io.mycat.ConfigUpdaterOrphanConfigTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in io.mycat.connection.JdbcMycatDataContextErrorCountTest
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.431 s -- in io.mycat.exporter.PrometheusExporterAuthTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.90 s -- in io.mycat.FrontendAdmissionWiringTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.MycatCoreArgsTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in io.mycat.MycatHomeFallbackTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.mycatmysql.ChangeUserRejectTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in io.mycat.mycatmysql.ControlPlaneSqlTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in io.mycat.mycatmysql.StmtExecuteNullBitmapTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in io.mycat.mysqlclient.decoder.ObjectArrayDecoderDataTypeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.579 s -- in io.mycat.mysqlclient.MycatNativeDatasourcePoolLifecycleTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s -- in io.mycat.mysqlclient.NativeFallbackCloseTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.828 s -- in io.mycat.mysqlclient.NativeSelectWarningRelayTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in io.mycat.mysqlclient.NativeWarningsConverterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in io.mycat.mysqlclient.PacketUtilOkWarningsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.376 s -- in io.mycat.mysqlclient.VertxConnectionWarningDetailTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.231 s -- in io.mycat.mysqlclient.VertxPoolConnectionLifecycleTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.442 s -- in io.mycat.plug.sequence.SequenceMySQLGeneratorLockTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in io.mycat.resultset.BinaryBlobByteStringEncodeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in io.mycat.resultset.BinaryResultSetResponseDecimalTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.resultset.DecimalColumnScaleEncodeTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in io.mycat.rx.MycatRxJavaErrorHandlerTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.184 s -- in io.mycat.sqlhandler.config.FileKVAtomicWriteTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in io.mycat.sqlhandler.ddl.CreateTableSQLHandlerLockTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.095 s -- in io.mycat.sqlhandler.dql.CollationMaterializationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.sqlhandler.dql.HintHandlerLoaddataGateTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.sqlhandler.dql.HintHandlerManagementGateCoverageTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.sqlhandler.dql.HintHandlerMigratePasswordFallbackTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in io.mycat.sqlhandler.dql.HintHandlerShowConfigTextSecurityTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.sqlhandler.dql.HintHandlerShowDataSourcesMaskingTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.335 s -- in io.mycat.sqlhandler.dql.ShowCollationMaterializationDispatchTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.sqlhandler.dql.ShowErrorsRowBuilderTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.223 s -- in io.mycat.sqlhandler.dql.ShowStatusSSLTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in io.mycat.sqlhandler.dql.ShowWarningsMaxErrorCountTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in io.mycat.sqlhandler.dql.ShowWarningsRowBuilderTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in io.mycat.sqlhandler.MigrateUtilOutputMaskingTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in io.mycat.vertx.auth.AuthMoreDataTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in io.mycat.vertx.auth.CachingSha2AuthCacheTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in io.mycat.vertx.auth.CachingSha2ServerAuthClearAuthTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.vertx.auth.CachingSha2ServerAuthFastAuthTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.810 s -- in io.mycat.vertx.auth.CachingSha2ServerAuthFullAuthTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.vertx.auth.RsaKeyPairProviderTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in io.mycat.vertx.CachingSha2TlsFullAuthRoutingTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in io.mycat.vertx.ConnectionEofDeprecationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.150 s -- in io.mycat.vertx.FrontendStartTlsUpgradeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.112 s -- in io.mycat.vertx.FrontendTlsSessionStateCaptureTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in io.mycat.vertx.MysqlDateWireEncodingTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in io.mycat.vertx.VertxSessionCloseGuardTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in io.mycat.vertx.VertxSessionErrorDiagnosticTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in io.mycat.vertx.SSLRequestTest
+[INFO] Tests run: 304, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 124.1 s -- in io.mycat.compat.BackendAuthMatrixTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.50 s -- in io.mycat.compat.BinaryRepresentationFidelityDifferentialTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.405 s -- in io.mycat.compat.ConnectionSmokeTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.281 s -- in io.mycat.compat.CrossShardUnionHeaderDifferentialTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.834 s -- in io.mycat.compat.CrossShardWarningRelayTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in io.mycat.compat.CrudResultMatrixOracleShapeTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.32 s -- in io.mycat.compat.CrudResultMatrixTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.930 s -- in io.mycat.compat.DumpRestoreRoundTripMatrixTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.364 s -- in io.mycat.compat.DumpSurfaceMatrixTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.432 s -- in io.mycat.compat.MariadbEd25519BackendTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.416 s -- in io.mycat.compat.MigrateMatrixTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.961 s -- in io.mycat.compat.OrderByNullCollationMatrixTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.498 s -- in io.mycat.compat.ShowCreateDatabaseCharsetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.437 s -- in io.mycat.compat.SqlModeSessionDumpSurfaceTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.903 s -- in io.mycat.xa.CommitLegLiveFreezeTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.670 s -- in io.mycat.xa.LocalXaCommitFailureTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.267 s -- in io.mycat.xa.MixedPathCommitConsistencyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.518 s -- in io.mycat.xa.XaCommitIntentPersistenceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.479 s -- in io.mycat.xa.XaLogImplTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.562 s -- in io.mycat.xa.XaReaperConvergenceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.08 s -- in io.mycat.alter.AlterTableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.504 s -- in io.mycat.alter.CreateIndexTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.459 s -- in io.mycat.alter.DropTableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.000 s -- in io.mycat.alter.MySQLCheckTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.037 s -- in io.mycat.alter.RenameTableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.716 s -- in io.mycat.alter.TruncateTableTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.983 s -- in io.mycat.assemble.AddSequenceTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.81 s -- in io.mycat.assemble.AssembleTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.171 s -- in io.mycat.assemble.CharsetTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.242 s -- in io.mycat.assemble.DDLHintTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.135 s -- in io.mycat.assemble.HbtTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.185 s -- in io.mycat.assemble.LockTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.274 s -- in io.mycat.assemble.ManagerHintTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.565 s -- in io.mycat.assemble.MycatDdlDropRoutingTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.85 s -- in io.mycat.assemble.PstmtAssembleTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.202 s -- in io.mycat.assemble.RwTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.260 s -- in io.mycat.assemble.SetTranscationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.412 s -- in io.mycat.assemble.SpmHintTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.72 s -- in io.mycat.assemble.SpmTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.102 s -- in io.mycat.assemble.SqlResultSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.619 s -- in io.mycat.assemble.UserTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.743 s -- in io.mycat.config.KVTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.619 s -- in io.mycat.config.MycatServerStdStorageManagerTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.982 s -- in io.mycat.config.StdStorageManagerTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 225.8 s -- in io.mycat.connection.ProxyBackendConnectionTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 304.4 s -- in io.mycat.connection.XaBackendConnectionTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.071 s -- in io.mycat.exception.ReadResultSetTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.991 s -- in io.mycat.globalinsert.GlobalInsertTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.20 s -- in io.mycat.gsi.CreateGsiTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.944 s -- in io.mycat.hint.HintTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 35.81 s -- in io.mycat.migrate.MigrateTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.077 s -- in io.mycat.procedure.ProcedureTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.247 s -- in io.mycat.replica.GaleraTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.214 s -- in io.mycat.replica.MasterSlaveTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.096 s -- in io.mycat.replica.MGRTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.246 s -- in io.mycat.replica.MHATest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.042 s -- in io.mycat.replica.NoneTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.298 s -- in io.mycat.replica.SingleTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 133.7 s -- in io.mycat.springdata.MySQLGlobalTableJPATest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 30.27 s -- in io.mycat.springdata.MySQLNormalTableJPATest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 23.14 s -- in io.mycat.springdata.MySQLShardingTableJPATest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.762 s -- in io.mycat.sql.BkaJoinExecuteTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.133 s -- in io.mycat.sql.ColumnDefTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.967 s -- in io.mycat.sql.ExceptionCaseTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.771 s -- in io.mycat.sql.LoaddataTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.855 s -- in io.mycat.sql.MegreJoinExecuteTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.213 s -- in io.mycat.sql.MultiStatementTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.325 s -- in io.mycat.sql.PushDownFunctionNormalTableTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.37 s -- in io.mycat.sql.PushDownFunctionShardingTableTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in io.mycat.sql.ReplaceStatementTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.104 s -- in io.mycat.sql.ShardingInsertNamedVariantTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.52 s -- in io.mycat.sql.SqlFunctionTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.871 s -- in io.mycat.sql.TableAnalyseTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.320 s -- in io.mycat.swapbuffer.SwapBufferTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.302 s -- in io.mycat.sysbench.SysbenchTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.263 s -- in io.mycat.vector.VectorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.091 s -- in io.mycat.view.ViewTest
+=== 红类清单 ===
+=== reactor 结论 ===
+[INFO] BUILD SUCCESS
+KILL 8066 pid 38484（收尾，防污染下一轮）
+GUARD_EXIT=0
