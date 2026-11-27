@@ -86,7 +86,7 @@ reset **不删除任何持久化文件**，只通过 schema `UpdateSet` 删除�
 5. 运行态注册成功后，持久化 `COMMITTED` 标记；只有该标记落盘后才发送提交成功信号、允许旧资源延迟退休并向 hint 返回 Ok。
 6. `COMMITTED` 标记失败或运行态构建/注册失败：恢复提交前 `MetaClusterCurrent` 上下文，关闭本轮新资源，补偿旧快照，校验后标记 `RESTORED`。
 
-不提前构造完整运行态候选：现有 `getJdbcConnectionManager()` 的“仅新增 datasource”分支会原地 `addDatasource`，`getMetadataManager()` 的仅新增 schema 分支会原地 `addSchema`，资源构造器还可能修改全局编译参数或调度器。因此预检只做纯配置校验，运行态构建统一放在持久化校验之后；失败由上下文恢复与快照补偿兜底。构建阶段只使用隔离的候选资源/context，不注册目标、不原地扩缩容旧 manager；全部构建成功后通过 `MetaClusterCurrent.replaceContext(expected, replacement)` 一次 CAS 激活。CAS 失败按竞争提交处理，关闭本轮新资源并补偿旧快照。XA recovery 与 plan-store 检查依赖已注册上下文且会访问后端，属于配置提交后的初始化任务，不触发配置回滚。
+不提前构造完整运行态候选：现有 `getJdbcConnectionManager()` 的“仅新增 datasource”分支会原地 `addDatasource`，`getMetadataManager()` 的仅新增 schema 分支会原地 `addSchema`，资源构造器还可能修改全局编译参数或调度器。因此预检只做纯配置校验，运行态构建统一放在持久化校验之后；失败由上下文恢复与快照补偿兜底。构建阶段只使用隔离的候选资源/context，不注册目标、不原地扩缩容旧 manager；全部构建成功后通过 `MetaClusterCurrent.replaceContext(expected, replacement)` 一次 CAS 激活。CAS 失败按竞争提交处理：保留当前竞争 context，不得用 expected 覆盖回去；只关闭本轮新资源，并在仍持有的存储写锁内补偿旧快照。旧 replica 是否重启也必须以当前 context 仍为 expected 为前提，不能操作竞争 context 的资源。XA recovery 与 plan-store 检查依赖已注册上下文且会访问后端，属于配置提交后的初始化任务，不触发配置回滚。
 
 优点：把可逆的配置写入与不可逆的运行态副作用分开；失败时旧运行态保持服务；恢复记录覆盖进程崩溃窗口。代价是需要拆分 `commit()`，并为一个 I/O 失败建立持久化恢复协议，属于架构级改动。
 
@@ -109,7 +109,7 @@ reset **不删除任何持久化文件**，只通过 schema `UpdateSet` 删除�
 
 ### 4.2 恢复记录
 
-在第一次写目标前，写入单个不可变恢复记录，形状为：
+在第一次写目标前，写入单个恢复记录；两份快照不可变，仅 status 可按协议转换，形状为：
 
 ```text
 recordId
@@ -123,7 +123,7 @@ snapshotSha256
 
 记录必须包含旧、目标两份快照及恢复所需版本/校验信息；具体记录格式由实施 plan 冻结。状态转换只允许 `PREPARED → COMMITTED` 或 `PREPARED → RESTORED`，每次转换都是原子写。记录先于任何业务 key 变更落盘。记录不打印口令；日志只出现 recordId、路径/key 和异常类型。
 
-恢复记录包含明文凭据，必须与现有配置文件同级保护：File 记录仅属主可读写（POSIX 0600，Windows 等价 ACL），ZK 使用既有认证与受限 ACL，DB 使用现有配置表权限；禁止放入日志、异常消息或公开诊断输出。`COMMITTED`/`RESTORED` 记录在对应配置被启动装载并校验后清理；异常退出保留记录，清理失败只告警，不得改变已提交配置。
+恢复记录包含明文凭据，必须与现有配置文件同级保护：File 记录仅属主可读写（POSIX 0600，Windows 等价 ACL），ZK 使用既有认证与受限 ACL，DB 使用现有配置表权限；禁止放入日志、异常消息或公开诊断输出。`COMMITTED`/`RESTORED` 记录在对应配置被启动装载并校验后按 recordId 条件清理；若期间已被新提交记录替换，不得删除新记录。异常退出保留记录，清理失败只告警，不得改变已提交配置。
 
 恢复是**尽力而为**：逐项失败要收集全部错误，不能因首个异常跳过其余补偿。恢复结束后重读并校验；无法完整恢复时保留记录，禁止宣告提交成功，并给出明确错误“配置持久化失败且恢复不完整”。
 

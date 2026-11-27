@@ -33,7 +33,7 @@
 1. **RSA/原始 JSON**：用户密文、encodeKey、字段顺序和空白形状不得因 reset 或快照往返改变。→ Task A1、B1、B2、B6 测试。
 2. **半写可见性**：PREPARED 期间其他进程/节点不能读到半快照，第二个提交必须看到第一个完成后的基线。→ Task B2、B3、B4 测试。
 3. **不确定提交结果**：COMMITTED 写入抛错但实际已落盘时，必须先重读记录状态，不能盲目补偿覆盖已提交代。→ Task B1、B4 测试。
-4. **运行态隔离**：新增 datasource/schema 不得原地改旧 manager；CAS 失败不得关闭旧池或留下半激活上下文。→ Task B4 测试。
+4. **运行态隔离**：新增 datasource/schema 不得原地改旧 manager；CAS 失败不得覆盖竞争 context、关闭旧池或留下半激活上下文。→ Task B4 测试。
 5. **提交后初始化失败**：XA/plan-store/DDL 失败不得把已提交配置回滚，也不得对客户端伪装完整成功。→ Task B4、B6 测试。
 
 ---
@@ -173,9 +173,9 @@
 - [ ] **Step 1: 写 CAS 失败测试** — `MetaClusterCurrentReplaceContextTest` 或并入集成测试：相同 expected map 成功；不同 identity 失败且原 context 不变。
 - [ ] **Step 2: 写隔离失败测试** — `candidateBuildDoesNotMutateOldManagers`：仅新增 datasource/schema 时断言旧 `JdbcConnectionManager.addDatasource`、旧 `MetadataManager.addSchema` 零调用，构建失败后旧 context 每个 Class→对象 identity 完全一致。
 - [ ] **Step 3: 写提交顺序失败测试** — `persistPrecedesRuntimeActivation`、`committedPrecedesSuccessSignal`、`postCommitInitializationFailureKeepsTargetConfig`；事件序列必须为 PREPARED→stage→verify→build→activate→COMMITTED→success→init，init 失败不得 restore。
-- [ ] **Step 4: 写故障矩阵失败测试** — 第 N 项 stage 失败、verify 失败、build 失败、CAS 失败、COMMITTED 失败分别断言：无 Ok/成功信号、旧池未关、旧 context 完整恢复、oldSnapshot 重读一致后才 RESTORED；正向与补偿都失败时明确“恢复不完整”。
+- [ ] **Step 4: 写故障矩阵失败测试** — 第 N 项 stage 失败、verify 失败、build 失败、COMMITTED 失败分别断言：无 Ok/成功信号、旧池未关、旧 context 完整恢复、oldSnapshot 重读一致后才 RESTORED；正向与补偿都失败时明确“恢复不完整”。CAS 失败单独断言竞争 context 及其 replica 不被覆盖/重启，本轮新资源关闭，存储写锁内仍补偿 oldSnapshot 并标 RESTORED。
 - [ ] **Step 5: 运行确认 RED** — `-Dtest=ConfigCommitTransactionIntegrationTest,CommitAtomicityOrderTest`。Expected：新接口缺失或顺序/identity 断言失败。
-- [ ] **Step 6: 拆分运行态构建与激活** — 删除 datasource-only/schema-only 原地扩缩容分支；构造完整候选 context，延后 `DrdsSqlCompiler` 静态全局参数应用到 activate；activate 停旧 replica、CAS、启动新 replica，任何失败恢复旧 context/旧 replica 并 giveup 新资源。
+- [ ] **Step 6: 拆分运行态构建与激活** — 删除 datasource-only/schema-only 原地扩缩容分支；构造完整候选 context，延后 `DrdsSqlCompiler` 静态全局参数应用到 activate；activate 停旧 replica、CAS、启动新 replica。非 CAS 失败且 context 仍为 expected 时恢复旧 context/旧 replica；CAS 失败保留竞争 context，不重启其 replica，只 giveup 本轮新资源。
 - [ ] **Step 7: 改编排与错误边界** — `COMMITTED` 后 `onCommitSuccess()` 才允许旧资源延迟退休；XA/plan-store/DDL 移到提交后，失败抛出“配置已提交、初始化失败”。HintHandler 仍只在 commit 正常返回后 sendOk；恢复不完整异常不得被吞。
 - [ ] **Step 8: GREEN 与回归** — 重跑 Step 5，Expected：原 I-DEBT-130 三案和全部新故障矩阵通过。Commit message：`fix(I-DEBT-133): 配置提交先持久化并原子激活运行态`。
 
@@ -188,13 +188,13 @@
 - Test: `server/src/test/java/io/mycat/sqlhandler/config/ConfigRecoverySecurityTest.java`（新建）
 
 **Interfaces:**
-- `static ConfigPersistenceTransaction.RecoveryResult recoverOnStartup(StorageManager)`：无记录返回 NONE；PREPARED 恢复 old、校验后标 RESTORED；COMMITTED/RESTORED 校验对应快照并保留记录待装载。
-- `static void cleanupRecoveryAfterLoad(StorageManager, MycatRouterConfig loaded)`：仅当记录状态已 RESTORED/COMMITTED、loaded 对应快照且重读校验成功才删除记录；删除失败只 WARN。
+- `static ConfigPersistenceTransaction.RecoveryResult recoverOnStartup(StorageManager)`：无记录返回 NONE；PREPARED 恢复 old、校验后标 RESTORED；COMMITTED/RESTORED 校验对应快照并保留记录待装载。`RecoveryResult` 含 `ConfigRecoveryRecord.Status status` 与可空 `String recordId`，供启动流程在装载后按同一身份清理。
+- `static void cleanupRecoveryAfterLoad(StorageManager, RecoveryResult recovery, MycatRouterConfig loaded)`：仅当当前 recordId 与 `recovery.recordId` 一致、状态已 RESTORED/COMMITTED、loaded 对应快照且重读校验成功才按 recordId 条件删除；记录已换成新提交或删除失败只 WARN，不得删除新记录。NONE 不执行清理。
 - `ConfigUpdater.loadConfigFromFile()` 顺序：recoverOnStartup → quarantineOrphanClusterConfigs → getFileConfigSnapshot → load → cleanupRecoveryAfterLoad。
 
 - [ ] **Step 1: 写崩溃矩阵失败测试** — `preparedStartupRestoresOldSnapshot`、`committedStartupLoadsTargetSnapshot`、`restoredStartupLoadsOldSnapshotThenCleansRecord`；用真实临时 home 预置三种记录。
 - [ ] **Step 2: 写拒绝启动失败测试** — `hashMismatchRefusesStartupAndKeepsRecord`、`unreadableRecordRefusesStartup`、`incompleteRestoreRefusesStartup`；断言不调用 load、记录仍存在。
-- [ ] **Step 3: 写清理失败测试** — `cleanupFailureWarnsWithoutChangingConfig`；删除记录抛错时 loaded/visible 仍目标或旧快照，不改变结论。
+- [ ] **Step 3: 写清理失败测试** — `cleanupFailureWarnsWithoutChangingConfig`：删除记录抛错时 loaded/visible 仍目标或旧快照；`cleanupDoesNotDeleteReplacementRecord`：装载期间替换为新 PREPARED recordId，旧恢复流程不得删除新记录，新提交并发激活时启动装载的 CAS 失败也不得覆盖其 context。
 - [ ] **Step 4: 写安全回归** — `recordAndExceptionsNeverContainCredentials`：注入含测试口令的 snapshot，捕获日志与异常，断言仅 recordId/路径/key；File ACL 复用 B2 测试。
 - [ ] **Step 5: 运行确认 RED** — `-Dtest=ConfigStartupRecoveryTest,ConfigRecoverySecurityTest`。Expected：恢复 API/启动顺序缺失或安全断言失败。
 - [ ] **Step 6: 实现启动恢复** — 恢复先于孤儿扫描和普通快照读取；补偿/恢复共用 `restoreSnapshot`/verify 路径；装载成功后才清理记录。
