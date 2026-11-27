@@ -1,0 +1,5 @@
+connect_attrs	PASS	non_ascii_and_260_byte_value
+prepare	PASS	deprecateEOF=false
+prepare	PASS	deprecateEOF=true
+reset	PASS	rollback_state_cleared_ok_received
+verdict	PASS

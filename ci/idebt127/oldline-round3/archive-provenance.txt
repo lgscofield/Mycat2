@@ -1,0 +1,21 @@
+round: oldline-round3
+archived_at: 2026-11-28T02:24:30+08:00
+head_at_run: 9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067 with uncommitted old-connector compatibility fix
+persona: MYSQL_8_0
+jar_sha256: 0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7
+command: bash ci/verify-old-connector.sh with OLDLINE_LOCAL_REPO=D:/Nexus/repository and JDK 21
+result: PASS
+exit_code: 0
+plaintext_5_1_49: PASS
+plaintext_8_0_33: PASS
+tls_5_1_49: PASS
+tls_8_0_33: PASS
+server_shadow_errors: none
+root_cause: AuthPacket.readConnectAttrs rejected Connector/J 5.1.49 zero padding after its declared attribute block
+wire_evidence: declared=126 bytes, actual=152 bytes, padding=26 zero bytes
+compatibility_boundary: accept only zero padding outside the declared block; retain all malformed-length rejections
+red_green: attrs-red.log expected product failure; attrs-green.log 15/15 and BUILD SUCCESS
+prior_failure_logs: prior-ci-failure.log and prior-local-failure.log preserve the CI and same-jar local authentication failures
+handshake_capture_note: handshake-capture.log is a capture-only fake server; its final auth failure is expected and is not matrix evidence
+independent_review: no Critical, Important or Minor findings; initial handshake and COM_CHANGE_USER share the bounded parser
+conclusion: the prior current-HEAD CI old-connector failure is fixed in the rebuilt jar; CI rerun remains required

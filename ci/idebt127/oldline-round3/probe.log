@@ -1,0 +1,78 @@
+Êú¨Âú∞‰ªìÂ∫ì = D:/Nexus/repository
+Mycat ÂâçÁ´Ø 8066 (tls=off) Â∞±Áª™ÔºàÁ¨¨ 3sÔºâ
+==== ÊóßÁ∫ø(ÊòéÊñá) mysql:mysql-connector-java:5.1.49 (D:/Nexus/repository/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) ====
+TLS mode=off driver=com.mysql.jdbc.Driver
+STAGE auth OK connected via com.mysql.jdbc.Driver
+STAGE select1 OK rows=1
+STAGE version OK server version=8.0.34
+STAGE crud OK r1=[1,ÃΩ’Î,12.34] r2=2 types=Integer/String/BigDecimal
+STAGE deeptype OK bit/date/datetime/text/decimal/null »´±£’Ê
+STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+STAGE cm.c6 OK bit1/bit8/bit16/null µ•∆¨»´±£’Ê(πŸ∑Ω byte[] ø⁄æ∂)
+STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc ◊––=60(exp 60)
+STAGE cm.c8 OK limit2offset1 rows=2(exp 2)  ◊––=2(exp 2)
+STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+STAGE cm.c9 OK 6 µ•Œªœ¬Õ∆»´∂‘ + NULL ¥´≤•
+STAGE cm.c10 OK 1/0=NULL(exp NULL) ≥˝¡„∫Û¥ÊªÓ=true Œ¥÷™¡–≈◊¥Ì=true(exp true) ¥ÌŒÛ∫Û¥ÊªÓ=true
+OLDLINE RESULT driver=com.mysql.jdbc.Driver version=mysql-connector-java-5.1.49 ( Revision: ad86f36e100e104cd926c6b81c8cab9565750116 ) verdict=PASS
+OLDLINE PASS(plaintext) mysql:mysql-connector-java:5.1.49
+==== ÊóßÁ∫ø(ÊòéÊñá) com.mysql:mysql-connector-j:8.0.33 (D:/Nexus/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar) ====
+TLS mode=off driver=com.mysql.cj.jdbc.Driver
+STAGE auth OK connected via com.mysql.cj.jdbc.Driver
+STAGE select1 OK rows=1
+STAGE version OK server version=8.0.34
+STAGE crud OK r1=[1,ÃΩ’Î,12.34] r2=2 types=Integer/String/BigDecimal
+STAGE deeptype OK bit/date/datetime/text/decimal/null »´±£’Ê
+STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+STAGE cm.c6 OK bit1/bit8/bit16/null µ•∆¨»´±£’Ê(πŸ∑Ω byte[] ø⁄æ∂)
+STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc ◊––=60(exp 60)
+STAGE cm.c8 OK limit2offset1 rows=2(exp 2)  ◊––=2(exp 2)
+STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+STAGE cm.c9 OK 6 µ•Œªœ¬Õ∆»´∂‘ + NULL ¥´≤•
+STAGE cm.c10 OK 1/0=NULL(exp NULL) ≥˝¡„∫Û¥ÊªÓ=true Œ¥÷™¡–≈◊¥Ì=true(exp true) ¥ÌŒÛ∫Û¥ÊªÓ=true
+OLDLINE RESULT driver=com.mysql.cj.jdbc.Driver version=mysql-connector-j-8.0.33 (Revision: 7d6b0800528b6b25c68b52dc10d6c1c8429c100c) verdict=PASS
+OLDLINE PASS(plaintext) com.mysql:mysql-connector-j:8.0.33
+Mycat ÂâçÁ´Ø 8066 (tls=REQUIRED) Â∞±Áª™ÔºàÁ¨¨ 3sÔºâ
+==== ÊóßÁ∫ø(TLS required) mysql:mysql-connector-java:5.1.49 (D:/Nexus/repository/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) ====
+TLS mode=required driver=com.mysql.jdbc.Driver
+STAGE auth OK connected via com.mysql.jdbc.Driver
+STAGE tlscipher-info (non-gating) Ssl_cipher=[TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384]
+STAGE select1 OK rows=1
+STAGE version OK server version=8.0.34
+STAGE crud OK r1=[1,ÃΩ’Î,12.34] r2=2 types=Integer/String/BigDecimal
+STAGE deeptype OK bit/date/datetime/text/decimal/null »´±£’Ê
+STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+STAGE cm.c6 OK bit1/bit8/bit16/null µ•∆¨»´±£’Ê(πŸ∑Ω byte[] ø⁄æ∂)
+STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc ◊––=60(exp 60)
+STAGE cm.c8 OK limit2offset1 rows=2(exp 2)  ◊––=2(exp 2)
+STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+STAGE cm.c9 OK 6 µ•Œªœ¬Õ∆»´∂‘ + NULL ¥´≤•
+STAGE cm.c10 OK 1/0=NULL(exp NULL) ≥˝¡„∫Û¥ÊªÓ=true Œ¥÷™¡–≈◊¥Ì=true(exp true) ¥ÌŒÛ∫Û¥ÊªÓ=true
+OLDLINE RESULT driver=com.mysql.jdbc.Driver version=mysql-connector-java-5.1.49 ( Revision: ad86f36e100e104cd926c6b81c8cab9565750116 ) verdict=PASS
+OLDLINE PASS(TLS) mysql:mysql-connector-java:5.1.49
+==== ÊóßÁ∫ø(TLS required) com.mysql:mysql-connector-j:8.0.33 (D:/Nexus/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar) ====
+TLS mode=required driver=com.mysql.cj.jdbc.Driver
+STAGE auth OK connected via com.mysql.cj.jdbc.Driver
+STAGE tlscipher-info (non-gating) Ssl_cipher=[TLS_AES_256_GCM_SHA384]
+STAGE select1 OK rows=1
+STAGE version OK server version=8.0.34
+STAGE crud OK r1=[1,ÃΩ’Î,12.34] r2=2 types=Integer/String/BigDecimal
+STAGE deeptype OK bit/date/datetime/text/decimal/null »´±£’Ê
+STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+STAGE cm.c6 OK bit1/bit8/bit16/null µ•∆¨»´±£’Ê(πŸ∑Ω byte[] ø⁄æ∂)
+STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc ◊––=60(exp 60)
+STAGE cm.c8 OK limit2offset1 rows=2(exp 2)  ◊––=2(exp 2)
+STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+STAGE cm.c9 OK 6 µ•Œªœ¬Õ∆»´∂‘ + NULL ¥´≤•
+STAGE cm.c10 OK 1/0=NULL(exp NULL) ≥˝¡„∫Û¥ÊªÓ=true Œ¥÷™¡–≈◊¥Ì=true(exp true) ¥ÌŒÛ∫Û¥ÊªÓ=true
+OLDLINE RESULT driver=com.mysql.cj.jdbc.Driver version=mysql-connector-j-8.0.33 (Revision: 7d6b0800528b6b25c68b52dc10d6c1c8429c100c) verdict=PASS
+OLDLINE PASS(TLS) com.mysql:mysql-connector-j:8.0.33
+OLDLINE_EXIT=0

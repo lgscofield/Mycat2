@@ -158,6 +158,23 @@ class AuthPacketConnectAttrsTest {
     }
 
     @Test
+    void acceptsZeroPaddingAfterDeclaredAttributesFromLegacyConnector() {
+        Map<String, String> attrs = new LinkedHashMap<>();
+        attrs.put("_runtime_version", "21.0.6");
+        attrs.put("_client_version", "5.1.49");
+        attrs.put("_client_license", "GPL");
+        attrs.put("_runtime_vendor", "BellSoft");
+        attrs.put("_client_name", "MySQL Connector Java");
+        byte[] bytes = writePacket(attrs);
+        int offset = attrsOffset(bytes);
+        byte[] padded = Arrays.copyOf(bytes, bytes.length + 26);
+        ReadView view = new ReadView(Buffer.buffer(Arrays.copyOfRange(padded, offset, padded.length)));
+
+        assertEquals(attrs, AuthPacket.readConnectAttrs(view));
+        assertEquals(0, view.readable());
+    }
+
+    @Test
     void trailingBytesOutsideDeclaredAttributesAreRejected() {
         ReadView view = new ReadView(Buffer.buffer(new byte[]{2, 1, 'k', 0, 99}));
 

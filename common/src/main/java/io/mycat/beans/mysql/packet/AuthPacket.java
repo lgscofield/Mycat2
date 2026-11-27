@@ -116,7 +116,7 @@ public class AuthPacket {
 
     public static Map<String, String> readConnectAttrs(MySQLPayloadReadView buffer) {
         long length = readLenencInt(buffer);
-        if (length != buffer.readable()) {
+        if (length > buffer.readable()) {
             throw new IllegalArgumentException("Connection attributes length mismatch");
         }
         Map<String, String> attrs = new HashMap<>();
@@ -142,6 +142,12 @@ public class AuthPacket {
         }
         if (remaining != 0) {
             throw new IllegalArgumentException("Connection attributes length mismatch");
+        }
+        // Connector/J 5.1.49 pads its fixed attribute buffer with zero bytes.
+        while (!buffer.readFinished()) {
+            if (buffer.readByte() != 0) {
+                throw new IllegalArgumentException("Connection attributes length mismatch");
+            }
         }
         return attrs;
     }

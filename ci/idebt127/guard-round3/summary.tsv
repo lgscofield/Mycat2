@@ -1,0 +1,12 @@
+check	result	evidence
+jdk21	PASS	Liberica JDK 21 major=21
+backend_m1_mysql_a	PASS	mysqld is alive
+backend_m1_mysql_b	PASS	mysqld is alive
+backend_m6_mariadb_a	PASS	mysqld is alive
+posture	PASS	frontend 8.0.34; backend 8.0.46; persona MYSQL_8_0
+server_tests	PASS	389 run; 0 failures; 0 errors; 0 skipped
+example_tests	PASS	559 run; 0 failures; 0 errors; 38 skipped
+reactor	PASS	15/15 modules SUCCESS
+maven	PASS	BUILD SUCCESS; 18:21 min
+guard	PASS	RESULT=PASS; GUARD_EXIT=0; MONITOR_GUARD_EXIT=0
+jar_sha256	PASS	0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7

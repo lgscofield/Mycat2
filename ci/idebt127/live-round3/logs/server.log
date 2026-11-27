@@ -1,0 +1,2043 @@
+path:D:\Workspaces\IdeaProjects\Mycat2\scratch\idebt127\live-jar\.mycat-home
+2026-11-28 02:20:49,575[INFO]io.mycat.config.PersonaOverride.apply:42persona overridden by -Dmycat.persona to MYSQL_8_0
+2026-11-28 02:20:49,592[WARN]io.mycat.util.MySQLDatabaseMetadata.parse:71Incorrect parsing server version tokens
+java.lang.NumberFormatException: For input string: ""
+	at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)
+	at java.base/java.lang.Integer.parseInt(Integer.java:672)
+	at java.base/java.lang.Integer.parseInt(Integer.java:778)
+	at io.mycat.util.MySQLDatabaseMetadata.parse(MySQLDatabaseMetadata.java:66)
+	at io.mycat.config.ServerConfig.computeClientDeprecateEof(ServerConfig.java:142)
+	at io.mycat.MycatCore.<init>(MycatCore.java:122)
+	at io.mycat.MycatCore.main(MycatCore.java:264)
+2026-11-28 02:20:49,609[DEBUG]io.vertx.core.logging.LoggerFactory.?:?Using io.vertx.core.logging.SLF4JLogDelegateFactory
+2026-11-28 02:20:49,740[DEBUG]io.netty.util.internal.logging.InternalLoggerFactory.useSlf4JLoggerFactory:63Using SLF4J as the default logging framework
+2026-11-28 02:20:49,743[DEBUG]io.netty.util.internal.PlatformDependent0.explicitNoUnsafeCause0:554-Dio.netty.noUnsafe: false
+2026-11-28 02:20:49,744[DEBUG]io.netty.util.internal.PlatformDependent0.javaVersion0:1072Java version: 21
+2026-11-28 02:20:49,747[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:140sun.misc.Unsafe.theUnsafe: available
+2026-11-28 02:20:49,789[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:203sun.misc.Unsafe base methods: all available
+2026-11-28 02:20:49,790[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:235sun.misc.Unsafe.storeFence: available
+2026-11-28 02:20:49,791[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:278java.nio.Buffer.address: available
+2026-11-28 02:20:49,792[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:364direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
+2026-11-28 02:20:49,794[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:442java.nio.Bits.unaligned: available, true
+2026-11-28 02:20:49,795[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:510jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @2b552920
+2026-11-28 02:20:49,798[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:540java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+2026-11-28 02:20:49,798[DEBUG]io.netty.util.internal.PlatformDependent.unsafeUnavailabilityCause0:1196sun.misc.Unsafe: available
+2026-11-28 02:20:49,799[DEBUG]io.netty.util.internal.PlatformDependent.tmpdir0:1342-Dio.netty.tmpdir: C:\Users\ligh208\AppData\Local\Temp (java.io.tmpdir)
+2026-11-28 02:20:49,800[DEBUG]io.netty.util.internal.PlatformDependent.bitMode0:1421-Dio.netty.bitMode: 64 (sun.arch.data.model)
+2026-11-28 02:20:49,801[DEBUG]io.netty.util.internal.PlatformDependent.isWindows0:1156Platform: Windows
+2026-11-28 02:20:49,803[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:180-Dio.netty.maxDirectMemory: -1 bytes
+2026-11-28 02:20:49,803[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:187-Dio.netty.uninitializedArrayAllocationThreshold: -1
+2026-11-28 02:20:49,805[DEBUG]io.netty.util.internal.CleanerJava9.<clinit>:71java.nio.ByteBuffer.cleaner(): available
+2026-11-28 02:20:49,805[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:207-Dio.netty.noPreferDirect: false
+2026-11-28 02:20:49,828[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:129-Dio.netty.leakDetection.level: simple
+2026-11-28 02:20:49,864[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:130-Dio.netty.leakDetection.targetRecords: 4
+2026-11-28 02:20:49,902[DEBUG]io.netty.channel.MultithreadEventLoopGroup.<clinit>:44-Dio.netty.eventLoopThreads: 24
+2026-11-28 02:20:49,958[DEBUG]io.netty.util.concurrent.GlobalEventExecutor.<clinit>:54-Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+2026-11-28 02:20:49,976[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:100-Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+2026-11-28 02:20:49,976[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:101-Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+2026-11-28 02:20:49,981[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:110-Dio.netty.noKeySetOptimization: false
+2026-11-28 02:20:49,981[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:111-Dio.netty.selectorAutoRebuildThreshold: 512
+2026-11-28 02:20:49,992[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:1030org.jctools-core.MpscChunkedArrayQueue: available
+2026-11-28 02:20:50,154[DEBUG]io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:98Default DNS servers: [/[2408:823d:c13:ae2:0:0:0:1]:53, /192.168.124.1:53] (sun.net.dns.ResolverConfiguration)
+2026-11-28 02:20:50,172[DEBUG]io.netty.util.NetUtil.<clinit>:149-Djava.net.preferIPv4Stack: false
+2026-11-28 02:20:50,173[DEBUG]io.netty.util.NetUtil.<clinit>:150-Djava.net.preferIPv6Addresses: false
+2026-11-28 02:20:50,181[DEBUG]io.netty.util.NetUtilInitializations.determineLoopback:145Loopback interface: loopback_0 (Software Loopback Interface 1, 0:0:0:0:0:0:0:1)
+2026-11-28 02:20:50,208[DEBUG]io.netty.util.NetUtil.run:216Failed to get SOMAXCONN from sysctl and file \proc\sys\net\core\somaxconn. Default: 200
+2026-11-28 02:20:50,208[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:149Default ResolvedAddressTypes: IPV4_PREFERRED
+2026-11-28 02:20:50,208[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:150Localhost address: localhost/127.0.0.1
+2026-11-28 02:20:50,236[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:159Windows hostname: DESKTOP-PBM6UFB
+2026-11-28 02:20:50,236[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:172Default search domains: []
+2026-11-28 02:20:50,244[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:181Default UnixResolverOptions{ndots=1, timeout=5, attempts=16}
+2026-11-28 02:20:50,261[DEBUG]io.netty.resolver.DefaultHostsFileEntriesResolver.<clinit>:53-Dio.netty.hostsFileRefreshInterval: 0
+2026-11-28 02:20:50,320[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:216I-PR-1: workerPool.corePoolSize=1 被忽略——虚拟线程车道无 core 线程，每任务一条 VT，用完即终止
+2026-11-28 02:20:50,322[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:218I-PR-1: workerPool.keepAliveTime=1MINUTES 被忽略——虚拟线程车道无 idle 回收，VT 不缓存不复用
+2026-11-28 02:20:50,323[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:220I-PR-1: workerPool.maxPendingLimit=65535 被忽略——虚拟线程车道无队列；真正界住并发的是 workerPool.maxPoolSize=1024（准入许可数）与 workerPool.admitTimeoutMillis=200（准入等待上限，超时即 MYCAT-3007）
+2026-11-28 02:20:50,323[WARN]io.mycat.MycatCore.warnIgnoredPoolKnobs:223I-PR-1: timeWorkerPool 整段被忽略（corePoolSize=0, maxPoolSize=2）——无队列、无 core、无 idle 回收，该配置当前无消费点
+2026-11-28 02:20:50,501[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:161-Dio.netty.allocator.numHeapArenas: 24
+2026-11-28 02:20:50,503[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:162-Dio.netty.allocator.numDirectArenas: 24
+2026-11-28 02:20:50,504[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:164-Dio.netty.allocator.pageSize: 8192
+2026-11-28 02:20:50,506[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:169-Dio.netty.allocator.maxOrder: 9
+2026-11-28 02:20:50,508[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:173-Dio.netty.allocator.chunkSize: 4194304
+2026-11-28 02:20:50,531[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:174-Dio.netty.allocator.smallCacheSize: 256
+2026-11-28 02:20:50,533[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:175-Dio.netty.allocator.normalCacheSize: 64
+2026-11-28 02:20:50,534[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:176-Dio.netty.allocator.maxCachedBufferCapacity: 32768
+2026-11-28 02:20:50,536[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:177-Dio.netty.allocator.cacheTrimInterval: 8192
+2026-11-28 02:20:50,537[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:178-Dio.netty.allocator.cacheTrimIntervalMillis: 0
+2026-11-28 02:20:50,538[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:179-Dio.netty.allocator.useCacheForAllThreads: false
+2026-11-28 02:20:50,539[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:180-Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+2026-11-28 02:20:50,541[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:182-Dio.netty.allocator.disableCacheFinalizersForFastThreadLocalThreads: false
+2026-11-28 02:20:50,583[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:84-Dio.netty.processId: 27936 (auto-detected)
+2026-11-28 02:20:50,586[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:106-Dio.netty.machineId: 90:2e:16:ff:fe:e0:98:1c (auto-detected)
+2026-11-28 02:20:50,596[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:89-Dio.netty.allocator.type: pooled
+2026-11-28 02:20:50,606[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:101-Dio.netty.threadLocalDirectBufferSize: 0
+2026-11-28 02:20:50,606[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:104-Dio.netty.maxThreadLocalCharBufferSize: 16384
+2026-11-28 02:20:50,611[DEBUG]io.netty.bootstrap.ChannelInitializerExtensions.getExtensions:54-Dio.netty.bootstrap.extensions: null
+2026-11-28 02:20:50,777[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:591{
+  "schemas" : [ ],
+  "clusters" : [ ],
+  "datasources" : [ ],
+  "users" : [ ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-28 02:20:50,796[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:592===========================================change to ===========================================
+2026-11-28 02:20:50,824[DEBUG]io.mycat.config.MycatRouterConfigOps.commit:593{
+  "schemas" : [ {
+    "schemaName" : "db1",
+    "targetName" : null,
+    "shardingTables" : { },
+    "globalTables" : { },
+    "normalTables" : { },
+    "customTables" : { },
+    "normalProcedures" : { },
+    "views" : { }
+  } ],
+  "clusters" : [ {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "c0",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  }, {
+    "clusterType" : "MASTER_SLAVE",
+    "switchType" : "SWITCH",
+    "readBalanceType" : "BALANCE_ALL",
+    "name" : "prototype",
+    "readBalanceName" : null,
+    "writeBalanceName" : null,
+    "masters" : [ "prototypeDs" ],
+    "replicas" : [ ],
+    "heartbeat" : {
+      "maxRetryCount" : 3,
+      "minSwitchTimeInterval" : 300,
+      "heartbeatTimeout" : 1000,
+      "slaveThreshold" : 0.0,
+      "showLog" : false
+    },
+    "maxCon" : 200,
+    "timer" : null
+  } ],
+  "datasources" : [ {
+    "name" : "prototypeDs",
+    "user" : "root",
+    "password":"******",
+    "maxCon" : 1000,
+    "minCon" : 1,
+    "maxRetryCount" : 5,
+    "maxConnectTimeout" : 30000,
+    "dbType" : "mysql",
+    "url" : "jdbc:mysql://localhost:3306/mysql?password=123456&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&autoReconnect=true&username=root&useSSL=false",
+    "weight" : 0,
+    "initSqls" : [ ],
+    "initSqlsGetConnection" : true,
+    "instanceType" : "READ_WRITE",
+    "idleTimeout" : 60000,
+    "jdbcDriverClass" : null,
+    "type" : "JDBC",
+    "queryTimeout" : 0,
+    "statementTimeout" : 30000,
+    "removeAbandoned" : false,
+    "removeAbandonedTimeoutSecond" : 180,
+    "logAbandoned" : true
+  } ],
+  "users" : [ {
+    "username" : "root",
+    "password":"******",
+    "ip" : null,
+    "transactionType" : "proxy",
+    "dialect" : "mysql",
+    "schema" : null,
+    "isolation" : 3,
+    "readOnly" : false,
+    "loginLimit" : -1,
+    "encryptType" : "",
+    "encodeKey" : "",
+    "role" : null,
+    "admin" : true
+  } ],
+  "sequences" : [ ],
+  "sqlCacheConfigs" : [ ],
+  "prototype" : "prototype"
+}
+2026-11-28 02:20:52,870[INFO]com.alibaba.druid.pool.DruidDataSource.init:865{dataSource-1} inited
+2026-11-28 02:20:53,097[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.getConnection:159get connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@4db0ba1c ,used count:1 
+2026-11-28 02:20:53,138[DEBUG]io.mycat.datasource.jdbc.datasource.DefaultConnection.close:111close com.alibaba.druid.pool.DruidStatementConnection@133aacbe
+2026-11-28 02:20:53,140[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:194close :io.mycat.datasource.jdbc.datasource.DefaultConnection@4db0ba1c com.alibaba.druid.pool.DruidStatementConnection@133aacbe
+2026-11-28 02:20:53,140[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:214rec connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@4db0ba1c ,used count:0 
+2026-11-28 02:20:53,151[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.getConnection:159get connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@6f96dd64 ,used count:1 
+2026-11-28 02:20:53,196[DEBUG]io.mycat.datasource.jdbc.datasource.DefaultConnection.close:111close com.alibaba.druid.pool.DruidStatementConnection@133aacbe
+2026-11-28 02:20:53,197[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:194close :io.mycat.datasource.jdbc.datasource.DefaultConnection@6f96dd64 com.alibaba.druid.pool.DruidStatementConnection@133aacbe
+2026-11-28 02:20:53,198[DEBUG]io.mycat.datasource.jdbc.datasource.JdbcConnectionManager.closeConnection:214rec connection:prototypeDs pool io.mycat.datasource.jdbc.datasource.DefaultConnection@6f96dd64 ,used count:0 
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server e2bbe471-14b9-4cd6-af08-a194aad61b0c started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server 49f06325-a691-4003-b510-ec2ce3ca327c started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server 4ac1d3d9-2467-4eac-aafa-1a9290b1147b started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server d4f20821-78b8-44dc-84ca-76f83a0616f7 started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server 1e400e53-71e7-490a-bbde-6bb34de1135b started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server b8d5fe0c-a2fc-4f93-a990-c0ce0510ea9d started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server 0b132cc3-7a1c-4d68-b8f1-1c19316329f9 started up.
+2026-11-28 02:20:53,218[INFO]io.mycat.vertx.VertxMycatServer.lambda$start$1:181Mycat Vertx server f0674f16-949b-4993-9187-eb8001191a7b started up.
+2026-11-28 02:20:53,339[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:63-Dio.netty.buffer.checkAccessible: true
+2026-11-28 02:20:53,339[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:64-Dio.netty.buffer.checkBounds: true
+2026-11-28 02:20:53,341[DEBUG]io.netty.util.ResourceLeakDetectorFactory.newResourceLeakDetector:196Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@69da15b3
+2026-11-28 02:20:53,357[DEBUG]io.netty.util.Recycler.<clinit>:96-Dio.netty.recycler.maxCapacityPerThread: 4096
+2026-11-28 02:20:53,357[DEBUG]io.netty.util.Recycler.<clinit>:97-Dio.netty.recycler.ratio: 8
+2026-11-28 02:20:53,357[DEBUG]io.netty.util.Recycler.<clinit>:98-Dio.netty.recycler.chunkSize: 32
+2026-11-28 02:20:53,357[DEBUG]io.netty.util.Recycler.<clinit>:99-Dio.netty.recycler.blocking: false
+2026-11-28 02:20:53,357[DEBUG]io.netty.util.Recycler.<clinit>:100-Dio.netty.recycler.batchFastThreadLocalOnly: true
+2026-11-28 02:20:53,439[ERROR]io.vertx.core.net.impl.ConnectionBase.?:?Connection reset
+java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)
+	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)
+	at io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:151)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-11-28 02:21:09,264[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181select @@version_comment limit 1
+2026-11-28 02:21:10,113[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalSort(fetch=[?0])
+  LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,486[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#0: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#6:LogicalProject]
+2026-11-28 02:21:10,492[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:10,493[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1               8,774
+* Total                                                                        1               8,774
+
+2026-11-28 02:21:10,496[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#8:LogicalSort.NONE.[](input=HepRelVertex#7,fetch=?0)
+2026-11-28 02:21:10,501[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#6:LogicalProject.NONE.[](input=HepRelVertex#5,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-28 02:21:10,502[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:10,509[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:10,510[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:10,513[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#13:LogicalSort.NONE.[](input=HepRelVertex#12,fetch=?0)
+2026-11-28 02:21:10,519[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#11:LogicalProject.NONE.[](input=HepRelVertex#10,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-28 02:21:10,525[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:10,609[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:10,610[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:10,612[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#18:LogicalSort.NONE.[](input=HepRelVertex#17,fetch=?0)
+2026-11-28 02:21:10,612[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#16:LogicalProject.NONE.[](input=HepRelVertex#15,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-28 02:21:10,613[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:10,640[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#1: Apply rule [SortProjectTransposeRule] to [rel#23:LogicalSort,rel#21:LogicalProject]
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#1: Full plan for rule input [rel#23:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#1: Full plan for rule input [rel#21:LogicalProject]: 
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#1: Rule [SortProjectTransposeRule] produced [rel#26:LogicalProject]
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#1: Full plan for [rel#26:LogicalProject]:
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalSort(fetch=[?0])
+    LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:10,658[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+SortProjectTransposeRule                                                       1               5,356
+* Total                                                                        1               5,356
+
+2026-11-28 02:21:10,674[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#28:LogicalProject.NONE.[](input=HepRelVertex#27,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+2026-11-28 02:21:10,674[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#25:LogicalSort.NONE.[](input=HepRelVertex#20,fetch=?0)
+2026-11-28 02:21:10,674[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:10,691[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:10,715[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:10,718[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#0]
+2026-11-28 02:21:10,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#4: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#0:LogicalValues]
+2026-11-28 02:21:10,722[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#37 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:10,722[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#4: Full plan for rule input [rel#0:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,722[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#4: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#37:MycatValues]
+2026-11-28 02:21:10,726[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#4: Full plan for [rel#37:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,739[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#4 generated 1 successors: [rel#37:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:10,739[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:10,739[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatSortRule(in:NONE,out:MYCAT2)] rels [#31]
+2026-11-28 02:21:10,739[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#6: Apply rule [MycatSortRule(in:NONE,out:MYCAT2)] to [rel#31:LogicalSort]
+2026-11-28 02:21:10,758[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#39 via MycatSortRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:10,758[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#6: Full plan for rule input [rel#31:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,758[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#6: Rule [MycatSortRule(in:NONE,out:MYCAT2)] produced [rel#39:MycatMemSort]
+2026-11-28 02:21:10,761[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#6: Full plan for [rel#39:MycatMemSort]:
+MycatMemSort(fetch=[?0])
+  MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,762[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#6 generated 1 successors: [rel#39:MycatMemSort.MYCAT2.[](input=RelSubset#38,fetch=?0)]
+2026-11-28 02:21:10,762[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:10,764[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatTopNRule(in:NONE,out:MYCAT2)] rels [#31]
+2026-11-28 02:21:10,764[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#8: Apply rule [MycatTopNRule(in:NONE,out:MYCAT2)] to [rel#31:LogicalSort]
+2026-11-28 02:21:10,766[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#41 via MycatTopNRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:10,766[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#8: Full plan for rule input [rel#31:LogicalSort]: 
+LogicalSort(fetch=[?0])
+  LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,768[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#8: Rule [MycatTopNRule(in:NONE,out:MYCAT2)] produced [rel#41:MycatTopN]
+2026-11-28 02:21:10,769[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#8: Full plan for [rel#41:MycatTopN]:
+MycatTopN(fetch=[?0])
+  MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,769[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#8 generated 1 successors: [rel#41:MycatTopN.MYCAT2.[](input=RelSubset#38,fetch=?0)]
+2026-11-28 02:21:10,769[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:10,772[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#33]
+2026-11-28 02:21:10,772[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#10: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#33:LogicalProject]
+2026-11-28 02:21:10,797[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#42 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:10,799[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#10: Full plan for rule input [rel#33:LogicalProject]: 
+LogicalProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  LogicalSort(subset=[rel#32:RelSubset#1.NONE.[]], fetch=[?0])
+    LogicalValues(subset=[rel#30:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,799[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#10: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#42:MycatProject]
+2026-11-28 02:21:10,799[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#10: Full plan for [rel#42:MycatProject]:
+MycatProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  MycatMemSort(subset=[rel#40:RelSubset#1.MYCAT2.[]], fetch=[?0])
+    MycatValues(subset=[rel#38:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:10,802[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#10 generated 1 successors: [rel#42:MycatProject.MYCAT2.[](input=RelSubset#40,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])]
+2026-11-28 02:21:10,802[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {3.0 rows, 18.0 cpu, 0.0 io}
+2026-11-28 02:21:10,802[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:10,839[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1              30,529
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1              28,163
+MycatSortRule(in:NONE,out:MYCAT2)                                              1              15,264
+MycatTopNRule(in:NONE,out:MYCAT2)                                              1               6,232
+* Total                                                                        4              80,188
+
+2026-11-28 02:21:10,848[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(@@version_comment=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')]): rowcount = 1.0, cumulative cost = {3.0 rows, 18.0 cpu, 0.0 io}, id = 44
+  MycatMemSort(fetch=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 17.0 cpu, 0.0 io}, id = 43
+    MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 37
+
+2026-11-28 02:21:10,855[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#44:MycatProject.MYCAT2.[](input=MycatMemSort#43,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+  direct
+    rel#42:MycatProject.MYCAT2.[](input=RelSubset#40,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+      call#10 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#33:LogicalProject.NONE.[](input=RelSubset#32,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'version_comment')])
+          no parent
+rel#43:MycatMemSort.MYCAT2.[](input=MycatValues#37,fetch=?0)
+  direct
+    rel#39:MycatMemSort.MYCAT2.[](input=RelSubset#38,fetch=?0)
+      call#6 rule [MycatSortRule(in:NONE,out:MYCAT2)]
+        rel#31:LogicalSort.NONE.[](input=RelSubset#30,fetch=?0)
+          no parent
+rel#37:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#4 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#0:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:10,938[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:10,938[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final java.util.Comparator comparator = new java.util.Comparator(){
+    public int compare(Long v0, Long v1) {
+      int c;
+      return 0;
+    }
+
+    public int compare(Object o0, Object o1) {
+      return this.compare((Long) o0, (Long) o1);
+    }
+
+  };
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.EnumerableDefaults.orderBy(org.apache.calcite.util.RxBuiltInMethodImpl.toEnumerable(org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)})), org.apache.calcite.linq4j.function.Functions.identitySelector(), comparator, 0, (Integer) root.get("?0"));
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return root.getSessionVariable("version_comment") == null ? null : root.getSessionVariable("version_comment").toString();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-28 02:21:10,949[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final java.util.Comparator comparator = new java.util.Comparator(){
+    public int compare(Long v0, Long v1) {
+      int c;
+      return 0;
+    }
+
+    public int compare(Object o0, Object o1) {
+      return this.compare((Long) o0, (Long) o1);
+    }
+
+  };
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.EnumerableDefaults.orderBy(org.apache.calcite.util.RxBuiltInMethodImpl.toEnumerable(org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)})), org.apache.calcite.linq4j.function.Functions.identitySelector(), comparator, 0, (Integer) root.get("?0"));
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return root.getSessionVariable("version_comment") == null ? null : root.getSessionVariable("version_comment").toString();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-28 02:21:11,048[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181select version()
+2026-11-28 02:21:11,073[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(version()=[VERSION()])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:11,088[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#11: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#50:LogicalProject]
+2026-11-28 02:21:11,088[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:11,090[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 880
+* Total                                                                        1                 880
+
+2026-11-28 02:21:11,090[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#50:LogicalProject.NONE.[](input=HepRelVertex#49,exprs=[VERSION()])
+2026-11-28 02:21:11,090[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:11,092[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:11,092[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:11,092[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#53:LogicalProject.NONE.[](input=HepRelVertex#52,exprs=[VERSION()])
+2026-11-28 02:21:11,092[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#56:LogicalProject.NONE.[](input=HepRelVertex#55,exprs=[VERSION()])
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#59:LogicalProject.NONE.[](input=HepRelVertex#58,exprs=[VERSION()])
+2026-11-28 02:21:11,095[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:11,095[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:11,114[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:11,114[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#46]
+2026-11-28 02:21:11,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#14: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#46:LogicalValues]
+2026-11-28 02:21:11,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#66 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:11,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#14: Full plan for rule input [rel#46:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:11,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#14: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#66:MycatValues]
+2026-11-28 02:21:11,139[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#14: Full plan for [rel#66:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#14 generated 1 successors: [rel#66:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#62]
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#16: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#62:LogicalProject]
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#68 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:11,156[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#16: Full plan for rule input [rel#62:LogicalProject]: 
+LogicalProject(version()=[VERSION()])
+  LogicalValues(subset=[rel#61:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:11,170[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#16: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#68:MycatProject]
+2026-11-28 02:21:11,170[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#16: Full plan for [rel#68:MycatProject]:
+MycatProject(version()=[VERSION()])
+  MycatValues(subset=[rel#67:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:11,172[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#16 generated 1 successors: [rel#68:MycatProject.MYCAT2.[](input=RelSubset#67,exprs=[VERSION()])]
+2026-11-28 02:21:11,173[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-28 02:21:11,173[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:11,173[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1              17,441
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               5,302
+* Total                                                                        2              22,743
+
+2026-11-28 02:21:11,180[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(version()=[VERSION()]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 69
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 66
+
+2026-11-28 02:21:11,233[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#69:MycatProject.MYCAT2.[](input=MycatValues#66,exprs=[VERSION()])
+  direct
+    rel#68:MycatProject.MYCAT2.[](input=RelSubset#67,exprs=[VERSION()])
+      call#16 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#62:LogicalProject.NONE.[](input=RelSubset#61,exprs=[VERSION()])
+          no parent
+rel#66:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#14 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#46:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:11,249[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:11,249[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunction.version();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-28 02:21:11,249[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return io.mycat.calcite.sqlfunction.infofunction.MycatVersionFunction.version();
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+
+
+
+2026-11-28 02:21:11,280[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@62cfed7a is closing
+2026-11-28 02:21:33,831[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181/* mysql-connector-j-9.3.0 (Revision: 20ef8ee9eb4294a03858acccea0ddad3525f1ff9) */SELECT  @@session.auto_increment_increment AS auto_increment_increment, @@character_set_client AS character_set_client, @@character_set_connection AS character_set_connection, @@character_set_results AS character_set_results, @@character_set_server AS character_set_server, @@collation_server AS collation_server, @@collation_connection AS collation_connection, @@init_connect AS init_connect, @@interactive_timeout AS interactive_timeout, @@license AS license, @@lower_case_table_names AS lower_case_table_names, @@max_allowed_packet AS max_allowed_packet, @@net_write_timeout AS net_write_timeout, @@performance_schema AS performance_schema, @@sql_mode AS sql_mode, @@system_time_zone AS system_time_zone, @@time_zone AS time_zone, @@transaction_isolation AS transaction_isolation, @@wait_timeout AS wait_timeout
+2026-11-28 02:21:33,870[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(auto_increment_increment=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment')], character_set_client=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client')], character_set_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection')], character_set_results=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results')], character_set_server=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server')], collation_server=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_server')], collation_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection')], init_connect=[MYCATSESSION_STRING_VALUE(_UTF-8'init_connect')], interactive_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout')], license=[MYCATSESSION_STRING_VALUE(_UTF-8'license')], lower_case_table_names=[MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names')], max_allowed_packet=[MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet')], net_write_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout')], performance_schema=[MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')], system_time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone')], time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'time_zone')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], wait_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:33,870[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#17: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#75:LogicalProject]
+2026-11-28 02:21:33,870[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:33,870[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 706
+* Total                                                                        1                 706
+
+2026-11-28 02:21:33,870[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#75:LogicalProject.NONE.[](input=HepRelVertex#74,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+2026-11-28 02:21:33,876[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:33,878[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:33,878[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:33,878[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#78:LogicalProject.NONE.[](input=HepRelVertex#77,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+2026-11-28 02:21:33,880[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#81:LogicalProject.NONE.[](input=HepRelVertex#80,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#84:LogicalProject.NONE.[](input=HepRelVertex#83,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:33,882[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#71]
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#20: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#71:LogicalValues]
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#91 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#20: Full plan for rule input [rel#71:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#20: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#91:MycatValues]
+2026-11-28 02:21:33,882[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#20: Full plan for [rel#91:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:33,895[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#20 generated 1 successors: [rel#91:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:33,895[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:33,895[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#87]
+2026-11-28 02:21:33,895[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#22: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#87:LogicalProject]
+2026-11-28 02:21:33,895[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#93 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:33,899[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#22: Full plan for rule input [rel#87:LogicalProject]: 
+LogicalProject(auto_increment_increment=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment')], character_set_client=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client')], character_set_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection')], character_set_results=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results')], character_set_server=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server')], collation_server=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_server')], collation_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection')], init_connect=[MYCATSESSION_STRING_VALUE(_UTF-8'init_connect')], interactive_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout')], license=[MYCATSESSION_STRING_VALUE(_UTF-8'license')], lower_case_table_names=[MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names')], max_allowed_packet=[MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet')], net_write_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout')], performance_schema=[MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')], system_time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone')], time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'time_zone')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], wait_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+  LogicalValues(subset=[rel#86:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:33,899[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#22: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#93:MycatProject]
+2026-11-28 02:21:33,899[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#22: Full plan for [rel#93:MycatProject]:
+MycatProject(auto_increment_increment=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment')], character_set_client=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client')], character_set_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection')], character_set_results=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results')], character_set_server=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server')], collation_server=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_server')], collation_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection')], init_connect=[MYCATSESSION_STRING_VALUE(_UTF-8'init_connect')], interactive_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout')], license=[MYCATSESSION_STRING_VALUE(_UTF-8'license')], lower_case_table_names=[MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names')], max_allowed_packet=[MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet')], net_write_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout')], performance_schema=[MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')], system_time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone')], time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'time_zone')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], wait_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+  MycatValues(subset=[rel#92:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#22 generated 1 successors: [rel#93:MycatProject.MYCAT2.[](input=RelSubset#92,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])]
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 20.0 cpu, 0.0 io}
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               6,389
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               4,695
+* Total                                                                        2              11,084
+
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(auto_increment_increment=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment')], character_set_client=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client')], character_set_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection')], character_set_results=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results')], character_set_server=[MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server')], collation_server=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_server')], collation_connection=[MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection')], init_connect=[MYCATSESSION_STRING_VALUE(_UTF-8'init_connect')], interactive_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout')], license=[MYCATSESSION_STRING_VALUE(_UTF-8'license')], lower_case_table_names=[MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names')], max_allowed_packet=[MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet')], net_write_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout')], performance_schema=[MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')], system_time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone')], time_zone=[MYCATSESSION_STRING_VALUE(_UTF-8'time_zone')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], wait_timeout=[MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')]): rowcount = 1.0, cumulative cost = {2.0 rows, 20.0 cpu, 0.0 io}, id = 94
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 91
+
+2026-11-28 02:21:33,903[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#94:MycatProject.MYCAT2.[](input=MycatValues#91,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+  direct
+    rel#93:MycatProject.MYCAT2.[](input=RelSubset#92,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+      call#22 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#87:LogicalProject.NONE.[](input=RelSubset#86,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'auto_increment_increment'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_client'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_results'), MYCATSESSION_STRING_VALUE(_UTF-8'character_set_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_server'), MYCATSESSION_STRING_VALUE(_UTF-8'collation_connection'), MYCATSESSION_STRING_VALUE(_UTF-8'init_connect'), MYCATSESSION_STRING_VALUE(_UTF-8'interactive_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'license'), MYCATSESSION_STRING_VALUE(_UTF-8'lower_case_table_names'), MYCATSESSION_INT_VALUE(_UTF-8'max_allowed_packet'), MYCATSESSION_STRING_VALUE(_UTF-8'net_write_timeout'), MYCATSESSION_STRING_VALUE(_UTF-8'performance_schema'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode'), MYCATSESSION_STRING_VALUE(_UTF-8'system_time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'time_zone'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'wait_timeout')])
+          no parent
+rel#91:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#20 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#71:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:33,928[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:33,928[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  root.getSessionVariable("auto_increment_increment") == null ? null : root.getSessionVariable("auto_increment_increment").toString(),
+                  root.getSessionVariable("character_set_client") == null ? null : root.getSessionVariable("character_set_client").toString(),
+                  root.getSessionVariable("character_set_connection") == null ? null : root.getSessionVariable("character_set_connection").toString(),
+                  root.getSessionVariable("character_set_results") == null ? null : root.getSessionVariable("character_set_results").toString(),
+                  root.getSessionVariable("character_set_server") == null ? null : root.getSessionVariable("character_set_server").toString(),
+                  root.getSessionVariable("collation_server") == null ? null : root.getSessionVariable("collation_server").toString(),
+                  root.getSessionVariable("collation_connection") == null ? null : root.getSessionVariable("collation_connection").toString(),
+                  root.getSessionVariable("init_connect") == null ? null : root.getSessionVariable("init_connect").toString(),
+                  root.getSessionVariable("interactive_timeout") == null ? null : root.getSessionVariable("interactive_timeout").toString(),
+                  root.getSessionVariable("license") == null ? null : root.getSessionVariable("license").toString(),
+                  root.getSessionVariable("lower_case_table_names") == null ? null : root.getSessionVariable("lower_case_table_names").toString(),
+                  org.apache.calcite.runtime.SqlFunctions.toLong(root.getSessionVariable("max_allowed_packet")),
+                  root.getSessionVariable("net_write_timeout") == null ? null : root.getSessionVariable("net_write_timeout").toString(),
+                  root.getSessionVariable("performance_schema") == null ? null : root.getSessionVariable("performance_schema").toString(),
+                  root.getSessionVariable("sql_mode") == null ? null : root.getSessionVariable("sql_mode").toString(),
+                  root.getSessionVariable("system_time_zone") == null ? null : root.getSessionVariable("system_time_zone").toString(),
+                  root.getSessionVariable("time_zone") == null ? null : root.getSessionVariable("time_zone").toString(),
+                  root.getSessionVariable("transaction_isolation") == null ? null : root.getSessionVariable("transaction_isolation").toString(),
+                  root.getSessionVariable("wait_timeout") == null ? null : root.getSessionVariable("wait_timeout").toString()};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:33,930[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  root.getSessionVariable("auto_increment_increment") == null ? null : root.getSessionVariable("auto_increment_increment").toString(),
+                  root.getSessionVariable("character_set_client") == null ? null : root.getSessionVariable("character_set_client").toString(),
+                  root.getSessionVariable("character_set_connection") == null ? null : root.getSessionVariable("character_set_connection").toString(),
+                  root.getSessionVariable("character_set_results") == null ? null : root.getSessionVariable("character_set_results").toString(),
+                  root.getSessionVariable("character_set_server") == null ? null : root.getSessionVariable("character_set_server").toString(),
+                  root.getSessionVariable("collation_server") == null ? null : root.getSessionVariable("collation_server").toString(),
+                  root.getSessionVariable("collation_connection") == null ? null : root.getSessionVariable("collation_connection").toString(),
+                  root.getSessionVariable("init_connect") == null ? null : root.getSessionVariable("init_connect").toString(),
+                  root.getSessionVariable("interactive_timeout") == null ? null : root.getSessionVariable("interactive_timeout").toString(),
+                  root.getSessionVariable("license") == null ? null : root.getSessionVariable("license").toString(),
+                  root.getSessionVariable("lower_case_table_names") == null ? null : root.getSessionVariable("lower_case_table_names").toString(),
+                  org.apache.calcite.runtime.SqlFunctions.toLong(root.getSessionVariable("max_allowed_packet")),
+                  root.getSessionVariable("net_write_timeout") == null ? null : root.getSessionVariable("net_write_timeout").toString(),
+                  root.getSessionVariable("performance_schema") == null ? null : root.getSessionVariable("performance_schema").toString(),
+                  root.getSessionVariable("sql_mode") == null ? null : root.getSessionVariable("sql_mode").toString(),
+                  root.getSessionVariable("system_time_zone") == null ? null : root.getSessionVariable("system_time_zone").toString(),
+                  root.getSessionVariable("time_zone") == null ? null : root.getSessionVariable("time_zone").toString(),
+                  root.getSessionVariable("transaction_isolation") == null ? null : root.getSessionVariable("transaction_isolation").toString(),
+                  root.getSessionVariable("wait_timeout") == null ? null : root.getSessionVariable("wait_timeout").toString()};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:33,971[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=1
+2026-11-28 02:21:34,021[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:34,030[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(?=[?0])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#23: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#101:LogicalProject]
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 999
+* Total                                                                        1                 999
+
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#101:LogicalProject.NONE.[](input=HepRelVertex#100,exprs=[?0])
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#96:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#104:LogicalProject.NONE.[](input=HepRelVertex#103,exprs=[?0])
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#96:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,031[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,043[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,043[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#107:LogicalProject.NONE.[](input=HepRelVertex#106,exprs=[?0])
+2026-11-28 02:21:34,043[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#96:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#110:LogicalProject.NONE.[](input=HepRelVertex#109,exprs=[?0])
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#96:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,046[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#96]
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#26: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#96:LogicalValues]
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#117 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#26: Full plan for rule input [rel#96:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#26: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#117:MycatValues]
+2026-11-28 02:21:34,046[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#26: Full plan for [rel#117:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,057[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#26 generated 1 successors: [rel#117:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:34,057[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,059[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#113]
+2026-11-28 02:21:34,059[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#28: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#113:LogicalProject]
+2026-11-28 02:21:34,059[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#119 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,061[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#28: Full plan for rule input [rel#113:LogicalProject]: 
+LogicalProject(1=[?0])
+  LogicalValues(subset=[rel#112:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,061[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#28: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#119:MycatProject]
+2026-11-28 02:21:34,061[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#28: Full plan for [rel#119:MycatProject]:
+MycatProject(1=[?0])
+  MycatValues(subset=[rel#118:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,061[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#28 generated 1 successors: [rel#119:MycatProject.MYCAT2.[](input=RelSubset#118,exprs=[?0])]
+2026-11-28 02:21:34,061[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-28 02:21:34,066[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,066[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               5,772
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               5,267
+* Total                                                                        2              11,039
+
+2026-11-28 02:21:34,066[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(1=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 120
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 117
+
+2026-11-28 02:21:34,066[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#120:MycatProject.MYCAT2.[](input=MycatValues#117,exprs=[?0])
+  direct
+    rel#119:MycatProject.MYCAT2.[](input=RelSubset#118,exprs=[?0])
+      call#28 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#113:LogicalProject.NONE.[](input=RelSubset#112,exprs=[?0])
+          no parent
+rel#117:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#26 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#96:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:34,066[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,066[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,066[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,160[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@1faa6e99 is closing
+2026-11-28 02:21:34,174[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181/* mysql-connector-j-9.3.0 (Revision: 20ef8ee9eb4294a03858acccea0ddad3525f1ff9) */SELECT  @@session.auto_increment_increment AS auto_increment_increment, @@character_set_client AS character_set_client, @@character_set_connection AS character_set_connection, @@character_set_results AS character_set_results, @@character_set_server AS character_set_server, @@collation_server AS collation_server, @@collation_connection AS collation_connection, @@init_connect AS init_connect, @@interactive_timeout AS interactive_timeout, @@license AS license, @@lower_case_table_names AS lower_case_table_names, @@max_allowed_packet AS max_allowed_packet, @@net_write_timeout AS net_write_timeout, @@performance_schema AS performance_schema, @@sql_mode AS sql_mode, @@system_time_zone AS system_time_zone, @@time_zone AS time_zone, @@transaction_isolation AS transaction_isolation, @@wait_timeout AS wait_timeout
+2026-11-28 02:21:34,189[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=1
+2026-11-28 02:21:34,208[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,213[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT null AS `值`
+2026-11-28 02:21:34,226[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalValues(tuples=[[{ null }]])
+
+2026-11-28 02:21:34,228[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,230[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,232[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#123:LogicalValues.NONE.[0](type=RecordType(NULL 值),tuples=[{ null }])
+2026-11-28 02:21:34,233[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,233[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,239[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#123:LogicalValues.NONE.[0](type=RecordType(NULL 值),tuples=[{ null }])
+2026-11-28 02:21:34,241[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,241[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,243[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#123:LogicalValues.NONE.[0](type=RecordType(NULL 值),tuples=[{ null }])
+2026-11-28 02:21:34,245[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,245[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,247[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#123:LogicalValues.NONE.[0](type=RecordType(NULL 值),tuples=[{ null }])
+2026-11-28 02:21:34,249[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#123]
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#30: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#123:LogicalValues]
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#130 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#30: Full plan for rule input [rel#123:LogicalValues]: 
+LogicalValues(tuples=[[{ null }]])
+
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#30: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#130:MycatValues]
+2026-11-28 02:21:34,249[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#30: Full plan for [rel#130:MycatValues]:
+MycatValues(tuples=[[{ null }]])
+
+2026-11-28 02:21:34,258[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#30 generated 1 successors: [rel#130:MycatValues.MYCAT2.[0](type=RecordType(NULL 值),tuples=[{ null }])]
+2026-11-28 02:21:34,258[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {1.0 rows, 1.0 cpu, 0.0 io}
+2026-11-28 02:21:34,260[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,260[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               5,745
+* Total                                                                        1               5,745
+
+2026-11-28 02:21:34,262[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatValues(tuples=[[{ null }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 130
+
+2026-11-28 02:21:34,264[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#130:MycatValues.MYCAT2.[0](type=RecordType(NULL 值),tuples=[{ null }])
+  call#30 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#123:LogicalValues.NONE.[0](type=RecordType(NULL 值),tuples=[{ null }])
+      no parent
+
+2026-11-28 02:21:34,266[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,266[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  return org.apache.calcite.linq4j.Linq4j.asEnumerable(new Void[] {
+      null});
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Void.class;
+}
+
+
+
+2026-11-28 02:21:34,268[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  return org.apache.calcite.linq4j.Linq4j.asEnumerable(new Void[] {
+      null});
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Void.class;
+}
+
+
+
+2026-11-28 02:21:34,281[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,285[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 7 AS `值`
+2026-11-28 02:21:34,291[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(值=[?0])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,292[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#31: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#136:LogicalProject]
+2026-11-28 02:21:34,294[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,294[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 916
+* Total                                                                        1                 916
+
+2026-11-28 02:21:34,294[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#136:LogicalProject.NONE.[](input=HepRelVertex#135,exprs=[?0])
+2026-11-28 02:21:34,294[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#132:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,299[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,299[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,299[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#139:LogicalProject.NONE.[](input=HepRelVertex#138,exprs=[?0])
+2026-11-28 02:21:34,304[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#132:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,306[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,306[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,308[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#142:LogicalProject.NONE.[](input=HepRelVertex#141,exprs=[?0])
+2026-11-28 02:21:34,308[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#132:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,310[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,310[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,312[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#145:LogicalProject.NONE.[](input=HepRelVertex#144,exprs=[?0])
+2026-11-28 02:21:34,312[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#132:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,315[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,316[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,318[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#132]
+2026-11-28 02:21:34,318[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#34: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#132:LogicalValues]
+2026-11-28 02:21:34,318[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#152 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,318[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#34: Full plan for rule input [rel#132:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,318[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#34: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#152:MycatValues]
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#34: Full plan for [rel#152:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#34 generated 1 successors: [rel#152:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#148]
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#36: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#148:LogicalProject]
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#154 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,323[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#36: Full plan for rule input [rel#148:LogicalProject]: 
+LogicalProject(值=[?0])
+  LogicalValues(subset=[rel#147:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,330[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#36: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#154:MycatProject]
+2026-11-28 02:21:34,331[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#36: Full plan for [rel#154:MycatProject]:
+MycatProject(值=[?0])
+  MycatValues(subset=[rel#153:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,331[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#36 generated 1 successors: [rel#154:MycatProject.MYCAT2.[](input=RelSubset#153,exprs=[?0])]
+2026-11-28 02:21:34,334[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-28 02:21:34,336[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,336[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               7,180
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               6,014
+* Total                                                                        2              13,194
+
+2026-11-28 02:21:34,338[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(值=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 155
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 152
+
+2026-11-28 02:21:34,338[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#155:MycatProject.MYCAT2.[](input=MycatValues#152,exprs=[?0])
+  direct
+    rel#154:MycatProject.MYCAT2.[](input=RelSubset#153,exprs=[?0])
+      call#36 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#148:LogicalProject.NONE.[](input=RelSubset#147,exprs=[?0])
+          no parent
+rel#152:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#34 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#132:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:34,342[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,342[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,342[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,359[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,362[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS value, 'x' AS name
+2026-11-28 02:21:34,371[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(value=[?0], name=[?1])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,373[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#37: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#161:LogicalProject]
+2026-11-28 02:21:34,373[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,373[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 874
+* Total                                                                        1                 874
+
+2026-11-28 02:21:34,377[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#161:LogicalProject.NONE.[](input=HepRelVertex#160,exprs=[?0, ?1])
+2026-11-28 02:21:34,377[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#157:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,379[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,379[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,381[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#164:LogicalProject.NONE.[](input=HepRelVertex#163,exprs=[?0, ?1])
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#157:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#167:LogicalProject.NONE.[](input=HepRelVertex#166,exprs=[?0, ?1])
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#157:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#170:LogicalProject.NONE.[](input=HepRelVertex#169,exprs=[?0, ?1])
+2026-11-28 02:21:34,383[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#157:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,393[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,393[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,393[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#157]
+2026-11-28 02:21:34,393[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#40: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#157:LogicalValues]
+2026-11-28 02:21:34,398[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#177 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,402[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#40: Full plan for rule input [rel#157:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,404[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#40: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#177:MycatValues]
+2026-11-28 02:21:34,404[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#40: Full plan for [rel#177:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,404[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#40 generated 1 successors: [rel#177:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:34,404[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,409[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#173]
+2026-11-28 02:21:34,409[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#42: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#173:LogicalProject]
+2026-11-28 02:21:34,409[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#179 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,413[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#42: Full plan for rule input [rel#173:LogicalProject]: 
+LogicalProject(value=[?0], name=[?1])
+  LogicalValues(subset=[rel#172:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#42: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#179:MycatProject]
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#42: Full plan for [rel#179:MycatProject]:
+MycatProject(value=[?0], name=[?1])
+  MycatValues(subset=[rel#178:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#42 generated 1 successors: [rel#179:MycatProject.MYCAT2.[](input=RelSubset#178,exprs=[?0, ?1])]
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 3.0 cpu, 0.0 io}
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,415[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1              11,822
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               7,954
+* Total                                                                        2              19,776
+
+2026-11-28 02:21:34,422[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(value=[?0], name=[?1]): rowcount = 1.0, cumulative cost = {2.0 rows, 3.0 cpu, 0.0 io}, id = 180
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 177
+
+2026-11-28 02:21:34,422[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#180:MycatProject.MYCAT2.[](input=MycatValues#177,exprs=[?0, ?1])
+  direct
+    rel#179:MycatProject.MYCAT2.[](input=RelSubset#178,exprs=[?0, ?1])
+      call#42 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#173:LogicalProject.NONE.[](input=RelSubset#172,exprs=[?0, ?1])
+          no parent
+rel#177:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#40 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#157:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:34,426[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,426[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  (Object) ((Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue())),
+                  (Object) (root.get("?1") == null ? null : root.get("?1").toString())};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:34,428[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  (Object) ((Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue())),
+                  (Object) (root.get("?1") == null ? null : root.get("?1").toString())};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:34,446[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,450[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS value, 'x' AS name
+2026-11-28 02:21:34,457[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,457[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS `中文`
+2026-11-28 02:21:34,467[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(中文=[?0])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,469[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#43: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#186:LogicalProject]
+2026-11-28 02:21:34,469[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,471[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 967
+* Total                                                                        1                 967
+
+2026-11-28 02:21:34,471[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#186:LogicalProject.NONE.[](input=HepRelVertex#185,exprs=[?0])
+2026-11-28 02:21:34,473[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#182:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,473[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,475[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,475[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#189:LogicalProject.NONE.[](input=HepRelVertex#188,exprs=[?0])
+2026-11-28 02:21:34,475[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#182:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,477[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,479[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,480[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#192:LogicalProject.NONE.[](input=HepRelVertex#191,exprs=[?0])
+2026-11-28 02:21:34,481[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#182:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,481[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,481[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,481[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#195:LogicalProject.NONE.[](input=HepRelVertex#194,exprs=[?0])
+2026-11-28 02:21:34,481[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#182:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,486[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,488[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,488[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#182]
+2026-11-28 02:21:34,490[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#46: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#182:LogicalValues]
+2026-11-28 02:21:34,490[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#202 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,492[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#46: Full plan for rule input [rel#182:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,492[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#46: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#202:MycatValues]
+2026-11-28 02:21:34,492[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#46: Full plan for [rel#202:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,494[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#46 generated 1 successors: [rel#202:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:34,496[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,496[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#198]
+2026-11-28 02:21:34,496[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#48: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#198:LogicalProject]
+2026-11-28 02:21:34,498[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#204 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,500[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#48: Full plan for rule input [rel#198:LogicalProject]: 
+LogicalProject(中文=[?0])
+  LogicalValues(subset=[rel#197:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,500[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#48: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#204:MycatProject]
+2026-11-28 02:21:34,502[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#48: Full plan for [rel#204:MycatProject]:
+MycatProject(中文=[?0])
+  MycatValues(subset=[rel#203:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,504[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#48 generated 1 successors: [rel#204:MycatProject.MYCAT2.[](input=RelSubset#203,exprs=[?0])]
+2026-11-28 02:21:34,504[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-28 02:21:34,506[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,506[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               7,184
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               5,704
+* Total                                                                        2              12,888
+
+2026-11-28 02:21:34,508[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(中文=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 205
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 202
+
+2026-11-28 02:21:34,510[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#205:MycatProject.MYCAT2.[](input=MycatValues#202,exprs=[?0])
+  direct
+    rel#204:MycatProject.MYCAT2.[](input=RelSubset#203,exprs=[?0])
+      call#48 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#198:LogicalProject.NONE.[](input=RelSubset#197,exprs=[?0])
+          no parent
+rel#202:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#46 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#182:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:34,512[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,514[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,516[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:34,531[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,535[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS `中文`
+2026-11-28 02:21:34,540[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@24066c6e is closing
+2026-11-28 02:21:34,555[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181/* mysql-connector-j-9.3.0 (Revision: 20ef8ee9eb4294a03858acccea0ddad3525f1ff9) */SELECT  @@session.auto_increment_increment AS auto_increment_increment, @@character_set_client AS character_set_client, @@character_set_connection AS character_set_connection, @@character_set_results AS character_set_results, @@character_set_server AS character_set_server, @@collation_server AS collation_server, @@collation_connection AS collation_connection, @@init_connect AS init_connect, @@interactive_timeout AS interactive_timeout, @@license AS license, @@lower_case_table_names AS lower_case_table_names, @@max_allowed_packet AS max_allowed_packet, @@net_write_timeout AS net_write_timeout, @@performance_schema AS performance_schema, @@sql_mode AS sql_mode, @@system_time_zone AS system_time_zone, @@time_zone AS time_zone, @@transaction_isolation AS transaction_isolation, @@wait_timeout AS wait_timeout
+2026-11-28 02:21:34,561[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=1
+2026-11-28 02:21:34,565[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,569[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT null AS `值`
+2026-11-28 02:21:34,572[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,577[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 7 AS `值`
+2026-11-28 02:21:34,587[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,587[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS value, 'x' AS name
+2026-11-28 02:21:34,596[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,602[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS value, 'x' AS name
+2026-11-28 02:21:34,610[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=1
+2026-11-28 02:21:34,613[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS `中文`
+2026-11-28 02:21:34,620[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET sql_select_limit=DEFAULT
+2026-11-28 02:21:34,624[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1 AS `中文`
+2026-11-28 02:21:34,631[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@67a312c4 is closing
+2026-11-28 02:21:34,640[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181/* mysql-connector-j-9.3.0 (Revision: 20ef8ee9eb4294a03858acccea0ddad3525f1ff9) */SELECT  @@session.auto_increment_increment AS auto_increment_increment, @@character_set_client AS character_set_client, @@character_set_connection AS character_set_connection, @@character_set_results AS character_set_results, @@character_set_server AS character_set_server, @@collation_server AS collation_server, @@collation_connection AS collation_connection, @@init_connect AS init_connect, @@interactive_timeout AS interactive_timeout, @@license AS license, @@lower_case_table_names AS lower_case_table_names, @@max_allowed_packet AS max_allowed_packet, @@net_write_timeout AS net_write_timeout, @@performance_schema AS performance_schema, @@sql_mode AS sql_mode, @@system_time_zone AS system_time_zone, @@time_zone AS time_zone, @@transaction_isolation AS transaction_isolation, @@wait_timeout AS wait_timeout
+2026-11-28 02:21:34,650[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=1
+2026-11-28 02:21:34,651[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=0
+2026-11-28 02:21:34,658[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE
+2026-11-28 02:21:34,658[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET SESSION sql_mode = 'ANSI'
+2026-11-28 02:21:34,677[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET NAMES utf8mb4
+2026-11-28 02:21:34,683[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET character_set_results = NULL
+2026-11-28 02:21:34,685[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET autocommit=1
+2026-11-28 02:21:34,685[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT @@SESSION.autocommit, @@SESSION.transaction_isolation, @@SESSION.sql_mode
+2026-11-28 02:21:34,695[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(autocommit=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,699[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#49: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#211:LogicalProject]
+2026-11-28 02:21:34,701[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,701[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1               1,488
+* Total                                                                        1               1,488
+
+2026-11-28 02:21:34,703[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#211:LogicalProject.NONE.[](input=HepRelVertex#210,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+2026-11-28 02:21:34,703[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#207:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,705[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#214:LogicalProject.NONE.[](input=HepRelVertex#213,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#207:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#217:LogicalProject.NONE.[](input=HepRelVertex#216,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+2026-11-28 02:21:34,712[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#207:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,712[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:34,712[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,716[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#220:LogicalProject.NONE.[](input=HepRelVertex#219,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+2026-11-28 02:21:34,717[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#207:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:34,718[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:34,718[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,718[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#207]
+2026-11-28 02:21:34,718[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#52: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#207:LogicalValues]
+2026-11-28 02:21:34,718[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#227 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,724[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#52: Full plan for rule input [rel#207:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,724[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#52: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#227:MycatValues]
+2026-11-28 02:21:34,724[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#52: Full plan for [rel#227:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,726[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#52 generated 1 successors: [rel#227:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:34,726[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:34,728[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#223]
+2026-11-28 02:21:34,728[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#54: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#223:LogicalProject]
+2026-11-28 02:21:34,728[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#229 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:34,730[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#54: Full plan for rule input [rel#223:LogicalProject]: 
+LogicalProject(autocommit=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+  LogicalValues(subset=[rel#222:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,730[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#54: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#229:MycatProject]
+2026-11-28 02:21:34,732[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#54: Full plan for [rel#229:MycatProject]:
+MycatProject(autocommit=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+  MycatValues(subset=[rel#228:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:34,734[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#54 generated 1 successors: [rel#229:MycatProject.MYCAT2.[](input=RelSubset#228,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])]
+2026-11-28 02:21:34,735[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 4.0 cpu, 0.0 io}
+2026-11-28 02:21:34,736[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:34,737[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               6,517
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               5,324
+* Total                                                                        2              11,841
+
+2026-11-28 02:21:34,738[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(autocommit=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit')], transaction_isolation=[MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation')], sql_mode=[MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')]): rowcount = 1.0, cumulative cost = {2.0 rows, 4.0 cpu, 0.0 io}, id = 230
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 227
+
+2026-11-28 02:21:34,739[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#230:MycatProject.MYCAT2.[](input=MycatValues#227,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+  direct
+    rel#229:MycatProject.MYCAT2.[](input=RelSubset#228,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+      call#54 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#223:LogicalProject.NONE.[](input=RelSubset#222,exprs=[MYCATSESSION_STRING_VALUE(_UTF-8'autocommit'), MYCATSESSION_STRING_VALUE(_UTF-8'transaction_isolation'), MYCATSESSION_STRING_VALUE(_UTF-8'sql_mode')])
+          no parent
+rel#227:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#52 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#207:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:34,743[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:34,744[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  root.getSessionVariable("autocommit") == null ? null : root.getSessionVariable("autocommit").toString(),
+                  root.getSessionVariable("transaction_isolation") == null ? null : root.getSessionVariable("transaction_isolation").toString(),
+                  root.getSessionVariable("sql_mode") == null ? null : root.getSessionVariable("sql_mode").toString()};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:34,746[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return new Object[] {
+                  root.getSessionVariable("autocommit") == null ? null : root.getSessionVariable("autocommit").toString(),
+                  root.getSessionVariable("transaction_isolation") == null ? null : root.getSessionVariable("transaction_isolation").toString(),
+                  root.getSessionVariable("sql_mode") == null ? null : root.getSessionVariable("sql_mode").toString()};
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Object[].class;
+}
+
+
+
+2026-11-28 02:21:34,760[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@71198b54 is closing
+2026-11-28 02:21:35,614[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET NAMES utf8mb4
+2026-11-28 02:21:35,635[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@35ebdab0 is closing
+2026-11-28 02:21:35,699[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET NAMES utf8mb4
+2026-11-28 02:21:35,699[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT /*+ mycat:MERGE_UNION_SIZE(2) */ 1
+2026-11-28 02:21:35,706[DEBUG]org.apache.calcite.sql2rel.convertQuery:649Plan after converting SqlNode to RelNode
+LogicalProject(?=[?0])
+  LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#55: Apply rule [MycatExistsInSubQueryToSemiJoinRule] to [rel#237:LogicalProject]
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatExistsInSubQueryToSemiJoinRule                                            1                 763
+* Total                                                                        1                 763
+
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#237:LogicalProject.NONE.[](input=HepRelVertex#236,exprs=[?0])
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#232:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#240:LogicalProject.NONE.[](input=HepRelVertex#239,exprs=[?0])
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#232:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:35,707[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:35,714[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:35,715[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#243:LogicalProject.NONE.[](input=HepRelVertex#242,exprs=[?0])
+2026-11-28 02:21:35,715[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#232:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:35,715[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for HepPlanner
+2026-11-28 02:21:35,715[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#246:LogicalProject.NONE.[](input=HepRelVertex#245,exprs=[?0])
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.notifyChosen:423For final plan, using rel#232:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+2026-11-28 02:21:35,719[DEBUG]io.mycat.DrdsSqlCompiler.optimizeWithCBO:526
+Rules                                                                   Attempts           Time (us)
+* Total                                                                        0                   0
+
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatValuesRule(in:NONE,out:MYCAT2)] rels [#232]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#58: Apply rule [MycatValuesRule(in:NONE,out:MYCAT2)] to [rel#232:LogicalValues]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#253 via MycatValuesRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#58: Full plan for rule input [rel#232:LogicalValues]: 
+LogicalValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#58: Rule [MycatValuesRule(in:NONE,out:MYCAT2)] produced [rel#253:MycatValues]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#58: Full plan for [rel#253:MycatValues]:
+MycatValues(tuples=[[{ 0 }]])
+
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#58 generated 1 successors: [rel#253:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {inf}
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.popMatch:135Pop match: rule [MycatProjectRule(in:NONE,out:MYCAT2)] rels [#249]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleAttempted:45call#60: Apply rule [MycatProjectRule(in:NONE,out:MYCAT2)] to [rel#249:LogicalProject]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.transformTo:110Transform to: rel#255 via MycatProjectRule(in:NONE,out:MYCAT2)
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.lambda$ruleProductionSucceeded$1:54call#60: Full plan for rule input [rel#249:LogicalProject]: 
+LogicalProject(1=[?0])
+  LogicalValues(subset=[rel#248:RelSubset#0.NONE.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:60call#60: Rule [MycatProjectRule(in:NONE,out:MYCAT2)] produced [rel#255:MycatProject]
+2026-11-28 02:21:35,719[DEBUG]org.apache.calcite.plan.RelOptPlanner.ruleProductionSucceeded:62call#60: Full plan for [rel#255:MycatProject]:
+MycatProject(1=[?0])
+  MycatValues(subset=[rel#254:RelSubset#0.MYCAT2.[0]], tuples=[[{ 0 }]])
+
+2026-11-28 02:21:35,730[DEBUG]org.apache.calcite.plan.RelOptPlanner.onMatch:232call#60 generated 1 successors: [rel#255:MycatProject.MYCAT2.[](input=RelSubset#254,exprs=[?0])]
+2026-11-28 02:21:35,731[DEBUG]org.apache.calcite.plan.RelOptPlanner.drive:52Best cost before rule match: {2.0 rows, 2.0 cpu, 0.0 io}
+2026-11-28 02:21:35,731[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:325Rule Attempts Info for VolcanoPlanner
+2026-11-28 02:21:35,731[DEBUG]org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary.dumpRuleAttemptsInfo:326
+Rules                                                                   Attempts           Time (us)
+MycatProjectRule(in:NONE,out:MYCAT2)                                           1               4,119
+MycatValuesRule(in:NONE,out:MYCAT2)                                            1               3,224
+* Total                                                                        2               7,343
+
+2026-11-28 02:21:35,731[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:537Cheapest plan:
+MycatProject(1=[?0]): rowcount = 1.0, cumulative cost = {2.0 rows, 2.0 cpu, 0.0 io}, id = 256
+  MycatValues(tuples=[[{ 0 }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 253
+
+2026-11-28 02:21:35,731[DEBUG]org.apache.calcite.plan.RelOptPlanner.findBestExp:541Provenance:
+rel#256:MycatProject.MYCAT2.[](input=MycatValues#253,exprs=[?0])
+  direct
+    rel#255:MycatProject.MYCAT2.[](input=RelSubset#254,exprs=[?0])
+      call#60 rule [MycatProjectRule(in:NONE,out:MYCAT2)]
+        rel#249:LogicalProject.NONE.[](input=RelSubset#248,exprs=[?0])
+          no parent
+rel#253:MycatValues.MYCAT2.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+  call#58 rule [MycatValuesRule(in:NONE,out:MYCAT2)]
+    rel#232:LogicalValues.NONE.[0](type=RecordType(INTEGER ZERO),tuples=[{ 0 }])
+      no parent
+
+2026-11-28 02:21:35,731[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:320----------------------------------------code----------------------------------------
+2026-11-28 02:21:35,731[DEBUG]io.mycat.DrdsExecutorCompiler.getCodeExecuterContext:321public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:35,731[DEBUG]io.mycat.executor.ExecutorProviderImpl.getBindable:131public Object bind(final org.apache.calcite.runtime.NewMycatDataContext root) {
+  final org.apache.calcite.linq4j.Enumerable _inputEnumerable = org.apache.calcite.linq4j.Linq4j.asEnumerable(new Long[] {
+    Long.valueOf(0L)});
+  return new org.apache.calcite.linq4j.AbstractEnumerable(){
+      public org.apache.calcite.linq4j.Enumerator enumerator() {
+        return new org.apache.calcite.linq4j.Enumerator(){
+            public final org.apache.calcite.linq4j.Enumerator inputEnumerator = _inputEnumerable.enumerator();
+            public void reset() {
+              inputEnumerator.reset();
+            }
+
+            public boolean moveNext() {
+              return inputEnumerator.moveNext();
+            }
+
+            public void close() {
+              inputEnumerator.close();
+            }
+
+            public Object current() {
+              return (Number) root.get("?0") == null ? null : Long.valueOf(((Number) root.get("?0")).longValue());
+            }
+
+          };
+      }
+
+    };
+}
+
+
+public boolean isObservable() {
+  return false;
+}
+
+
+public Class getElementType() {
+  return java.lang.Long.class;
+}
+
+
+
+2026-11-28 02:21:35,745[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT /*+ mycat:EXECUTE_TIMEOUT(1000) */ 1
+2026-11-28 02:21:35,776[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@217cbbfc is closing
+2026-11-28 02:21:35,834[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET NAMES utf8mb4
+2026-11-28 02:21:37,842[DEBUG]io.vertx.core.net.impl.ConnectionBase.?:?The connection will be closed due to timeout
+2026-11-28 02:21:37,842[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@6b524270 is closing
+2026-11-28 02:21:40,898[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SET NAMES utf8mb4
+2026-11-28 02:21:40,900[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:41,905[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:42,909[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:43,913[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:44,918[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:45,922[DEBUG]io.mycat.commands.MycatdbCommand.executeQuery:181SELECT 1
+2026-11-28 02:21:46,927[INFO]io.mycat.vertx.VertxMycatServer.lambda$addSession$6:268session:io.mycat.mycatmysql.MycatVertxMysqlSession@7e35f104 is closing

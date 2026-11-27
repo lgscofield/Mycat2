@@ -1,0 +1,19 @@
+item	value
+issue	I-DEBT-127 old-connector CI follow-up
+failed_ci_run	46040479798
+failed_head	9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067
+failed_job	old-connector
+failed_axes	Connector/J 5.1.49 plaintext and TLS, STAGE auth
+passing_axes	Connector/J 8.0.33 plaintext and TLS
+local_reproduction	same jar failed the same two 5.1.49 axes
+server_root_cause	IllegalArgumentException: Connection attributes length mismatch at AuthPacket.readConnectAttrs
+driver_evidence	Connector/J 5.1.49 copies lb.getBufLength()-4 bytes from a fixed Buffer initialized at position 4
+wire_declared_attrs	126 bytes
+wire_prefix	1 byte
+wire_actual_attrs_area	152 bytes
+wire_padding	26 zero bytes
+red_test	AuthPacketConnectAttrsTest.acceptsZeroPaddingAfterDeclaredAttributesFromLegacyConnector
+red_result	Tests run 15, Failures 0, Errors 1; expected Connection attributes length mismatch; BUILD FAILURE
+production_boundary	accept only zero bytes after the declared block; reject nonzero tails, oversized declarations and intra-attribute overruns
+green_result	Tests run 15, Failures 0, Errors 0; BUILD SUCCESS
+rebuilt_jar_sha256	0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7

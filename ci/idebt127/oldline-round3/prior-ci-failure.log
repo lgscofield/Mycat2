@@ -1,0 +1,1480 @@
+﻿2026-11-27T17:16:13.8619274Z Current runner version: '2.338.2'
+2026-11-27T17:16:13.8635895Z ##[group]Runner Image Provisioner
+2026-11-27T17:16:13.8636524Z Hosted Compute Agent
+2026-11-27T17:16:13.8636992Z Version: 20261111.635
+2026-11-27T17:16:13.8637464Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+2026-11-27T17:16:13.8638022Z Build Date: 2026-11-11T01:49:01Z
+2026-11-27T17:16:13.8638835Z Worker ID: {ef1cb57f-cb27-4a55-8686-85fca826dd62}
+2026-11-27T17:16:13.8639349Z Region: us-west-2
+2026-11-27T17:16:13.8639754Z Cloud: AWS
+2026-11-27T17:16:13.8640200Z ##[endgroup]
+2026-11-27T17:16:13.8641246Z ##[group]Operating System
+2026-11-27T17:16:13.8641681Z Ubuntu
+2026-11-27T17:16:13.8642057Z 26.04.1
+2026-11-27T17:16:13.8642419Z LTS
+2026-11-27T17:16:13.8643012Z ##[endgroup]
+2026-11-27T17:16:13.8643397Z ##[group]Runner Image
+2026-11-27T17:16:13.8643812Z Image: ubuntu-26.04
+2026-11-27T17:16:13.8644217Z Version: 20261122.9.1
+2026-11-27T17:16:13.8645106Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261122.9/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-27T17:16:13.8646176Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261122.9
+2026-11-27T17:16:13.8646845Z ##[endgroup]
+2026-11-27T17:16:13.8647701Z ##[group]GITHUB_TOKEN Permissions
+2026-11-27T17:16:13.8649728Z Contents: read
+2026-11-27T17:16:13.8650149Z Metadata: read
+2026-11-27T17:16:13.8650540Z Packages: read
+2026-11-27T17:16:13.8650932Z ##[endgroup]
+2026-11-27T17:16:13.8652430Z Secret source: Actions
+2026-11-27T17:16:13.8653120Z Cache mode: write
+2026-11-27T17:16:13.8653670Z Prepare workflow directory
+2026-11-27T17:16:13.8948635Z Prepare all required actions
+2026-11-27T17:16:13.8984484Z Getting action download info
+2026-11-27T17:16:14.1985158Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-27T17:16:15.8227080Z Download action repository 'actions/setup-java@v4' (SHA:cf277c60eb25467037889841efdb72551f06f6c3)
+2026-11-27T17:16:16.7988613Z Complete job name: old-connector
+2026-11-27T17:16:16.8396464Z ##[group]Checking docker version
+2026-11-27T17:16:16.8409820Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-11-27T17:16:18.1236531Z '1.54'
+2026-11-27T17:16:18.1243327Z Docker daemon API version: '1.54'
+2026-11-27T17:16:18.1243780Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-11-27T17:16:18.1376924Z '1.54'
+2026-11-27T17:16:18.1384677Z Docker client API version: '1.54'
+2026-11-27T17:16:18.1388952Z ##[endgroup]
+2026-11-27T17:16:18.1390499Z ##[group]Clean up resources from previous jobs
+2026-11-27T17:16:18.1393754Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=010d60"
+2026-11-27T17:16:18.1504902Z ##[command]/usr/bin/docker network prune --force --filter "label=010d60"
+2026-11-27T17:16:18.1608195Z ##[endgroup]
+2026-11-27T17:16:18.1608734Z ##[group]Create local container network
+2026-11-27T17:16:18.1615453Z ##[command]/usr/bin/docker network create --label 010d60 github_network_d575f68d9d0440799dadaf61ff1d5f5d
+2026-11-27T17:16:18.1919308Z 1b792ec957a400253ce2fd68e938c920f592cfb995c57621eb2834db931fc265
+2026-11-27T17:16:18.1929119Z ##[endgroup]
+2026-11-27T17:16:18.1947068Z ##[group]Starting mysql-a service container
+2026-11-27T17:16:18.1962863Z ##[command]/usr/bin/docker pull mysql:8.0
+2026-11-27T17:16:18.9386191Z 8.0: Pulling from library/mysql
+2026-11-27T17:16:19.1738603Z 96d30d9fbee8: Pulling fs layer
+2026-11-27T17:16:19.1739610Z 297d04cfe470: Pulling fs layer
+2026-11-27T17:16:19.1740175Z 7534d1db9f8d: Pulling fs layer
+2026-11-27T17:16:19.1741044Z 49ec2dab01d9: Pulling fs layer
+2026-11-27T17:16:19.1742447Z ab24264a27e9: Pulling fs layer
+2026-11-27T17:16:19.1742965Z edf85873f64e: Pulling fs layer
+2026-11-27T17:16:19.1743511Z 4c8a3e0d4e4b: Pulling fs layer
+2026-11-27T17:16:19.1743972Z a63160a5eda1: Pulling fs layer
+2026-11-27T17:16:19.1744468Z 6ef6c7b50a93: Pulling fs layer
+2026-11-27T17:16:19.1744930Z e3e5d1ac74c1: Pulling fs layer
+2026-11-27T17:16:19.1745424Z 0d74d296605b: Pulling fs layer
+2026-11-27T17:16:19.3075549Z 96d30d9fbee8: Download complete
+2026-11-27T17:16:19.4077043Z 297d04cfe470: Download complete
+2026-11-27T17:16:19.4102008Z 7534d1db9f8d: Download complete
+2026-11-27T17:16:19.4132064Z ab24264a27e9: Download complete
+2026-11-27T17:16:19.4143866Z 0d74d296605b: Download complete
+2026-11-27T17:16:19.4144690Z 4c8a3e0d4e4b: Download complete
+2026-11-27T17:16:19.4145062Z 6ef6c7b50a93: Download complete
+2026-11-27T17:16:19.5098136Z e3e5d1ac74c1: Download complete
+2026-11-27T17:16:19.6097131Z 796812c73292: Download complete
+2026-11-27T17:16:19.7091840Z edf85873f64e: Download complete
+2026-11-27T17:16:19.7092990Z a63160a5eda1: Download complete
+2026-11-27T17:16:19.8085490Z af166387641d: Download complete
+2026-11-27T17:16:20.0074197Z 49ec2dab01d9: Download complete
+2026-11-27T17:16:20.3133623Z 6ef6c7b50a93: Pull complete
+2026-11-27T17:16:20.3138693Z e3e5d1ac74c1: Pull complete
+2026-11-27T17:16:20.3146200Z edf85873f64e: Pull complete
+2026-11-27T17:16:20.4085046Z 297d04cfe470: Pull complete
+2026-11-27T17:16:20.4121126Z 0d74d296605b: Pull complete
+2026-11-27T17:16:20.4127508Z 4c8a3e0d4e4b: Pull complete
+2026-11-27T17:16:20.9140282Z 7534d1db9f8d: Pull complete
+2026-11-27T17:16:20.9141181Z a63160a5eda1: Pull complete
+2026-11-27T17:16:23.1034361Z 96d30d9fbee8: Pull complete
+2026-11-27T17:16:23.1040909Z ab24264a27e9: Pull complete
+2026-11-27T17:16:23.1047487Z 49ec2dab01d9: Pull complete
+2026-11-27T17:16:23.1048039Z Digest: sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+2026-11-27T17:16:23.1049034Z Status: Downloaded newer image for mysql:8.0
+2026-11-27T17:16:23.1053277Z docker.io/library/mysql:8.0
+2026-11-27T17:16:23.1117835Z ##[command]/usr/bin/docker create --name d43b5a20fcd1480c9a338529f43f1c2f_mysql80_d0b89b --label 010d60 --network github_network_d575f68d9d0440799dadaf61ff1d5f5d --network-alias mysql-a -p 3306:3306 --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456" --health-interval=5s --health-timeout=5s --health-retries=20 -e "MYSQL_ROOT_PASSWORD=123456" -e GITHUB_ACTIONS=true -e CI=true mysql:8.0
+2026-11-27T17:16:25.6464664Z 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:25.6502304Z ##[command]/usr/bin/docker start 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:26.3210796Z 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:26.3222180Z ##[command]/usr/bin/docker ps --all --filter id=754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-11-27T17:16:26.3417853Z 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0 Up Less than a second (health: starting)
+2026-11-27T17:16:26.3437474Z ##[command]/usr/bin/docker port 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:26.3554540Z 3306/tcp -> 0.0.0.0:3306
+2026-11-27T17:16:26.3558926Z 3306/tcp -> [::]:3306
+2026-11-27T17:16:26.3586031Z ##[endgroup]
+2026-11-27T17:16:26.3587315Z ##[group]Starting mysql-b service container
+2026-11-27T17:16:26.3588183Z ##[command]/usr/bin/docker pull mysql:8.0
+2026-11-27T17:16:26.7929834Z 8.0: Pulling from library/mysql
+2026-11-27T17:16:27.0201897Z Digest: sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+2026-11-27T17:16:27.0202742Z Status: Image is up to date for mysql:8.0
+2026-11-27T17:16:27.0205329Z docker.io/library/mysql:8.0
+2026-11-27T17:16:27.0221921Z ##[command]/usr/bin/docker create --name 342d7ae8f42a4122a59ccfb9fb375a45_mysql80_23df85 --label 010d60 --network github_network_d575f68d9d0440799dadaf61ff1d5f5d --network-alias mysql-b -p 3307:3306 --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p123456" --health-interval=5s --health-timeout=5s --health-retries=20 -e "MYSQL_ROOT_PASSWORD=123456" -e GITHUB_ACTIONS=true -e CI=true mysql:8.0
+2026-11-27T17:16:27.0625592Z 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:16:27.0633609Z ##[command]/usr/bin/docker start 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:16:27.1633852Z 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:16:27.1644124Z ##[command]/usr/bin/docker ps --all --filter id=71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-11-27T17:16:27.1851556Z 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03 Up Less than a second (health: starting)
+2026-11-27T17:16:27.1860775Z ##[command]/usr/bin/docker port 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:16:27.1964435Z 3306/tcp -> 0.0.0.0:3307
+2026-11-27T17:16:27.1965065Z 3306/tcp -> [::]:3307
+2026-11-27T17:16:27.1967883Z ##[endgroup]
+2026-11-27T17:16:27.1977793Z ##[group]Waiting for all services to be ready
+2026-11-27T17:16:27.1991292Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:27.2114005Z starting
+2026-11-27T17:16:27.2131841Z mysql-a service is starting, waiting 2 seconds before checking again.
+2026-11-27T17:16:29.2133813Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:29.2278949Z starting
+2026-11-27T17:16:29.2300577Z mysql-a service is starting, waiting 4 seconds before checking again.
+2026-11-27T17:16:33.5612801Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:16:33.5716435Z healthy
+2026-11-27T17:16:33.5726941Z mysql-a service is healthy.
+2026-11-27T17:16:33.5727650Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:16:33.5817690Z healthy
+2026-11-27T17:16:33.5824356Z mysql-b service is healthy.
+2026-11-27T17:16:33.5824956Z ##[endgroup]
+2026-11-27T17:16:33.6045450Z ##[group]Run actions/checkout@v4
+2026-11-27T17:16:33.6045877Z with:
+2026-11-27T17:16:33.6046105Z   repository: lgscofield/Mycat2
+2026-11-27T17:16:33.6047882Z   token: ***
+2026-11-27T17:16:33.6048151Z   ssh-strict: true
+2026-11-27T17:16:33.6048720Z   ssh-user: git
+2026-11-27T17:16:33.6048962Z   persist-credentials: true
+2026-11-27T17:16:33.6049196Z   clean: true
+2026-11-27T17:16:33.6049406Z   sparse-checkout-cone-mode: true
+2026-11-27T17:16:33.6049690Z   fetch-depth: 1
+2026-11-27T17:16:33.6049898Z   fetch-tags: false
+2026-11-27T17:16:33.6050111Z   show-progress: true
+2026-11-27T17:16:33.6050332Z   lfs: false
+2026-11-27T17:16:33.6050534Z   submodules: false
+2026-11-27T17:16:33.6050775Z   set-safe-directory: true
+2026-11-27T17:16:33.6051040Z   allow-unsafe-pr-checkout: false
+2026-11-27T17:16:33.6051418Z ##[endgroup]
+2026-11-27T17:16:35.1235769Z Syncing repository: lgscofield/Mycat2
+2026-11-27T17:16:35.1236939Z ##[group]Getting Git version info
+2026-11-27T17:16:35.1237489Z Working directory is '/home/runner/work/Mycat2/Mycat2'
+2026-11-27T17:16:35.1238008Z [command]/usr/bin/git version
+2026-11-27T17:16:35.1266820Z git version 2.56.1
+2026-11-27T17:16:35.1279195Z ##[endgroup]
+2026-11-27T17:16:35.1288098Z Temporarily overriding HOME='/home/runner/work/_temp/3540e4d4-f57b-44a0-b8df-8c670fc0789f' before making global git config changes
+2026-11-27T17:16:35.1289034Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-27T17:16:35.1292032Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Mycat2/Mycat2
+2026-11-27T17:16:35.1373747Z Deleting the contents of '/home/runner/work/Mycat2/Mycat2'
+2026-11-27T17:16:35.1377024Z ##[group]Initializing the repository
+2026-11-27T17:16:35.1381156Z [command]/usr/bin/git init /home/runner/work/Mycat2/Mycat2
+2026-11-27T17:16:35.2110049Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-27T17:16:35.2110610Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-27T17:16:35.2111196Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-27T17:16:35.2111532Z hint: call:
+2026-11-27T17:16:35.2111688Z hint:
+2026-11-27T17:16:35.2112017Z hint: 	git config --global init.defaultBranch <name>
+2026-11-27T17:16:35.2112299Z hint:
+2026-11-27T17:16:35.2112526Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-27T17:16:35.2112926Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-27T17:16:35.2113256Z hint:
+2026-11-27T17:16:35.2113418Z hint: 	git branch -m <name>
+2026-11-27T17:16:35.2113631Z hint:
+2026-11-27T17:16:35.2113869Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-27T17:16:35.2134887Z Initialized empty Git repository in /home/runner/work/Mycat2/Mycat2/.git/
+2026-11-27T17:16:35.2141550Z [command]/usr/bin/git remote add origin https://github.com/lgscofield/Mycat2
+2026-11-27T17:16:35.2201236Z ##[endgroup]
+2026-11-27T17:16:35.2201555Z ##[group]Disabling automatic garbage collection
+2026-11-27T17:16:35.2203868Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-27T17:16:35.2225718Z ##[endgroup]
+2026-11-27T17:16:35.2226110Z ##[group]Setting up auth
+2026-11-27T17:16:35.2230994Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-27T17:16:35.2252717Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-27T17:16:35.6913384Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-27T17:16:35.6933304Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-27T17:16:35.7109901Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-27T17:16:35.7131167Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-27T17:16:35.7302523Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-27T17:16:35.7324736Z ##[endgroup]
+2026-11-27T17:16:35.7325024Z ##[group]Fetching the repository
+2026-11-27T17:16:35.7330927Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067:refs/remotes/origin/main
+2026-11-27T17:16:39.3540447Z From https://github.com/lgscofield/Mycat2
+2026-11-27T17:16:39.3540904Z  * [new ref]         9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067 -> origin/main
+2026-11-27T17:16:39.3544917Z ##[endgroup]
+2026-11-27T17:16:39.3545283Z ##[group]Determining the checkout info
+2026-11-27T17:16:39.3547158Z ##[endgroup]
+2026-11-27T17:16:39.3551952Z [command]/usr/bin/git sparse-checkout disable
+2026-11-27T17:16:39.3602180Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-27T17:16:39.3623184Z ##[group]Checking out the ref
+2026-11-27T17:16:39.3626748Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-27T17:16:39.7550090Z Switched to a new branch 'main'
+2026-11-27T17:16:39.7557266Z branch 'main' set up to track 'origin/main'.
+2026-11-27T17:16:39.7586920Z ##[endgroup]
+2026-11-27T17:16:39.7632350Z [command]/usr/bin/git log -1 --format=%H
+2026-11-27T17:16:39.7648941Z 9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067
+2026-11-27T17:16:39.7854276Z ##[group]Run actions/setup-java@v4
+2026-11-27T17:16:39.7854482Z with:
+2026-11-27T17:16:39.7854651Z   distribution: temurin
+2026-11-27T17:16:39.7854823Z   java-version: 21
+2026-11-27T17:16:39.7854977Z   cache: maven
+2026-11-27T17:16:39.7855132Z   java-package: jdk
+2026-11-27T17:16:39.7855296Z   check-latest: false
+2026-11-27T17:16:39.7855505Z   server-id: github
+2026-11-27T17:16:39.7855765Z   server-username: GITHUB_ACTOR
+2026-11-27T17:16:39.7855950Z   server-password: GITHUB_TOKEN
+2026-11-27T17:16:39.7856133Z   overwrite-settings: true
+2026-11-27T17:16:39.7856306Z   job-status: success
+2026-11-27T17:16:39.7857865Z   token: ***
+2026-11-27T17:16:39.7858011Z ##[endgroup]
+2026-11-27T17:16:39.9118938Z ##[warning]setup-java v4 is deprecated and will no longer receive updates. Please migrate to actions/setup-java@v5.
+2026-11-27T17:16:39.9123566Z ##[group]Installed distributions
+2026-11-27T17:16:39.9962155Z Resolved Java 21.0.13+2 from tool-cache
+2026-11-27T17:16:39.9962685Z Setting Java 21.0.13+2 as the default
+2026-11-27T17:16:39.9968534Z (node:3329) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-27T17:16:39.9969243Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-27T17:16:39.9970588Z Creating toolchains.xml for JDK version 21 from temurin
+2026-11-27T17:16:40.0018483Z Writing to /home/runner/.m2/toolchains.xml
+2026-11-27T17:16:40.0019004Z 
+2026-11-27T17:16:40.0019161Z Java configuration:
+2026-11-27T17:16:40.0019516Z   Distribution: temurin
+2026-11-27T17:16:40.0019782Z   Version: 21.0.13+2
+2026-11-27T17:16:40.0020120Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-2/x64
+2026-11-27T17:16:40.0020443Z 
+2026-11-27T17:16:40.0020794Z ##[endgroup]
+2026-11-27T17:16:40.0034014Z Creating settings.xml with server-id: github
+2026-11-27T17:16:40.0050013Z Writing to /home/runner/.m2/settings.xml
+2026-11-27T17:16:40.5808610Z Cache hit for: setup-java-Linux-x64-maven-defb3a80f38179218b2dac0a831b5dd5626789f82a66d40dba009b3e357fe240
+2026-11-27T17:16:40.5898744Z (node:3329) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-27T17:16:41.9187612Z Received 0 of 303120599 (0.0%), 0.0 MBs/sec
+2026-11-27T17:16:42.9189662Z Received 96468992 of 303120599 (31.8%), 46.0 MBs/sec
+2026-11-27T17:16:43.9219489Z Received 251658240 of 303120599 (83.0%), 80.0 MBs/sec
+2026-11-27T17:16:44.4489410Z Received 303120599 of 303120599 (100.0%), 81.9 MBs/sec
+2026-11-27T17:16:44.4489862Z Cache Size: ~289 MB (303120599 B)
+2026-11-27T17:16:44.4524711Z [command]/usr/bin/tar -xf /home/runner/work/_temp/0269f4d0-822e-43aa-9ebd-4c87d3e7019e/cache.tzst -P -C /home/runner/work/Mycat2/Mycat2 --use-compress-program unzstd
+2026-11-27T17:16:44.6661741Z Cache restored successfully
+2026-11-27T17:16:44.6752995Z Cache restored from key: setup-java-Linux-x64-maven-defb3a80f38179218b2dac0a831b5dd5626789f82a66d40dba009b3e357fe240
+2026-11-27T17:16:44.6941811Z ##[group]Run mvn -B install '-Dmaven.test.skip=true' -pl server -am
+2026-11-27T17:16:44.6942246Z [36;1mmvn -B install '-Dmaven.test.skip=true' -pl server -am[0m
+2026-11-27T17:16:44.8265939Z shell: /usr/bin/bash -e {0}
+2026-11-27T17:16:44.8266152Z env:
+2026-11-27T17:16:44.8266391Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-2/x64
+2026-11-27T17:16:44.8266775Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-2/x64
+2026-11-27T17:16:44.8267047Z ##[endgroup]
+2026-11-27T17:16:50.9338033Z [INFO] Scanning for projects...
+2026-11-27T17:16:51.0846177Z [INFO] ------------------------------------------------------------------------
+2026-11-27T17:16:51.0848638Z [INFO] Reactor Build Order:
+2026-11-27T17:16:51.0855723Z [INFO] 
+2026-11-27T17:16:51.0879176Z [INFO] parent                                                             [pom]
+2026-11-27T17:16:51.0889118Z [INFO] config                                                             [jar]
+2026-11-27T17:16:51.0892688Z [INFO] Mycat2 Protocol                                                    [jar]
+2026-11-27T17:16:51.0903969Z [INFO] common                                                             [jar]
+2026-11-27T17:16:51.0904598Z [INFO] router                                                             [jar]
+2026-11-27T17:16:51.0905358Z [INFO] plug                                                               [jar]
+2026-11-27T17:16:51.0905720Z [INFO] replica                                                            [jar]
+2026-11-27T17:16:51.0906362Z [INFO] datasource                                                         [jar]
+2026-11-27T17:16:51.0906859Z [INFO] va                                                                 [jar]
+2026-11-27T17:16:51.0907433Z [INFO] proxy                                                              [jar]
+2026-11-27T17:16:51.0907937Z [INFO] calcite-core (Mycat fork)                                          [jar]
+2026-11-27T17:16:51.0908720Z [INFO] hbt                                                                [jar]
+2026-11-27T17:16:51.0909197Z [INFO] executor                                                           [jar]
+2026-11-27T17:16:51.0909697Z [INFO] server                                                             [jar]
+2026-11-27T17:16:51.0949165Z [INFO] 
+2026-11-27T17:16:51.0953964Z [INFO] --------------------------< io.mycat:parent >---------------------------
+2026-11-27T17:16:51.0954574Z [INFO] Building parent 1.22-release                                      [1/14]
+2026-11-27T17:16:51.0955076Z [INFO]   from pom.xml
+2026-11-27T17:16:51.0955454Z [INFO] --------------------------------[ pom ]---------------------------------
+2026-11-27T17:16:51.1249960Z [INFO] 
+2026-11-27T17:16:51.1250282Z [INFO] --- install:3.1.4:install (default-install) @ parent ---
+2026-11-27T17:16:51.3028107Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/pom.xml to /home/runner/.m2/repository/io/mycat/parent/1.22-release/parent-1.22-release.pom
+2026-11-27T17:16:51.4298566Z [INFO] 
+2026-11-27T17:16:51.4298936Z [INFO] --------------------------< io.mycat:config >---------------------------
+2026-11-27T17:16:51.4299382Z [INFO] Building config 1.22-release                                      [2/14]
+2026-11-27T17:16:51.4299775Z [INFO]   from config/pom.xml
+2026-11-27T17:16:51.4300089Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:16:51.5619027Z [INFO] 
+2026-11-27T17:16:51.5640796Z [INFO] --- resources:3.4.0:resources (default-resources) @ config ---
+2026-11-27T17:16:51.6429484Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/config/src/main/resources
+2026-11-27T17:16:51.6469063Z [INFO] 
+2026-11-27T17:16:51.6484515Z [INFO] --- compiler:3.14.1:compile (default-compile) @ config ---
+2026-11-27T17:16:51.9213203Z [INFO] Recompiling the module because of changed source code.
+2026-11-27T17:16:51.9273270Z [INFO] Compiling 65 source files with javac [debug target 21] to target/classes
+2026-11-27T17:16:55.0710106Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:16:55.0710943Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:16:55.0715542Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:16:55.0730297Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:16:55.0730985Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:16:55.0731454Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:16:55.0731878Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:16:55.0733323Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/HeartbeatConfig.java:[15,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0735822Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/PrototypeServer.java:[13,12] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0738819Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/PatternRootConfig.java:[20,39] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0741424Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/PatternRootConfig.java:[21,45] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0744051Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/PatternRootConfig.java:[24,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0746377Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/ShardingFunction.java:[16,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0758773Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/ShardingFunction.java:[17,25] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0761372Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/GlobalTableConfig.java:[16,29] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0764052Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/GlobalTableConfig.java:[18,40] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0766679Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[23,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0793877Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[24,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0796335Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[25,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0803659Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[27,17] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0805892Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[28,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0808645Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[29,17] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0810752Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[30,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0812910Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[31,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0815013Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/UserConfig.java:[34,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0826484Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/ShardingTableConfig.java:[14,36] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0829150Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/ShardingTableConfig.java:[15,22] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0831521Z [WARNING] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/ShardingTableConfig.java:[19,37] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+2026-11-27T17:16:55.0833634Z [INFO] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/util/JsonUtil.java: /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/util/JsonUtil.java uses or overrides a deprecated API.
+2026-11-27T17:16:55.0834901Z [INFO] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/util/JsonUtil.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:16:55.0835929Z [INFO] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/BufferPoolConfig.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:16:55.0837051Z [INFO] /home/runner/work/Mycat2/Mycat2/config/src/main/java/io/mycat/config/BufferPoolConfig.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:16:55.0837739Z [INFO] 
+2026-11-27T17:16:55.0840826Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ config ---
+2026-11-27T17:16:55.0841333Z [INFO] Not copying test resources
+2026-11-27T17:16:55.0841609Z [INFO] 
+2026-11-27T17:16:55.0841933Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ config ---
+2026-11-27T17:16:55.0842357Z [INFO] Not compiling test sources
+2026-11-27T17:16:55.0842617Z [INFO] 
+2026-11-27T17:16:55.0842912Z [INFO] --- surefire:3.5.3:test (default-test) @ config ---
+2026-11-27T17:16:55.1509793Z [INFO] Tests are skipped.
+2026-11-27T17:16:55.1510247Z [INFO] 
+2026-11-27T17:16:55.1539000Z [INFO] --- jar:3.5.0:jar (default-jar) @ config ---
+2026-11-27T17:16:55.2999335Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/config/target/config-1.22-release.jar
+2026-11-27T17:16:55.3430011Z [INFO] 
+2026-11-27T17:16:55.3436991Z [INFO] --- install:3.1.4:install (default-install) @ config ---
+2026-11-27T17:16:55.3438827Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/config/pom.xml to /home/runner/.m2/repository/io/mycat/config/1.22-release/config-1.22-release.pom
+2026-11-27T17:16:55.3445829Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/config/target/config-1.22-release.jar to /home/runner/.m2/repository/io/mycat/config/1.22-release/config-1.22-release.jar
+2026-11-27T17:16:55.3466505Z [INFO] 
+2026-11-27T17:16:55.3479333Z [INFO] -------------------------< io.mycat:protocol >--------------------------
+2026-11-27T17:16:55.3480071Z [INFO] Building Mycat2 Protocol 1.22-release                             [3/14]
+2026-11-27T17:16:55.3480598Z [INFO]   from protocol/pom.xml
+2026-11-27T17:16:55.3481118Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:16:55.4118967Z [INFO] 
+2026-11-27T17:16:55.4145405Z [INFO] --- resources:3.4.0:resources (default-resources) @ protocol ---
+2026-11-27T17:16:55.4146351Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/protocol/src/main/resources
+2026-11-27T17:16:55.4146972Z [INFO] 
+2026-11-27T17:16:55.4147394Z [INFO] --- compiler:3.14.1:compile (default-compile) @ protocol ---
+2026-11-27T17:16:55.4167885Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:16:55.4175803Z [INFO] Compiling 71 source files with javac [debug target 21] to target/classes
+2026-11-27T17:16:56.4539217Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:16:56.4549742Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:16:56.4579338Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:16:56.4595921Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:16:56.4609222Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:16:56.4622387Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:16:56.4622998Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:16:56.4624001Z [INFO] /home/runner/work/Mycat2/Mycat2/protocol/src/main/java/io/mycat/protocol/codec/NameMap.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:16:56.4625364Z [INFO] /home/runner/work/Mycat2/Mycat2/protocol/src/main/java/io/mycat/protocol/codec/NameMap.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:16:56.4626190Z [INFO] 
+2026-11-27T17:16:56.4627261Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ protocol ---
+2026-11-27T17:16:56.4642192Z [INFO] Not copying test resources
+2026-11-27T17:16:56.4642684Z [INFO] 
+2026-11-27T17:16:56.4643185Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ protocol ---
+2026-11-27T17:16:56.4643778Z [INFO] Not compiling test sources
+2026-11-27T17:16:56.4644157Z [INFO] 
+2026-11-27T17:16:56.4644557Z [INFO] --- surefire:3.5.3:test (default-test) @ protocol ---
+2026-11-27T17:16:56.4648050Z [INFO] Tests are skipped.
+2026-11-27T17:16:56.4663224Z [INFO] 
+2026-11-27T17:16:56.4663788Z [INFO] --- jar:3.5.0:jar (default-jar) @ protocol ---
+2026-11-27T17:16:56.4664540Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/protocol/target/protocol-1.22-release.jar
+2026-11-27T17:16:56.4847246Z [INFO] 
+2026-11-27T17:16:56.4869271Z [INFO] --- install:3.1.4:install (default-install) @ protocol ---
+2026-11-27T17:16:56.4898636Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/protocol/pom.xml to /home/runner/.m2/repository/io/mycat/protocol/1.22-release/protocol-1.22-release.pom
+2026-11-27T17:16:56.4899885Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/protocol/target/protocol-1.22-release.jar to /home/runner/.m2/repository/io/mycat/protocol/1.22-release/protocol-1.22-release.jar
+2026-11-27T17:16:56.4902350Z [INFO] 
+2026-11-27T17:16:56.4903202Z [INFO] --------------------------< io.mycat:common >---------------------------
+2026-11-27T17:16:56.4903844Z [INFO] Building common 1.22-release                                      [4/14]
+2026-11-27T17:16:56.4904371Z [INFO]   from common/pom.xml
+2026-11-27T17:16:56.4904836Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:16:56.5809436Z [INFO] 
+2026-11-27T17:16:56.5809969Z [INFO] --- resources:3.4.0:resources (default-resources) @ common ---
+2026-11-27T17:16:56.5839570Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/common/src/main/resources
+2026-11-27T17:16:56.5840195Z [INFO] 
+2026-11-27T17:16:56.5840637Z [INFO] --- compiler:3.14.1:compile (default-compile) @ common ---
+2026-11-27T17:16:56.5933254Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:16:56.5943687Z [INFO] Compiling 223 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:00.2809763Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:00.2821282Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:00.2849501Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:00.2850234Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:00.2850802Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:00.2851247Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:00.2851647Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:00.2852539Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/BackendTableInfo.java:[29,1] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:00.2853870Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/IndexBackendTableInfo.java:[28,1] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:00.2855167Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/SchemaInfo.java:[27,1] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:00.2856390Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[241,40] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2857667Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[244,44] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2859452Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[246,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2860795Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[248,46] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2862194Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[250,40] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2863563Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[252,44] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2864826Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[254,43] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2865937Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[256,42] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2867238Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[258,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2869032Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[260,42] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2870248Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[262,44] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2871513Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[264,44] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2872774Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[266,43] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2874021Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[268,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2875236Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[270,44] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2876470Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[272,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2877700Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[274,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2879229Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[276,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2880471Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[278,46] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2881702Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[280,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2882963Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[282,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2884280Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[283,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2885703Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[285,47] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2887003Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[287,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2888485Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[290,34] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2889809Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[292,30] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2891056Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[293,47] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2892346Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[295,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2893599Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[297,41] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2894863Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[299,40] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2896299Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[301,45] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2897590Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[724,32] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2899138Z [WARNING] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[725,35] Integer(int) in java.lang.Integer has been deprecated and marked for removal
+2026-11-27T17:17:00.2900362Z [INFO] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:00.2901793Z [INFO] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:00.2903249Z [INFO] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:00.2904667Z [INFO] /home/runner/work/Mycat2/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:00.2905565Z [INFO] 
+2026-11-27T17:17:00.2905970Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ common ---
+2026-11-27T17:17:00.2906500Z [INFO] Not copying test resources
+2026-11-27T17:17:00.2906799Z [INFO] 
+2026-11-27T17:17:00.2907145Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ common ---
+2026-11-27T17:17:00.2907581Z [INFO] Not compiling test sources
+2026-11-27T17:17:00.2907871Z [INFO] 
+2026-11-27T17:17:00.2908156Z [INFO] --- surefire:3.5.3:test (default-test) @ common ---
+2026-11-27T17:17:00.2908755Z [INFO] Tests are skipped.
+2026-11-27T17:17:00.2909063Z [INFO] 
+2026-11-27T17:17:00.2909311Z [INFO] --- jar:3.5.0:jar (default-jar) @ common ---
+2026-11-27T17:17:00.3028461Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/common/target/common-1.22-release.jar
+2026-11-27T17:17:00.3498836Z [INFO] 
+2026-11-27T17:17:00.3499420Z [INFO] --- install:3.1.4:install (default-install) @ common ---
+2026-11-27T17:17:00.3500222Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/common/pom.xml to /home/runner/.m2/repository/io/mycat/common/1.22-release/common-1.22-release.pom
+2026-11-27T17:17:00.3506315Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/common/target/common-1.22-release.jar to /home/runner/.m2/repository/io/mycat/common/1.22-release/common-1.22-release.jar
+2026-11-27T17:17:00.3539457Z [INFO] 
+2026-11-27T17:17:00.3559576Z [INFO] --------------------------< io.mycat:router >---------------------------
+2026-11-27T17:17:00.3560243Z [INFO] Building router 1.22-release                                      [5/14]
+2026-11-27T17:17:00.3560730Z [INFO]   from router/pom.xml
+2026-11-27T17:17:00.3561177Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:00.4081308Z [INFO] 
+2026-11-27T17:17:00.4085514Z [INFO] --- resources:3.4.0:resources (default-resources) @ router ---
+2026-11-27T17:17:00.4097455Z [INFO] Copying 1 resource from src/main/resources to target/classes
+2026-11-27T17:17:00.4122917Z [INFO] 
+2026-11-27T17:17:00.4123418Z [INFO] --- compiler:3.14.1:compile (default-compile) @ router ---
+2026-11-27T17:17:00.4165766Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:00.4184087Z [INFO] Compiling 52 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:01.3395039Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:01.3398001Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:01.3399051Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:01.3400021Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:01.3400630Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:01.3401136Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:01.3401565Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:01.3402821Z [WARNING] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:01.3404822Z [WARNING] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[10,1] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:01.3407050Z [INFO] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:01.3409358Z [INFO] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:01.3410594Z [INFO] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:01.3411922Z [INFO] /home/runner/work/Mycat2/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:01.3412711Z [INFO] 
+2026-11-27T17:17:01.3413116Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ router ---
+2026-11-27T17:17:01.3413667Z [INFO] Not copying test resources
+2026-11-27T17:17:01.3414012Z [INFO] 
+2026-11-27T17:17:01.3414407Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ router ---
+2026-11-27T17:17:01.3429348Z [INFO] Not compiling test sources
+2026-11-27T17:17:01.3444942Z [INFO] 
+2026-11-27T17:17:01.3445437Z [INFO] --- surefire:3.5.3:test (default-test) @ router ---
+2026-11-27T17:17:01.3448770Z [INFO] Tests are skipped.
+2026-11-27T17:17:01.3449168Z [INFO] 
+2026-11-27T17:17:01.3449506Z [INFO] --- jar:3.5.0:jar (default-jar) @ router ---
+2026-11-27T17:17:01.3497065Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/router/target/router-1.22-release.jar
+2026-11-27T17:17:01.3669147Z [INFO] 
+2026-11-27T17:17:01.3669739Z [INFO] --- install:3.1.4:install (default-install) @ router ---
+2026-11-27T17:17:01.3676160Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/router/pom.xml to /home/runner/.m2/repository/io/mycat/router/1.22-release/router-1.22-release.pom
+2026-11-27T17:17:01.3685258Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/router/target/router-1.22-release.jar to /home/runner/.m2/repository/io/mycat/router/1.22-release/router-1.22-release.jar
+2026-11-27T17:17:01.3686245Z [INFO] 
+2026-11-27T17:17:01.3709148Z [INFO] ---------------------------< io.mycat:plug >----------------------------
+2026-11-27T17:17:01.3739273Z [INFO] Building plug 1.22-release                                        [6/14]
+2026-11-27T17:17:01.3748119Z [INFO]   from plug/pom.xml
+2026-11-27T17:17:01.3749785Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:01.3814890Z [INFO] 
+2026-11-27T17:17:01.3827218Z [INFO] --- resources:3.4.0:resources (default-resources) @ plug ---
+2026-11-27T17:17:01.3828093Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/plug/src/main/resources
+2026-11-27T17:17:01.3828992Z [INFO] 
+2026-11-27T17:17:01.3829873Z [INFO] --- compiler:3.14.1:compile (default-compile) @ plug ---
+2026-11-27T17:17:01.3833151Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:01.3836698Z [INFO] Compiling 19 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:01.7069547Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:01.7070761Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:01.7088557Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:01.7089500Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:01.7090172Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:01.7090983Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:01.7091511Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:01.7092703Z [INFO] /home/runner/work/Mycat2/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: /home/runner/work/Mycat2/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java uses or overrides a deprecated API.
+2026-11-27T17:17:01.7094246Z [INFO] /home/runner/work/Mycat2/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:01.7095470Z [INFO] /home/runner/work/Mycat2/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:01.7096646Z [INFO] /home/runner/work/Mycat2/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:01.7097365Z [INFO] 
+2026-11-27T17:17:01.7097808Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ plug ---
+2026-11-27T17:17:01.7098585Z [INFO] Not copying test resources
+2026-11-27T17:17:01.7098975Z [INFO] 
+2026-11-27T17:17:01.7099426Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ plug ---
+2026-11-27T17:17:01.7100007Z [INFO] Not compiling test sources
+2026-11-27T17:17:01.7100380Z [INFO] 
+2026-11-27T17:17:01.7100773Z [INFO] --- surefire:3.5.3:test (default-test) @ plug ---
+2026-11-27T17:17:01.7120168Z [INFO] Tests are skipped.
+2026-11-27T17:17:01.7124032Z [INFO] 
+2026-11-27T17:17:01.7135941Z [INFO] --- jar:3.5.0:jar (default-jar) @ plug ---
+2026-11-27T17:17:01.7144267Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/plug/target/plug-1.22-release.jar
+2026-11-27T17:17:01.7228067Z [INFO] 
+2026-11-27T17:17:01.7228894Z [INFO] --- install:3.1.4:install (default-install) @ plug ---
+2026-11-27T17:17:01.7229810Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/plug/pom.xml to /home/runner/.m2/repository/io/mycat/plug/1.22-release/plug-1.22-release.pom
+2026-11-27T17:17:01.7232035Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/plug/target/plug-1.22-release.jar to /home/runner/.m2/repository/io/mycat/plug/1.22-release/plug-1.22-release.jar
+2026-11-27T17:17:01.7242056Z [INFO] 
+2026-11-27T17:17:01.7242627Z [INFO] --------------------------< io.mycat:replica >--------------------------
+2026-11-27T17:17:01.7243294Z [INFO] Building replica 1.22-release                                     [7/14]
+2026-11-27T17:17:01.7243814Z [INFO]   from replica/pom.xml
+2026-11-27T17:17:01.7244302Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:01.7333903Z [INFO] 
+2026-11-27T17:17:01.7335418Z [INFO] --- resources:3.4.0:resources (default-resources) @ replica ---
+2026-11-27T17:17:01.7361837Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/replica/src/main/resources
+2026-11-27T17:17:01.7363137Z [INFO] 
+2026-11-27T17:17:01.7363593Z [INFO] --- compiler:3.14.1:compile (default-compile) @ replica ---
+2026-11-27T17:17:01.7366963Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:01.7370899Z [INFO] Compiling 21 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:02.0340021Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:02.0340772Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:02.0341554Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:02.0342522Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:02.0343135Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:02.0343635Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:02.0354689Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:02.0355880Z [WARNING] /home/runner/work/Mycat2/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[111,17] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:02.0357441Z [WARNING] /home/runner/work/Mycat2/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[112,14] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:02.0359250Z [INFO] /home/runner/work/Mycat2/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:02.0360392Z [INFO] /home/runner/work/Mycat2/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:02.0361131Z [INFO] 
+2026-11-27T17:17:02.0361587Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ replica ---
+2026-11-27T17:17:02.0362142Z [INFO] Not copying test resources
+2026-11-27T17:17:02.0362482Z [INFO] 
+2026-11-27T17:17:02.0362856Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ replica ---
+2026-11-27T17:17:02.0364129Z [INFO] Not compiling test sources
+2026-11-27T17:17:02.0364664Z [INFO] 
+2026-11-27T17:17:02.0365035Z [INFO] --- surefire:3.5.3:test (default-test) @ replica ---
+2026-11-27T17:17:02.0381079Z [INFO] Tests are skipped.
+2026-11-27T17:17:02.0381658Z [INFO] 
+2026-11-27T17:17:02.0382052Z [INFO] --- jar:3.5.0:jar (default-jar) @ replica ---
+2026-11-27T17:17:02.0401514Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/replica/target/replica-1.22-release.jar
+2026-11-27T17:17:02.0467372Z [INFO] 
+2026-11-27T17:17:02.0481169Z [INFO] --- install:3.1.4:install (default-install) @ replica ---
+2026-11-27T17:17:02.0482257Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/replica/pom.xml to /home/runner/.m2/repository/io/mycat/replica/1.22-release/replica-1.22-release.pom
+2026-11-27T17:17:02.0483470Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/replica/target/replica-1.22-release.jar to /home/runner/.m2/repository/io/mycat/replica/1.22-release/replica-1.22-release.jar
+2026-11-27T17:17:02.0519161Z [INFO] 
+2026-11-27T17:17:02.0519734Z [INFO] ------------------------< io.mycat:datasource >-------------------------
+2026-11-27T17:17:02.0520601Z [INFO] Building datasource 1.22-release                                  [8/14]
+2026-11-27T17:17:02.0521141Z [INFO]   from datasource/pom.xml
+2026-11-27T17:17:02.0521598Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:02.0941521Z [INFO] 
+2026-11-27T17:17:02.0969348Z [INFO] --- resources:3.4.0:resources (default-resources) @ datasource ---
+2026-11-27T17:17:02.0979241Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/datasource/src/main/resources
+2026-11-27T17:17:02.0979949Z [INFO] 
+2026-11-27T17:17:02.0982029Z [INFO] --- compiler:3.14.1:compile (default-compile) @ datasource ---
+2026-11-27T17:17:02.0982916Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:02.0988561Z [INFO] Compiling 33 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:02.7243747Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:02.7254224Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:02.7263062Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:02.7263935Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:02.7264663Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:02.7265508Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:02.7266009Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:02.7267046Z [INFO] /home/runner/work/Mycat2/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:02.7268781Z [INFO] /home/runner/work/Mycat2/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:02.7270378Z [INFO] /home/runner/work/Mycat2/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:02.7273333Z [INFO] /home/runner/work/Mycat2/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:02.7274378Z [INFO] 
+2026-11-27T17:17:02.7274868Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ datasource ---
+2026-11-27T17:17:02.7275471Z [INFO] Not copying test resources
+2026-11-27T17:17:02.7275865Z [INFO] 
+2026-11-27T17:17:02.7276349Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ datasource ---
+2026-11-27T17:17:02.7276949Z [INFO] Not compiling test sources
+2026-11-27T17:17:02.7277560Z [INFO] 
+2026-11-27T17:17:02.7278010Z [INFO] --- surefire:3.5.3:test (default-test) @ datasource ---
+2026-11-27T17:17:02.7298956Z [INFO] Tests are skipped.
+2026-11-27T17:17:02.7300360Z [INFO] 
+2026-11-27T17:17:02.7300829Z [INFO] --- jar:3.5.0:jar (default-jar) @ datasource ---
+2026-11-27T17:17:02.7329532Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/datasource/target/datasource-1.22-release.jar
+2026-11-27T17:17:02.7409034Z [INFO] 
+2026-11-27T17:17:02.7417381Z [INFO] --- install:3.1.4:install (default-install) @ datasource ---
+2026-11-27T17:17:02.7418589Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/datasource/pom.xml to /home/runner/.m2/repository/io/mycat/datasource/1.22-release/datasource-1.22-release.pom
+2026-11-27T17:17:02.7420111Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/datasource/target/datasource-1.22-release.jar to /home/runner/.m2/repository/io/mycat/datasource/1.22-release/datasource-1.22-release.jar
+2026-11-27T17:17:02.7448944Z [INFO] 
+2026-11-27T17:17:02.7459176Z [INFO] ----------------------------< io.mycat:va >-----------------------------
+2026-11-27T17:17:02.7459957Z [INFO] Building va 1.22-release                                          [9/14]
+2026-11-27T17:17:02.7460482Z [INFO]   from va/pom.xml
+2026-11-27T17:17:02.7461466Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:02.7596267Z [INFO] 
+2026-11-27T17:17:02.7596801Z [INFO] --- resources:3.4.0:resources (default-resources) @ va ---
+2026-11-27T17:17:02.7604116Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/va/src/main/resources
+2026-11-27T17:17:02.7604853Z [INFO] 
+2026-11-27T17:17:02.7605315Z [INFO] --- compiler:3.14.1:compile (default-compile) @ va ---
+2026-11-27T17:17:02.7631796Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:02.7649248Z [INFO] Compiling 23 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:03.2915438Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:03.2916388Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:03.2917154Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:03.2917886Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:03.2918831Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:03.2922528Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:03.2923063Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:03.2923994Z [INFO] /home/runner/work/Mycat2/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:03.2925620Z [INFO] /home/runner/work/Mycat2/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:03.2926898Z [INFO] /home/runner/work/Mycat2/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:03.2928176Z [INFO] /home/runner/work/Mycat2/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:03.2929372Z [INFO] 
+2026-11-27T17:17:03.2929820Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ va ---
+2026-11-27T17:17:03.2930410Z [INFO] Not copying test resources
+2026-11-27T17:17:03.2930783Z [INFO] 
+2026-11-27T17:17:03.2931216Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ va ---
+2026-11-27T17:17:03.2947639Z [INFO] Not compiling test sources
+2026-11-27T17:17:03.2949449Z [INFO] 
+2026-11-27T17:17:03.2949930Z [INFO] --- surefire:3.5.3:test (default-test) @ va ---
+2026-11-27T17:17:03.2969213Z [INFO] Tests are skipped.
+2026-11-27T17:17:03.2980304Z [INFO] 
+2026-11-27T17:17:03.2980867Z [INFO] --- jar:3.5.0:jar (default-jar) @ va ---
+2026-11-27T17:17:03.2991602Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/va/target/va-1.22-release.jar
+2026-11-27T17:17:03.3072194Z [INFO] 
+2026-11-27T17:17:03.3072840Z [INFO] --- install:3.1.4:install (default-install) @ va ---
+2026-11-27T17:17:03.3073842Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/va/pom.xml to /home/runner/.m2/repository/io/mycat/va/1.22-release/va-1.22-release.pom
+2026-11-27T17:17:03.3078775Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/va/target/va-1.22-release.jar to /home/runner/.m2/repository/io/mycat/va/1.22-release/va-1.22-release.jar
+2026-11-27T17:17:03.3102506Z [INFO] 
+2026-11-27T17:17:03.3103182Z [INFO] ---------------------------< io.mycat:proxy >---------------------------
+2026-11-27T17:17:03.3103910Z [INFO] Building proxy 1.22-release                                      [10/14]
+2026-11-27T17:17:03.3104459Z [INFO]   from proxy/pom.xml
+2026-11-27T17:17:03.3104944Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:03.3220645Z [INFO] 
+2026-11-27T17:17:03.3221332Z [INFO] --- resources:3.4.0:resources (default-resources) @ proxy ---
+2026-11-27T17:17:03.3238812Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/proxy/src/main/resources
+2026-11-27T17:17:03.3239647Z [INFO] 
+2026-11-27T17:17:03.3240414Z [INFO] --- compiler:3.14.1:compile (default-compile) @ proxy ---
+2026-11-27T17:17:03.3270085Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:03.3274287Z [INFO] Compiling 93 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:04.2764310Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:04.2765605Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:04.2766998Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:04.2767707Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:04.2768573Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:04.2769132Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:04.2769604Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:04.2771273Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/handler/backend/MySQLSynContextImpl.java:[26,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:04.2773479Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[353,20] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2775223Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[354,14] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2776788Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[136,18] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2778590Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[137,10] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2793709Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[467,20] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2795383Z [WARNING] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[468,14] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:04.2796848Z [INFO] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:04.2798058Z [INFO] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:04.2799695Z [INFO] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:04.2800889Z [INFO] /home/runner/work/Mycat2/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:04.2801658Z [INFO] 
+2026-11-27T17:17:04.2802113Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ proxy ---
+2026-11-27T17:17:04.2802663Z [INFO] Not copying test resources
+2026-11-27T17:17:04.2803027Z [INFO] 
+2026-11-27T17:17:04.2803452Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ proxy ---
+2026-11-27T17:17:04.2804006Z [INFO] Not compiling test sources
+2026-11-27T17:17:04.2804368Z [INFO] 
+2026-11-27T17:17:04.2804728Z [INFO] --- surefire:3.5.3:test (default-test) @ proxy ---
+2026-11-27T17:17:04.2831352Z [INFO] Tests are skipped.
+2026-11-27T17:17:04.2831847Z [INFO] 
+2026-11-27T17:17:04.2832224Z [INFO] --- jar:3.5.0:jar (default-jar) @ proxy ---
+2026-11-27T17:17:04.2875391Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/proxy/target/proxy-1.22-release.jar
+2026-11-27T17:17:04.3046007Z [INFO] 
+2026-11-27T17:17:04.3046643Z [INFO] --- install:3.1.4:install (default-install) @ proxy ---
+2026-11-27T17:17:04.3051955Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/proxy/pom.xml to /home/runner/.m2/repository/io/mycat/proxy/1.22-release/proxy-1.22-release.pom
+2026-11-27T17:17:04.3058702Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/proxy/target/proxy-1.22-release.jar to /home/runner/.m2/repository/io/mycat/proxy/1.22-release/proxy-1.22-release.jar
+2026-11-27T17:17:04.3103617Z [INFO] 
+2026-11-27T17:17:04.3104139Z [INFO] -----------------------< io.mycat:calcite-core >------------------------
+2026-11-27T17:17:04.3104820Z [INFO] Building calcite-core (Mycat fork) 1.42.0-mycat                  [11/14]
+2026-11-27T17:17:04.3105360Z [INFO]   from calcite-core/pom.xml
+2026-11-27T17:17:04.3105888Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:04.3609175Z [INFO] 
+2026-11-27T17:17:04.3622106Z [INFO] --- resources:3.4.0:resources (default-resources) @ calcite-core ---
+2026-11-27T17:17:04.3622878Z [INFO] Copying 2 resources from src/main/resources to target/classes
+2026-11-27T17:17:04.3623384Z [INFO] 
+2026-11-27T17:17:04.3623834Z [INFO] --- compiler:3.14.1:compile (default-compile) @ calcite-core ---
+2026-11-27T17:17:04.3998416Z [INFO] Recompiling the module because of changed source code.
+2026-11-27T17:17:04.4018774Z [INFO] Compiling 1652 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:16.6065514Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/util/Util.java:[1033,23] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6067340Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/util/Util.java:[1271,23] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6068819Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/rex/RexUtil.java:[675,51] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6070076Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/rex/RexUtil.java:[684,51] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6071368Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/rel/core/Window.java:[442,12] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6089954Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/interpreter/Bindables.java:[122,34] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6091421Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/runtime/PredicateImpl.java:[37,17] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6092958Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/sql/parser/impl/SimpleCharStream.java:[206,14] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6094613Z [WARNING] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/sql/parser/impl/SimpleCharStream.java:[215,14] deprecated item is not annotated with @Deprecated
+2026-11-27T17:17:16.6096532Z [INFO] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/mycat/MycatSqlDefinedFunction.java: /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/mycat/MycatSqlDefinedFunction.java uses or overrides a deprecated API.
+2026-11-27T17:17:16.6098709Z [INFO] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/mycat/MycatSqlDefinedFunction.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:16.6100133Z [INFO] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/DataContext.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:16.6101669Z [INFO] /home/runner/work/Mycat2/Mycat2/calcite-core/src/main/java/org/apache/calcite/DataContext.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:16.6102598Z [INFO] 
+2026-11-27T17:17:16.6103067Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ calcite-core ---
+2026-11-27T17:17:16.6103624Z [INFO] Not copying test resources
+2026-11-27T17:17:16.6103995Z [INFO] 
+2026-11-27T17:17:16.6104486Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ calcite-core ---
+2026-11-27T17:17:16.6105081Z [INFO] Not compiling test sources
+2026-11-27T17:17:16.6105692Z [INFO] 
+2026-11-27T17:17:16.6106115Z [INFO] --- surefire:3.5.3:test (default-test) @ calcite-core ---
+2026-11-27T17:17:16.6133353Z [INFO] Tests are skipped.
+2026-11-27T17:17:16.6149351Z [INFO] 
+2026-11-27T17:17:16.6169272Z [INFO] --- jar:3.5.0:jar (default-jar) @ calcite-core ---
+2026-11-27T17:17:16.7012488Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/calcite-core/target/calcite-core-1.42.0-mycat.jar
+2026-11-27T17:17:17.0127284Z [INFO] 
+2026-11-27T17:17:17.0130472Z [INFO] --- install:3.1.4:install (default-install) @ calcite-core ---
+2026-11-27T17:17:17.0138763Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/calcite-core/pom.xml to /home/runner/.m2/repository/io/mycat/calcite-core/1.42.0-mycat/calcite-core-1.42.0-mycat.pom
+2026-11-27T17:17:17.0145834Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/calcite-core/target/calcite-core-1.42.0-mycat.jar to /home/runner/.m2/repository/io/mycat/calcite-core/1.42.0-mycat/calcite-core-1.42.0-mycat.jar
+2026-11-27T17:17:17.0231124Z [INFO] 
+2026-11-27T17:17:17.0231664Z [INFO] ----------------------------< io.mycat:hbt >----------------------------
+2026-11-27T17:17:17.0232301Z [INFO] Building hbt 1.22-release                                        [12/14]
+2026-11-27T17:17:17.0232847Z [INFO]   from hbt/pom.xml
+2026-11-27T17:17:17.0233272Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:17.0598574Z [INFO] 
+2026-11-27T17:17:17.0599208Z [INFO] --- resources:3.4.0:resources (default-resources) @ hbt ---
+2026-11-27T17:17:17.0608016Z [INFO] skip non existing resourceDirectory /home/runner/work/Mycat2/Mycat2/hbt/src/main/resources
+2026-11-27T17:17:17.0609238Z [INFO] 
+2026-11-27T17:17:17.0609667Z [INFO] --- compiler:3.14.1:compile (default-compile) @ hbt ---
+2026-11-27T17:17:17.0699659Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:17.0706779Z [INFO] Compiling 578 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:31.3835247Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[50,17] (immutables:incompat) 'singleton' feature contains potentially unsafe cast with generics  <C extends io.mycat.calcite.rewriter.MycatFilterJoinRule.Config>. Can be safe if immutable covariant conversion is possible
+2026-11-27T17:17:31.3837279Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/util/Explains.java:[41,5] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:31.3839421Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Expr.java:[29,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3841857Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Fun.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3844227Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Literal.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3847076Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/FieldType.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3849676Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/MergeModify.java:[10,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3851958Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Schema.java:[25,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3854151Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Identifier.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3856356Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/MycatSchema.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3858951Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Param.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3861200Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/ModifyFromSql.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3863638Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/AggregateCall.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:31.3865433Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/MetadataManager.java:[55,5] Not generating getPrototype(): A method with that name already exists
+2026-11-27T17:17:31.3866724Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/calcite/spm/DbPlanManagerPersistorImpl.java:[32,5] This method or constructor is empty; @SneakyThrows has been ignored.
+2026-11-27T17:17:31.3868147Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/prototypeserver/mysql/PrototypeService.java:[51,5] This method or constructor is empty; @SneakyThrows has been ignored.
+2026-11-27T17:17:31.3869846Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/sql/visitor/MycatOutputVisitor.java:[61,18] java.security.AccessControlException in java.security has been deprecated and marked for removal
+2026-11-27T17:17:31.3871351Z [WARNING] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/query/AnonyTableSchema.java:[44,40] non-varargs call of varargs method with inexact argument type for last parameter;
+2026-11-27T17:17:31.3872249Z   cast to java.lang.Object for a varargs call
+2026-11-27T17:17:31.3872725Z   cast to java.lang.Object[] for a non-varargs call and to suppress this warning
+2026-11-27T17:17:31.3873858Z [INFO] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:31.3875030Z [INFO] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:31.3876197Z [INFO] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:31.3877354Z [INFO] /home/runner/work/Mycat2/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:31.3878070Z [INFO] 
+2026-11-27T17:17:31.3878699Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ hbt ---
+2026-11-27T17:17:31.3879146Z [INFO] Not copying test resources
+2026-11-27T17:17:31.3879421Z [INFO] 
+2026-11-27T17:17:31.3879755Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ hbt ---
+2026-11-27T17:17:31.3880207Z [INFO] Not compiling test sources
+2026-11-27T17:17:31.3880484Z [INFO] 
+2026-11-27T17:17:31.3880758Z [INFO] --- surefire:3.5.3:test (default-test) @ hbt ---
+2026-11-27T17:17:31.3899396Z [INFO] Tests are skipped.
+2026-11-27T17:17:31.3900047Z [INFO] 
+2026-11-27T17:17:31.3900436Z [INFO] --- jar:3.5.0:jar (default-jar) @ hbt ---
+2026-11-27T17:17:31.4028505Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/hbt/target/hbt-1.22-release.jar
+2026-11-27T17:17:31.4724878Z [INFO] 
+2026-11-27T17:17:31.4736724Z [INFO] --- install:3.1.4:install (default-install) @ hbt ---
+2026-11-27T17:17:31.4737730Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/hbt/pom.xml to /home/runner/.m2/repository/io/mycat/hbt/1.22-release/hbt-1.22-release.pom
+2026-11-27T17:17:31.4739066Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/hbt/target/hbt-1.22-release.jar to /home/runner/.m2/repository/io/mycat/hbt/1.22-release/hbt-1.22-release.jar
+2026-11-27T17:17:31.4769880Z [INFO] 
+2026-11-27T17:17:31.4771206Z [INFO] -------------------------< io.mycat:executor >--------------------------
+2026-11-27T17:17:31.4799380Z [INFO] Building executor 1.22-release                                   [13/14]
+2026-11-27T17:17:31.4799942Z [INFO]   from executor/pom.xml
+2026-11-27T17:17:31.4800434Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:31.5004358Z [INFO] 
+2026-11-27T17:17:31.5005058Z [INFO] --- resources:3.4.0:resources (default-resources) @ executor ---
+2026-11-27T17:17:31.5029055Z [INFO] Copying 1 resource from src/main/resources to target/classes
+2026-11-27T17:17:31.5029741Z [INFO] 
+2026-11-27T17:17:31.5054058Z [INFO] --- compiler:3.14.1:compile (default-compile) @ executor ---
+2026-11-27T17:17:31.5100604Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:31.5119399Z [INFO] Compiling 486 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:32.8027313Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:32.8028404Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:32.8029233Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:32.8029959Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:32.8030630Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:32.8031199Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:32.8031779Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:32.8033008Z [WARNING] /home/runner/work/Mycat2/Mycat2/executor/src/main/java/io/ordinate/engine/record/RecordImpl.java:[26,1] Not generating equals and hashCode: A method with one of those names already exists. (Either both or none of these methods will be generated).
+2026-11-27T17:17:32.8034991Z [INFO] /home/runner/work/Mycat2/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:32.8036457Z [INFO] /home/runner/work/Mycat2/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:32.8037853Z [INFO] /home/runner/work/Mycat2/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:32.8039542Z [INFO] /home/runner/work/Mycat2/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:32.8040450Z [INFO] 
+2026-11-27T17:17:32.8040883Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ executor ---
+2026-11-27T17:17:32.8069392Z [INFO] Not copying test resources
+2026-11-27T17:17:32.8070087Z [INFO] 
+2026-11-27T17:17:32.8070593Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ executor ---
+2026-11-27T17:17:32.8081748Z [INFO] Not compiling test sources
+2026-11-27T17:17:32.8082243Z [INFO] 
+2026-11-27T17:17:32.8082753Z [INFO] --- surefire:3.5.3:test (default-test) @ executor ---
+2026-11-27T17:17:32.8120239Z [INFO] Tests are skipped.
+2026-11-27T17:17:32.8120735Z [INFO] 
+2026-11-27T17:17:32.8121163Z [INFO] --- jar:3.5.0:jar (default-jar) @ executor ---
+2026-11-27T17:17:32.8292228Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/executor/target/executor-1.22-release.jar
+2026-11-27T17:17:32.8596143Z [INFO] 
+2026-11-27T17:17:32.8596715Z [INFO] --- install:3.1.4:install (default-install) @ executor ---
+2026-11-27T17:17:32.8602404Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/executor/pom.xml to /home/runner/.m2/repository/io/mycat/executor/1.22-release/executor-1.22-release.pom
+2026-11-27T17:17:32.8609172Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/executor/target/executor-1.22-release.jar to /home/runner/.m2/repository/io/mycat/executor/1.22-release/executor-1.22-release.jar
+2026-11-27T17:17:32.8630968Z [INFO] 
+2026-11-27T17:17:32.8631550Z [INFO] --------------------------< io.mycat:server >---------------------------
+2026-11-27T17:17:32.8632254Z [INFO] Building server 1.22-release                                     [14/14]
+2026-11-27T17:17:32.8634891Z [INFO]   from server/pom.xml
+2026-11-27T17:17:32.8635414Z [INFO] --------------------------------[ jar ]---------------------------------
+2026-11-27T17:17:32.9083163Z [INFO] 
+2026-11-27T17:17:32.9083732Z [INFO] --- buildnumber:3.2.1:create (default) @ server ---
+2026-11-27T17:17:33.0147679Z [WARNING] The timestampFormat parameter now uses java.text.SimpleDateFormat.
+2026-11-27T17:17:33.0148722Z [WARNING] Please update your POM as support for java.text.MessageFormat may be removed.
+2026-11-27T17:17:33.0171202Z [INFO] Storing buildNumber: {1} at timestamp: 20261127171733
+2026-11-27T17:17:33.0301295Z [INFO] Executing: /bin/sh -c cd '/home/runner/work/Mycat2/Mycat2/server' && 'git' 'symbolic-ref' 'HEAD'
+2026-11-27T17:17:33.0302087Z [INFO] Working directory: /home/runner/work/Mycat2/Mycat2/server
+2026-11-27T17:17:33.0745028Z [INFO] Storing scmBranch: main
+2026-11-27T17:17:33.0745494Z [INFO] 
+2026-11-27T17:17:33.0745940Z [INFO] --- replacer:1.5.3:replace (version) @ server ---
+2026-11-27T17:17:33.1151595Z [INFO] Replacement run on 1 file.
+2026-11-27T17:17:33.1152073Z [INFO] 
+2026-11-27T17:17:33.1152537Z [INFO] --- resources:3.4.0:resources (default-resources) @ server ---
+2026-11-27T17:17:33.1169335Z [INFO] Copying 19 resources from src/main/resources to target/classes
+2026-11-27T17:17:33.1177220Z [INFO] 
+2026-11-27T17:17:33.1177727Z [INFO] --- compiler:3.14.1:compile (default-compile) @ server ---
+2026-11-27T17:17:33.1241130Z [INFO] Recompiling the module because of changed dependency.
+2026-11-27T17:17:33.1246765Z [INFO] Compiling 274 source files with javac [debug target 21] to target/classes
+2026-11-27T17:17:37.4996911Z [INFO] Annotation processing is enabled because one or more processors were found
+2026-11-27T17:17:37.4997498Z   on the class path. A future release of javac may disable annotation processing
+2026-11-27T17:17:37.4998464Z   unless at least one processor is specified by name (-processor), or a search
+2026-11-27T17:17:37.4999067Z   path is specified (--processor-path, --processor-module-path), or annotation
+2026-11-27T17:17:37.4999563Z   processing is enabled explicitly (-proc:only, -proc:full).
+2026-11-27T17:17:37.4999940Z   Use -Xlint:-options to suppress this message.
+2026-11-27T17:17:37.5000257Z   Use -proc:none to disable annotation processing.
+2026-11-27T17:17:37.5001464Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BaselineListHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5003797Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BinlogListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5005379Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[230,5] Not generating toString(): A method with that name already exists
+2026-11-27T17:17:37.5006952Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/MigrateListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5009370Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/CreateUserHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5011410Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/PauseServerHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5013594Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BaselineParameterizeHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5015758Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/ReadyToCloseSQLHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5017827Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/DropSchemaHint.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5020091Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BinlogSnapshotHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5022432Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/MigrateHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5024652Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BaselineUpdateHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5026782Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BaselineAddHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5029000Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/KillThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5031029Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BinlogStopHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5033406Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BinlogSyncHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5035446Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/MigrateStopHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5037660Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/BinlogClearHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5040333Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/hint/InterruptThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+2026-11-27T17:17:37.5042008Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[289,5] This method or constructor is empty; @SneakyThrows has been ignored.
+2026-11-27T17:17:37.5043234Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/exporter/MySQLLogConsumer.java:[25,5] This method or constructor is empty; @SneakyThrows has been ignored.
+2026-11-27T17:17:37.5044581Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[62,20] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:37.5049759Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[63,14] finalize() in java.lang.Object has been deprecated and marked for removal
+2026-11-27T17:17:37.5051200Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[549,79] non-varargs call of varargs method with inexact argument type for last parameter;
+2026-11-27T17:17:37.5052029Z   cast to java.lang.Object for a varargs call
+2026-11-27T17:17:37.5052453Z   cast to java.lang.Object[] for a non-varargs call and to suppress this warning
+2026-11-27T17:17:37.5053642Z [WARNING] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[585,96] non-varargs call of varargs method with inexact argument type for last parameter;
+2026-11-27T17:17:37.5054498Z   cast to java.lang.Object for a varargs call
+2026-11-27T17:17:37.5054926Z   cast to java.lang.Object[] for a non-varargs call and to suppress this warning
+2026-11-27T17:17:37.5055723Z [INFO] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: Some input files use or override a deprecated API.
+2026-11-27T17:17:37.5056757Z [INFO] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: Recompile with -Xlint:deprecation for details.
+2026-11-27T17:17:37.5057851Z [INFO] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: Some input files use unchecked or unsafe operations.
+2026-11-27T17:17:37.5059230Z [INFO] /home/runner/work/Mycat2/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: Recompile with -Xlint:unchecked for details.
+2026-11-27T17:17:37.5059915Z [INFO] 
+2026-11-27T17:17:37.5060256Z [INFO] --- resources:3.4.0:testResources (default-testResources) @ server ---
+2026-11-27T17:17:37.5060717Z [INFO] Not copying test resources
+2026-11-27T17:17:37.5060979Z [INFO] 
+2026-11-27T17:17:37.5061300Z [INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ server ---
+2026-11-27T17:17:37.5061808Z [INFO] Not compiling test sources
+2026-11-27T17:17:37.5062062Z [INFO] 
+2026-11-27T17:17:37.5062418Z [INFO] --- surefire:3.5.3:test (default-test) @ server ---
+2026-11-27T17:17:37.5068776Z [INFO] Tests are skipped.
+2026-11-27T17:17:37.5069022Z [INFO] 
+2026-11-27T17:17:37.5069267Z [INFO] --- jar:3.5.0:jar (default-jar) @ server ---
+2026-11-27T17:17:37.5113065Z [INFO] Building jar: /home/runner/work/Mycat2/Mycat2/server/target/server-1.22-release.jar
+2026-11-27T17:17:37.5377955Z [INFO] 
+2026-11-27T17:17:37.5378744Z [INFO] --- shade:3.6.0:shade (default) @ server ---
+2026-11-27T17:17:37.5730812Z [INFO] Including io.netty:netty-codec-haproxy:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5739398Z [INFO] Including io.netty:netty-buffer:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5749555Z [INFO] Including io.netty:netty-transport:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5750369Z [INFO] Including io.netty:netty-codec:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5751008Z [INFO] Including io.mycat:executor:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5751614Z [INFO] Including it.unimi.dsi:fastutil:jar:8.5.6 in the shaded jar.
+2026-11-27T17:17:37.5752230Z [INFO] Including net.openhft:compiler:jar:2.4.1 in the shaded jar.
+2026-11-27T17:17:37.5752848Z [INFO] Including org.jetbrains:annotations:jar:19.0.0 in the shaded jar.
+2026-11-27T17:17:37.5753506Z [INFO] Including org.apache.arrow:arrow-algorithm:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5754566Z [INFO] Including org.apache.arrow:arrow-vector:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5755251Z [INFO] Including org.apache.arrow:arrow-format:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5760664Z [INFO] Including com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.22.3 in the shaded jar.
+2026-11-27T17:17:37.5761568Z [INFO] Including com.google.flatbuffers:flatbuffers-java:jar:24.3.25 in the shaded jar.
+2026-11-27T17:17:37.5762326Z [INFO] Including org.apache.arrow:arrow-memory-core:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5763019Z [INFO] Including org.apache.arrow:arrow-dataset:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5763693Z [INFO] Including org.apache.arrow:arrow-c-data:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5764320Z [INFO] Including org.apache.arrow:arrow-jdbc:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5764974Z [INFO] Including org.apache.arrow:arrow-memory-netty:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5765739Z [INFO] Including org.apache.arrow:arrow-memory-netty-buffer-patch:jar:18.1.0 in the shaded jar.
+2026-11-27T17:17:37.5766783Z [INFO] Including com.fasterxml.jackson.core:jackson-core:jar:2.22.3 in the shaded jar.
+2026-11-27T17:17:37.5767518Z [INFO] Including org.apache.commons:commons-lang3:jar:3.21.0 in the shaded jar.
+2026-11-27T17:17:37.5768149Z [INFO] Including com.carrotsearch:hppc:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5769042Z [INFO] Including org.reflections:reflections:jar:0.10 in the shaded jar.
+2026-11-27T17:17:37.5769633Z [INFO] Including org.javassist:javassist:jar:3.28.0-GA in the shaded jar.
+2026-11-27T17:17:37.5770230Z [INFO] Including com.alibaba:druid:jar:1.2.28 in the shaded jar.
+2026-11-27T17:17:37.5770911Z [INFO] Including com.github.akarnokd:rxjava3-extensions:jar:3.1.1 in the shaded jar.
+2026-11-27T17:17:37.5771637Z [INFO] Including org.reactivestreams:reactive-streams:jar:1.0.3 in the shaded jar.
+2026-11-27T17:17:37.5772365Z [INFO] Including com.fasterxml.jackson.core:jackson-databind:jar:2.22.3 in the shaded jar.
+2026-11-27T17:17:37.5773208Z [INFO] Including com.fasterxml.jackson.core:jackson-annotations:jar:2.22 in the shaded jar.
+2026-11-27T17:17:37.5773933Z [INFO] Including org.mariadb.jdbc:mariadb-java-client:jar:3.5.3 in the shaded jar.
+2026-11-27T17:17:37.5774623Z [INFO] Including org.apache.commons:commons-csv:jar:1.14.1 in the shaded jar.
+2026-11-27T17:17:37.5775271Z [INFO] Including commons-io:commons-io:jar:2.22.0 in the shaded jar.
+2026-11-27T17:17:37.5776046Z [INFO] Including commons-codec:commons-codec:jar:1.23.0 in the shaded jar.
+2026-11-27T17:17:37.5776680Z [INFO] Including com.github.oshi:oshi-core:jar:6.8.2 in the shaded jar.
+2026-11-27T17:17:37.5777279Z [INFO] Including net.java.dev.jna:jna:jar:5.17.0 in the shaded jar.
+2026-11-27T17:17:37.5777927Z [INFO] Including net.java.dev.jna:jna-platform:jar:5.17.0 in the shaded jar.
+2026-11-27T17:17:37.5778819Z [INFO] Including io.prometheus:simpleclient:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5779513Z [INFO] Including io.prometheus:simpleclient_httpserver:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5780222Z [INFO] Including io.prometheus:simpleclient_common:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5780891Z [INFO] Including io.prometheus:simpleclient_hotspot:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5781524Z [INFO] Including io.mycat:proxy:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5782247Z [INFO] Including io.vertx:vertx-mysql-client:jar:4.5.14 in the shaded jar.
+2026-11-27T17:17:37.5782926Z [INFO] Including io.mycat:config:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5783595Z [INFO] Including javax.validation:validation-api:jar:2.0.1.Final in the shaded jar.
+2026-11-27T17:17:37.5784342Z [INFO] Including com.squareup.okhttp3:okhttp:jar:4.7.2 in the shaded jar.
+2026-11-27T17:17:37.5784995Z [INFO] Including com.squareup.okio:okio:jar:2.6.0 in the shaded jar.
+2026-11-27T17:17:37.5785652Z [INFO] Including org.jetbrains.kotlin:kotlin-stdlib:jar:1.3.71 in the shaded jar.
+2026-11-27T17:17:37.5786314Z [INFO] Including org.yaml:snakeyaml:jar:1.23 in the shaded jar.
+2026-11-27T17:17:37.5786910Z [INFO] Including io.mycat:plug:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5787488Z [INFO] Including io.mycat:router:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5788080Z [INFO] Including org.codehaus.groovy:groovy:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5789155Z [INFO] Including org.codehaus.groovy:groovy-ant:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5789802Z [INFO] Including org.apache.ant:ant:jar:1.10.8 in the shaded jar.
+2026-11-27T17:17:37.5790463Z [INFO] Including org.apache.ant:ant-junit:jar:1.10.8 in the shaded jar.
+2026-11-27T17:17:37.5791082Z [INFO] Including org.apache.ant:ant-launcher:jar:1.10.8 in the shaded jar.
+2026-11-27T17:17:37.5791704Z [INFO] Including org.apache.ant:ant-antlr:jar:1.10.8 in the shaded jar.
+2026-11-27T17:17:37.5792358Z [INFO] Including org.codehaus.groovy:groovy-astbuilder:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5793065Z [INFO] Including org.codehaus.groovy:groovy-cli-picocli:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5793920Z [INFO] Including info.picocli:picocli:jar:4.5.1 in the shaded jar.
+2026-11-27T17:17:37.5794582Z [INFO] Including org.codehaus.groovy:groovy-console:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5795274Z [INFO] Including org.codehaus.groovy:groovy-datetime:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5795990Z [INFO] Including org.codehaus.groovy:groovy-docgenerator:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5796663Z [INFO] Including com.thoughtworks.qdox:qdox:jar:1.12.1 in the shaded jar.
+2026-11-27T17:17:37.5797299Z [INFO] Including org.codehaus.groovy:groovy-groovydoc:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5797985Z [INFO] Including com.github.javaparser:javaparser-core:jar:3.16.1 in the shaded jar.
+2026-11-27T17:17:37.5798936Z [INFO] Including org.codehaus.groovy:groovy-groovysh:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5799536Z [INFO] Including jline:jline:jar:2.14.6 in the shaded jar.
+2026-11-27T17:17:37.5800202Z [INFO] Including org.codehaus.groovy:groovy-jmx:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5800857Z [INFO] Including org.codehaus.groovy:groovy-json:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5801516Z [INFO] Including org.codehaus.groovy:groovy-jsr223:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5802178Z [INFO] Including org.codehaus.groovy:groovy-macro:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5803001Z [INFO] Including org.codehaus.groovy:groovy-nio:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5803636Z [INFO] Including org.codehaus.groovy:groovy-servlet:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5804298Z [INFO] Including org.codehaus.groovy:groovy-sql:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5804952Z [INFO] Including org.codehaus.groovy:groovy-swing:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5805669Z [INFO] Including org.codehaus.groovy:groovy-templates:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5806356Z [INFO] Including org.codehaus.groovy:groovy-test:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5807009Z [INFO] Including org.codehaus.groovy:groovy-test-junit5:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5807749Z [INFO] Including org.codehaus.groovy:groovy-testng:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5808628Z [INFO] Including org.testng:testng:jar:7.3.0 in the shaded jar.
+2026-11-27T17:17:37.5809240Z [INFO] Including com.beust:jcommander:jar:1.78 in the shaded jar.
+2026-11-27T17:17:37.5809865Z [INFO] Including org.codehaus.groovy:groovy-xml:jar:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5810504Z [INFO] Including io.mycat:replica:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5811105Z [INFO] Including io.mycat:common:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5811712Z [INFO] Including io.mycat:protocol:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5815538Z [INFO] Including io.reactivex.rxjava3:rxjava:jar:3.1.10 in the shaded jar.
+2026-11-27T17:17:37.5816242Z [INFO] Including joda-time:joda-time:jar:2.10.1 in the shaded jar.
+2026-11-27T17:17:37.5816845Z [INFO] Including net.sf.ehcache:ehcache:jar:2.10.6 in the shaded jar.
+2026-11-27T17:17:37.5817459Z [INFO] Including com.mysql:mysql-connector-j:jar:9.3.0 in the shaded jar.
+2026-11-27T17:17:37.5818128Z [INFO] Including io.vertx:vertx-sql-client:jar:4.5.14 in the shaded jar.
+2026-11-27T17:17:37.5819054Z [INFO] Including com.imadcn.framework:idworker:jar:1.4.0 in the shaded jar.
+2026-11-27T17:17:37.5819846Z [INFO] Including org.apache.curator:curator-framework:jar:2.13.0 in the shaded jar.
+2026-11-27T17:17:37.5820678Z [INFO] Including org.apache.curator:curator-client:jar:2.13.0 in the shaded jar.
+2026-11-27T17:17:37.5821423Z [INFO] Including org.apache.zookeeper:zookeeper:jar:3.4.8 in the shaded jar.
+2026-11-27T17:17:37.5822077Z [INFO] Including io.netty:netty:jar:3.7.0.Final in the shaded jar.
+2026-11-27T17:17:37.5823005Z [INFO] Including org.apache.curator:curator-recipes:jar:2.13.0 in the shaded jar.
+2026-11-27T17:17:37.5823764Z [INFO] Including com.alibaba:fastjson:jar:1.2.58 in the shaded jar.
+2026-11-27T17:17:37.5824592Z [INFO] Including org.questdb:questdb-jdk8:jar:6.0.1 in the shaded jar.
+2026-11-27T17:17:37.5825246Z [INFO] Including io.mycat:datasource:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5825891Z [INFO] Including com.zaxxer:HikariCP:jar:3.4.5 in the shaded jar.
+2026-11-27T17:17:37.5826478Z [INFO] Including javax.transaction:jta:jar:1.1 in the shaded jar.
+2026-11-27T17:17:37.5827073Z [INFO] Including org.jooq:jooq:jar:3.11.9 in the shaded jar.
+2026-11-27T17:17:37.5827690Z [INFO] Including javax.xml.bind:jaxb-api:jar:2.2.12 in the shaded jar.
+2026-11-27T17:17:37.5828527Z [INFO] Including au.com.bytecode:opencsv:jar:2.4 in the shaded jar.
+2026-11-27T17:17:37.5829174Z [INFO] Including com.google.guava:guava:jar:33.4.8-jre in the shaded jar.
+2026-11-27T17:17:37.5829832Z [INFO] Including com.google.guava:failureaccess:jar:1.0.3 in the shaded jar.
+2026-11-27T17:17:37.5830673Z [INFO] Including com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava in the shaded jar.
+2026-11-27T17:17:37.5831566Z [INFO] Including org.jspecify:jspecify:jar:1.0.0 in the shaded jar.
+2026-11-27T17:17:37.5832256Z [INFO] Including com.google.errorprone:error_prone_annotations:jar:2.36.0 in the shaded jar.
+2026-11-27T17:17:37.5833101Z [INFO] Including com.google.j2objc:j2objc-annotations:jar:3.0.0 in the shaded jar.
+2026-11-27T17:17:37.5834196Z [INFO] Including io.mycat:hbt:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5834921Z [INFO] Including com.github.jinahya:database-metadata-bind:jar:3.2.0 in the shaded jar.
+2026-11-27T17:17:37.5835700Z [INFO] Including net.jpountz.lz4:lz4:jar:1.3.0 in the shaded jar.
+2026-11-27T17:17:37.5836394Z [INFO] Including com.github.sisyphsu:dateparser:jar:1.0.5 in the shaded jar.
+2026-11-27T17:17:37.5837141Z [INFO] Including com.github.sisyphsu:retree:jar:1.0.4 in the shaded jar.
+2026-11-27T17:17:37.5837824Z [INFO] Including org.codehaus.janino:janino:jar:3.1.12 in the shaded jar.
+2026-11-27T17:17:37.5838869Z [INFO] Including org.codehaus.janino:commons-compiler:jar:3.1.12 in the shaded jar.
+2026-11-27T17:17:37.5839569Z [INFO] Including org.dom4j:dom4j:jar:2.1.3 in the shaded jar.
+2026-11-27T17:17:37.5840166Z [INFO] Including jaxen:jaxen:jar:1.2.0 in the shaded jar.
+2026-11-27T17:17:37.5840966Z [INFO] Including com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.22.3 in the shaded jar.
+2026-11-27T17:17:37.5841843Z [INFO] Including org.apiguardian:apiguardian-api:jar:1.1.2 in the shaded jar.
+2026-11-27T17:17:37.5842602Z [INFO] Including com.esri.geometry:esri-geometry-api:jar:2.2.0 in the shaded jar.
+2026-11-27T17:17:37.5843324Z [INFO] Including com.jayway.jsonpath:json-path:jar:2.10.0 in the shaded jar.
+2026-11-27T17:17:37.5844014Z [INFO] Including net.minidev:json-smart:jar:2.6.0 in the shaded jar.
+2026-11-27T17:17:37.5845131Z [INFO] Including net.minidev:accessors-smart:jar:2.6.0 in the shaded jar.
+2026-11-27T17:17:37.5845868Z [INFO] Including com.yahoo.datasketches:sketches-core:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5846649Z [INFO] Including com.yahoo.datasketches:memory:jar:0.9.0 in the shaded jar.
+2026-11-27T17:17:37.5847384Z [INFO] Including net.hydromatic:aggdesigner-algorithm:jar:6.1 in the shaded jar.
+2026-11-27T17:17:37.5848148Z [INFO] Including org.apache.commons:commons-dbcp2:jar:2.14.0 in the shaded jar.
+2026-11-27T17:17:37.5849213Z [INFO] Including org.apache.commons:commons-pool2:jar:2.13.0 in the shaded jar.
+2026-11-27T17:17:37.5850016Z [INFO] Including jakarta.transaction:jakarta.transaction-api:jar:1.3.3 in the shaded jar.
+2026-11-27T17:17:37.5850782Z [INFO] Including org.immutables:value:jar:2.10.1 in the shaded jar.
+2026-11-27T17:17:37.5851522Z [INFO] Including org.checkerframework:checker-qual:jar:3.10.0 in the shaded jar.
+2026-11-27T17:17:37.5852286Z [INFO] Including org.aspectj:aspectjweaver:jar:1.9.6 in the shaded jar.
+2026-11-27T17:17:37.5852948Z [INFO] Including io.mycat:va:jar:1.22-release in the shaded jar.
+2026-11-27T17:17:37.5853617Z [INFO] Including io.vertx:vertx-jdbc-client:jar:4.5.14 in the shaded jar.
+2026-11-27T17:17:37.5854809Z [INFO] Including com.mchange:c3p0:jar:0.9.5.5 in the shaded jar.
+2026-11-27T17:17:37.5855558Z [INFO] Including com.mchange:mchange-commons-java:jar:0.2.19 in the shaded jar.
+2026-11-27T17:17:37.5856283Z [INFO] Including io.vertx:vertx-core:jar:4.5.14 in the shaded jar.
+2026-11-27T17:17:37.5856922Z [INFO] Including io.netty:netty-common:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5857608Z [INFO] Including io.netty:netty-handler:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5858619Z [INFO] Including io.netty:netty-transport-native-unix-common:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5859526Z [INFO] Including io.netty:netty-handler-proxy:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5860272Z [INFO] Including io.netty:netty-codec-socks:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5861015Z [INFO] Including io.netty:netty-codec-http:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5861788Z [INFO] Including io.netty:netty-codec-http2:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5862671Z [INFO] Including io.netty:netty-resolver:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5863411Z [INFO] Including io.netty:netty-resolver-dns:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5864249Z [INFO] Including io.netty:netty-codec-dns:jar:4.1.119.Final in the shaded jar.
+2026-11-27T17:17:37.5865123Z [INFO] Including ch.qos.logback:logback-core:jar:1.5.18 in the shaded jar.
+2026-11-27T17:17:37.5865853Z [INFO] Including ch.qos.logback:logback-classic:jar:1.5.18 in the shaded jar.
+2026-11-27T17:17:37.5866647Z [INFO] Including org.slf4j:slf4j-api:jar:2.0.16 in the shaded jar.
+2026-11-27T17:17:37.5867331Z [INFO] Including ch.qos.logback:logback-access:jar:1.2.3 in the shaded jar.
+2026-11-27T17:17:37.5868148Z [INFO] Including com.github.danielwegener:logback-kafka-appender:jar:0.2.0-RC2 in the shaded jar.
+2026-11-27T17:17:37.5869224Z [INFO] Including org.apache.kafka:kafka-clients:jar:2.7.2 in the shaded jar.
+2026-11-27T17:17:37.5869973Z [INFO] Including com.github.luben:zstd-jni:jar:1.4.5-6 in the shaded jar.
+2026-11-27T17:17:37.5870615Z [INFO] Including org.lz4:lz4-java:jar:1.7.1 in the shaded jar.
+2026-11-27T17:17:37.5871337Z [INFO] Including org.xerial.snappy:snappy-java:jar:1.1.7.7 in the shaded jar.
+2026-11-27T17:17:37.5872121Z [INFO] Including com.zendesk:mysql-binlog-connector-java:jar:0.25.5 in the shaded jar.
+2026-11-27T17:17:37.5872846Z [INFO] Including com.clickhouse:clickhouse-jdbc:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5873802Z [INFO] Including com.clickhouse:clickhouse-client:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5874526Z [INFO] Including com.clickhouse:clickhouse-data:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5875313Z [INFO] Including com.clickhouse:clickhouse-http-client:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5876195Z [INFO] Including org.apache.httpcomponents.client5:httpclient5:jar:5.2.1 in the shaded jar.
+2026-11-27T17:17:37.5877130Z [INFO] Including org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2 in the shaded jar.
+2026-11-27T17:17:37.5878027Z [INFO] Including org.apache.httpcomponents.core5:httpcore5:jar:5.2.1 in the shaded jar.
+2026-11-27T17:17:37.5879157Z [INFO] Including org.apache.commons:commons-compress:jar:1.27.1 in the shaded jar.
+2026-11-27T17:17:37.5879957Z [INFO] Including org.lz4:lz4-pure-java:jar:1.8.0 in the shaded jar.
+2026-11-27T17:17:37.5880639Z [INFO] Including com.clickhouse:jdbc-v2:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5881326Z [INFO] Including com.clickhouse:client-v2:jar:0.7.2 in the shaded jar.
+2026-11-27T17:17:37.5882105Z [INFO] Including org.roaringbitmap:RoaringBitmap:jar:0.9.47 in the shaded jar.
+2026-11-27T17:17:37.5882812Z [INFO] Including org.roaringbitmap:shims:jar:0.9.47 in the shaded jar.
+2026-11-27T17:17:37.5883525Z [INFO] Including org.ow2.asm:asm:jar:9.5 in the shaded jar.
+2026-11-27T17:17:37.5884297Z [INFO] Including io.mycat:calcite-core:jar:1.42.0-mycat in the shaded jar.
+2026-11-27T17:17:37.5885337Z [INFO] Including org.locationtech.jts:jts-core:jar:1.19.0 in the shaded jar.
+2026-11-27T17:17:37.5886168Z [INFO] Including org.locationtech.jts.io:jts-io-common:jar:1.19.0 in the shaded jar.
+2026-11-27T17:17:37.5887146Z [INFO] Including com.googlecode.json-simple:json-simple:jar:1.1.1 in the shaded jar.
+2026-11-27T17:17:37.5888056Z [INFO] Including org.locationtech.proj4j:proj4j:jar:1.2.2 in the shaded jar.
+2026-11-27T17:17:37.5889168Z [INFO] Including com.google.code.findbugs:jsr305:jar:3.0.2 in the shaded jar.
+2026-11-27T17:17:37.5890004Z [INFO] Including com.google.uzaygezen:uzaygezen-core:jar:0.2 in the shaded jar.
+2026-11-27T17:17:37.5890687Z [INFO] Including log4j:log4j:jar:1.2.17 in the shaded jar.
+2026-11-27T17:17:37.5891391Z [INFO] Including org.apache.commons:commons-math3:jar:3.6.1 in the shaded jar.
+2026-11-27T17:17:37.5892194Z [INFO] Including org.apache.commons:commons-text:jar:1.15.0 in the shaded jar.
+2026-11-27T17:17:37.5892956Z [INFO] Including org.jooq:joou-java-6:jar:0.9.5 in the shaded jar.
+2026-11-27T17:17:37.5893708Z [INFO] Including org.apache.calcite:calcite-linq4j:jar:1.42.0 in the shaded jar.
+2026-11-27T17:17:37.5894534Z [INFO] Including org.apache.calcite.avatica:avatica-core:jar:1.26.0 in the shaded jar.
+2026-11-27T17:17:37.5895417Z [INFO] Including org.apache.calcite.avatica:avatica-metrics:jar:1.26.0 in the shaded jar.
+2026-11-27T17:17:37.5896405Z [INFO] Including com.google.protobuf:protobuf-java:jar:3.25.5 in the shaded jar.
+2026-11-27T17:17:37.5897190Z [INFO] Including org.objenesis:objenesis:jar:3.0.1 in the shaded jar.
+2026-11-27T17:17:37.5897945Z [INFO] Including org.bouncycastle:bcpkix-jdk18on:jar:1.78.1 in the shaded jar.
+2026-11-27T17:17:37.5898930Z [INFO] Including org.bouncycastle:bcutil-jdk18on:jar:1.78.1 in the shaded jar.
+2026-11-27T17:17:37.5899730Z [INFO] Including org.bouncycastle:bcprov-jdk18on:jar:1.78.1 in the shaded jar.
+2026-11-27T17:17:37.5900745Z [INFO] Including org.realityforge.org.jetbrains.annotations:org.jetbrains.annotations:jar:1.2.0 in the shaded jar.
+2026-11-27T17:17:37.5901698Z [INFO] Skipping pom dependency com.github.oshi:oshi-dist:pom:5.8.5 in the shaded jar.
+2026-11-27T17:17:37.5902664Z [INFO] Skipping pom dependency org.codehaus.groovy:groovy-all:pom:3.0.6 in the shaded jar.
+2026-11-27T17:17:37.5903682Z [INFO] Dependency-reduced POM written at: /home/runner/work/Mycat2/Mycat2/server/dependency-reduced-pom.xml
+2026-11-27T17:17:39.5725206Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:39.7383256Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:39.7456345Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:39.7699244Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:48.4153495Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:48.4240426Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:48.4310234Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:49.1801239Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:53.4009655Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:54.2939731Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:54.3118554Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:55.6947602Z [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+2026-11-27T17:17:57.4670669Z [WARNING] annotations-19.0.0.jar, org.jetbrains.annotations-1.2.0.jar define 30 overlapping classes: 
+2026-11-27T17:17:57.4671262Z [WARNING]   - org.intellij.lang.annotations.Flow
+2026-11-27T17:17:57.4671734Z [WARNING]   - org.intellij.lang.annotations.Identifier
+2026-11-27T17:17:57.4672333Z [WARNING]   - org.intellij.lang.annotations.Language
+2026-11-27T17:17:57.4672724Z [WARNING]   - org.intellij.lang.annotations.MagicConstant
+2026-11-27T17:17:57.4673072Z [WARNING]   - org.intellij.lang.annotations.Pattern
+2026-11-27T17:17:57.4673434Z [WARNING]   - org.intellij.lang.annotations.PrintFormat
+2026-11-27T17:17:57.4673829Z [WARNING]   - org.intellij.lang.annotations.PrintFormatPattern
+2026-11-27T17:17:57.4674243Z [WARNING]   - org.intellij.lang.annotations.RegExp
+2026-11-27T17:17:57.4674570Z [WARNING]   - org.intellij.lang.annotations.Subst
+2026-11-27T17:17:57.4674900Z [WARNING]   - org.jetbrains.annotations.ApiStatus
+2026-11-27T17:17:57.4675174Z [WARNING]   - 20 more...
+2026-11-27T17:17:57.4679308Z [WARNING] clickhouse-http-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 22 overlapping class and resource: 
+2026-11-27T17:17:57.4689266Z [WARNING]   - META-INF.versions.11.com.clickhouse.client.http.ClickHouseHttpConnectionFactory
+2026-11-27T17:17:57.4690361Z [WARNING]   - META-INF.versions.11.com.clickhouse.client.http.ClickHouseResponseHandler
+2026-11-27T17:17:57.4691343Z [WARNING]   - META-INF.versions.11.com.clickhouse.client.http.HttpClientConnectionImpl
+2026-11-27T17:17:57.4692335Z [WARNING]   - META-INF.versions.11.com.clickhouse.client.http.HttpClientConnectionImpl$NoProxySelector
+2026-11-27T17:17:57.4693416Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-http-client/native-image.properties
+2026-11-27T17:17:57.4693956Z [WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl
+2026-11-27T17:17:57.4694458Z [WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$1
+2026-11-27T17:17:57.4695039Z [WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$ApacheHttpClientSocketFactory
+2026-11-27T17:17:57.4695688Z [WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$HttpConnectionManager
+2026-11-27T17:17:57.4696264Z [WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$SSLSocketFactory
+2026-11-27T17:17:57.4696726Z [WARNING]   - 12 more...
+2026-11-27T17:17:57.4697159Z [WARNING] client-v2-0.7.2.jar, jdbc-v2-0.7.2.jar define 84 overlapping class and resource: 
+2026-11-27T17:17:57.4697622Z [WARNING]   - client-v2-version.properties
+2026-11-27T17:17:57.4698077Z [WARNING]   - com.clickhouse.client.api.Client
+2026-11-27T17:17:57.4698878Z [WARNING]   - com.clickhouse.client.api.Client$1
+2026-11-27T17:17:57.4699370Z [WARNING]   - com.clickhouse.client.api.Client$2
+2026-11-27T17:17:57.4699833Z [WARNING]   - com.clickhouse.client.api.Client$Builder
+2026-11-27T17:17:57.4700284Z [WARNING]   - com.clickhouse.client.api.ClientConfigProperties
+2026-11-27T17:17:57.4700668Z [WARNING]   - com.clickhouse.client.api.ClientException
+2026-11-27T17:17:57.4700990Z [WARNING]   - com.clickhouse.client.api.ClientFaultCause
+2026-11-27T17:17:57.4701567Z [WARNING]   - com.clickhouse.client.api.ClientMisconfigurationException
+2026-11-27T17:17:57.4702040Z [WARNING]   - com.clickhouse.client.api.ConnectionInitiationException
+2026-11-27T17:17:57.4702622Z [WARNING]   - 74 more...
+2026-11-27T17:17:57.4703123Z [WARNING] HikariCP-3.4.5.jar, clickhouse-client-0.7.2.jar, clickhouse-data-0.7.2.jar, clickhouse-http-client-0.7.2.jar define 1 overlapping classes: 
+2026-11-27T17:17:57.4703660Z [WARNING]   - META-INF.versions.11.module-info
+2026-11-27T17:17:57.4705279Z [WARNING] groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4706883Z [WARNING]   - META-INF/groovy-release-info.properties
+2026-11-27T17:17:57.4707488Z [WARNING] clickhouse-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar define 59 overlapping classes and resources: 
+2026-11-27T17:17:57.4708016Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-client/native-image.properties
+2026-11-27T17:17:57.4708689Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-client/resource-config.json
+2026-11-27T17:17:57.4709100Z [WARNING]   - clickhouse-client-version.properties
+2026-11-27T17:17:57.4709400Z [WARNING]   - com.clickhouse.client.AbstractClient
+2026-11-27T17:17:57.4709740Z [WARNING]   - com.clickhouse.client.AbstractSocketClient
+2026-11-27T17:17:57.4710125Z [WARNING]   - com.clickhouse.client.AbstractSocketClient$SocketRequest
+2026-11-27T17:17:57.4710531Z [WARNING]   - com.clickhouse.client.ClickHouseClient
+2026-11-27T17:17:57.4710885Z [WARNING]   - com.clickhouse.client.ClickHouseClientBuilder
+2026-11-27T17:17:57.4711243Z [WARNING]   - com.clickhouse.client.ClickHouseClientBuilder$Agent
+2026-11-27T17:17:57.4711682Z [WARNING]   - com.clickhouse.client.ClickHouseClientBuilder$DummyClient
+2026-11-27T17:17:57.4712011Z [WARNING]   - 49 more...
+2026-11-27T17:17:57.4712377Z [WARNING] jakarta.transaction-api-1.3.3.jar, jta-1.1.jar define 15 overlapping classes: 
+2026-11-27T17:17:57.4712810Z [WARNING]   - javax.transaction.HeuristicCommitException
+2026-11-27T17:17:57.4713140Z [WARNING]   - javax.transaction.HeuristicMixedException
+2026-11-27T17:17:57.4713559Z [WARNING]   - javax.transaction.HeuristicRollbackException
+2026-11-27T17:17:57.4713917Z [WARNING]   - javax.transaction.InvalidTransactionException
+2026-11-27T17:17:57.4714311Z [WARNING]   - javax.transaction.NotSupportedException
+2026-11-27T17:17:57.4714626Z [WARNING]   - javax.transaction.RollbackException
+2026-11-27T17:17:57.4714918Z [WARNING]   - javax.transaction.Status
+2026-11-27T17:17:57.4715201Z [WARNING]   - javax.transaction.Synchronization
+2026-11-27T17:17:57.4715508Z [WARNING]   - javax.transaction.SystemException
+2026-11-27T17:17:57.4715826Z [WARNING]   - javax.transaction.Transaction
+2026-11-27T17:17:57.4716086Z [WARNING]   - 5 more...
+2026-11-27T17:17:57.4727617Z [WARNING] HikariCP-3.4.5.jar, RoaringBitmap-0.9.47.jar, accessors-smart-2.6.0.jar, aggdesigner-algorithm-6.1.jar, annotations-19.0.0.jar, ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, apiguardian-api-1.1.2.jar, arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, asm-9.5.jar, aspectjweaver-1.9.6.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, c3p0-0.9.5.5.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, checker-qual-3.10.0.jar, clickhouse-client-0.7.2.jar, clickhouse-data-0.7.2.jar, clickhouse-http-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, client-v2-0.7.2.jar, common-1.22-release.jar, commons-codec-1.23.0.jar, commons-compiler-3.1.12.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, compiler-2.4.1.jar, config-1.22-release.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, database-metadata-bind-3.2.0.jar, datasource-1.22-release.jar, dateparser-1.0.5.jar, dom4j-2.1.3.jar, druid-1.2.28.jar, ehcache-2.10.6.jar, error_prone_annotations-2.36.0.jar, esri-geometry-api-2.2.0.jar, executor-1.22-release.jar, failureaccess-1.0.3.jar, fastjson-1.2.58.jar, fastutil-8.5.6.jar, flatbuffers-java-24.3.25.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, guava-33.4.8-jre.jar, hbt-1.22-release.jar, hppc-0.9.0.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, idworker-1.4.0.jar, j2objc-annotations-3.0.0.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jakarta.transaction-api-1.3.3.jar, janino-3.1.12.jar, javaparser-core-3.16.1.jar, javassist-3.28.0-GA.jar, jaxb-api-2.2.12.jar, jaxen-1.2.0.jar, jcommander-1.78.jar, jdbc-v2-0.7.2.jar, jline-2.14.6.jar, jna-5.17.0.jar, jna-platform-5.17.0.jar, joda-time-2.10.1.jar, jooq-3.11.9.jar, joou-java-6-0.9.5.jar, json-path-2.10.0.jar, json-simple-1.1.1.jar, json-smart-2.6.0.jar, jspecify-1.0.0.jar, jsr305-3.0.2.jar, jta-1.1.jar, jts-core-1.19.0.jar, jts-io-common-1.19.0.jar, kafka-clients-2.7.2.jar, kotlin-stdlib-1.3.71.jar, listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar, log4j-1.2.17.jar, logback-access-1.2.3.jar, logback-classic-1.5.18.jar, logback-core-1.5.18.jar, logback-kafka-appender-0.2.0-RC2.jar, lz4-1.3.0.jar, lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar, mariadb-java-client-3.5.3.jar, mchange-commons-java-0.2.19.jar, memory-0.9.0.jar, mysql-binlog-connector-java-0.25.5.jar, mysql-connector-j-9.3.0.jar, netty-3.7.0.Final.jar, netty-buffer-4.1.119.Final.jar, netty-codec-4.1.119.Final.jar, netty-codec-dns-4.1.119.Final.jar, netty-codec-haproxy-4.1.119.Final.jar, netty-codec-http-4.1.119.Final.jar, netty-codec-http2-4.1.119.Final.jar, netty-codec-socks-4.1.119.Final.jar, netty-common-4.1.119.Final.jar, netty-handler-4.1.119.Final.jar, netty-handler-proxy-4.1.119.Final.jar, netty-resolver-4.1.119.Final.jar, netty-resolver-dns-4.1.119.Final.jar, netty-transport-4.1.119.Final.jar, netty-transport-native-unix-common-4.1.119.Final.jar, objenesis-3.0.1.jar, okhttp-4.7.2.jar, okio-2.6.0.jar, opencsv-2.4.jar, org.jetbrains.annotations-1.2.0.jar, oshi-core-6.8.2.jar, picocli-4.5.1.jar, plug-1.22-release.jar, proj4j-1.2.2.jar, protobuf-java-3.25.5.jar, protocol-1.22-release.jar, proxy-1.22-release.jar, qdox-1.12.1.jar, questdb-jdk8-6.0.1.jar, reactive-streams-1.0.3.jar, reflections-0.10.jar, replica-1.22-release.jar, retree-1.0.4.jar, router-1.22-release.jar, rxjava-3.1.10.jar, rxjava3-extensions-3.1.1.jar, server-1.22-release.jar, shims-0.9.47.jar, simpleclient-0.9.0.jar, simpleclient_common-0.9.0.jar, simpleclient_hotspot-0.9.0.jar, simpleclient_httpserver-0.9.0.jar, sketches-core-0.9.0.jar, slf4j-api-2.0.16.jar, snakeyaml-1.23.jar, snappy-java-1.1.7.7.jar, testng-7.3.0.jar, uzaygezen-core-0.2.jar, va-1.22-release.jar, validation-api-2.0.1.Final.jar, value-2.10.1.jar, vertx-core-4.5.14.jar, vertx-jdbc-client-4.5.14.jar, vertx-mysql-client-4.5.14.jar, vertx-sql-client-4.5.14.jar, zookeeper-3.4.8.jar, zstd-jni-1.4.5-6.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4739583Z [WARNING]   - META-INF/MANIFEST.MF
+2026-11-27T17:17:57.4740752Z [WARNING] ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, fastjson-1.2.58.jar, joda-time-2.10.1.jar, netty-3.7.0.Final.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4741887Z [WARNING]   - META-INF/NOTICE.txt
+2026-11-27T17:17:57.4742614Z [WARNING] groovy-datetime-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-xml-3.0.6.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4743412Z [WARNING]   - META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule
+2026-11-27T17:17:57.4743980Z [WARNING] datasource-1.22-release.jar, mysql-connector-j-9.3.0.jar define 2 overlapping classes: 
+2026-11-27T17:17:57.4744449Z [WARNING]   - com.mysql.cj.protocol.x.SyncMessageReader
+2026-11-27T17:17:57.4744939Z [WARNING]   - com.mysql.cj.protocol.x.SyncMessageReader$ListenersDispatcher
+2026-11-27T17:17:57.4748794Z [WARNING] apiguardian-api-1.1.2.jar, arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, failureaccess-1.0.3.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, guava-33.4.8-jre.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jna-5.17.0.jar, jna-platform-5.17.0.jar, log4j-1.2.17.jar, objenesis-3.0.1.jar, org.jetbrains.annotations-1.2.0.jar, rxjava-3.1.10.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4752519Z [WARNING]   - META-INF/LICENSE
+2026-11-27T17:17:57.4752863Z [WARNING] druid-1.2.28.jar, idworker-1.4.0.jar define 2 overlapping resources: 
+2026-11-27T17:17:57.4753268Z [WARNING]   - META-INF/spring.handlers
+2026-11-27T17:17:57.4753564Z [WARNING]   - META-INF/spring.schemas
+2026-11-27T17:17:57.4754834Z [WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4756051Z [WARNING]   - META-INF/DEPENDENCIES
+2026-11-27T17:17:57.4757888Z [WARNING] bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, error_prone_annotations-2.36.0.jar, failureaccess-1.0.3.jar, guava-33.4.8-jre.jar, j2objc-annotations-3.0.0.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jspecify-1.0.0.jar, mariadb-java-client-3.5.3.jar, picocli-4.5.1.jar, rxjava-3.1.10.jar, slf4j-api-2.0.16.jar define 1 overlapping classes: 
+2026-11-27T17:17:57.4759703Z [WARNING]   - META-INF.versions.9.module-info
+2026-11-27T17:17:57.4761108Z [WARNING] ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, checker-qual-3.10.0.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, fastjson-1.2.58.jar, jaxen-1.2.0.jar, joda-time-2.10.1.jar, jooq-3.11.9.jar, joou-java-6-0.9.5.jar, jta-1.1.jar, netty-3.7.0.Final.jar, slf4j-api-2.0.16.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4762488Z [WARNING]   - META-INF/LICENSE.txt
+2026-11-27T17:17:57.4762861Z [WARNING] lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar define 11 overlapping classes: 
+2026-11-27T17:17:57.4763355Z [WARNING]   - net.jpountz.lz4.LZ4CompressorWithLength
+2026-11-27T17:17:57.4763703Z [WARNING]   - net.jpountz.lz4.LZ4DecompressorWithLength
+2026-11-27T17:17:57.4764047Z [WARNING]   - net.jpountz.lz4.LZ4FrameInputStream
+2026-11-27T17:17:57.4764395Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream
+2026-11-27T17:17:57.4764723Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$1
+2026-11-27T17:17:57.4765068Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$BD
+2026-11-27T17:17:57.4765416Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$BLOCKSIZE
+2026-11-27T17:17:57.4765806Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FLG
+2026-11-27T17:17:57.4766156Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FLG$Bits
+2026-11-27T17:17:57.4766521Z [WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FrameInfo
+2026-11-27T17:17:57.4766880Z [WARNING]   - 1 more...
+2026-11-27T17:17:57.4767238Z [WARNING] calcite-core-1.42.0-mycat.jar, hbt-1.22-release.jar define 7 overlapping classes: 
+2026-11-27T17:17:57.4767701Z [WARNING]   - org.apache.calcite.mycat.MycatBuiltInMethodImpl
+2026-11-27T17:17:57.4768087Z [WARNING]   - org.apache.calcite.mycat.MycatBuiltInMethodImpl$1
+2026-11-27T17:17:57.4768681Z [WARNING]   - org.apache.calcite.rel.externalize.RelJson
+2026-11-27T17:17:57.4769063Z [WARNING]   - org.apache.calcite.rel.externalize.RelJson$1
+2026-11-27T17:17:57.4769483Z [WARNING]   - org.apache.calcite.rel.externalize.RelJsonWriter
+2026-11-27T17:17:57.4769866Z [WARNING]   - org.apache.calcite.rel.metadata.RelMdMaxRowCount
+2026-11-27T17:17:57.4770270Z [WARNING]   - org.apache.calcite.rel.metadata.RelMdRowCount
+2026-11-27T17:17:57.4770710Z [WARNING] kafka-clients-2.7.2.jar, mysql-connector-j-9.3.0.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4771097Z [WARNING]   - LICENSE
+2026-11-27T17:17:57.4771936Z [WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4772804Z [WARNING]   - arrow-git.properties
+2026-11-27T17:17:57.4773205Z [WARNING] lz4-1.3.0.jar, lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar define 69 overlapping classes: 
+2026-11-27T17:17:57.4773627Z [WARNING]   - net.jpountz.lz4.LZ4BlockInputStream
+2026-11-27T17:17:57.4773984Z [WARNING]   - net.jpountz.lz4.LZ4BlockOutputStream
+2026-11-27T17:17:57.4774285Z [WARNING]   - net.jpountz.lz4.LZ4ByteBufferUtils
+2026-11-27T17:17:57.4774631Z [WARNING]   - net.jpountz.lz4.LZ4ByteBufferUtils$Match
+2026-11-27T17:17:57.4774994Z [WARNING]   - net.jpountz.lz4.LZ4Compressor
+2026-11-27T17:17:57.4775299Z [WARNING]   - net.jpountz.lz4.LZ4Constants
+2026-11-27T17:17:57.4775602Z [WARNING]   - net.jpountz.lz4.LZ4Decompressor
+2026-11-27T17:17:57.4775899Z [WARNING]   - net.jpountz.lz4.LZ4Exception
+2026-11-27T17:17:57.4776260Z [WARNING]   - net.jpountz.lz4.LZ4Factory
+2026-11-27T17:17:57.4776669Z [WARNING]   - net.jpountz.lz4.LZ4FastDecompressor
+2026-11-27T17:17:57.4777089Z [WARNING]   - 59 more...
+2026-11-27T17:17:57.4777577Z [WARNING] jna-5.17.0.jar, jna-platform-5.17.0.jar define 2 overlapping resources: 
+2026-11-27T17:17:57.4778137Z [WARNING]   - META-INF/AL2.0
+2026-11-27T17:17:57.4778750Z [WARNING]   - META-INF/LGPL2.1
+2026-11-27T17:17:57.4779494Z [WARNING] bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, jspecify-1.0.0.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4780346Z [WARNING]   - META-INF/versions/9/OSGI-INF/MANIFEST.MF
+2026-11-27T17:17:57.4785511Z [WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, log4j-1.2.17.jar, objenesis-3.0.1.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4791120Z [WARNING]   - META-INF/NOTICE
+2026-11-27T17:17:57.4791633Z [WARNING] jooq-3.11.9.jar, joou-java-6-0.9.5.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4792216Z [WARNING]   - META-INF/README.txt
+2026-11-27T17:17:57.4792753Z [WARNING] clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 2 overlapping resources: 
+2026-11-27T17:17:57.4793558Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-jdbc/native-image.properties
+2026-11-27T17:17:57.4794466Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-jdbc/reflect-config.json
+2026-11-27T17:17:57.4795278Z [WARNING] clickhouse-data-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 240 overlapping class and resource: 
+2026-11-27T17:17:57.4796017Z [WARNING]   - META-INF.versions.11.com.clickhouse.data.ByteUtils
+2026-11-27T17:17:57.4796665Z [WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-data/native-image.properties
+2026-11-27T17:17:57.4797392Z [WARNING]   - com.clickhouse.config.ClickHouseBufferingMode
+2026-11-27T17:17:57.4797960Z [WARNING]   - com.clickhouse.config.ClickHouseConfigChangeListener
+2026-11-27T17:17:57.4799538Z [WARNING]   - com.clickhouse.config.ClickHouseDefaultOption
+2026-11-27T17:17:57.4800129Z [WARNING]   - com.clickhouse.config.ClickHouseOption
+2026-11-27T17:17:57.4800702Z [WARNING]   - com.clickhouse.config.ClickHouseRenameMethod
+2026-11-27T17:17:57.4801283Z [WARNING]   - com.clickhouse.config.package-info
+2026-11-27T17:17:57.4801735Z [WARNING]   - com.clickhouse.data.ByteUtils
+2026-11-27T17:17:57.4802172Z [WARNING]   - com.clickhouse.data.ClickHouseAggregateFunction
+2026-11-27T17:17:57.4802674Z [WARNING]   - 230 more...
+2026-11-27T17:17:57.4804995Z [WARNING] netty-buffer-4.1.119.Final.jar, netty-codec-4.1.119.Final.jar, netty-codec-dns-4.1.119.Final.jar, netty-codec-haproxy-4.1.119.Final.jar, netty-codec-http-4.1.119.Final.jar, netty-codec-http2-4.1.119.Final.jar, netty-codec-socks-4.1.119.Final.jar, netty-common-4.1.119.Final.jar, netty-handler-4.1.119.Final.jar, netty-handler-proxy-4.1.119.Final.jar, netty-resolver-4.1.119.Final.jar, netty-resolver-dns-4.1.119.Final.jar, netty-transport-4.1.119.Final.jar, netty-transport-native-unix-common-4.1.119.Final.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4807320Z [WARNING]   - META-INF/io.netty.versions.properties
+2026-11-27T17:17:57.4809267Z [WARNING] calcite-core-1.42.0-mycat.jar, common-1.22-release.jar, config-1.22-release.jar, datasource-1.22-release.jar, executor-1.22-release.jar, hbt-1.22-release.jar, plug-1.22-release.jar, protocol-1.22-release.jar, proxy-1.22-release.jar, replica-1.22-release.jar, router-1.22-release.jar, server-1.22-release.jar, va-1.22-release.jar define 1 overlapping resource: 
+2026-11-27T17:17:57.4810889Z [WARNING]   - META-INF/jpms.args
+2026-11-27T17:17:57.4811437Z [WARNING] maven-shade-plugin has detected that some files are
+2026-11-27T17:17:57.4812071Z [WARNING] present in two or more JARs. When this happens, only one
+2026-11-27T17:17:57.4812658Z [WARNING] single version of the file is copied to the uber jar.
+2026-11-27T17:17:57.4813211Z [WARNING] Usually this is not harmful and you can skip these warnings,
+2026-11-27T17:17:57.4813978Z [WARNING] otherwise try to manually exclude artifacts based on
+2026-11-27T17:17:57.4814485Z [WARNING] mvn dependency:tree -Ddetail=true and the above output.
+2026-11-27T17:17:57.4815000Z [WARNING] See https://maven.apache.org/plugins/maven-shade-plugin/
+2026-11-27T17:17:57.5699563Z [INFO] Replacing /home/runner/work/Mycat2/Mycat2/server/target/server-1.22-release-jar-with-dependencies.jar with /home/runner/work/Mycat2/Mycat2/server/target/server-1.22-release-shaded.jar
+2026-11-27T17:17:57.5700353Z [INFO] 
+2026-11-27T17:17:57.5700836Z [INFO] --- install:3.1.4:install (default-install) @ server ---
+2026-11-27T17:17:57.5717454Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/server/dependency-reduced-pom.xml to /home/runner/.m2/repository/io/mycat/server/1.22-release/server-1.22-release.pom
+2026-11-27T17:17:57.5739915Z [INFO] Installing /home/runner/work/Mycat2/Mycat2/server/target/server-1.22-release.jar to /home/runner/.m2/repository/io/mycat/server/1.22-release/server-1.22-release.jar
+2026-11-27T17:17:57.5746771Z [INFO] ------------------------------------------------------------------------
+2026-11-27T17:17:57.5747476Z [INFO] Reactor Summary:
+2026-11-27T17:17:57.5747992Z [INFO] 
+2026-11-27T17:17:57.5748702Z [INFO] parent 1.22-release ................................ SUCCESS [  0.335 s]
+2026-11-27T17:17:57.5749531Z [INFO] config 1.22-release ................................ SUCCESS [  3.917 s]
+2026-11-27T17:17:57.5750528Z [INFO] Mycat2 Protocol 1.22-release ....................... SUCCESS [  1.141 s]
+2026-11-27T17:17:57.5751245Z [INFO] common 1.22-release ................................ SUCCESS [  3.866 s]
+2026-11-27T17:17:57.5751940Z [INFO] router 1.22-release ................................ SUCCESS [  1.014 s]
+2026-11-27T17:17:57.5752573Z [INFO] plug 1.22-release .................................. SUCCESS [  0.356 s]
+2026-11-27T17:17:57.5753344Z [INFO] replica 1.22-release ............................... SUCCESS [  0.325 s]
+2026-11-27T17:17:57.5754033Z [INFO] datasource 1.22-release ............................ SUCCESS [  0.695 s]
+2026-11-27T17:17:57.5754711Z [INFO] va 1.22-release .................................... SUCCESS [  0.566 s]
+2026-11-27T17:17:57.5755321Z [INFO] proxy 1.22-release ................................. SUCCESS [  1.001 s]
+2026-11-27T17:17:57.5755945Z [INFO] calcite-core (Mycat fork) 1.42.0-mycat ............. SUCCESS [ 12.712 s]
+2026-11-27T17:17:57.5756596Z [INFO] hbt 1.22-release ................................... SUCCESS [ 14.453 s]
+2026-11-27T17:17:57.5757284Z [INFO] executor 1.22-release .............................. SUCCESS [  1.386 s]
+2026-11-27T17:17:57.5757986Z [INFO] server 1.22-release ................................ SUCCESS [ 24.712 s]
+2026-11-27T17:17:57.5758903Z [INFO] ------------------------------------------------------------------------
+2026-11-27T17:17:57.5759580Z [INFO] BUILD SUCCESS
+2026-11-27T17:17:57.5760104Z [INFO] ------------------------------------------------------------------------
+2026-11-27T17:17:57.5760791Z [INFO] Total time:  01:06 min
+2026-11-27T17:17:57.5761320Z [INFO] Finished at: 2026-11-27T17:17:57Z
+2026-11-27T17:17:57.5761865Z [INFO] ------------------------------------------------------------------------
+2026-11-27T17:17:57.6370083Z ##[group]Run bash ci/verify-old-connector.sh
+2026-11-27T17:17:57.6370431Z [36;1mbash ci/verify-old-connector.sh[0m
+2026-11-27T17:17:57.6400872Z shell: /usr/bin/bash -e {0}
+2026-11-27T17:17:57.6401176Z env:
+2026-11-27T17:17:57.6401517Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-2/x64
+2026-11-27T17:17:57.6401928Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-2/x64
+2026-11-27T17:17:57.6402299Z ##[endgroup]
+2026-11-27T17:18:00.4932314Z 本地仓库 = /home/runner/.m2/repository
+2026-11-27T17:18:03.5107385Z Mycat 前端 8066 (tls=off) 就绪（第 4s）
+2026-11-27T17:18:06.5143871Z 本地仓缺 mysql:mysql-connector-java:5.1.49，试 mvn dependency:get 拉取…
+2026-11-27T17:18:11.8581917Z ==== 旧线(明文) mysql:mysql-connector-java:5.1.49 (/home/runner/.m2/repository/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) ====
+2026-11-27T17:18:42.7045750Z TLS mode=off driver=com.mysql.jdbc.Driver
+2026-11-27T17:18:42.7046451Z STAGE auth FAIL CommunicationsException: Communications link failure
+2026-11-27T17:18:42.7046733Z 
+2026-11-27T17:18:42.7047103Z The last packet successfully received from the server was 30,055 milliseconds ago.  The last packet sent successfully to the server was 30,026 milliseconds ago.
+2026-11-27T17:18:42.7047723Z OLDLINE RESULT driver=com.mysql.jdbc.Driver version=5.1 verdict=FAIL
+2026-11-27T17:18:42.7048159Z OLDLINE FAIL(plaintext) mysql:mysql-connector-java:5.1.49
+2026-11-27T17:18:42.7052801Z 本地仓缺 com.mysql:mysql-connector-j:8.0.33，试 mvn dependency:get 拉取…
+2026-11-27T17:18:53.8387747Z ==== 旧线(明文) com.mysql:mysql-connector-j:8.0.33 (/home/runner/.m2/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar) ====
+2026-11-27T17:18:58.3434955Z TLS mode=off driver=com.mysql.cj.jdbc.Driver
+2026-11-27T17:18:58.3435793Z STAGE auth OK connected via com.mysql.cj.jdbc.Driver
+2026-11-27T17:18:58.3449481Z STAGE select1 OK rows=1
+2026-11-27T17:18:58.3453106Z STAGE version OK server version=8.0.34
+2026-11-27T17:18:58.3454104Z STAGE crud OK r1=[1,探针,12.34] r2=2 types=Integer/String/BigDecimal
+2026-11-27T17:18:58.3454897Z STAGE deeptype OK bit/date/datetime/text/decimal/null 全保真
+2026-11-27T17:18:58.3456015Z STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+2026-11-27T17:18:58.3456744Z STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+2026-11-27T17:18:58.3457497Z STAGE cm.c6 OK bit1/bit8/bit16/null 单片全保真(官方 byte[] 口径)
+2026-11-27T17:18:58.3458503Z STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc首行=60(exp 60)
+2026-11-27T17:18:58.3459265Z STAGE cm.c8 OK limit2offset1 rows=2(exp 2) 首行=2(exp 2)
+2026-11-27T17:18:58.3459961Z STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+2026-11-27T17:18:58.3460923Z STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+2026-11-27T17:18:58.3462025Z STAGE cm.c9 OK 6 单位下推全对 + NULL 传播
+2026-11-27T17:18:58.3475492Z STAGE cm.c10 OK 1/0=NULL(exp NULL) 除零后存活=true 未知列抛错=true(exp true) 错误后存活=true
+2026-11-27T17:18:58.3476661Z OLDLINE RESULT driver=com.mysql.cj.jdbc.Driver version=mysql-connector-j-8.0.33 (Revision: 7d6b0800528b6b25c68b52dc10d6c1c8429c100c) verdict=PASS
+2026-11-27T17:18:58.3477597Z OLDLINE PASS(plaintext) com.mysql:mysql-connector-j:8.0.33
+2026-11-27T17:19:01.6975341Z Mycat 前端 8066 (tls=REQUIRED) 就绪（第 4s）
+2026-11-27T17:19:04.7014312Z ==== 旧线(TLS required) mysql:mysql-connector-java:5.1.49 (/home/runner/.m2/repository/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) ====
+2026-11-27T17:19:35.7129451Z TLS mode=required driver=com.mysql.jdbc.Driver
+2026-11-27T17:19:35.7129943Z STAGE auth FAIL CommunicationsException: Communications link failure
+2026-11-27T17:19:35.7130422Z 
+2026-11-27T17:19:35.7130871Z The last packet successfully received from the server was 30,272 milliseconds ago.  The last packet sent successfully to the server was 30,032 milliseconds ago.
+2026-11-27T17:19:35.7132011Z OLDLINE RESULT driver=com.mysql.jdbc.Driver version=5.1 verdict=FAIL
+2026-11-27T17:19:35.7132403Z OLDLINE FAIL(TLS) mysql:mysql-connector-java:5.1.49
+2026-11-27T17:19:35.7137423Z ==== 旧线(TLS required) com.mysql:mysql-connector-j:8.0.33 (/home/runner/.m2/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar) ====
+2026-11-27T17:19:40.1344659Z TLS mode=required driver=com.mysql.cj.jdbc.Driver
+2026-11-27T17:19:40.1345383Z STAGE auth OK connected via com.mysql.cj.jdbc.Driver
+2026-11-27T17:19:40.1346192Z STAGE tlscipher-info (non-gating) Ssl_cipher=[TLS_AES_256_GCM_SHA384]
+2026-11-27T17:19:40.1347099Z STAGE select1 OK rows=1
+2026-11-27T17:19:40.1347532Z STAGE version OK server version=8.0.34
+2026-11-27T17:19:40.1348523Z STAGE crud OK r1=[1,探针,12.34] r2=2 types=Integer/String/BigDecimal
+2026-11-27T17:19:40.1349221Z STAGE deeptype OK bit/date/datetime/text/decimal/null 全保真
+2026-11-27T17:19:40.1349938Z STAGE cm.c2 OK updateRows=1 readback=z(exp z) delRows=1 cntAfterDel=1(exp 1)
+2026-11-27T17:19:40.1350667Z STAGE cm.c5 OK readback=[0, 1, 2, -2, -1, 65, 66] exp=[0, 1, 2, -2, -1, 65, 66]
+2026-11-27T17:19:40.1351316Z STAGE cm.c6 OK bit1/bit8/bit16/null 单片全保真(官方 byte[] 口径)
+2026-11-27T17:19:40.1352085Z STAGE cm.c7 OK count=6(exp 6) sum=210(exp 210) rows=6(exp 6) desc首行=60(exp 60)
+2026-11-27T17:19:40.1352692Z STAGE cm.c8 OK limit2offset1 rows=2(exp 2) 首行=2(exp 2)
+2026-11-27T17:19:40.1353319Z STAGE cm.c11 OK avg(int)=3.6667(exp 3.6667) avg(decimal)=3.66666667(exp 3.66666667)
+2026-11-27T17:19:40.1354119Z STAGE cm.c12 OK stddev=1.9720265943665385(exp 1.9720265943665387) variance=3.888888888888888(exp 3.8888888888888893) rel-tol 1e-5
+2026-11-27T17:19:40.1354900Z STAGE cm.c9 OK 6 单位下推全对 + NULL 传播
+2026-11-27T17:19:40.1356663Z STAGE cm.c10 OK 1/0=NULL(exp NULL) 除零后存活=true 未知列抛错=true(exp true) 错误后存活=true
+2026-11-27T17:19:40.1357517Z OLDLINE RESULT driver=com.mysql.cj.jdbc.Driver version=mysql-connector-j-8.0.33 (Revision: 7d6b0800528b6b25c68b52dc10d6c1c8429c100c) verdict=PASS
+2026-11-27T17:19:40.1358423Z OLDLINE PASS(TLS) com.mysql:mysql-connector-j:8.0.33
+2026-11-27T17:19:40.4710289Z ##[error]Process completed with exit code 1.
+2026-11-27T17:19:40.4792920Z Post job cleanup.
+2026-11-27T17:19:40.5767365Z (node:5349) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-27T17:19:40.5768486Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-27T17:19:40.5932774Z Post job cleanup.
+2026-11-27T17:19:40.6578067Z [command]/usr/bin/git version
+2026-11-27T17:19:40.6606256Z git version 2.56.1
+2026-11-27T17:19:40.6629555Z Temporarily overriding HOME='/home/runner/work/_temp/34d5660e-9440-42df-9c49-8191a5b3835b' before making global git config changes
+2026-11-27T17:19:40.6630791Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-27T17:19:40.6632755Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Mycat2/Mycat2
+2026-11-27T17:19:40.6658681Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-27T17:19:40.6681609Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-27T17:19:40.6974901Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-27T17:19:40.6975944Z http.https://github.com/.extraheader
+2026-11-27T17:19:40.6977584Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-27T17:19:40.7026189Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-27T17:19:40.7314729Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-27T17:19:40.7339425Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-27T17:19:40.7657069Z Print service container logs: d43b5a20fcd1480c9a338529f43f1c2f_mysql80_d0b89b
+2026-11-27T17:19:40.7660859Z ##[command]/usr/bin/docker logs --details 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:19:40.7762234Z  2026-11-27T17:16:26.510953Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.7763057Z  2026-11-27T17:16:26.511004Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.0.46) initializing of server in progress as process 80
+2026-11-27T17:19:40.7763720Z  2026-11-27T17:16:26.513878Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.7764167Z  2026-11-27T17:16:26.622049Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.7764912Z  2026-11-27T17:16:27.118263Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-11-27T17:19:40.7765782Z  2026-11-27T17:16:28.688795Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.7768149Z  2026-11-27T17:16:28.689939Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.46) starting as process 124
+2026-11-27T17:19:40.7768873Z  2026-11-27T17:16:28.699179Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.7769321Z  2026-11-27T17:16:28.770353Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.7769772Z  2026-11-27T17:16:28.871674Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-27T17:19:40.7770423Z  2026-11-27T17:16:28.871694Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-27T17:19:40.7771277Z  2026-11-27T17:16:28.872672Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-27T17:19:40.7772172Z  2026-11-27T17:16:28.881446Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2026-11-27T17:19:40.7772915Z  2026-11-27T17:16:28.881512Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.46'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+2026-11-27T17:19:40.7773606Z  Warning: Unable to load '/usr/share/zoneinfo/iso3166.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.7774076Z  Warning: Unable to load '/usr/share/zoneinfo/leap-seconds.list' as time zone. Skipping it.
+2026-11-27T17:19:40.7774530Z  Warning: Unable to load '/usr/share/zoneinfo/leapseconds' as time zone. Skipping it.
+2026-11-27T17:19:40.7774955Z  Warning: Unable to load '/usr/share/zoneinfo/tzdata.zi' as time zone. Skipping it.
+2026-11-27T17:19:40.7775411Z  Warning: Unable to load '/usr/share/zoneinfo/zone.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.7775838Z  Warning: Unable to load '/usr/share/zoneinfo/zone1970.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.7776355Z  2026-11-27T17:16:29.781852Z 10 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.0.46).
+2026-11-27T17:19:40.7777011Z  2026-11-27T17:16:30.414093Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.0.46)  MySQL Community Server - GPL.
+2026-11-27T17:19:40.7777754Z  2026-11-27T17:16:30.997618Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.7778669Z  2026-11-27 17:16:26+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.46-1.el9 started.
+2026-11-27T17:19:40.7779276Z  2026-11-27T17:16:30.998722Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.46) starting as process 1
+2026-11-27T17:19:40.7779743Z  2026-11-27T17:16:31.002240Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.7780222Z  2026-11-27T17:16:31.070880Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.7780679Z  2026-11-27T17:16:31.151295Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-27T17:19:40.7781288Z  2026-11-27T17:16:31.151317Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-27T17:19:40.7782317Z  2026-11-27T17:16:31.152335Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-27T17:19:40.7783212Z  2026-11-27T17:16:31.161361Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-11-27T17:19:40.7784050Z  2026-11-27T17:16:31.161404Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.46'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+2026-11-27T17:19:40.7784702Z  2026-11-27 17:16:26+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-11-27T17:19:40.7785156Z  2026-11-27 17:16:26+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.46-1.el9 started.
+2026-11-27T17:19:40.7785616Z  2026-11-27 17:16:26+00:00 [Note] [Entrypoint]: Initializing database files
+2026-11-27T17:19:40.7785984Z  2026-11-27 17:16:28+00:00 [Note] [Entrypoint]: Database files initialized
+2026-11-27T17:19:40.7786341Z  2026-11-27 17:16:28+00:00 [Note] [Entrypoint]: Starting temporary server
+2026-11-27T17:19:40.7786732Z  2026-11-27 17:16:28+00:00 [Note] [Entrypoint]: Temporary server started.
+2026-11-27T17:19:40.7787093Z  '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-11-27T17:19:40.7787383Z  
+2026-11-27T17:19:40.7787670Z  2026-11-27 17:16:29+00:00 [Note] [Entrypoint]: Stopping temporary server
+2026-11-27T17:19:40.7788088Z  2026-11-27 17:16:30+00:00 [Note] [Entrypoint]: Temporary server stopped
+2026-11-27T17:19:40.7788694Z  
+2026-11-27T17:19:40.7789010Z  2026-11-27 17:16:30+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+2026-11-27T17:19:40.7789325Z  
+2026-11-27T17:19:40.7793556Z Stop and remove container: d43b5a20fcd1480c9a338529f43f1c2f_mysql80_d0b89b
+2026-11-27T17:19:40.7797006Z ##[command]/usr/bin/docker rm --force 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:19:40.9094579Z 754e7ad321534c98e769f954475e9c6596bbc7cca9b6beb7e7cc6a437f370ce0
+2026-11-27T17:19:40.9106969Z Print service container logs: 342d7ae8f42a4122a59ccfb9fb375a45_mysql80_23df85
+2026-11-27T17:19:40.9107914Z ##[command]/usr/bin/docker logs --details 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:19:40.9208752Z  2026-11-27T17:16:27.384576Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.9209890Z  2026-11-27 17:16:27+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.46-1.el9 started.
+2026-11-27T17:19:40.9210482Z  2026-11-27 17:16:27+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-11-27T17:19:40.9211008Z  2026-11-27 17:16:27+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.46-1.el9 started.
+2026-11-27T17:19:40.9211475Z  2026-11-27 17:16:27+00:00 [Note] [Entrypoint]: Initializing database files
+2026-11-27T17:19:40.9211882Z  2026-11-27 17:16:29+00:00 [Note] [Entrypoint]: Database files initialized
+2026-11-27T17:19:40.9212313Z  2026-11-27 17:16:29+00:00 [Note] [Entrypoint]: Starting temporary server
+2026-11-27T17:19:40.9212949Z  2026-11-27 17:16:29+00:00 [Note] [Entrypoint]: Temporary server started.
+2026-11-27T17:19:40.9213371Z  '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-11-27T17:19:40.9213672Z  
+2026-11-27T17:19:40.9213919Z  2026-11-27 17:16:30+00:00 [Note] [Entrypoint]: Stopping temporary server
+2026-11-27T17:19:40.9214340Z  2026-11-27 17:16:31+00:00 [Note] [Entrypoint]: Temporary server stopped
+2026-11-27T17:19:40.9214637Z  
+2026-11-27T17:19:40.9214934Z  2026-11-27 17:16:31+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+2026-11-27T17:19:40.9215297Z  
+2026-11-27T17:19:40.9216075Z  2026-11-27T17:16:27.384628Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.0.46) initializing of server in progress as process 80
+2026-11-27T17:19:40.9219264Z  2026-11-27T17:16:27.387848Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.9220073Z  2026-11-27T17:16:27.507482Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.9221099Z  2026-11-27T17:16:27.929996Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-11-27T17:19:40.9222494Z  2026-11-27T17:16:29.597237Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.9223634Z  2026-11-27T17:16:29.598674Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.46) starting as process 124
+2026-11-27T17:19:40.9224611Z  2026-11-27T17:16:29.612665Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.9225317Z  2026-11-27T17:16:29.709072Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.9226037Z  2026-11-27T17:16:29.829158Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-27T17:19:40.9226936Z  2026-11-27T17:16:29.829178Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-27T17:19:40.9228050Z  2026-11-27T17:16:29.830175Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-27T17:19:40.9229635Z  2026-11-27T17:16:29.839725Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2026-11-27T17:19:40.9230488Z  2026-11-27T17:16:29.839751Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.46'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+2026-11-27T17:19:40.9231423Z  Warning: Unable to load '/usr/share/zoneinfo/iso3166.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.9231940Z  Warning: Unable to load '/usr/share/zoneinfo/leap-seconds.list' as time zone. Skipping it.
+2026-11-27T17:19:40.9232583Z  Warning: Unable to load '/usr/share/zoneinfo/leapseconds' as time zone. Skipping it.
+2026-11-27T17:19:40.9233227Z  Warning: Unable to load '/usr/share/zoneinfo/tzdata.zi' as time zone. Skipping it.
+2026-11-27T17:19:40.9233793Z  Warning: Unable to load '/usr/share/zoneinfo/zone.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.9234437Z  Warning: Unable to load '/usr/share/zoneinfo/zone1970.tab' as time zone. Skipping it.
+2026-11-27T17:19:40.9235188Z  2026-11-27T17:16:30.693162Z 10 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.0.46).
+2026-11-27T17:19:40.9236158Z  2026-11-27T17:16:31.368412Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.0.46)  MySQL Community Server - GPL.
+2026-11-27T17:19:40.9236961Z  2026-11-27T17:16:31.907958Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+2026-11-27T17:19:40.9237951Z  2026-11-27T17:16:31.909061Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.46) starting as process 1
+2026-11-27T17:19:40.9238996Z  2026-11-27T17:16:31.912657Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-27T17:19:40.9239672Z  2026-11-27T17:16:31.982393Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-27T17:19:40.9240335Z  2026-11-27T17:16:32.058694Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-27T17:19:40.9241015Z  2026-11-27T17:16:32.058714Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-27T17:19:40.9241906Z  2026-11-27T17:16:32.059752Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-27T17:19:40.9242744Z  2026-11-27T17:16:32.069026Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-11-27T17:19:40.9243603Z  2026-11-27T17:16:32.069050Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.46'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+2026-11-27T17:19:40.9244831Z Stop and remove container: 342d7ae8f42a4122a59ccfb9fb375a45_mysql80_23df85
+2026-11-27T17:19:40.9245423Z ##[command]/usr/bin/docker rm --force 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:19:41.0558778Z 71b8931f988a59f120097ac9ae92f1f30c9241057c104792f7bf6c1c0b0bec03
+2026-11-27T17:19:41.0571806Z Remove container network: github_network_d575f68d9d0440799dadaf61ff1d5f5d
+2026-11-27T17:19:41.0574957Z ##[command]/usr/bin/docker network rm github_network_d575f68d9d0440799dadaf61ff1d5f5d
+2026-11-27T17:19:41.1244493Z github_network_d575f68d9d0440799dadaf61ff1d5f5d
+2026-11-27T17:19:41.1305496Z Cleaning up orphan processes
+2026-11-27T17:19:41.1546653Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

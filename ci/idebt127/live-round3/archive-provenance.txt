@@ -1,0 +1,25 @@
+round: live-round3
+archived_at: 2026-11-28T02:24:30+08:00
+head_at_run: 9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067 with uncommitted old-connector compatibility fix
+server_pid: 27936
+persona: MYSQL_8_0
+front_posture: 8.0.34 via host.docker.internal
+backend: m1-mysql-a MySQL 8.0.46; m1-mysql-b and m6-mariadb-a also ready
+fat_jar_sha256: 0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7
+jar_size: 245238708 bytes
+package: BUILD SUCCESS; 03:43 min
+posture_gate: PASS; exit 0; isolated jar and .mycat-home with idleTimeout=2 seconds
+probe_result: PASS; exit 0; Java and Python probes both completed
+connect_attrs: PASS; non-ASCII key/value and 260-byte value
+prepare: PASS; deprecateEOF=false and true; parameter and column metadata checked
+reset: PASS; autocommit, isolation and sql_mode restored; OK received
+unknown_command: PASS; server error code 1235
+hints: PASS; MERGE_UNION_SIZE and EXECUTE_TIMEOUT
+idle_timeout: PASS; inactive connection closed; active connection survived
+probe_sha256: FrontendCorrectnessProbe.java bf2b57f4828d58cff1496e8e51bcf091ada13d9c2887b49fbbe8bfa74c04550a; verify-frontend-correctness.py c644bac6a459223004e70b964d620ac6c81e4b0ea0ace2169fad91993c0247f3; verify-frontend-correctness.ps1 0b1c27d1c9bacc82d20ae804826f05ba9a271d3f7a285aeccbea30bb47ec6cba
+cleanup: frontend 8066 pid 27936 stopped before full guard
+offline_regressions: AuthPacketConnectAttrsTest 15/15, zero failures/errors, BUILD SUCCESS
+old_connector_matrix: PASS; oldline-round3; 5.1.49 and 8.0.33 both plaintext and TLS
+full_guard: PASS; guard-round3; 15/15 modules SUCCESS; server 389 and example 559 (38 skipped); zero failures/errors; BUILD SUCCESS; 18:21 min; GUARD_EXIT=0
+current_head_ci: pending implementation commit and push
+conclusion: final-jar live criteria, old Connector matrix and full guard passed; current-HEAD CI remains the separate closure gate
