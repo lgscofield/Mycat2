@@ -8,10 +8,11 @@
 
 ## 迁移索引
 
-- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、128、129、133、134、137、138、145。
+- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、128、129、133、137、138、145。
 - I-DEBT-79 的三刀已落地并 CI 复验，收入本文件；mysql client 缺失时不得软跳过的新验证债另立 I-CI-8。
 - I-DEBT-143 的 URL 与 DRIVER 展示子项已修复并 CI 复验，收入本文件；原 DRIVER 凭据暴露指控按 Druid 1.2.28 行为判 STALE。
 - I-DEBT-127 的前端正确性七案及旧 Connector 认证回归已修复并 CI 复验，收入本文件。
+- I-DEBT-134 的 native 容量透传、并发容量预留与 idle 取连接竞态已修复并 CI 复验，收入本文件。
 - I-DEBT-110 / 116 的代码或活体修复保留在主队列 PARTIAL，离线回归锁与剩余证据未补齐前不得标 Evidenced-Done。
 
 ## 2026-11-28 关闭记录
@@ -26,6 +27,16 @@
 - 旧 Connector：[oldline-round3](../../../ci/idebt127/oldline-round3/archive-provenance.txt)，5.1.49 与 8.0.33 的明文/TLS 四轴全部 PASS；首轮 CI run `46040479798` 的 old-connector 失败已定位为合法属性块后的零填充被严格等长校验拒绝，并由本提交修复。
 - 被测 jar SHA-256：`0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7`；oldline/live/guard/CI 四套证据清单共 24 项均已复核，`MISMATCHES=0`。
 - 关闭边界：覆盖未知命令错误码、COM_RESET_CONNECTION、MycatdbCommand 初始化、MERGE_UNION_SIZE、前端 idle timeout、NIO prepare 编码/元数据、connect-attrs 字节长度及旧 Connector 兼容；不覆盖 I-DEBT-134 容量旋钮、I-DEBT-133 reset 配置破坏面或后续 P1/P2 票据。最终独立复审无 Critical/Important/Minor 发现。
+
+### I-DEBT-134 native 池容量旋钮与并发超卖 — CLOSED / CI✅ / Evidenced-Done
+
+- 实现提交：`479aaa90ddab0219ca89e703aa6ebcfbb3f73097`。
+- CI：run [`46063013934`](https://github.com/lgscofield/Mycat2/actions/runs/46063013934) `success`；9 个实际 job 全部 success（cleanroom、7 档 compat、old-connector），`full-suite` 与 `soak-g6` 按 main 分支规则 skipped，skipped 不计作通过证据。[逐 job 摘要](../../../ci/idebt134/ci-round1/summary.tsv)
+- 回归：定向 6/6、最终相关回归 26/26，覆盖非法容量、默认容量、native 工厂透传、pending 握手预留、失败/成功路径释放、空池并发检查与 idle checkout 竞态；idle 竞态修复有确定性 RED→GREEN 证据。
+- 完整护栏：[guard-round1](../../../ci/idebt134/guard-round1/archive-provenance.txt)，15/15 reactor 模块 BUILD SUCCESS，18:02，server 398、example 559（38 skipped），聚合 1665 项零失败/零错误。
+- 活体：[live-round1](../../../ci/idebt134/live-round1/archive-provenance.txt)，真实 MySQL 下 `maxCon=1/minCon=0/retry=0` 从生产 native 工厂透传；首笔借出与 `SELECT 1` 成功，第二笔以 `pool capacity exhausted` 拒绝，归还后第三笔恢复成功。
+- 被测 jar SHA-256：`244ad7c97b8628abde63d2a2bfe8e9a40715f52f875fbcecf706078e9f3ca65d`；根、live、guard 与 CI 四套 SHA-256 清单均已复核，`MISMATCHES=0`。
+- 关闭边界：覆盖 native `maxCon/minCon` 配置应用、默认与非法值、池内原子容量预留、创建中连接计数、idle/used 并发注册及 reservation 释放；不覆盖 I-DEBT-133 reset 配置破坏面、I-DEBT-150 消费者隔离或后续 P1/P2 票据。最终独立复审无 Critical/Important/Minor 发现。
 
 ## 2026-11-26 关闭记录
 

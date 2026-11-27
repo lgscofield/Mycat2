@@ -1,8 +1,8 @@
 # 开放债务队列（当前执行清单）
 
-> **最后对账**：2026-11-28 · 实现基线 `a3266da22`（I-DEBT-127 修复与 CI 背书）· 只相信代码、测试与活体证据。
+> **最后对账**：2026-11-28 · 实现基线 `479aaa90d`（I-DEBT-134 容量修复与 CI 背书）· 只相信代码、测试与活体证据。
 > **历史档案**：[DEBT-COMPLETED.md](DEBT-COMPLETED.md)。已关闭、已失效、历史订正与里程碑证据均在该文件，不在本队列重复堆叠。
-> **当前阶段**：P0 资源与安全，3/5。用户指定顺序：136 → 143 → 127 → 134 → 133 → P1 验证地基 → P1 架构专轮 → P2 容量与兼容。
+> **当前阶段**：P0 资源与安全，4/5。用户指定顺序：136 → 143 → 127 → 134 → 133 → P1 验证地基 → P1 架构专轮 → P2 容量与兼容。
 
 ## 0. 状态与关闭铁律
 
@@ -25,17 +25,16 @@
 | 维度 | 当前事实 |
 |---|---|
 | 招牌路径 | I-PR-1 / M5 已 Evidenced-Done；准入仅五个批准前端入口，控制面 SQL 仅两个文本 COM_QUERY 入口；VT-only，`fromVertx` 保留并加界 |
-| P0 资源与安全 | 3/5 已关闭：136、143、127 均为 CI✅ / Evidenced-Done；134、133 仍 OPEN，下一票为 I-DEBT-134 |
+| P0 资源与安全 | 4/5 已关闭：136、143、127、134 均为 CI✅ / Evidenced-Done；133 仍 OPEN，下一票为 I-DEBT-133，须先 spec→plan→用户拍板 |
 | P1 验证地基 | 未开始：server 定向测试未进 CI；full-suite/soak 触发器与测试范围仍不完整；轮2 多版本证据未归档 |
 | P1 架构专轮 | 未开始：146–149 均须 spec/plan/拍板 |
 | P2 容量与兼容 | 未开始：容量、deadline、事务、引擎、字符集、协议与配置残留仍在 |
-| 证据基线 | 实现提交 `a3266da22`；CI run `46052277737` 成功，9 个实际 job 成功（含 old-connector），`full-suite`/`soak-g6` 按 main 分支规则 skipped；[CI 摘要](../../../ci/idebt127/ci-round3/summary.tsv) |
+| 证据基线 | 实现提交 `479aaa90d`；CI run `46063013934` 成功，9 个实际 job 成功（含 old-connector），`full-suite`/`soak-g6` 按 main 分支规则 skipped；[CI 摘要](../../../ci/idebt134/ci-round1/summary.tsv) |
 
 ## 2. 🔴 第一步：P0 资源与安全（严格按序）
 
 | 票据 | 当前问题 | 完成判据 |
 |---|---|---|
-| **I-DEBT-134** | native 池忽略 `DatasourceConfig.maxCon/minCon`，实现恒为 1000/1 | 配置值、默认值与非法值行为有测试；native 创建路径真实应用容量；非默认配置端到端可观测 |
 | **I-DEBT-133** | `reset()` 只保 `prototypeDs` 三元组，其他数据源、clusters、schemas、users、改过的 root 密码/RSA encodeKey 会被恢复出厂并持久化 | 明确 100 族允许重置键与必须保留面；回归锁证明非目标配置、用户密码与 RSA key 不被破坏；持久化失败不产生半配置 |
 
 ## 3. 🟡 第二步：P1 验证地基

@@ -1,0 +1,28 @@
+round: ci-round1
+archived_at: 2026-11-28T04:27:21+08:00
+repository: lgscofield/Mycat2
+head_sha: 479aaa90ddab0219ca89e703aa6ebcfbb3f73097
+workflow: Java CI - Mycat2 Compat Matrix
+run_id: 46063013934
+run_attempt: 1
+event: push
+head_branch: main
+run_started_at_utc: 2026-11-27T20:20:56Z
+run_completed_at_utc: 2026-11-27T20:25:48Z
+run_url: https://github.com/lgscofield/Mycat2/actions/runs/46063013934
+run_api_url: https://api.github.com/repos/lgscofield/Mycat2/actions/runs/46063013934
+jobs_api_url: https://api.github.com/repos/lgscofield/Mycat2/actions/runs/46063013934/jobs?per_page=100
+run_status: completed
+run_conclusion: success
+actual_jobs: 9
+actual_success: 9
+actual_failed: 0
+skipped_jobs: full-suite; soak-g6
+verification: Fresh REST recheck after completion notification; jobs counted by conclusion rather than status.
+job_results: old-connector=success; compat(mariadb:10.6)=success; compat(mariadb:11.4)=success; compat(mysql:8.0)=success; compat(mariadb:10.11)=success; cleanroom=success; compat(mysql:5.7)=success; compat(mysql:9.0)=success; compat(mysql:8.4)=success; full-suite=skipped; soak-g6=skipped
+jar_sha256: 244ad7c97b8628abde63d2a2bfe8e9a40715f52f875fbcecf706078e9f3ca65d
+offline_regressions: final 26/26; zero failures/errors
+full_guard: 15 modules BUILD SUCCESS; 1665 tests; zero failures/errors; 38 skipped
+live_probe: PASS; real MySQL maxCon=1 rejects second borrow and recovers after return
+scope: implementation-head CI evidence for I-DEBT-134 only; main-branch full-suite and soak-g6 skips are not passing evidence.
+conclusion: implementation commit 479aaa90ddab0219ca89e703aa6ebcfbb3f73097 has current-head CI backing with all 9 actual jobs successful.
