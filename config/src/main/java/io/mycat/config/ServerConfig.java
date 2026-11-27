@@ -57,6 +57,8 @@ public class ServerConfig {
             .build();
     private BufferPoolConfig bufferPool = new BufferPoolConfig();
     private TimerConfig idleTimer = new TimerConfig(3, 15, TimeUnit.SECONDS.name());
+    // Frontend inactivity timeout in seconds; non-positive values disable idle closing.
+    private long idleTimeout = 300;
     private String tempDirectory;
     private String pathCacheDirectory;
     private int mergeUnionSize = 5;

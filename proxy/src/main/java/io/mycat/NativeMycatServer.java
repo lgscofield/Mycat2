@@ -136,7 +136,8 @@ public class NativeMycatServer implements MycatServer {
                     throw new RuntimeException(e);
                 }
             };
-            MycatReactorThread thread = new MycatReactorThread(defaultReactorBufferPool, new MycatSessionManager(function));
+            MycatReactorThread thread = new MycatReactorThread(defaultReactorBufferPool,
+                    new MycatSessionManager(function, serverConfig));
             thread.start();
             list.add(thread);
         }

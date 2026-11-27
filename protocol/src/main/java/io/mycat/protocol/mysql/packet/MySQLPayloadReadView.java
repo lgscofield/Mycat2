@@ -31,6 +31,8 @@ public interface MySQLPayloadReadView {
 
     int length();
 
+    int readable();
+
     long readFixInt(int length);
 
     Long readLenencInt();

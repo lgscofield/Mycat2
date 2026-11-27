@@ -92,11 +92,26 @@ public class LocalSqlConnection extends AbstractXaSqlConnection {
     @Override
     public Future<Void> rollback() {
         List<Future> rollback = map.values().stream().map(c -> c.update("rollback")).collect(Collectors.toList());
-        return CompositeFuture.join(rollback).eventually(event -> {
+        Future<Void> rollbackFuture = Future.future(promise -> CompositeFuture.join(rollback).onComplete(event -> {
+            if (event.failed()) {
+                promise.fail(event.cause());
+            } else {
+                promise.complete();
+            }
+        }));
+        return rollbackFuture.<Void>transform(event -> {
             inTranscation = false;
-            //每一个记录日志
-            return Future.succeededFuture();
-        }).onFailure(event -> LOGGER.error("", event)).mapEmpty().transform(o -> closeStatementState());
+            Future<Void> cleanupFuture = closeStatementState();
+            return cleanupFuture.<Void>transform(cleanup -> {
+                if (event.failed()) {
+                    LOGGER.error("", event.cause());
+                    return Future.<Void>failedFuture(event.cause());
+                }
+                return cleanup.failed()
+                        ? Future.<Void>failedFuture(cleanup.cause())
+                        : Future.<Void>succeededFuture();
+            });
+        });
     }
 
     @Override
@@ -123,14 +138,7 @@ public class LocalSqlConnection extends AbstractXaSqlConnection {
 
     @Override
     public Future<Void> close() {
-        Future<Void> future = rollback();
-        return future.transform(voidAsyncResult -> {
-            Function<NewMycatConnection, Future<Void>> consumer = newMycatConnection -> {
-                newMycatConnection.abandonConnection();
-                return Future.succeededFuture();
-            };
-            return close(consumer);
-        });
+        return closeAfterRollback();
     }
 
     private Future close(Function<NewMycatConnection, Future<Void>> consumer) {
@@ -152,12 +160,19 @@ public class LocalSqlConnection extends AbstractXaSqlConnection {
 
     @Override
     public Future<Void> kill() {
-        return rollback().transform(voidAsyncResult -> {
-            Function<NewMycatConnection, Future<Void>> consumer = newMycatConnection -> {
-                newMycatConnection.abandonConnection();
-                return Future.succeededFuture();
-            };
-            return close(consumer);
+        return closeAfterRollback();
+    }
+
+    private Future<Void> closeAfterRollback() {
+        Function<NewMycatConnection, Future<Void>> consumer = newMycatConnection -> {
+            newMycatConnection.abandonConnection();
+            return Future.succeededFuture();
+        };
+        return rollback().transform(event -> {
+            Future<Void> cleanup = close(consumer);
+            return event.failed()
+                    ? cleanup.transform(unused -> Future.failedFuture(event.cause()))
+                    : cleanup;
         });
     }
 

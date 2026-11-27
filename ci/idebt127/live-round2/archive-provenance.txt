@@ -1,0 +1,24 @@
+round: live-round2
+archived_at: 2026-11-27T23:01:03+08:00
+head_at_run: eadc4b5b1 with uncommitted I-DEBT-127 changes
+server_pid: 47472
+persona: MYSQL_8_0
+front_posture: 8.0.34 via host.docker.internal
+backend: m1-mysql-a MySQL 8.0.46; m1-mysql-b and m6-mariadb-a also ready
+fat_jar_sha256: 621a413cb2382438ae3c5749231b67e6862e8c14a8df0322a9667608b3449f85
+package: BUILD SUCCESS; 05:02 min
+posture_gate: PASS; exit 0; isolated jar and .mycat-home with idleTimeout=2 seconds
+probe_result: PASS; exit 0; Java and Python probes both completed
+connect_attrs: PASS; non-ASCII key/value and 260-byte value
+prepare: PASS; deprecateEOF=false and true; parameter and column metadata checked
+reset: PASS; autocommit, isolation and sql_mode restored; OK received
+unknown_command: PASS; server error code 1235
+hints: PASS; MERGE_UNION_SIZE and EXECUTE_TIMEOUT
+idle_timeout: PASS; inactive connection closed; active connection survived
+probe_sha256: FrontendCorrectnessProbe.java bf2b57f4828d58cff1496e8e51bcf091ada13d9c2887b49fbbe8bfa74c04550a; verify-frontend-correctness.py c644bac6a459223004e70b964d620ac6c81e4b0ea0ace2169fad91993c0247f3; verify-frontend-correctness.ps1 0b1c27d1c9bacc82d20ae804826f05ba9a271d3f7a285aeccbea30bb47ec6cba
+probe_instrument_repairs: initial probe did not read the unknown-command response; second run read real 1235 but caught the wrong PyMySQL exception class; both failures retained, final probe passed without product-code changes
+cleanup: frontend 8066 pid 47472 stopped after probes
+offline_regressions: 95/95, zero failures/errors, BUILD SUCCESS
+full_guard: PASS; guard-round2; 15/15 reactor modules; server 388; example 559 with 38 skipped; zero failures/errors; GUARD_EXIT=0
+current_head_ci: pending implementation commit and push
+conclusion: final-jar live frontend correctness criteria and full server/example guard passed; current-HEAD CI remains a separate closure gate

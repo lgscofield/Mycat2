@@ -1,0 +1,1016 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] parent                                                             [pom]
+[INFO] config                                                             [jar]
+[INFO] Mycat2 Protocol                                                    [jar]
+[INFO] common                                                             [jar]
+[INFO] router                                                             [jar]
+[INFO] plug                                                               [jar]
+[INFO] replica                                                            [jar]
+[INFO] datasource                                                         [jar]
+[INFO] va                                                                 [jar]
+[INFO] proxy                                                              [jar]
+[INFO] calcite-core (Mycat fork)                                          [jar]
+[INFO] hbt                                                                [jar]
+[INFO] executor                                                           [jar]
+[INFO] server                                                             [jar]
+[INFO] 
+[INFO] --------------------------< io.mycat:parent >---------------------------
+[INFO] Building parent 1.22-release                                      [1/14]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --------------------------< io.mycat:config >---------------------------
+[INFO] Building config 1.22-release                                      [2/14]
+[INFO]   from config\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ config ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\config\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ config ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ config ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\config\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ config ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ config ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ config ---
+[INFO] 
+[INFO] -------------------------< io.mycat:protocol >--------------------------
+[INFO] Building Mycat2 Protocol 1.22-release                             [3/14]
+[INFO]   from protocol\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ protocol ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ protocol ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ protocol ---
+[INFO] Copying 0 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ protocol ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ protocol ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ protocol ---
+[INFO] 
+[INFO] --------------------------< io.mycat:common >---------------------------
+[INFO] Building common 1.22-release                                      [4/14]
+[INFO]   from common\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ common ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\common\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ common ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 223 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/SchemaInfo.java:[27,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/IndexBackendTableInfo.java:[28,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/BackendTableInfo.java:[29,1] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[241,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[244,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[246,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[248,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[250,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[252,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[254,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[256,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[258,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[260,42] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[262,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[264,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[266,43] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[268,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[270,44] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[272,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[274,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[276,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[278,46] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[280,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[282,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[283,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[285,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[287,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[290,34] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[292,30] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[293,47] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[295,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[297,41] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[299,40] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[301,45] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[724,32] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/MysqlDefs.java:[725,35] java.lang.Integer 中的 Integer(int) 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatDataType.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/main/java/io/mycat/beans/mycat/MycatRowMetaData.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ common ---
+[INFO] Copying 0 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ common ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 15 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/test/java/io/mycat/IOExecutorFromVertxTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/common/src/test/java/io/mycat/IOExecutorFromVertxTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ common ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ common ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\common\target\common-1.22-release.jar
+[INFO] 
+[INFO] --------------------------< io.mycat:router >---------------------------
+[INFO] Building router 1.22-release                                      [5/14]
+[INFO]   from router\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ router ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ router ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 52 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/function/IndexDataNode.java:[10,1] Not generating toString(): A method with that name already exists
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/mycat1xfunction/PartitionByMurmurHash.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/main/java/io/mycat/router/custom/HttpCustomRuleFunction.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ router ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\router\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ router ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/test/java/io/mycat/router/mycat1xfunction/PartitionByHotDateTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/router/src/test/java/io/mycat/router/mycat1xfunction/PartitionByHotDateTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ router ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ router ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\router\target\router-1.22-release.jar
+[INFO] 
+[INFO] ---------------------------< io.mycat:plug >----------------------------
+[INFO] Building plug 1.22-release                                        [6/14]
+[INFO]   from plug\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ plug ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ plug ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 19 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: D:\Workspaces\IdeaProjects\Mycat2\plug\src\main\java\io\mycat\plug\sequence\SequenceGenerator.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/sequence/SequenceGenerator.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/plug/src/main/java/io/mycat/plug/command/MycatCommandLoader.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ plug ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\plug\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ plug ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ plug ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ plug ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\plug\target\plug-1.22-release.jar
+[INFO] 
+[INFO] --------------------------< io.mycat:replica >--------------------------
+[INFO] Building replica 1.22-release                                     [7/14]
+[INFO]   from replica\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ replica ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\replica\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ replica ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 21 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[111,17] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java:[112,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/replica/src/main/java/io/mycat/replica/ReplicaDataSourceSelector.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ replica ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\replica\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ replica ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 2 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ replica ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ replica ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\replica\target\replica-1.22-release.jar
+[INFO] 
+[INFO] ------------------------< io.mycat:datasource >-------------------------
+[INFO] Building datasource 1.22-release                                  [8/14]
+[INFO]   from datasource\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ datasource ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\datasource\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ datasource ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 33 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/main/java/io/mycat/datasource/jdbc/datasource/DefaultConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ datasource ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\datasource\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ datasource ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/test/java/io/mycat/datasource/jdbc/datasource/DefaultConnectionAbortTest.java: D:\Workspaces\IdeaProjects\Mycat2\datasource\src\test\java\io\mycat\datasource\jdbc\datasource\DefaultConnectionAbortTest.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/datasource/src/test/java/io/mycat/datasource/jdbc/datasource/DefaultConnectionAbortTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ datasource ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ datasource ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\datasource\target\datasource-1.22-release.jar
+[INFO] 
+[INFO] ----------------------------< io.mycat:va >-----------------------------
+[INFO] Building va 1.22-release                                          [9/14]
+[INFO]   from va\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ va ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\va\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ va ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 23 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/SavepointSqlConnection.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/main/java/cn/mycat/vertx/xa/impl/BaseXaSqlConnection.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ va ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\va\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ va ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 8 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/test/java/cn/mycat/vertx/xa/impl/XaRecoveryIdempotencyTest.java: D:\Workspaces\IdeaProjects\Mycat2\va\src\test\java\cn\mycat\vertx\xa\impl\XaRecoveryIdempotencyTest.java使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/va/src/test/java/cn/mycat/vertx/xa/impl/XaRecoveryIdempotencyTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ va ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ va ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\va\target\va-1.22-release.jar
+[INFO] 
+[INFO] ---------------------------< io.mycat:proxy >---------------------------
+[INFO] Building proxy 1.22-release                                      [10/14]
+[INFO]   from proxy\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ proxy ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\proxy\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ proxy ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 93 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/handler/backend/MySQLSynContextImpl.java:[26,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[353,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/MySQLDatasourcePool.java:[354,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[136,18] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/packet/FrontMySQLPacketResolver.java:[137,10] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[467,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/proxy/buffer/ProxyBufferImpl.java:[468,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/main/java/io/mycat/NativeMycatServer.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ proxy ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\proxy\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ proxy ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 14 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/test/java/io/mycat/MySQLVariablesUtilSqlModeTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/proxy/src/test/java/io/mycat/MySQLVariablesUtilSqlModeTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ proxy ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ proxy ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\proxy\target\proxy-1.22-release.jar
+[INFO] 
+[INFO] -----------------------< io.mycat:calcite-core >------------------------
+[INFO] Building calcite-core (Mycat fork) 1.42.0-mycat                  [11/14]
+[INFO]   from calcite-core\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ calcite-core ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ calcite-core ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\calcite-core\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ calcite-core ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ calcite-core ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ calcite-core ---
+[INFO] 
+[INFO] ----------------------------< io.mycat:hbt >----------------------------
+[INFO] Building hbt 1.22-release                                        [12/14]
+[INFO]   from hbt\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hbt ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\hbt\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ hbt ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 578 source files with javac [debug target 21] to target\classes
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/rewriter/MycatFilterJoinRule.java:[50,17] (immutables:incompat) 'singleton' feature contains potentially unsafe cast with generics  <C extends io.mycat.calcite.rewriter.MycatFilterJoinRule.Config>. Can be safe if immutable covariant conversion is possible
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MetadataManager.java:[55,5] Not generating getPrototype(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Schema.java:[25,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/AggregateCall.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/ModifyFromSql.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/MycatSchema.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Fun.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/modify/MergeModify.java:[10,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/util/Explains.java:[41,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/FieldType.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Literal.java:[28,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Param.java:[6,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Expr.java:[29,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/base/Identifier.java:[27,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/calcite/spm/DbPlanManagerPersistorImpl.java:[32,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/prototypeserver/mysql/PrototypeService.java:[51,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/sql/visitor/MycatOutputVisitor.java:[61,18] java.security 中的 java.security.AccessControlException 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/hbt/ast/query/AnonyTableSchema.java:[44,40] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/main/java/io/mycat/AsyncMycatDataContextImpl.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ hbt ---
+[INFO] Copying 5 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ hbt ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 82 source files with javac [debug target 21] to target\test-classes
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/test/java/io/mycat/calcite/MycatBindableContractTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/hbt/src/test/java/io/mycat/calcite/MycatBindableContractTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ hbt ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ hbt ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\hbt\target\hbt-1.22-release.jar
+[INFO] 
+[INFO] -------------------------< io.mycat:executor >--------------------------
+[INFO] Building executor 1.22-release                                   [13/14]
+[INFO]   from executor\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ executor ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ executor ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 486 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/record/RecordImpl.java:[26,1] Not generating equals and hashCode: A method with one of those names already exists. (Either both or none of these methods will be generated).
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/executor/src/main/java/io/ordinate/engine/builder/ExecuteCompiler.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ executor ---
+[INFO] skip non existing resourceDirectory D:\Workspaces\IdeaProjects\Mycat2\executor\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ executor ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 6 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ executor ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ executor ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\executor\target\executor-1.22-release.jar
+[INFO] 
+[INFO] --------------------------< io.mycat:server >---------------------------
+[INFO] Building server 1.22-release                                     [14/14]
+[INFO]   from server\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- buildnumber:3.2.1:create (default) @ server ---
+[WARNING] The timestampFormat parameter now uses java.text.SimpleDateFormat.
+[WARNING] Please update your POM as support for java.text.MessageFormat may be removed.
+[INFO] Storing buildNumber: {1} at timestamp: 20261127225252
+[INFO] Executing: cmd.exe /X /C "git symbolic-ref HEAD"
+[INFO] Working directory: D:\Workspaces\IdeaProjects\Mycat2\server
+[INFO] Storing scmBranch: main
+[INFO] 
+[INFO] --- replacer:1.5.3:replace (version) @ server ---
+[INFO] Replacement run on 1 file.
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ server ---
+[INFO] Copying 19 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 274 source files with javac [debug target 21] to target\classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineAddHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/KillThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogStopHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/MigrateUtil.java:[230,5] Not generating toString(): A method with that name already exists
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineUpdateHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/ReadyToCloseSQLHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/DropSchemaHint.java:[9,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogSnapshotHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/PauseServerHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogClearHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineParameterizeHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogSyncHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateStopHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BinlogListHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/BaselineListHint.java:[19,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/InterruptThreadHint.java:[22,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/CreateUserHint.java:[23,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/hint/MigrateHint.java:[24,1] Generating equals/hashCode implementation but without a call to superclass, even though this class does not extend java.lang.Object. If this is intentional, add '@EqualsAndHashCode(callSuper=false)' to your type.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/exporter/MySQLLogConsumer.java:[25,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/vertxmycat/JdbcMySqlConnection.java:[289,5] This method or constructor is empty; @SneakyThrows has been ignored.
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[62,20] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/plug/sequence/SequenceFileGenerator.java:[63,14] java.lang.Object 中的 finalize() 已过时, 且标记为待删除
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[549,79] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[WARNING] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/sqlhandler/BinlogUtil.java:[585,96] 最后一个参数使用了不准确的变量类型的 varargs 方法的非 varargs 调用; 
+  对于 varargs 调用, 应使用 java.lang.Object
+  对于非 varargs 调用, 应使用 java.lang.Object[], 这样也可以抑制此警告
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/MySQLClientManager.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/main/java/io/mycat/commands/DefaultCommandHandler.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ server ---
+[INFO] Copying 4 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ server ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 83 source files with javac [debug target 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/commands/JdbcDatasourcePoolAbandonTest.java: 某些输入文件使用或覆盖了已过时的 API。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/commands/JdbcDatasourcePoolAbandonTest.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/vertx/FrontendStartTlsUpgradeTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/Workspaces/IdeaProjects/Mycat2/server/src/test/java/io/mycat/vertx/FrontendStartTlsUpgradeTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ server ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ server ---
+[INFO] Building jar: D:\Workspaces\IdeaProjects\Mycat2\server\target\server-1.22-release.jar
+[INFO] 
+[INFO] --- shade:3.6.0:shade (default) @ server ---
+[INFO] Including io.netty:netty-codec-haproxy:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-buffer:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-transport:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-codec:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.mycat:executor:jar:1.22-release in the shaded jar.
+[INFO] Including it.unimi.dsi:fastutil:jar:8.5.6 in the shaded jar.
+[INFO] Including net.openhft:compiler:jar:2.4.1 in the shaded jar.
+[INFO] Including org.jetbrains:annotations:jar:19.0.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-algorithm:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-vector:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-format:jar:18.1.0 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.22.3 in the shaded jar.
+[INFO] Including com.google.flatbuffers:flatbuffers-java:jar:24.3.25 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-memory-core:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-dataset:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-c-data:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-jdbc:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-memory-netty:jar:18.1.0 in the shaded jar.
+[INFO] Including org.apache.arrow:arrow-memory-netty-buffer-patch:jar:18.1.0 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.core:jackson-core:jar:2.22.3 in the shaded jar.
+[INFO] Including org.apache.commons:commons-lang3:jar:3.21.0 in the shaded jar.
+[INFO] Including com.carrotsearch:hppc:jar:0.9.0 in the shaded jar.
+[INFO] Including org.reflections:reflections:jar:0.10 in the shaded jar.
+[INFO] Including org.javassist:javassist:jar:3.28.0-GA in the shaded jar.
+[INFO] Including com.alibaba:druid:jar:1.2.28 in the shaded jar.
+[INFO] Including com.github.akarnokd:rxjava3-extensions:jar:3.1.1 in the shaded jar.
+[INFO] Including org.reactivestreams:reactive-streams:jar:1.0.3 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.core:jackson-databind:jar:2.22.3 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.core:jackson-annotations:jar:2.22 in the shaded jar.
+[INFO] Including org.mariadb.jdbc:mariadb-java-client:jar:3.5.3 in the shaded jar.
+[INFO] Including org.apache.commons:commons-csv:jar:1.14.1 in the shaded jar.
+[INFO] Including commons-io:commons-io:jar:2.22.0 in the shaded jar.
+[INFO] Including commons-codec:commons-codec:jar:1.23.0 in the shaded jar.
+[INFO] Including com.github.oshi:oshi-core:jar:6.8.2 in the shaded jar.
+[INFO] Including net.java.dev.jna:jna:jar:5.17.0 in the shaded jar.
+[INFO] Including net.java.dev.jna:jna-platform:jar:5.17.0 in the shaded jar.
+[INFO] Including io.prometheus:simpleclient:jar:0.9.0 in the shaded jar.
+[INFO] Including io.prometheus:simpleclient_httpserver:jar:0.9.0 in the shaded jar.
+[INFO] Including io.prometheus:simpleclient_common:jar:0.9.0 in the shaded jar.
+[INFO] Including io.prometheus:simpleclient_hotspot:jar:0.9.0 in the shaded jar.
+[INFO] Including io.mycat:proxy:jar:1.22-release in the shaded jar.
+[INFO] Including io.vertx:vertx-mysql-client:jar:4.5.14 in the shaded jar.
+[INFO] Including io.mycat:config:jar:1.22-release in the shaded jar.
+[INFO] Including javax.validation:validation-api:jar:2.0.1.Final in the shaded jar.
+[INFO] Including com.squareup.okhttp3:okhttp:jar:4.7.2 in the shaded jar.
+[INFO] Including com.squareup.okio:okio:jar:2.6.0 in the shaded jar.
+[INFO] Including org.jetbrains.kotlin:kotlin-stdlib:jar:1.3.71 in the shaded jar.
+[INFO] Including org.yaml:snakeyaml:jar:1.23 in the shaded jar.
+[INFO] Including io.mycat:plug:jar:1.22-release in the shaded jar.
+[INFO] Including io.mycat:router:jar:1.22-release in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-ant:jar:3.0.6 in the shaded jar.
+[INFO] Including org.apache.ant:ant:jar:1.10.8 in the shaded jar.
+[INFO] Including org.apache.ant:ant-junit:jar:1.10.8 in the shaded jar.
+[INFO] Including org.apache.ant:ant-launcher:jar:1.10.8 in the shaded jar.
+[INFO] Including org.apache.ant:ant-antlr:jar:1.10.8 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-astbuilder:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-cli-picocli:jar:3.0.6 in the shaded jar.
+[INFO] Including info.picocli:picocli:jar:4.5.1 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-console:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-datetime:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-docgenerator:jar:3.0.6 in the shaded jar.
+[INFO] Including com.thoughtworks.qdox:qdox:jar:1.12.1 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-groovydoc:jar:3.0.6 in the shaded jar.
+[INFO] Including com.github.javaparser:javaparser-core:jar:3.16.1 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-groovysh:jar:3.0.6 in the shaded jar.
+[INFO] Including jline:jline:jar:2.14.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-jmx:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-json:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-jsr223:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-macro:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-nio:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-servlet:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-sql:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-swing:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-templates:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-test:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-test-junit5:jar:3.0.6 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-testng:jar:3.0.6 in the shaded jar.
+[INFO] Including org.testng:testng:jar:7.3.0 in the shaded jar.
+[INFO] Including com.beust:jcommander:jar:1.78 in the shaded jar.
+[INFO] Including org.codehaus.groovy:groovy-xml:jar:3.0.6 in the shaded jar.
+[INFO] Including io.mycat:replica:jar:1.22-release in the shaded jar.
+[INFO] Including io.mycat:common:jar:1.22-release in the shaded jar.
+[INFO] Including io.mycat:protocol:jar:1.22-release in the shaded jar.
+[INFO] Including io.reactivex.rxjava3:rxjava:jar:3.1.10 in the shaded jar.
+[INFO] Including joda-time:joda-time:jar:2.10.1 in the shaded jar.
+[INFO] Including net.sf.ehcache:ehcache:jar:2.10.6 in the shaded jar.
+[INFO] Including com.mysql:mysql-connector-j:jar:9.3.0 in the shaded jar.
+[INFO] Including io.vertx:vertx-sql-client:jar:4.5.14 in the shaded jar.
+[INFO] Including com.imadcn.framework:idworker:jar:1.4.0 in the shaded jar.
+[INFO] Including org.apache.curator:curator-framework:jar:2.13.0 in the shaded jar.
+[INFO] Including org.apache.curator:curator-client:jar:2.13.0 in the shaded jar.
+[INFO] Including org.apache.zookeeper:zookeeper:jar:3.4.8 in the shaded jar.
+[INFO] Including io.netty:netty:jar:3.7.0.Final in the shaded jar.
+[INFO] Including org.apache.curator:curator-recipes:jar:2.13.0 in the shaded jar.
+[INFO] Including com.alibaba:fastjson:jar:1.2.58 in the shaded jar.
+[INFO] Including org.questdb:questdb-jdk8:jar:6.0.1 in the shaded jar.
+[INFO] Including io.mycat:datasource:jar:1.22-release in the shaded jar.
+[INFO] Including com.zaxxer:HikariCP:jar:3.4.5 in the shaded jar.
+[INFO] Including javax.transaction:jta:jar:1.1 in the shaded jar.
+[INFO] Including org.jooq:jooq:jar:3.11.9 in the shaded jar.
+[INFO] Including javax.xml.bind:jaxb-api:jar:2.2.12 in the shaded jar.
+[INFO] Including au.com.bytecode:opencsv:jar:2.4 in the shaded jar.
+[INFO] Including com.google.guava:guava:jar:33.4.8-jre in the shaded jar.
+[INFO] Including com.google.guava:failureaccess:jar:1.0.3 in the shaded jar.
+[INFO] Including com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava in the shaded jar.
+[INFO] Including org.jspecify:jspecify:jar:1.0.0 in the shaded jar.
+[INFO] Including com.google.errorprone:error_prone_annotations:jar:2.36.0 in the shaded jar.
+[INFO] Including com.google.j2objc:j2objc-annotations:jar:3.0.0 in the shaded jar.
+[INFO] Including io.mycat:hbt:jar:1.22-release in the shaded jar.
+[INFO] Including com.github.jinahya:database-metadata-bind:jar:3.2.0 in the shaded jar.
+[INFO] Including net.jpountz.lz4:lz4:jar:1.3.0 in the shaded jar.
+[INFO] Including com.github.sisyphsu:dateparser:jar:1.0.5 in the shaded jar.
+[INFO] Including com.github.sisyphsu:retree:jar:1.0.4 in the shaded jar.
+[INFO] Including org.codehaus.janino:janino:jar:3.1.12 in the shaded jar.
+[INFO] Including org.codehaus.janino:commons-compiler:jar:3.1.12 in the shaded jar.
+[INFO] Including org.dom4j:dom4j:jar:2.1.3 in the shaded jar.
+[INFO] Including jaxen:jaxen:jar:1.2.0 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.22.3 in the shaded jar.
+[INFO] Including org.apiguardian:apiguardian-api:jar:1.1.2 in the shaded jar.
+[INFO] Including com.esri.geometry:esri-geometry-api:jar:2.2.0 in the shaded jar.
+[INFO] Including com.jayway.jsonpath:json-path:jar:2.10.0 in the shaded jar.
+[INFO] Including net.minidev:json-smart:jar:2.6.0 in the shaded jar.
+[INFO] Including net.minidev:accessors-smart:jar:2.6.0 in the shaded jar.
+[INFO] Including com.yahoo.datasketches:sketches-core:jar:0.9.0 in the shaded jar.
+[INFO] Including com.yahoo.datasketches:memory:jar:0.9.0 in the shaded jar.
+[INFO] Including net.hydromatic:aggdesigner-algorithm:jar:6.1 in the shaded jar.
+[INFO] Including org.apache.commons:commons-dbcp2:jar:2.14.0 in the shaded jar.
+[INFO] Including org.apache.commons:commons-pool2:jar:2.13.0 in the shaded jar.
+[INFO] Including jakarta.transaction:jakarta.transaction-api:jar:1.3.3 in the shaded jar.
+[INFO] Including org.immutables:value:jar:2.10.1 in the shaded jar.
+[INFO] Including org.checkerframework:checker-qual:jar:3.10.0 in the shaded jar.
+[INFO] Including org.aspectj:aspectjweaver:jar:1.9.6 in the shaded jar.
+[INFO] Including io.mycat:va:jar:1.22-release in the shaded jar.
+[INFO] Including io.vertx:vertx-jdbc-client:jar:4.5.14 in the shaded jar.
+[INFO] Including com.mchange:c3p0:jar:0.9.5.5 in the shaded jar.
+[INFO] Including com.mchange:mchange-commons-java:jar:0.2.19 in the shaded jar.
+[INFO] Including io.vertx:vertx-core:jar:4.5.14 in the shaded jar.
+[INFO] Including io.netty:netty-common:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-handler:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-transport-native-unix-common:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-handler-proxy:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-codec-socks:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-codec-http:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-codec-http2:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-resolver:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-resolver-dns:jar:4.1.119.Final in the shaded jar.
+[INFO] Including io.netty:netty-codec-dns:jar:4.1.119.Final in the shaded jar.
+[INFO] Including ch.qos.logback:logback-core:jar:1.5.18 in the shaded jar.
+[INFO] Including ch.qos.logback:logback-classic:jar:1.5.18 in the shaded jar.
+[INFO] Including org.slf4j:slf4j-api:jar:2.0.16 in the shaded jar.
+[INFO] Including ch.qos.logback:logback-access:jar:1.2.3 in the shaded jar.
+[INFO] Including com.github.danielwegener:logback-kafka-appender:jar:0.2.0-RC2 in the shaded jar.
+[INFO] Including org.apache.kafka:kafka-clients:jar:2.7.2 in the shaded jar.
+[INFO] Including com.github.luben:zstd-jni:jar:1.4.5-6 in the shaded jar.
+[INFO] Including org.lz4:lz4-java:jar:1.7.1 in the shaded jar.
+[INFO] Including org.xerial.snappy:snappy-java:jar:1.1.7.7 in the shaded jar.
+[INFO] Including com.zendesk:mysql-binlog-connector-java:jar:0.25.5 in the shaded jar.
+[INFO] Including com.clickhouse:clickhouse-jdbc:jar:0.7.2 in the shaded jar.
+[INFO] Including com.clickhouse:clickhouse-client:jar:0.7.2 in the shaded jar.
+[INFO] Including com.clickhouse:clickhouse-data:jar:0.7.2 in the shaded jar.
+[INFO] Including com.clickhouse:clickhouse-http-client:jar:0.7.2 in the shaded jar.
+[INFO] Including org.apache.httpcomponents.client5:httpclient5:jar:5.2.1 in the shaded jar.
+[INFO] Including org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2 in the shaded jar.
+[INFO] Including org.apache.httpcomponents.core5:httpcore5:jar:5.2.1 in the shaded jar.
+[INFO] Including org.apache.commons:commons-compress:jar:1.27.1 in the shaded jar.
+[INFO] Including org.lz4:lz4-pure-java:jar:1.8.0 in the shaded jar.
+[INFO] Including com.clickhouse:jdbc-v2:jar:0.7.2 in the shaded jar.
+[INFO] Including com.clickhouse:client-v2:jar:0.7.2 in the shaded jar.
+[INFO] Including org.roaringbitmap:RoaringBitmap:jar:0.9.47 in the shaded jar.
+[INFO] Including org.roaringbitmap:shims:jar:0.9.47 in the shaded jar.
+[INFO] Including org.ow2.asm:asm:jar:9.5 in the shaded jar.
+[INFO] Including io.mycat:calcite-core:jar:1.42.0-mycat in the shaded jar.
+[INFO] Including org.locationtech.jts:jts-core:jar:1.19.0 in the shaded jar.
+[INFO] Including org.locationtech.jts.io:jts-io-common:jar:1.19.0 in the shaded jar.
+[INFO] Including com.googlecode.json-simple:json-simple:jar:1.1.1 in the shaded jar.
+[INFO] Including org.locationtech.proj4j:proj4j:jar:1.2.2 in the shaded jar.
+[INFO] Including com.google.code.findbugs:jsr305:jar:3.0.2 in the shaded jar.
+[INFO] Including com.google.uzaygezen:uzaygezen-core:jar:0.2 in the shaded jar.
+[INFO] Including log4j:log4j:jar:1.2.17 in the shaded jar.
+[INFO] Including org.apache.commons:commons-math3:jar:3.6.1 in the shaded jar.
+[INFO] Including org.apache.commons:commons-text:jar:1.15.0 in the shaded jar.
+[INFO] Including org.jooq:joou-java-6:jar:0.9.5 in the shaded jar.
+[INFO] Including org.apache.calcite:calcite-linq4j:jar:1.42.0 in the shaded jar.
+[INFO] Including org.apache.calcite.avatica:avatica-core:jar:1.26.0 in the shaded jar.
+[INFO] Including org.apache.calcite.avatica:avatica-metrics:jar:1.26.0 in the shaded jar.
+[INFO] Including com.google.protobuf:protobuf-java:jar:3.25.5 in the shaded jar.
+[INFO] Including org.objenesis:objenesis:jar:3.0.1 in the shaded jar.
+[INFO] Including org.bouncycastle:bcpkix-jdk18on:jar:1.78.1 in the shaded jar.
+[INFO] Including org.bouncycastle:bcutil-jdk18on:jar:1.78.1 in the shaded jar.
+[INFO] Including org.bouncycastle:bcprov-jdk18on:jar:1.78.1 in the shaded jar.
+[INFO] Including org.realityforge.org.jetbrains.annotations:org.jetbrains.annotations:jar:1.2.0 in the shaded jar.
+[INFO] Skipping pom dependency com.github.oshi:oshi-dist:pom:5.8.5 in the shaded jar.
+[INFO] Skipping pom dependency org.codehaus.groovy:groovy-all:pom:3.0.6 in the shaded jar.
+[INFO] Dependency-reduced POM written at: D:\Workspaces\IdeaProjects\Mycat2\server\dependency-reduced-pom.xml
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] annotations-19.0.0.jar, org.jetbrains.annotations-1.2.0.jar define 30 overlapping classes: 
+[WARNING]   - org.intellij.lang.annotations.Flow
+[WARNING]   - org.intellij.lang.annotations.Identifier
+[WARNING]   - org.intellij.lang.annotations.Language
+[WARNING]   - org.intellij.lang.annotations.MagicConstant
+[WARNING]   - org.intellij.lang.annotations.Pattern
+[WARNING]   - org.intellij.lang.annotations.PrintFormat
+[WARNING]   - org.intellij.lang.annotations.PrintFormatPattern
+[WARNING]   - org.intellij.lang.annotations.RegExp
+[WARNING]   - org.intellij.lang.annotations.Subst
+[WARNING]   - org.jetbrains.annotations.ApiStatus
+[WARNING]   - 20 more...
+[WARNING] client-v2-0.7.2.jar, jdbc-v2-0.7.2.jar define 84 overlapping class and resource: 
+[WARNING]   - client-v2-version.properties
+[WARNING]   - com.clickhouse.client.api.Client
+[WARNING]   - com.clickhouse.client.api.Client$1
+[WARNING]   - com.clickhouse.client.api.Client$2
+[WARNING]   - com.clickhouse.client.api.Client$Builder
+[WARNING]   - com.clickhouse.client.api.ClientConfigProperties
+[WARNING]   - com.clickhouse.client.api.ClientException
+[WARNING]   - com.clickhouse.client.api.ClientFaultCause
+[WARNING]   - com.clickhouse.client.api.ClientMisconfigurationException
+[WARNING]   - com.clickhouse.client.api.ConnectionInitiationException
+[WARNING]   - 74 more...
+[WARNING] calcite-core-1.42.0-mycat.jar, hbt-1.22-release.jar define 7 overlapping classes: 
+[WARNING]   - org.apache.calcite.mycat.MycatBuiltInMethodImpl
+[WARNING]   - org.apache.calcite.mycat.MycatBuiltInMethodImpl$1
+[WARNING]   - org.apache.calcite.rel.externalize.RelJson
+[WARNING]   - org.apache.calcite.rel.externalize.RelJson$1
+[WARNING]   - org.apache.calcite.rel.externalize.RelJsonWriter
+[WARNING]   - org.apache.calcite.rel.metadata.RelMdMaxRowCount
+[WARNING]   - org.apache.calcite.rel.metadata.RelMdRowCount
+[WARNING] jakarta.transaction-api-1.3.3.jar, jta-1.1.jar define 15 overlapping classes: 
+[WARNING]   - javax.transaction.HeuristicCommitException
+[WARNING]   - javax.transaction.HeuristicMixedException
+[WARNING]   - javax.transaction.HeuristicRollbackException
+[WARNING]   - javax.transaction.InvalidTransactionException
+[WARNING]   - javax.transaction.NotSupportedException
+[WARNING]   - javax.transaction.RollbackException
+[WARNING]   - javax.transaction.Status
+[WARNING]   - javax.transaction.Synchronization
+[WARNING]   - javax.transaction.SystemException
+[WARNING]   - javax.transaction.Transaction
+[WARNING]   - 5 more...
+[WARNING] druid-1.2.28.jar, idworker-1.4.0.jar define 2 overlapping resources: 
+[WARNING]   - META-INF/spring.handlers
+[WARNING]   - META-INF/spring.schemas
+[WARNING] lz4-1.3.0.jar, lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar define 69 overlapping classes: 
+[WARNING]   - net.jpountz.lz4.LZ4BlockInputStream
+[WARNING]   - net.jpountz.lz4.LZ4BlockOutputStream
+[WARNING]   - net.jpountz.lz4.LZ4ByteBufferUtils
+[WARNING]   - net.jpountz.lz4.LZ4ByteBufferUtils$Match
+[WARNING]   - net.jpountz.lz4.LZ4Compressor
+[WARNING]   - net.jpountz.lz4.LZ4Constants
+[WARNING]   - net.jpountz.lz4.LZ4Decompressor
+[WARNING]   - net.jpountz.lz4.LZ4Exception
+[WARNING]   - net.jpountz.lz4.LZ4Factory
+[WARNING]   - net.jpountz.lz4.LZ4FastDecompressor
+[WARNING]   - 59 more...
+[WARNING] clickhouse-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar define 59 overlapping classes and resources: 
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-client/native-image.properties
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-client/resource-config.json
+[WARNING]   - clickhouse-client-version.properties
+[WARNING]   - com.clickhouse.client.AbstractClient
+[WARNING]   - com.clickhouse.client.AbstractSocketClient
+[WARNING]   - com.clickhouse.client.AbstractSocketClient$SocketRequest
+[WARNING]   - com.clickhouse.client.ClickHouseClient
+[WARNING]   - com.clickhouse.client.ClickHouseClientBuilder
+[WARNING]   - com.clickhouse.client.ClickHouseClientBuilder$Agent
+[WARNING]   - com.clickhouse.client.ClickHouseClientBuilder$DummyClient
+[WARNING]   - 49 more...
+[WARNING] groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/groovy-release-info.properties
+[WARNING] jna-5.17.0.jar, jna-platform-5.17.0.jar define 2 overlapping resources: 
+[WARNING]   - META-INF/AL2.0
+[WARNING]   - META-INF/LGPL2.1
+[WARNING] ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, fastjson-1.2.58.jar, joda-time-2.10.1.jar, netty-3.7.0.Final.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/NOTICE.txt
+[WARNING] clickhouse-data-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 240 overlapping class and resource: 
+[WARNING]   - META-INF.versions.11.com.clickhouse.data.ByteUtils
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-data/native-image.properties
+[WARNING]   - com.clickhouse.config.ClickHouseBufferingMode
+[WARNING]   - com.clickhouse.config.ClickHouseConfigChangeListener
+[WARNING]   - com.clickhouse.config.ClickHouseDefaultOption
+[WARNING]   - com.clickhouse.config.ClickHouseOption
+[WARNING]   - com.clickhouse.config.ClickHouseRenameMethod
+[WARNING]   - com.clickhouse.config.package-info
+[WARNING]   - com.clickhouse.data.ByteUtils
+[WARNING]   - com.clickhouse.data.ClickHouseAggregateFunction
+[WARNING]   - 230 more...
+[WARNING] netty-buffer-4.1.119.Final.jar, netty-codec-4.1.119.Final.jar, netty-codec-dns-4.1.119.Final.jar, netty-codec-haproxy-4.1.119.Final.jar, netty-codec-http-4.1.119.Final.jar, netty-codec-http2-4.1.119.Final.jar, netty-codec-socks-4.1.119.Final.jar, netty-common-4.1.119.Final.jar, netty-handler-4.1.119.Final.jar, netty-handler-proxy-4.1.119.Final.jar, netty-resolver-4.1.119.Final.jar, netty-resolver-dns-4.1.119.Final.jar, netty-transport-4.1.119.Final.jar, netty-transport-native-unix-common-4.1.119.Final.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/io.netty.versions.properties
+[WARNING] HikariCP-3.4.5.jar, clickhouse-client-0.7.2.jar, clickhouse-data-0.7.2.jar, clickhouse-http-client-0.7.2.jar define 1 overlapping classes: 
+[WARNING]   - META-INF.versions.11.module-info
+[WARNING] HikariCP-3.4.5.jar, RoaringBitmap-0.9.47.jar, accessors-smart-2.6.0.jar, aggdesigner-algorithm-6.1.jar, annotations-19.0.0.jar, ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, apiguardian-api-1.1.2.jar, arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, asm-9.5.jar, aspectjweaver-1.9.6.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, c3p0-0.9.5.5.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, checker-qual-3.10.0.jar, clickhouse-client-0.7.2.jar, clickhouse-data-0.7.2.jar, clickhouse-http-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, client-v2-0.7.2.jar, common-1.22-release.jar, commons-codec-1.23.0.jar, commons-compiler-3.1.12.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, compiler-2.4.1.jar, config-1.22-release.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, database-metadata-bind-3.2.0.jar, datasource-1.22-release.jar, dateparser-1.0.5.jar, dom4j-2.1.3.jar, druid-1.2.28.jar, ehcache-2.10.6.jar, error_prone_annotations-2.36.0.jar, esri-geometry-api-2.2.0.jar, executor-1.22-release.jar, failureaccess-1.0.3.jar, fastjson-1.2.58.jar, fastutil-8.5.6.jar, flatbuffers-java-24.3.25.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, guava-33.4.8-jre.jar, hbt-1.22-release.jar, hppc-0.9.0.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, idworker-1.4.0.jar, j2objc-annotations-3.0.0.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jakarta.transaction-api-1.3.3.jar, janino-3.1.12.jar, javaparser-core-3.16.1.jar, javassist-3.28.0-GA.jar, jaxb-api-2.2.12.jar, jaxen-1.2.0.jar, jcommander-1.78.jar, jdbc-v2-0.7.2.jar, jline-2.14.6.jar, jna-5.17.0.jar, jna-platform-5.17.0.jar, joda-time-2.10.1.jar, jooq-3.11.9.jar, joou-java-6-0.9.5.jar, json-path-2.10.0.jar, json-simple-1.1.1.jar, json-smart-2.6.0.jar, jspecify-1.0.0.jar, jsr305-3.0.2.jar, jta-1.1.jar, jts-core-1.19.0.jar, jts-io-common-1.19.0.jar, kafka-clients-2.7.2.jar, kotlin-stdlib-1.3.71.jar, listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar, log4j-1.2.17.jar, logback-access-1.2.3.jar, logback-classic-1.5.18.jar, logback-core-1.5.18.jar, logback-kafka-appender-0.2.0-RC2.jar, lz4-1.3.0.jar, lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar, mariadb-java-client-3.5.3.jar, mchange-commons-java-0.2.19.jar, memory-0.9.0.jar, mysql-binlog-connector-java-0.25.5.jar, mysql-connector-j-9.3.0.jar, netty-3.7.0.Final.jar, netty-buffer-4.1.119.Final.jar, netty-codec-4.1.119.Final.jar, netty-codec-dns-4.1.119.Final.jar, netty-codec-haproxy-4.1.119.Final.jar, netty-codec-http-4.1.119.Final.jar, netty-codec-http2-4.1.119.Final.jar, netty-codec-socks-4.1.119.Final.jar, netty-common-4.1.119.Final.jar, netty-handler-4.1.119.Final.jar, netty-handler-proxy-4.1.119.Final.jar, netty-resolver-4.1.119.Final.jar, netty-resolver-dns-4.1.119.Final.jar, netty-transport-4.1.119.Final.jar, netty-transport-native-unix-common-4.1.119.Final.jar, objenesis-3.0.1.jar, okhttp-4.7.2.jar, okio-2.6.0.jar, opencsv-2.4.jar, org.jetbrains.annotations-1.2.0.jar, oshi-core-6.8.2.jar, picocli-4.5.1.jar, plug-1.22-release.jar, proj4j-1.2.2.jar, protobuf-java-3.25.5.jar, protocol-1.22-release.jar, proxy-1.22-release.jar, qdox-1.12.1.jar, questdb-jdk8-6.0.1.jar, reactive-streams-1.0.3.jar, reflections-0.10.jar, replica-1.22-release.jar, retree-1.0.4.jar, router-1.22-release.jar, rxjava-3.1.10.jar, rxjava3-extensions-3.1.1.jar, server-1.22-release.jar, shims-0.9.47.jar, simpleclient-0.9.0.jar, simpleclient_common-0.9.0.jar, simpleclient_hotspot-0.9.0.jar, simpleclient_httpserver-0.9.0.jar, sketches-core-0.9.0.jar, slf4j-api-2.0.16.jar, snakeyaml-1.23.jar, snappy-java-1.1.7.7.jar, testng-7.3.0.jar, uzaygezen-core-0.2.jar, va-1.22-release.jar, validation-api-2.0.1.Final.jar, value-2.10.1.jar, vertx-core-4.5.14.jar, vertx-jdbc-client-4.5.14.jar, vertx-mysql-client-4.5.14.jar, vertx-sql-client-4.5.14.jar, zookeeper-3.4.8.jar, zstd-jni-1.4.5-6.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] apiguardian-api-1.1.2.jar, arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, failureaccess-1.0.3.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, guava-33.4.8-jre.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jna-5.17.0.jar, jna-platform-5.17.0.jar, log4j-1.2.17.jar, objenesis-3.0.1.jar, org.jetbrains.annotations-1.2.0.jar, rxjava-3.1.10.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/LICENSE
+[WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, avatica-core-1.26.0.jar, avatica-metrics-1.26.0.jar, calcite-core-1.42.0-mycat.jar, calcite-linq4j-1.42.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, groovy-3.0.6.jar, groovy-ant-3.0.6.jar, groovy-astbuilder-3.0.6.jar, groovy-cli-picocli-3.0.6.jar, groovy-console-3.0.6.jar, groovy-datetime-3.0.6.jar, groovy-docgenerator-3.0.6.jar, groovy-groovydoc-3.0.6.jar, groovy-groovysh-3.0.6.jar, groovy-jmx-3.0.6.jar, groovy-json-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-servlet-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-templates-3.0.6.jar, groovy-test-3.0.6.jar, groovy-test-junit5-3.0.6.jar, groovy-testng-3.0.6.jar, groovy-xml-3.0.6.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar, jackson-annotations-2.22.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, log4j-1.2.17.jar, objenesis-3.0.1.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/NOTICE
+[WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar, curator-client-2.13.0.jar, curator-framework-2.13.0.jar, curator-recipes-2.13.0.jar, httpclient5-5.2.1.jar, httpcore5-5.2.1.jar, httpcore5-h2-5.2.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/DEPENDENCIES
+[WARNING] jooq-3.11.9.jar, joou-java-6-0.9.5.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/README.txt
+[WARNING] groovy-datetime-3.0.6.jar, groovy-jsr223-3.0.6.jar, groovy-macro-3.0.6.jar, groovy-nio-3.0.6.jar, groovy-sql-3.0.6.jar, groovy-swing-3.0.6.jar, groovy-xml-3.0.6.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule
+[WARNING] bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, jspecify-1.0.0.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/versions/9/OSGI-INF/MANIFEST.MF
+[WARNING] kafka-clients-2.7.2.jar, mysql-connector-j-9.3.0.jar define 1 overlapping resource: 
+[WARNING]   - LICENSE
+[WARNING] arrow-algorithm-18.1.0.jar, arrow-c-data-18.1.0.jar, arrow-dataset-18.1.0.jar, arrow-format-18.1.0.jar, arrow-jdbc-18.1.0.jar, arrow-memory-core-18.1.0.jar, arrow-memory-netty-18.1.0.jar, arrow-memory-netty-buffer-patch-18.1.0.jar, arrow-vector-18.1.0.jar define 1 overlapping resource: 
+[WARNING]   - arrow-git.properties
+[WARNING] clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 2 overlapping resources: 
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-jdbc/native-image.properties
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-jdbc/reflect-config.json
+[WARNING] bcpkix-jdk18on-1.78.1.jar, bcprov-jdk18on-1.78.1.jar, bcutil-jdk18on-1.78.1.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, error_prone_annotations-2.36.0.jar, failureaccess-1.0.3.jar, guava-33.4.8-jre.jar, j2objc-annotations-3.0.0.jar, jackson-core-2.22.3.jar, jackson-databind-2.22.3.jar, jackson-dataformat-yaml-2.22.3.jar, jackson-datatype-jsr310-2.22.3.jar, jspecify-1.0.0.jar, mariadb-java-client-3.5.3.jar, picocli-4.5.1.jar, rxjava-3.1.10.jar, slf4j-api-2.0.16.jar define 1 overlapping classes: 
+[WARNING]   - META-INF.versions.9.module-info
+[WARNING] lz4-java-1.7.1.jar, lz4-pure-java-1.8.0.jar define 11 overlapping classes: 
+[WARNING]   - net.jpountz.lz4.LZ4CompressorWithLength
+[WARNING]   - net.jpountz.lz4.LZ4DecompressorWithLength
+[WARNING]   - net.jpountz.lz4.LZ4FrameInputStream
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$1
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$BD
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$BLOCKSIZE
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FLG
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FLG$Bits
+[WARNING]   - net.jpountz.lz4.LZ4FrameOutputStream$FrameInfo
+[WARNING]   - 1 more...
+[WARNING] clickhouse-http-client-0.7.2.jar, clickhouse-jdbc-0.7.2.jar, jdbc-v2-0.7.2.jar define 22 overlapping class and resource: 
+[WARNING]   - META-INF.versions.11.com.clickhouse.client.http.ClickHouseHttpConnectionFactory
+[WARNING]   - META-INF.versions.11.com.clickhouse.client.http.ClickHouseResponseHandler
+[WARNING]   - META-INF.versions.11.com.clickhouse.client.http.HttpClientConnectionImpl
+[WARNING]   - META-INF.versions.11.com.clickhouse.client.http.HttpClientConnectionImpl$NoProxySelector
+[WARNING]   - META-INF/native-image/com.clickhouse/clickhouse-http-client/native-image.properties
+[WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl
+[WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$1
+[WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$ApacheHttpClientSocketFactory
+[WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$HttpConnectionManager
+[WARNING]   - com.clickhouse.client.http.ApacheHttpConnectionImpl$SSLSocketFactory
+[WARNING]   - 12 more...
+[WARNING] datasource-1.22-release.jar, mysql-connector-j-9.3.0.jar define 2 overlapping classes: 
+[WARNING]   - com.mysql.cj.protocol.x.SyncMessageReader
+[WARNING]   - com.mysql.cj.protocol.x.SyncMessageReader$ListenersDispatcher
+[WARNING] calcite-core-1.42.0-mycat.jar, common-1.22-release.jar, config-1.22-release.jar, datasource-1.22-release.jar, executor-1.22-release.jar, hbt-1.22-release.jar, plug-1.22-release.jar, protocol-1.22-release.jar, proxy-1.22-release.jar, replica-1.22-release.jar, router-1.22-release.jar, server-1.22-release.jar, va-1.22-release.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/jpms.args
+[WARNING] ant-1.10.8.jar, ant-antlr-1.10.8.jar, ant-junit-1.10.8.jar, ant-launcher-1.10.8.jar, checker-qual-3.10.0.jar, commons-codec-1.23.0.jar, commons-compress-1.27.1.jar, commons-csv-1.14.1.jar, commons-dbcp2-2.14.0.jar, commons-io-2.22.0.jar, commons-lang3-3.21.0.jar, commons-math3-3.6.1.jar, commons-pool2-2.13.0.jar, commons-text-1.15.0.jar, fastjson-1.2.58.jar, jaxen-1.2.0.jar, joda-time-2.10.1.jar, jooq-3.11.9.jar, joou-java-6-0.9.5.jar, jta-1.1.jar, netty-3.7.0.Final.jar, slf4j-api-2.0.16.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/LICENSE.txt
+[WARNING] maven-shade-plugin has detected that some files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the file is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See https://maven.apache.org/plugins/maven-shade-plugin/
+[INFO] Replacing D:\Workspaces\IdeaProjects\Mycat2\server\target\server-1.22-release-jar-with-dependencies.jar with D:\Workspaces\IdeaProjects\Mycat2\server\target\server-1.22-release-shaded.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] parent 1.22-release ................................ SUCCESS [  0.005 s]
+[INFO] config 1.22-release ................................ SUCCESS [  6.657 s]
+[INFO] Mycat2 Protocol 1.22-release ....................... SUCCESS [  1.637 s]
+[INFO] common 1.22-release ................................ SUCCESS [ 32.996 s]
+[INFO] router 1.22-release ................................ SUCCESS [ 14.815 s]
+[INFO] plug 1.22-release .................................. SUCCESS [  9.122 s]
+[INFO] replica 1.22-release ............................... SUCCESS [  9.141 s]
+[INFO] datasource 1.22-release ............................ SUCCESS [ 11.334 s]
+[INFO] va 1.22-release .................................... SUCCESS [  8.453 s]
+[INFO] proxy 1.22-release ................................. SUCCESS [ 14.030 s]
+[INFO] calcite-core (Mycat fork) 1.42.0-mycat ............. SUCCESS [  9.472 s]
+[INFO] hbt 1.22-release ................................... SUCCESS [01:08 min]
+[INFO] executor 1.22-release .............................. SUCCESS [ 29.391 s]
+[INFO] server 1.22-release ................................ SUCCESS [01:26 min]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  05:02 min
+[INFO] Finished at: 2026-11-27T22:54:15+08:00
+[INFO] ------------------------------------------------------------------------

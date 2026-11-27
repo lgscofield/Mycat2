@@ -150,6 +150,7 @@ public abstract class ProxyReactorThread<T extends Session> extends ReactorEnvTh
         setCurSession(session);
         NIOHandler curNIOHandler = session.getCurNIOHandler();
         if (curNIOHandler!=null){
+            session.updateLastActiveTime();
             if(LOGGER.isDebugEnabled()){
                 LOGGER.debug("processReadKey sessionId:{}",session.sessionId());
             }
@@ -157,6 +158,9 @@ public abstract class ProxyReactorThread<T extends Session> extends ReactorEnvTh
         }else {
             ByteBuffer allocate = ByteBuffer.allocate(8192);
             int read = session.channel().read(allocate);
+            if (read > 0) {
+                session.updateLastActiveTime();
+            }
             if(LOGGER.isDebugEnabled()){
                 LOGGER.debug(ByteUtil.dump(allocate.array(),0,allocate.position()));
                 LOGGER.debug("processReadKey bug sessionId:{}",session.sessionId());
@@ -174,6 +178,7 @@ public abstract class ProxyReactorThread<T extends Session> extends ReactorEnvTh
     public void run() {
         while (!this.isInterrupted()) {
             try {
+                frontManager.check();
                 pendingJobsEmpty = pendingJobs.isEmpty();
                 long startTime = System.nanoTime();
                 if (pendingJobsEmpty) {

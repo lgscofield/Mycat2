@@ -86,90 +86,87 @@ public enum MycatdbCommand {
     private static final int MARIA_DB_MYSQL_COMPAT_MAX_CODE = 50699;
 
     static {
+        HashSet<SQLHandler> sqlHandlers = new HashSet<>();
+        sqlHandlers.add(new ShardingSQLHandler());
+        sqlHandlers.add(new InsertSQLHandler());
+        sqlHandlers.add(new DeleteSQLHandler());
+        sqlHandlers.add(new UpdateSQLHandler());
+        sqlHandlers.add(new TruncateSQLHandler());
+        sqlHandlers.add(new ReplaceSQLHandler());
+        sqlHandlers.add(new SetSQLHandler());
+        sqlHandlers.add(new CommitSQLHandler());
+        sqlHandlers.add(new KillSQLHandler());
+        sqlHandlers.add(new RollbackSQLHandler());
+        sqlHandlers.add(new SavepointSQLHandler());
+        sqlHandlers.add(new ReleaseSavepointSQLHandler());
+        sqlHandlers.add(new SetTransactionSQLHandler());
+        sqlHandlers.add(new StartTransactionSQLHandler());
+        sqlHandlers.add(HintHandler.INSTANCE);
+        sqlHandlers.add(new UseSQLHandler());
+        sqlHandlers.add(new LoadDataInFileSQLHandler());
+
+        sqlHandlers.add(new AlterDatabaseSQLHandler());
+        sqlHandlers.add(new AlterTableSQLHandler());
+        sqlHandlers.add(new CreateDatabaseSQLHandler());
+        sqlHandlers.add(new CreateIndexSQLHandler());
+        sqlHandlers.add(new CreateTableSQLHandler());
+        sqlHandlers.add(new CreateViewSQLHandler());
+        sqlHandlers.add(new DropViewSQLHandler());
+        sqlHandlers.add(new DropDatabaseSQLHandler());
+        sqlHandlers.add(new DropTableSQLHandler());
+        sqlHandlers.add(new RenameTableSQLHandler());
+        sqlHandlers.add(new ShowCreateDatabaseHandler());
+        //explain
+        sqlHandlers.add(new ExplainSQLHandler());
+
+        //show
+        sqlHandlers.add(new ShowCharacterSetSQLHandler());
+        sqlHandlers.add(new ShowCollationSQLHandler());
+        sqlHandlers.add(new ShowColumnsSQLHandler());
+        sqlHandlers.add(new ShowCreateTableSQLHandler());
+        sqlHandlers.add(new ShowDatabasesHanlder());
+        sqlHandlers.add(new ShowPluginsSQLHandler());
+
+        sqlHandlers.add(new ShowEnginesSQLHandler());
+        sqlHandlers.add(new ShowErrorsSQLHandler());
+        sqlHandlers.add(new ShowIndexesSQLHandler());
+        sqlHandlers.add(new ShowProcedureStatusSQLHandler());
+        sqlHandlers.add(new ShowProcessListSQLHandler());
+        sqlHandlers.add(new ShowStatusSQLHandler());
+        sqlHandlers.add(new ShowTablesSQLHandler());
+        sqlHandlers.add(new ShowTableStatusSQLHandler());
+        sqlHandlers.add(new ShowTriggersSQLHandler());
+        sqlHandlers.add(new ShowVariantsSQLHandler());
+        sqlHandlers.add(new ShowWarningsSQLHandler());
+        sqlHandlers.add(new ShowCreateFunctionHanlder());
+        sqlHandlers.add(new CreateSequenceHandler());
+        sqlHandlers.add(new DropSequenceSQLHandler());
+        sqlHandlers.add(new ShowFunctionStatusHandler());
+        //Analyze
+        sqlHandlers.add(new AnalyzeHanlder());
+        sqlHandlers.add(new DropIndexSQLHandler());
+        sqlHandlers.add(new MySQLCheckHandler());
+        sqlHandlers.add(new ShowStatisticHandler());
+        sqlHandlers.add(new MysqlShowDatabaseStatusHandler());
+        //DDL
+        sqlHandlers.add(new SQLDropFunctionHandler());
+        sqlHandlers.add(new SQLCreateFunctionHandler());
+        //Procedure
+        sqlHandlers.add(new SQLCreateProcedureHandler());
+        sqlHandlers.add(new SQLCallStatementHandler());
+        sqlHandlers.add(new SQLDropProcedureHandler());
+        sqlHandlers.add(new CreateUserHandler());
+        sqlHandlerMap = buildSqlHandlerMap(sqlHandlers);
+    }
+
+    static ImmutableClassToInstanceMap<SQLHandler> buildSqlHandlerMap(Collection<SQLHandler> sqlHandlers) {
         ImmutableClassToInstanceMap.Builder<SQLHandler> builder = ImmutableClassToInstanceMap.builder();
-        try {
-            final HashSet<SQLHandler> sqlHandlers = new HashSet<>();
-            sqlHandlers.add(new ShardingSQLHandler());
-            sqlHandlers.add(new InsertSQLHandler());
-            sqlHandlers.add(new DeleteSQLHandler());
-            sqlHandlers.add(new UpdateSQLHandler());
-            sqlHandlers.add(new TruncateSQLHandler());
-            sqlHandlers.add(new ReplaceSQLHandler());
-            sqlHandlers.add(new SetSQLHandler());
-            sqlHandlers.add(new CommitSQLHandler());
-            sqlHandlers.add(new KillSQLHandler());
-            sqlHandlers.add(new RollbackSQLHandler());
-            sqlHandlers.add(new SavepointSQLHandler());
-            sqlHandlers.add(new ReleaseSavepointSQLHandler());
-            sqlHandlers.add(new SetTransactionSQLHandler());
-            sqlHandlers.add(new StartTransactionSQLHandler());
-            sqlHandlers.add(HintHandler.INSTANCE);
-            sqlHandlers.add(new UseSQLHandler());
-            sqlHandlers.add(new LoadDataInFileSQLHandler());
-
-            sqlHandlers.add(new AlterDatabaseSQLHandler());
-            sqlHandlers.add(new AlterTableSQLHandler());
-            sqlHandlers.add(new CreateDatabaseSQLHandler());
-            sqlHandlers.add(new CreateIndexSQLHandler());
-            sqlHandlers.add(new CreateTableSQLHandler());
-            sqlHandlers.add(new CreateViewSQLHandler());
-            sqlHandlers.add(new DropViewSQLHandler());
-            sqlHandlers.add(new DropDatabaseSQLHandler());
-            sqlHandlers.add(new DropTableSQLHandler());
-            sqlHandlers.add(new DropViewSQLHandler());
-            sqlHandlers.add(new RenameTableSQLHandler());
-            sqlHandlers.add(new ShowCreateDatabaseHandler());
-            //explain
-            sqlHandlers.add(new ExplainSQLHandler());
-
-            //show
-            sqlHandlers.add(new ShowCharacterSetSQLHandler());
-            sqlHandlers.add(new ShowCollationSQLHandler());
-            sqlHandlers.add(new ShowColumnsSQLHandler());
-            sqlHandlers.add(new ShowCreateTableSQLHandler());
-            sqlHandlers.add(new ShowDatabasesHanlder());
-            sqlHandlers.add(new ShowPluginsSQLHandler());
-
-            sqlHandlers.add(new ShowEnginesSQLHandler());
-            sqlHandlers.add(new ShowErrorsSQLHandler());
-            sqlHandlers.add(new ShowIndexesSQLHandler());
-            sqlHandlers.add(new ShowProcedureStatusSQLHandler());
-            sqlHandlers.add(new ShowProcessListSQLHandler());
-            sqlHandlers.add(new ShowStatusSQLHandler());
-            sqlHandlers.add(new ShowTablesSQLHandler());
-            sqlHandlers.add(new ShowTableStatusSQLHandler());
-            sqlHandlers.add(new ShowTriggersSQLHandler());
-            sqlHandlers.add(new ShowVariantsSQLHandler());
-            sqlHandlers.add(new ShowWarningsSQLHandler());
-            sqlHandlers.add(new ShowCreateFunctionHanlder());
-            sqlHandlers.add(new CreateTableSQLHandler());
-            sqlHandlers.add(new CreateSequenceHandler());
-            sqlHandlers.add(new DropSequenceSQLHandler());
-            sqlHandlers.add(new ShowFunctionStatusHandler());
-            //Analyze
-            sqlHandlers.add(new AnalyzeHanlder());
-            sqlHandlers.add(new DropIndexSQLHandler());
-            sqlHandlers.add(new MySQLCheckHandler());
-            sqlHandlers.add(new ShowStatisticHandler());
-            sqlHandlers.add(new MysqlShowDatabaseStatusHandler());
-            //DDL
-            sqlHandlers.add(new SQLDropFunctionHandler());
-            sqlHandlers.add(new SQLCreateFunctionHandler());
-            //Procedure
-            sqlHandlers.add(new SQLCreateProcedureHandler());
-            sqlHandlers.add(new SQLCallStatementHandler());
-            sqlHandlers.add(new SQLDropProcedureHandler());
-            sqlHandlers.add(new CreateUserHandler());
-            for (SQLHandler sqlHandler : sqlHandlers) {
-                Class statementClass = sqlHandler.getStatementClass();
-                Objects.requireNonNull(statementClass);
-                builder.put(statementClass, sqlHandler);
-            }
-
-        } catch (Throwable e) {
-            logger.error("", e);
+        for (SQLHandler sqlHandler : sqlHandlers) {
+            Class statementClass = sqlHandler.getStatementClass();
+            Objects.requireNonNull(statementClass);
+            builder.put(statementClass, sqlHandler);
         }
-        sqlHandlerMap = builder.build();
+        return builder.build();
     }
 
     MycatdbCommand() {
@@ -402,6 +399,7 @@ public enum MycatdbCommand {
                             MycatHint.Argument argument = function.getArguments().get(0);
                             SQLNumericLiteralExpr value = (SQLNumericLiteralExpr) argument.getValue();
                             map.put("MERGE_UNION_SIZE", value.getNumber());
+                            break;
                         }
                         case "EXECUTE_TIMEOUT": {
                             MycatHint.Argument argument = function.getArguments().get(0);

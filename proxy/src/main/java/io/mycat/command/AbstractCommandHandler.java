@@ -118,8 +118,9 @@ public abstract class AbstractCommandHandler implements CommandDispatcher {
 
     @Override
     public Future<Void> handleResetConnection(MySQLServerSession mycat) {
-        mycat.resetSession();
-        return Future.failedFuture(new MycatException("unsupport  handleResetConnection"));
+        return mycat.resetSession()
+                .compose(v -> mycat.writeOkEndPacket())
+                .onFailure(cause -> mycat.close(false, "session reset failed"));
     }
 
     @Override

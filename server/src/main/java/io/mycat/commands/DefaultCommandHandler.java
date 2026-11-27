@@ -19,18 +19,18 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLDataType;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLVariantRefExpr;
-import com.alibaba.druid.sql.ast.statement.SQLDeleteStatement;
-import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.druid.sql.ast.statement.SQLUpdateStatement;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import io.mycat.*;
 import io.mycat.beans.mycat.MycatRowMetaData;
 import io.mycat.beans.mycat.ResultSetBuilder;
 import io.mycat.beans.mysql.packet.DefaultPreparedOKPacket;
+import io.mycat.calcite.DrdsRunnerHelper;
+import io.mycat.calcite.RelNodeContext;
 import io.mycat.command.AbstractCommandHandler;
 import io.mycat.mycatmysql.ControlPlaneSql;
 import io.mycat.proxy.session.MySQLServerSession;
+import io.mycat.util.CalciteConvertors;
 import io.mycat.util.MySQLSqlTextCodec;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Objects;
 
@@ -97,20 +98,9 @@ public class DefaultCommandHandler extends AbstractCommandHandler {
         try {
             MycatDataContext dataContext = session.getDataContext();
             boolean deprecateEOF = session.isDeprecateEOF();
-            String sql = new String(sqlBytes);
-            /////////////////////////////////////////////////////
+            String sql = MySQLSqlTextCodec.decode(sqlBytes);
 
             SQLStatement sqlStatement = SQLUtils.parseSingleMysqlStatement(sql);
-            boolean allow = (sqlStatement instanceof SQLSelectStatement
-                    ||
-                    sqlStatement instanceof SQLInsertStatement
-                    ||
-                    sqlStatement instanceof SQLUpdateStatement
-                    ||
-                    sqlStatement instanceof SQLDeleteStatement
-            );
-            MetadataManager metadataManager = MetaClusterCurrent.wrapper(MetadataManager.class);
-
             ResultSetBuilder fieldsBuilder = ResultSetBuilder.create();
             MycatRowMetaData fields = fieldsBuilder.build().getMetaData();
             ResultSetBuilder paramsBuilder = ResultSetBuilder.create();
@@ -131,64 +121,64 @@ public class DefaultCommandHandler extends AbstractCommandHandler {
             });
 
             MycatRowMetaData params = paramsBuilder.build().getMetaData();
+            if (sqlStatement instanceof SQLSelectStatement) {
+                try {
+                    DrdsSqlWithParams parsed = DrdsRunnerHelper.preParse(
+                            SQLUtils.parseSingleMysqlStatement(sql), dataContext.getDefaultSchema());
+                    RelNodeContext relContext = MetaClusterCurrent.wrapper(DrdsSqlCompiler.class)
+                            .getRelRoot(parsed);
+                    fields = CalciteConvertors.getMycatRowMetaData(
+                            relContext.getRoot().rel.getRowType());
+                } catch (Throwable throwable) {
+                    return Future.failedFuture(new SQLException(
+                            "Failed to resolve prepared statement metadata", "HY000", 1295, throwable));
+                }
+            }
             long stmtId = dataContext.nextPrepareStatementId();
             Map<Long, PreparedStatement> statementMap = dataContext.getPrepareInfo();
             statementMap.put(stmtId, new PreparedStatement(stmtId, sqlStatement, params.getColumnCount()));
 
             DefaultPreparedOKPacket info = new DefaultPreparedOKPacket(stmtId, fields.getColumnCount(), params.getColumnCount(), session.getWarningCount());
 
-            if (info.getPrepareOkColumnsCount() == 0 && info.getPrepareOkParametersCount() == 0) {
-                session.writeBytes(MySQLPacketUtil.generatePrepareOk(info), true);
-                return Future.succeededFuture();
+            int parameterCount = info.getPrepareOkParametersCount();
+            int columnCount = info.getPrepareOkColumnsCount();
+            MycatRowMetaData writeFields = fields;
+            Future<Void> writeFuture = session.writeBytes(
+                    MySQLPacketUtil.generatePrepareOk(info), parameterCount == 0 && columnCount == 0);
+            if (parameterCount == 0 && columnCount == 0) {
+                return writeFuture;
             }
-            session.writeBytes(MySQLPacketUtil.generatePrepareOk(info), false);
-            if (info.getPrepareOkParametersCount() > 0 && info.getPrepareOkColumnsCount() == 0) {
-                for (int i = 0; i < info.getPrepareOkParametersCount()-1; i++) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params, i), false);
-                }
-                if (deprecateEOF) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params,
-                            info.getPrepareOkParametersCount()-1), true);
-                } else {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params,
-                            info.getPrepareOkParametersCount()-1), false);
-                    session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                            session.getServerStatusValue()), true);
-                }
-                return Future.succeededFuture();
-            } else if (info.getPrepareOkParametersCount() == 0 && info.getPrepareOkColumnsCount() > 0) {
-                for (int i = 0; i < info.getPrepareOkColumnsCount()-1 ; i++) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields, i), false);
-                }
-                if (deprecateEOF) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields,
-                            info.getPrepareOkColumnsCount()-1), true);
-                } else {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields,
-                            info.getPrepareOkColumnsCount()-1), false);
-                    session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                            session.getServerStatusValue()), true);
-                }
-                return Future.succeededFuture();
-            } else {
-                for (int i = 0; i < info.getPrepareOkParametersCount()-1; i++) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params, i), false);
-                }
-                session.writeColumnEndPacket(false);
-                for (int i = 0; i < info.getPrepareOkColumnsCount()-1; i++) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields, i), false);
-                }
-                if (deprecateEOF) {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields,
-                            info.getPrepareOkColumnsCount()-1), true);
-                } else {
-                    session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields,
-                            info.getPrepareOkColumnsCount()-1), false);
-                    session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                            session.getServerStatusValue()), true);
-                }
-                return Future.succeededFuture();
+            for (int i = 0; i < parameterCount; i++) {
+                int parameterIndex = i;
+                boolean end = columnCount == 0 && deprecateEOF && i == parameterCount - 1;
+                Future<Void> previousWrite = writeFuture;
+                writeFuture = previousWrite.compose(v -> session.writeBytes(
+                        MySQLPacketUtil.generateColumnDefPayload(params, parameterIndex), end));
             }
+            if (parameterCount > 0 && columnCount == 0) {
+                if (deprecateEOF) {
+                    return writeFuture;
+                }
+                return writeFuture.compose(v -> session.writeBytes(
+                        MySQLPacketUtil.generateEof(session.getWarningCount(),
+                                session.getServerStatusValue()), true));
+            }
+            if (parameterCount > 0) {
+                writeFuture = writeFuture.compose(v -> session.writeColumnEndPacket(false));
+            }
+            for (int i = 0; i < columnCount; i++) {
+                int columnIndex = i;
+                boolean end = deprecateEOF && i == columnCount - 1;
+                Future<Void> previousWrite = writeFuture;
+                writeFuture = previousWrite.compose(v -> session.writeBytes(
+                        MySQLPacketUtil.generateColumnDefPayload(writeFields, columnIndex), end));
+            }
+            if (deprecateEOF) {
+                return writeFuture;
+            }
+            return writeFuture.compose(v -> session.writeBytes(
+                    MySQLPacketUtil.generateEof(session.getWarningCount(),
+                            session.getServerStatusValue()), true));
         } catch (Throwable throwable) {
             return Future.failedFuture(throwable);
         }

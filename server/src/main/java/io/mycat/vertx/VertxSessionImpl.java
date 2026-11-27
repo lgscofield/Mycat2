@@ -16,10 +16,10 @@ package io.mycat.vertx;
 
 import io.mycat.MySQLPacketUtil;
 import io.mycat.MycatDataContext;
-import io.mycat.ScheduleUtil;
 import io.mycat.TransactionSession;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.proxy.session.ProcessState;
+import io.mycat.runtime.MycatDataContextImpl;
 import io.mycat.util.VertxUtil;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -27,7 +27,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 
 import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
 
 public class VertxSessionImpl implements VertxSession {
     private MycatDataContext mycatDataContext;
@@ -35,7 +34,9 @@ public class VertxSessionImpl implements VertxSession {
     private VertxMycatServer.MycatSessionManager mycatSessionManager;
     int packetId = 0;
     private ProcessState processState;
-    public boolean close = false;
+    private volatile boolean close = false;
+    private volatile boolean resourcesClosed = false;
+    private volatile Future<Void> cleanupFuture;
     public boolean pause = false;
 
     public VertxSessionImpl(MycatDataContext mycatDataContext, NetSocket socket, VertxMycatServer.MycatSessionManager mycatSessionManager) {
@@ -115,8 +116,8 @@ public class VertxSessionImpl implements VertxSession {
     }
 
     @Override
-    public void resetSession() {
-
+    public Future<Void> resetSession() {
+        return io.mycat.proxy.session.SessionResetter.reset(mycatDataContext);
     }
 
     @Override
@@ -133,7 +134,7 @@ public class VertxSessionImpl implements VertxSession {
                     if (transactionSession != null) {
                         //加速回收资源
                         return transactionSession.closeStatementState()
-                                .transform(voidAsyncResult ->
+                                .compose(voidAsyncResult ->
                                         socket.write(Buffer.buffer(MySQLPacketUtil.generateMySQLPacket(getNextPacketId(), payload))))
                                 .onComplete(voidAsyncResult -> {
                                     if (!transactionSession.isInTransaction() && mycatSessionManager.isPause()) {
@@ -181,20 +182,23 @@ public class VertxSessionImpl implements VertxSession {
     }
 
     @Override
-    public Future<Void> close(boolean normal, String quit) {
-        // 置写守卫：关闭后 writeBytes/writeErrorEndPacketBySyncInProcessError 对 socket 变 no-op，
-        // 兑现面① 前提"关连接后顶层 recover 补发的裸 ERR 不再写进读行态连接"（对齐 proxy NIO 侧 isConnected 守卫）。
+    public synchronized Future<Void> close(boolean normal, String quit) {
         this.close = true;
-        Future<Void> future;
-        if (normal) {
-            mycatDataContext.close();
-        } else {
-            mycatDataContext.kill();
+        Future<Void> cleanup;
+        try {
+            cleanup = cleanupResources(normal);
+        } catch (RuntimeException | Error throwable) {
+            closeSocketAfterCleanup();
+            throw throwable;
         }
-        ScheduleUtil.getTimer().schedule(() -> {
-            socket.close();
-        }, 1, TimeUnit.SECONDS);
-        return Future.succeededFuture();
+        if (!normal) {
+            return cleanup.onComplete(event -> closeSocketAfterCleanup());
+        }
+        return cleanup.onComplete(event -> {
+            if (event.failed()) {
+                closeSocketAfterCleanup();
+            }
+        }).compose(v -> socket.close());
     }
 
     @Override
@@ -219,10 +223,49 @@ public class VertxSessionImpl implements VertxSession {
     }
 
     @Override
-    public Future<Void> close() {
-        mycatDataContext.close();
-        Future<Void> future = socket.close();
-        return VertxUtil.castPromise(future);
+    public synchronized Future<Void> close() {
+        return close(true, null);
+    }
+
+    private Future<Void> cleanupResources(boolean normal) {
+        if (resourcesClosed) {
+            return Future.succeededFuture();
+        }
+        if (cleanupFuture != null && !cleanupFuture.isComplete()) {
+            return cleanupFuture;
+        }
+        if (!(mycatDataContext instanceof MycatDataContextImpl)) {
+            if (normal) {
+                mycatDataContext.close();
+            } else {
+                mycatDataContext.kill();
+            }
+            resourcesClosed = true;
+            return Future.succeededFuture();
+        }
+        MycatDataContextImpl context = (MycatDataContextImpl) mycatDataContext;
+        Future<Void> cleanup = Future.fromCompletionStage(
+                normal ? context.closeAsync() : context.killAsync());
+        cleanupFuture = cleanup;
+        cleanup.onSuccess(v -> {
+            resourcesClosed = true;
+            if (cleanupFuture == cleanup) {
+                cleanupFuture = null;
+            }
+        });
+        cleanup.onFailure(cause -> {
+            if (cleanupFuture == cleanup) {
+                cleanupFuture = null;
+            }
+        });
+        return cleanup;
+    }
+
+    private void closeSocketAfterCleanup() {
+        try {
+            socket.close();
+        } catch (RuntimeException | Error ignored) {
+        }
     }
 
     @Override
@@ -233,5 +276,10 @@ public class VertxSessionImpl implements VertxSession {
     @Override
     public boolean isPause() {
         return this.pause;
+    }
+
+    @Override
+    public boolean isClosed() {
+        return resourcesClosed;
     }
 }

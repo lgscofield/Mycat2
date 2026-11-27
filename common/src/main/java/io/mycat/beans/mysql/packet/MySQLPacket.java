@@ -81,6 +81,11 @@ public interface MySQLPacket<T extends ProxyBuffer> extends MySQLPayloadReadView
 
     T currentBuffer();
 
+    @Override
+    default int readable() {
+        return packetReadEndIndex() - packetReadStartIndex();
+    }
+
     default boolean isErrorPacket() {
         return (getByte(packetReadStartIndex()) & 0xff) == 0xff;
     }

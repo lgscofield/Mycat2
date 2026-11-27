@@ -46,6 +46,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -111,7 +113,7 @@ public class MycatDataContextImpl implements MycatDataContext {
     private volatile String sslVersion = "";
     private boolean debug = false;
     private boolean vector = false;
-    private Set<String> usedlocks = new HashSet<>();
+    private Set<String> usedlocks = ConcurrentHashMap.newKeySet();
     private Object holder;
     private String sql;
 
@@ -547,6 +549,61 @@ public class MycatDataContextImpl implements MycatDataContext {
         closeAllLock();
     }
 
+    public CompletableFuture<Void> closeAsync() {
+        cancelFlag.set(true);
+        try {
+            CompletableFuture<Void> transactionCleanup = transactionSession == null
+                    ? CompletableFuture.completedFuture(null)
+                    : transactionSession.close().toCompletionStage().toCompletableFuture();
+            return cleanupAsync(transactionCleanup);
+        } catch (Throwable throwable) {
+            return cleanupAsync(CompletableFuture.failedFuture(throwable));
+        }
+    }
+
+    public CompletableFuture<Void> killAsync() {
+        cancelFlag.set(true);
+        try {
+            CompletableFuture<Void> transactionCleanup = transactionSession == null
+                    ? CompletableFuture.completedFuture(null)
+                    : transactionSession.kill().toCompletionStage().toCompletableFuture();
+            return cleanupAsync(transactionCleanup);
+        } catch (Throwable throwable) {
+            return cleanupAsync(CompletableFuture.failedFuture(throwable));
+        }
+    }
+
+    private CompletableFuture<Void> cleanupAsync(CompletableFuture<Void> transactionCleanup) {
+        CompletableFuture<Void> cleanup = new CompletableFuture<>();
+        transactionCleanup.whenComplete((v, cause) -> {
+            Throwable transactionFailure = cause == null ? null : unwrapCleanupFailure(cause);
+            try {
+                releaseAllLocks().whenComplete((unused, lockCause) -> {
+                    Throwable failure = transactionFailure != null
+                            ? transactionFailure
+                            : lockCause == null ? null : unwrapCleanupFailure(lockCause);
+                    if (failure == null) {
+                        cleanup.complete(null);
+                    } else {
+                        cleanup.completeExceptionally(failure);
+                    }
+                });
+            } catch (Throwable throwable) {
+                cleanup.completeExceptionally(transactionFailure != null
+                        ? transactionFailure
+                        : unwrapCleanupFailure(throwable));
+            }
+        });
+        return cleanup;
+    }
+
+    private static Throwable unwrapCleanupFailure(Throwable cause) {
+        while (cause instanceof CompletionException && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause;
+    }
+
     @Override
     public boolean equals(Object o) {
         return this == o;
@@ -677,13 +734,31 @@ public class MycatDataContextImpl implements MycatDataContext {
 
     public void closeAllLock() {
         Set<String> usedLocks = new HashSet<>(this.usedlocks);
-        this.usedlocks.clear();
+        this.usedlocks.removeAll(usedLocks);
         for (String usedlock : usedLocks) {
             CompletableFuture.runAsync(() -> {
                 doLock(getId(), usedlock, "RELEASE_LOCK", 0);
             });
         }
 
+    }
+
+    public CompletableFuture<Void> releaseAllLocks() {
+        Set<String> usedLocks = new HashSet<>(this.usedlocks);
+        List<CompletableFuture<Void>> releases = usedLocks.stream()
+                .map(lock -> CompletableFuture.<Void>supplyAsync(() -> {
+                    Integer result = doLock(getId(), lock, "RELEASE_LOCK", 0);
+                    if (!Integer.valueOf(1).equals(result)) {
+                        throw new IllegalStateException("Failed to release lock: " + lock);
+                    }
+                    synchronized (this.usedlocks) {
+                        this.usedlocks.remove(lock);
+                    }
+                    return null;
+                }))
+                .collect(Collectors.toList());
+        CompletableFuture<?>[] releaseFutures = releases.toArray(new CompletableFuture[0]);
+        return CompletableFuture.allOf(releaseFutures);
     }
 
     @Nullable

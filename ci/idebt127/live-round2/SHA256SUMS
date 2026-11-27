@@ -1,0 +1,12 @@
+0c0e03c14c9cdf7b4cd8ad884b44f22765d61d9fcfe6468f80d8a7101a485480 *ci/idebt127/live-round2/archive-provenance.txt
+7f8e0b7458fbae9ed9399f3beb273f44dd3b7a7b89f45758e588da5e0e905406 *ci/idebt127/live-round2/fat-jar.sha256
+cf97dfc7976b25b58de76005f5e88435ef8df2a59e455795e4b7f2fca433baf6 *ci/idebt127/live-round2/java-probe.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 *ci/idebt127/live-round2/logs/live-probe.log
+c64d29e4c835b62347a46e3fbe6fdec8f208839bcbfbea4f5a127c7cbdf96723 *ci/idebt127/live-round2/logs/package.log
+3b056e7f8306e6f59d263af155ca572a761d7e995d3bc79c94a99cbd8b1ae7bb *ci/idebt127/live-round2/logs/probe-instrument-error-type-red.log
+064d0af0ae7d0b40df4e544717f01514263d0746be257a7aeda3f15d499ebe3d *ci/idebt127/live-round2/logs/probe-instrument-red.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 *ci/idebt127/live-round2/logs/server.err.log
+c2ad47eaf520ef7921c738e5b62dbb0d714bb5adbb63ff819c03d8c3a048bf2f *ci/idebt127/live-round2/logs/server.log
+69bf60cc0a684215a021e60c15c114a2845f00805796776966844c2a69fc2f3d *ci/idebt127/live-round2/logs/startup-posture.log
+43a5fc438131a8cf89e10a4b0152658bcdf42a52fc5d9149ce3803183b01df06 *ci/idebt127/live-round2/python-probe.log
+79e8c09d3009a061bfd915d5319bbc7fc0028fb37c30f92f1a15682d681cc5d9 *ci/idebt127/live-round2/summary.tsv

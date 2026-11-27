@@ -92,7 +92,7 @@ public interface MySQLServerSession<T> {
     /**
      * 可能用于实现 clearQueue connection命令
      */
-    void resetSession();
+    Future<Void> resetSession();
 
     /**
      * 连接相关字符集

@@ -1,0 +1,15 @@
+round: guard-round2-nodata
+archived_at: 2026-11-28T00:33:00+08:00
+head_at_run: eadc4b5b1 with uncommitted I-DEBT-127 changes
+persona: MYSQL_8_0
+jar_sha256: 621a413cb2382438ae3c5749231b67e6862e8c14a8df0322a9667608b3449f85
+jdk_major: 21
+result: NO_DATA
+guard_exit: 2
+abort: backend
+reason: m1-mysql-a ping was not ready within 60 seconds
+docker_daemon: unavailable; docker CLI could not connect to dockerDesktopLinuxEngine named pipe
+tests_started: false
+cleanup: no frontend was started
+conclusion: environment refusal only; not a passing certificate and not a product-test RED
+guard_log: logs/guard-round2.log

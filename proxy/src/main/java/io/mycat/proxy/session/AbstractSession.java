@@ -50,6 +50,7 @@ public abstract class AbstractSession<T extends AbstractSession> implements Sess
         this.sessionManager = sessionManager;
         this.sessionId = sessionId;
         this.startTime = currentTimeMillis();
+        this.lastActiveTime = startTime;
     }
 
     public void register(Selector selector, SocketChannel channel, int socketOpt)

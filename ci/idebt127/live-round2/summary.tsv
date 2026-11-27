@@ -1,0 +1,10 @@
+connect_attrs	PASS	non_ascii_and_260_byte_value
+prepare	PASS	deprecateEOF=false
+prepare	PASS	deprecateEOF=true
+reset	PASS	rollback_state_cleared_ok_received
+verdict	PASS
+unknown_command	PASS	error_code=1235
+hints	PASS	merge_union_size_and_execute_timeout
+idle_timeout	PASS	inactive_connection_closed
+idle_timeout	PASS	active_connection_survived
+verdict	PASS

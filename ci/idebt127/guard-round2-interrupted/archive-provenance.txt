@@ -1,0 +1,17 @@
+round: guard-round2-interrupted
+started_at: 2026-11-27T23:01:27+08:00
+last_maven_output_at: 2026-11-27T23:10:31+08:00
+head_at_run: eadc4b5b1 with uncommitted I-DEBT-127 changes
+persona: MYSQL_8_0
+jar_sha256: 621a413cb2382438ae3c5749231b67e6862e8c14a8df0322a9667608b3449f85
+posture: PASS; frontend 8.0.34, backend MySQL 8.0.46
+frontend_pid: 43856
+result: INVALID_INTERRUPTED; no RESULT, MVN_EXIT, reactor summary or BUILD conclusion
+last_test: io.mycat.xa.BaseXaSavepointTest
+observed_failures: none before interruption
+crash_artifacts: no hs_err_pid, javacore or replay_pid files found
+system_application_events: no Error/Critical/Warning events in 23:09:30-23:12:00
+cleanup: no Java/Maven/PowerShell guard process or 8066 listener remained after interruption
+conclusion: not a passing certificate and not a product-test RED; rerun required
+maven_log: logs/maven.log
+guard_log: logs/guard-round2.log

@@ -1,0 +1,5 @@
+unknown_command	PASS	error_code=1235
+hints	PASS	merge_union_size_and_execute_timeout
+idle_timeout	PASS	inactive_connection_closed
+idle_timeout	PASS	active_connection_survived
+verdict	PASS

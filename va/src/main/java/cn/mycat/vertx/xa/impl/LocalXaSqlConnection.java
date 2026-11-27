@@ -245,7 +245,9 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
                 inTranscation = false;
                 xid = null;
                 localSqlConnection = null;
-                return Future.succeededFuture();
+                return unused.failed()
+                        ? Future.failedFuture(unused.cause())
+                        : Future.succeededFuture();
             }).mapEmpty();
         }
         String curXid = this.xid;
@@ -266,7 +268,7 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
             inTranscation = false;
             xid = null;
             localSqlConnection = null;
-            return Future.succeededFuture();
+            return u.failed() ? Future.failedFuture(u.cause()) : Future.succeededFuture();
         }).mapEmpty();
     }
 
@@ -340,13 +342,15 @@ public class LocalXaSqlConnection extends BaseXaSqlConnection {
 
     @Override
     public Future<Void> kill() {
-        Future<Void> future = rollback();
-        return future.transform(unused -> {
+        return rollback().transform(event -> {
             if (localSqlConnection != null) {
                 localSqlConnection.abandonConnection();
                 localSqlConnection = null;
             }
-            return super.kill();
+            Future<Void> cleanup = super.kill();
+            return event.failed()
+                    ? cleanup.transform(unused -> Future.failedFuture(event.cause()))
+                    : cleanup;
         });
     }
 

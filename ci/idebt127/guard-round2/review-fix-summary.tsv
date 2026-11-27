@@ -1,0 +1,15 @@
+round	final-review-fix
+config_tests	2
+va_tests	6
+proxy_tests	23
+server_tests	64
+total_tests	95
+failures	0
+errors	0
+skipped	0
+result	PASS
+red_rollback_failure	6 tests / 3 failures (close, kill, local XA kill swallowed rollback cause)
+red_async_lock_cleanup	7 tests / 1 failure (transaction cleanup failure skipped lock release)
+red_sync_lock_cleanup	8 tests / 1 failure (synchronous transaction cleanup exception skipped lock release)
+green	95/95; BUILD SUCCESS
+targeted_log	logs/targeted-final.log

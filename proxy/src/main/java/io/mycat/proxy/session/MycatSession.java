@@ -16,7 +16,6 @@ package io.mycat.proxy.session;
 
 import io.mycat.MycatDataContext;
 import io.mycat.MycatDataContextEnum;
-import io.mycat.MycatException;
 import io.mycat.MycatUser;
 import io.mycat.protocol.mysql.type.MySQLIsolation;
 import io.mycat.beans.mysql.packet.MySQLPacket;
@@ -326,8 +325,8 @@ public final class MycatSession extends AbstractSession<MycatSession> implements
     }
 
     @Override
-    public void resetSession() {
-        throw new MycatException("unsupport!");
+    public Future<Void> resetSession() {
+        return SessionResetter.reset(dataContext);
     }
 
     @Override

@@ -42,7 +42,8 @@ import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.*;
 
-import static io.mycat.beans.mysql.packet.AuthPacket.calcLenencLength;
+import static io.mycat.beans.mysql.packet.AuthPacket.readChangeUserAuthResponse;
+import static io.mycat.beans.mysql.packet.AuthPacket.readConnectAttrs;
 
 public class MycatVertxMySQLHandler {
     private MycatVertxMysqlSession session;
@@ -64,11 +65,15 @@ public class MycatVertxMySQLHandler {
 
     public void handle(int packetId, Buffer event, NetSocket socket) {
         synchronized (MycatVertxMySQLHandler.this) {
-            if (this.sequenceFuture.isComplete()) {
-                this.sequenceFuture = handle0(packetId, event);
-            } else {
-                this.sequenceFuture = sequenceFuture.transform(unused -> handle0(packetId, event));
+            if (session.isClosed()) {
+                return;
             }
+            this.sequenceFuture = this.sequenceFuture.compose(unused -> {
+                if (session.isClosed()) {
+                    return Future.failedFuture("session is closed");
+                }
+                return handle0(packetId, event);
+            });
         }
     }
 
@@ -270,14 +275,9 @@ public class MycatVertxMySQLHandler {
                     String schemaName = null;
                     Integer characterSet = null;
                     String authPluginName = null;
-                    HashMap<String, String> clientConnectAttrs = new HashMap<>();
+                    Map<String, String> clientConnectAttrs = new HashMap<>();
                     int capabilities = this.session.getCapabilities();
-                    if (MySQLServerCapabilityFlags.isCanDo41Anthentication(capabilities)) {
-                        byte len = readView.readByte();
-                        authResponse = readView.readFixString(len);
-                    } else {
-                        authResponse = readView.readNULString();
-                    }
+                    authResponse = readChangeUserAuthResponse(readView, capabilities);
                     schemaName = readView.readNULString();
                     if (!readView.readFinished()) {
                         characterSet = (int) readView.readFixInt(2);
@@ -285,20 +285,7 @@ public class MycatVertxMySQLHandler {
                             authPluginName = readView.readNULString();
                         }
                         if (MySQLServerCapabilityFlags.isConnectAttrs(capabilities)) {
-                            long kvAllLength = readView.readLenencInt();
-                            if (kvAllLength != 0) {
-                                clientConnectAttrs = new HashMap<>();
-                            }
-                            int count = 0;
-                            while (count < kvAllLength) {
-                                String k = readView.readLenencString();
-                                String v = readView.readLenencString();
-                                count += k.length();
-                                count += v.length();
-                                count += calcLenencLength(k.length());
-                                count += calcLenencLength(v.length());
-                                clientConnectAttrs.put(k, v);
-                            }
+                            clientConnectAttrs = readConnectAttrs(readView);
                         }
                     }
                     promise = handleChangeUser(userName, authResponse, schemaName, characterSet, authPluginName,
@@ -306,8 +293,7 @@ public class MycatVertxMySQLHandler {
                     break;
                 }
                 case MySQLCommandType.COM_RESET_CONNECTION: {
-                    promise = handleResetConnection(this.session);
-                    break;
+                    return handleResetConnection(this.session);
                 }
                 case MySQLCommandType.COM_DAEMON: {
                     promise = handleDaemon(this.session);
@@ -315,23 +301,17 @@ public class MycatVertxMySQLHandler {
                 }
                 default: {
                     promise = VertxUtil.newFailPromise(new MycatException(MycatErrorCode.ERR_NOT_SUPPORT, "无法识别的MYSQL数据包"));
-                    assert false;
                 }
             }
             return promise
                     .onSuccess(event12 -> mycatDataContext.setLastMessage((String) null))
                     .recover(cause -> {
-                        int errorCode = 0;
+                        int errorCode = resolveErrorCode(cause);
                         String message;
-                        String sqlState;
                         if (cause instanceof SQLException) {
-                            errorCode = ((SQLException) cause).getErrorCode();
                             message = ((SQLException) cause).getMessage();
-                            sqlState = ((SQLException) cause).getSQLState();
                         } else if (cause instanceof MycatException) {
-                            errorCode = ((MycatException) cause).getErrorCode();
                             message = ((MycatException) cause).getMessage();
-                            sqlState = "";
                         } else {
                             message = cause.toString();
                         }
@@ -343,8 +323,20 @@ public class MycatVertxMySQLHandler {
                     });
         } catch (Throwable throwable) {
             mycatDataContext.setLastMessage(throwable);
-            return this.session.writeErrorEndPacketBySyncInProcessError(0);
+            return this.session.writeErrorEndPacketBySyncInProcessError(resolveErrorCode(throwable));
         }
+    }
+
+    static int resolveErrorCode(Throwable cause) {
+        int errorCode;
+        if (cause instanceof SQLException) {
+            errorCode = ((SQLException) cause).getErrorCode();
+        } else if (cause instanceof MycatException) {
+            errorCode = ((MycatException) cause).getErrorCode();
+        } else {
+            errorCode = MySQLErrorCode.ER_UNKNOWN_ERROR;
+        }
+        return errorCode == 0 ? MySQLErrorCode.ER_UNKNOWN_ERROR : errorCode;
     }
 
     private void saveBindValue(long statementId, BindValue[] values, MycatVertxMysqlSession MycatMysqlSession) {
@@ -515,49 +507,45 @@ public class MycatVertxMySQLHandler {
 
         DefaultPreparedOKPacket info = new DefaultPreparedOKPacket(stmtId, fields.getColumnCount(), params.getColumnCount(), session.getWarningCount());
 
-        Future<Void> writeEndFuture = Future.succeededFuture();
-        if (info.getPrepareOkColumnsCount() == 0 && info.getPrepareOkParametersCount() == 0) {
-            return session.writeBytes(MySQLPacketUtil.generatePrepareOk(info), true);
+        int parameterCount = info.getPrepareOkParametersCount();
+        int columnCount = info.getPrepareOkColumnsCount();
+        MycatRowMetaData writeFields = fields;
+        Future<Void> writeFuture = session.writeBytes(
+                MySQLPacketUtil.generatePrepareOk(info), parameterCount == 0 && columnCount == 0);
+        if (parameterCount == 0 && columnCount == 0) {
+            return writeFuture;
         }
-        session.writeBytes(MySQLPacketUtil.generatePrepareOk(info), false);
-        if (info.getPrepareOkParametersCount() > 0 && info.getPrepareOkColumnsCount() == 0) {
-            for (int i = 0; i < info.getPrepareOkParametersCount(); i++) {
-                writeEndFuture = session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params, i),
-                        info.getPrepareOkParametersCount() - 1 == i && deprecateEOF);
-            }
-            if (deprecateEOF) {
-                return writeEndFuture;
-            } else {
-                return session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                        session.getServerStatusValue()), true);
-            }
-        } else if (info.getPrepareOkParametersCount() == 0 && info.getPrepareOkColumnsCount() > 0) {
-            for (int i = 0; i < info.getPrepareOkColumnsCount(); i++) {
-                writeEndFuture = session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields, i),
-                        info.getPrepareOkColumnsCount() - 1 == i && deprecateEOF);
-            }
-            if (deprecateEOF) {
-                return writeEndFuture;
-            } else {
-                return session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                        session.getServerStatusValue()), true);
-            }
-        } else {
-            for (int i = 0; i < info.getPrepareOkParametersCount(); i++) {
-                writeEndFuture = session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(params, i), false);
-            }
-            writeEndFuture = session.writeColumnEndPacket(false);
-            for (int i = 0; i < info.getPrepareOkColumnsCount(); i++) {
-                writeEndFuture = session.writeBytes(MySQLPacketUtil.generateColumnDefPayload(fields, i),
-                        info.getPrepareOkColumnsCount() - 1 == i && deprecateEOF);
-            }
-            if (deprecateEOF) {
-                return writeEndFuture;
-            } else {
-                return session.writeBytes(MySQLPacketUtil.generateEof(session.getWarningCount(),
-                        session.getServerStatusValue()), true);
-            }
+        for (int i = 0; i < parameterCount; i++) {
+            int parameterIndex = i;
+            boolean end = columnCount == 0 && deprecateEOF && i == parameterCount - 1;
+            Future<Void> previousWrite = writeFuture;
+            writeFuture = previousWrite.compose(v -> session.writeBytes(
+                    MySQLPacketUtil.generateColumnDefPayload(params, parameterIndex), end));
         }
+        if (parameterCount > 0 && columnCount == 0) {
+            if (deprecateEOF) {
+                return writeFuture;
+            }
+            return writeFuture.compose(v -> session.writeBytes(
+                    MySQLPacketUtil.generateEof(session.getWarningCount(),
+                            session.getServerStatusValue()), true));
+        }
+        if (parameterCount > 0 && !deprecateEOF) {
+            writeFuture = writeFuture.compose(v -> session.writeColumnEndPacket(false));
+        }
+        for (int i = 0; i < columnCount; i++) {
+            int columnIndex = i;
+            boolean end = deprecateEOF && i == columnCount - 1;
+            Future<Void> previousWrite = writeFuture;
+            writeFuture = previousWrite.compose(v -> session.writeBytes(
+                    MySQLPacketUtil.generateColumnDefPayload(writeFields, columnIndex), end));
+        }
+        if (deprecateEOF) {
+            return writeFuture;
+        }
+        return writeFuture.compose(v -> session.writeBytes(
+                MySQLPacketUtil.generateEof(session.getWarningCount(),
+                        session.getServerStatusValue()), true));
     }
 
 
@@ -652,8 +640,9 @@ public class MycatVertxMySQLHandler {
     }
 
     public Future<Void> handleResetConnection(MycatVertxMysqlSession session) {
-        session.resetSession();
-        return session.writeOkEndPacket();
+        return session.resetSession()
+                .compose(v -> session.writeOkEndPacket())
+                .onFailure(cause -> session.close(false, "session reset failed"));
     }
 
     public Future<Void> handleDaemon(MycatVertxMysqlSession session) {

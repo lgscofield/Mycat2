@@ -15,6 +15,7 @@
 package io.mycat.beans.mycat;
 
 import io.mycat.MycatException;
+import io.mycat.protocol.mysql.type.MySQLErrorCode;
 
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
@@ -34,9 +35,8 @@ public class MycatErrorCode {
 
     //    common:
 //    MYCAT-3029:ERR_QUERY_CANCLED
-//    MYCAT-3034:ERR_NOT_SUPPORT
     public static int ERR_QUERY_CANCELED = 3029;
-    public static int ERR_NOT_SUPPORT = 3034;
+    public static int ERR_NOT_SUPPORT = MySQLErrorCode.ER_NOT_SUPPORTED_YET;
 
     //    query:
 //    MYCAT-3001:ERR_TABLE_NOT_EXIST

@@ -50,6 +50,14 @@ public class VertxMycatServer implements MycatServer {
         this.serverConfig = serverConfig;
     }
 
+    static void configureIdleTimeout(NetServerOptions options, ServerConfig serverConfig) {
+        long idleTimeout = serverConfig.getIdleTimeout();
+        if (idleTimeout > 0) {
+            options.setIdleTimeout(Math.toIntExact(idleTimeout));
+            options.setIdleTimeoutUnit(TimeUnit.SECONDS);
+        }
+    }
+
     public static void main(String[] args) {
 
     }
@@ -139,6 +147,7 @@ public class VertxMycatServer implements MycatServer {
         public void start() throws Exception {
             Vertx vertx = MetaClusterCurrent.wrapper(Vertx.class);
             NetServerOptions netServerOptions = new NetServerOptions();
+            configureIdleTimeout(netServerOptions, serverConfig.getServer());
             netServerOptions.setReusePort(true);
             netServerOptions.setReuseAddress(true);
             netServerOptions.setUseProxyProtocol(serverConfig.getServer().isUseProxyProtocol());
@@ -255,8 +264,14 @@ public class VertxMycatServer implements MycatServer {
         public void addSession(VertxSession vertxSession) {
             NetSocket socket = vertxSession.getSocket();
             socket.closeHandler(event -> {
-                LOGGER.info("session:{} is closing", vertxSession);
-                sessions.remove(vertxSession);
+                try {
+                    LOGGER.info("session:{} is closing", vertxSession);
+                    if (!vertxSession.isClosed()) {
+                        vertxSession.close(false, "frontend socket closed");
+                    }
+                } finally {
+                    sessions.remove(vertxSession);
+                }
             });
             sessions.add(vertxSession);
         }

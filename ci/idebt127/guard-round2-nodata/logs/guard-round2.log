@@ -1,0 +1,5 @@
+JAVA_HOME=D:\Program Files\BellSoft\LibericaJDK-21-Full  major=21
+REPO=D:\Workspaces\IdeaProjects\Mycat2  persona=MYSQL_8_0  jar=server-1.22-release-jar-with-dependencies.jar mtime=11/27/2026 22:54:15  home=server\target\.mycat-home
+GIT_HEAD=eadc4b5b1  dirtyFiles=30
+ABORT(backend): 容器 m1-mysql-a 启动后 ping 不上（60s 超时）? 后端不全，跑测只会造假红
+RESULT=NO_DATA abort=backend

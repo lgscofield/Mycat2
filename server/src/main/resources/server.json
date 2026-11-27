@@ -14,6 +14,7 @@
       "period":60000,
       "timeUnit":"SECONDS"
     },
+    "idleTimeout":300,
     "ip":"0.0.0.0",
     "mycatId":1,
     "port":8066,

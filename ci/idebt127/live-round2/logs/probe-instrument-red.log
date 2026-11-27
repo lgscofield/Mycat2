@@ -1,0 +1,11 @@
+[31;1mException: [0mD:\Workspaces\IdeaProjects\Mycat2\ci\idebt127\verify-frontend-correctness.ps1:31[0m
+[31;1m[0m[36;1mLine |[0m
+[31;1m[0m[36;1m[36;1m  31 | [0m бн it -ne 0) { [36;1mthrow "python probe failed: $($pythonOutput -join "`n")"[0m  бн[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m     | [31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m     | [31;1mpython probe failed: Traceback (most recent call last):   File[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m     | [31;1m"D:\Workspaces\IdeaProjects\Mycat2\ci\idebt127\verify-frontend-correctness.py", line 86, in <module>     main() [0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1m~~~~^^   File "D:\Workspaces\IdeaProjects\Mycat2\ci\idebt127\verify-frontend-correctness.py", line 79, in main  [0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mprobe_unknown_command(port)     ~~~~~~~~~~~~~~~~~~~~~^^^^^^   File[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1m"D:\Workspaces\IdeaProjects\Mycat2\ci\idebt127\verify-frontend-correctness.py", line 33, in[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mprobe_unknown_command     raise AssertionError("unknown command unexpectedly succeeded") AssertionError: unknown[0m
+[31;1m[0m[36;1m[36;1m[0m[36;1m[0m[36;1m[31;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m[31;1m[36;1m     | [31;1mcommand unexpectedly succeeded[0m

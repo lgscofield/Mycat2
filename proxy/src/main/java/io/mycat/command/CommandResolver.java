@@ -18,25 +18,30 @@ import io.mycat.BindValue;
 import io.mycat.BindValueUtil;
 import io.mycat.MetaClusterCurrent;
 import io.mycat.MycatDataContext;
+import io.mycat.beans.mycat.MycatErrorCode;
 import io.mycat.protocol.mysql.type.MySQLCommandType;
 import io.mycat.beans.mysql.packet.MySQLPacket;
 import io.mycat.config.MySQLServerCapabilityFlags;
 import io.mycat.config.ServerConfig;
 import io.mycat.proxy.monitor.MycatMonitor;
 import io.mycat.proxy.session.MycatSession;
+import io.mycat.proxy.session.ProcessState;
 import io.vertx.core.Future;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-import static io.mycat.beans.mysql.packet.AuthPacket.calcLenencLength;
+import static io.mycat.beans.mysql.packet.AuthPacket.readChangeUserAuthResponse;
+import static io.mycat.beans.mysql.packet.AuthPacket.readConnectAttrs;
 
 public class CommandResolver {
 
     public static void handle(MycatSession mycat, MySQLPacket curPacket,
                               CommandDispatcher commandHandler) {
         MycatMonitor.onCommandStart(mycat);
+        mycat.setResponseFinished(ProcessState.DOING);
 
         Future<Void> endFuture = null;
         try {
@@ -133,6 +138,7 @@ public class CommandResolver {
                     byte[] data = curPacket.readEOFStringBytes();
                     mycat.resetCurrentProxyPayload();
                     endFuture = commandHandler.handlePrepareStatementLongdata(statementId, paramId, data, mycat);
+                    endFuture = endFuture.onComplete(event -> mycat.onHandlerFinishedClear());
                     MycatMonitor.onSendLongDataCommandEnd(mycat);
                     break;
                 }
@@ -331,14 +337,9 @@ public class CommandResolver {
                         String schemaName = null;
                         Integer characterSet = null;
                         String authPluginName = null;
-                        HashMap<String, String> clientConnectAttrs = new HashMap<>();
+                        Map<String, String> clientConnectAttrs = new HashMap<>();
                         int capabilities = mycat.getCapabilities();
-                        if (MySQLServerCapabilityFlags.isCanDo41Anthentication(capabilities)) {
-                            byte len = curPacket.readByte();
-                            authResponse = curPacket.readFixString(len);
-                        } else {
-                            authResponse = curPacket.readNULString();
-                        }
+                        authResponse = readChangeUserAuthResponse(curPacket, capabilities);
                         schemaName = curPacket.readNULString();
                         if (!curPacket.readFinished()) {
                             characterSet = (int) curPacket.readFixInt(2);
@@ -346,20 +347,7 @@ public class CommandResolver {
                                 authPluginName = curPacket.readNULString();
                             }
                             if (MySQLServerCapabilityFlags.isConnectAttrs(capabilities)) {
-                                long kvAllLength = curPacket.readLenencInt();
-                                if (kvAllLength != 0) {
-                                    clientConnectAttrs = new HashMap<>();
-                                }
-                                int count = 0;
-                                while (count < kvAllLength) {
-                                    String k = curPacket.readLenencString();
-                                    String v = curPacket.readLenencString();
-                                    count += k.length();
-                                    count += v.length();
-                                    count += calcLenencLength(k.length());
-                                    count += calcLenencLength(v.length());
-                                    clientConnectAttrs.put(k, v);
-                                }
+                                clientConnectAttrs = readConnectAttrs(curPacket);
                             }
                         }
                         mycat.resetCurrentProxyPayload();
@@ -388,10 +376,14 @@ public class CommandResolver {
                     break;
                 }
                 default: {
-                    assert false;
+                    mycat.setLastMessage("无法识别的MYSQL数据包");
+                    endFuture = mycat.writeErrorEndPacketBySyncInProcessError(
+                            MycatErrorCode.ERR_NOT_SUPPORT);
+                    break;
                 }
             }
-
+        } catch (Throwable throwable) {
+            endFuture = Future.failedFuture(throwable);
         } finally {
 
             Objects.requireNonNull(endFuture).onComplete(event -> {

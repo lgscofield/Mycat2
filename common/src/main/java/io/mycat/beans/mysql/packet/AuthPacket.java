@@ -22,6 +22,7 @@ import io.mycat.protocol.mysql.packet.MySQLPayloadReadView;
 import io.mycat.config.MySQLServerCapabilityFlags;
 
 import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -99,6 +100,97 @@ public class AuthPacket {
         }
     }
 
+    public static String readChangeUserAuthResponse(MySQLPayloadReadView buffer, int capabilities) {
+        if (MySQLServerCapabilityFlags.isCanDo41Anthentication(capabilities)) {
+            if (buffer.readable() < 1) {
+                throw new IllegalArgumentException("Missing authentication response length");
+            }
+            int length = buffer.readByte() & 0xff;
+            if (length > buffer.readable()) {
+                throw new IllegalArgumentException("Authentication response exceeds packet length");
+            }
+            return buffer.readFixString(length);
+        }
+        return buffer.readNULString();
+    }
+
+    public static Map<String, String> readConnectAttrs(MySQLPayloadReadView buffer) {
+        long length = readLenencInt(buffer);
+        if (length != buffer.readable()) {
+            throw new IllegalArgumentException("Connection attributes length mismatch");
+        }
+        Map<String, String> attrs = new HashMap<>();
+        long remaining = length;
+        while (remaining > 0) {
+            long keyLength = readLenencInt(buffer, remaining);
+            int keyPrefixLength = calcLenencLength((int) keyLength);
+            if (keyPrefixLength > remaining || keyLength > remaining - keyPrefixLength) {
+                throw new IllegalArgumentException("Invalid connection attribute key length");
+            }
+            byte[] key = buffer.readFixStringBytes((int) keyLength);
+            remaining -= keyPrefixLength + keyLength;
+
+            long valueLength = readLenencInt(buffer, remaining);
+            int valuePrefixLength = calcLenencLength((int) valueLength);
+            if (valuePrefixLength > remaining || valueLength > remaining - valuePrefixLength) {
+                throw new IllegalArgumentException("Invalid connection attribute value length");
+            }
+            byte[] value = buffer.readFixStringBytes((int) valueLength);
+            remaining -= valuePrefixLength + valueLength;
+            attrs.put(new String(key, StandardCharsets.UTF_8),
+                    new String(value, StandardCharsets.UTF_8));
+        }
+        if (remaining != 0) {
+            throw new IllegalArgumentException("Connection attributes length mismatch");
+        }
+        return attrs;
+    }
+
+    private static long readLenencInt(MySQLPayloadReadView buffer) {
+        return readLenencInt(buffer, buffer.readable());
+    }
+
+    private static long readLenencInt(MySQLPayloadReadView buffer, long maxBytes) {
+        if (maxBytes < 1 || buffer.readable() < 1) {
+            throw new IllegalArgumentException("Missing length-encoded integer");
+        }
+        int marker = buffer.readByte() & 0xff;
+        int length;
+        if (marker < 0xfb) {
+            return marker;
+        } else if (marker == 0xfc) {
+            length = 2;
+        } else if (marker == 0xfd) {
+            length = 3;
+        } else if (marker == 0xfe) {
+            length = 8;
+        } else {
+            throw new IllegalArgumentException("Invalid length-encoded integer");
+        }
+        if (length > maxBytes - 1 || buffer.readable() < length) {
+            throw new IllegalArgumentException("Truncated length-encoded integer");
+        }
+        long value = 0;
+        for (int i = 0; i < length; i++) {
+            value |= (buffer.readByte() & 0xffL) << (i * 8);
+        }
+        if (value < 0) {
+            throw new IllegalArgumentException("Length-encoded integer is too large");
+        }
+        return value;
+    }
+
+    public static long connectAttrsLength(Map<String, String> attrs) {
+        long length = 0;
+        for (Map.Entry<String, String> entry : attrs.entrySet()) {
+            int keyLength = entry.getKey().getBytes(StandardCharsets.UTF_8).length;
+            int valueLength = entry.getValue().getBytes(StandardCharsets.UTF_8).length;
+            length += keyLength + (long) calcLenencLength(keyLength)
+                    + valueLength + calcLenencLength(valueLength);
+        }
+        return length;
+    }
+
     public static byte[] getRESERVED() {
         return RESERVED;
     }
@@ -110,12 +202,16 @@ public class AuthPacket {
         buffer.readBytes(RESERVED.length);
         username = buffer.readNULString();
         if (MySQLServerCapabilityFlags.isPluginAuthLenencClientData(capabilities)) {
-            Long len = buffer.readLenencInt();
-            if (len != null) {
-                password = buffer.readFixStringBytes(len.intValue());
+            long length = readLenencInt(buffer);
+            if (length > buffer.readable()) {
+                throw new IllegalArgumentException("Authentication response exceeds packet length");
             }
+            password = buffer.readFixStringBytes((int) length);
         } else if ((MySQLServerCapabilityFlags.isCanDo41Anthentication(capabilities))) {
-            int passwordLength = buffer.readByte();
+            int passwordLength = buffer.readByte() & 0xff;
+            if (passwordLength > buffer.readable()) {
+                throw new IllegalArgumentException("Authentication response exceeds packet length");
+            }
             password = buffer.readFixStringBytes(passwordLength);
         } else {
             password = buffer.readNULStringBytes();
@@ -130,20 +226,7 @@ public class AuthPacket {
         }
 
         if (MySQLServerCapabilityFlags.isConnectAttrs(capabilities) && !buffer.readFinished()) {
-            long kvAllLength = buffer.readLenencInt();
-            if (kvAllLength != 0) {
-                clientConnectAttrs = new HashMap<>();
-            }
-            int count = 0;
-            while (count < kvAllLength) {
-                String k = buffer.readLenencString();
-                String v = buffer.readLenencString();
-                count += k.length();
-                count += v.length();
-                count += calcLenencLength(k.length());
-                count += calcLenencLength(v.length());
-                clientConnectAttrs.put(k, v);
-            }
+            clientConnectAttrs = readConnectAttrs(buffer);
         }
     }
 
@@ -175,13 +258,10 @@ public class AuthPacket {
 
         if (MySQLServerCapabilityFlags.isConnectAttrs(capabilities)
                 && clientConnectAttrs != null && !clientConnectAttrs.isEmpty()) {
-            int kvAllLength = 0;
-            for (Map.Entry<String, String> item : clientConnectAttrs.entrySet()) {
-                kvAllLength += item.getKey().length();
-                kvAllLength += item.getValue().length();
-            }
-            buffer.writeLenencInt(kvAllLength);
-            clientConnectAttrs.forEach((k, v) -> buffer.writeLenencString(k).writeLenencString(v));
+            buffer.writeLenencInt(connectAttrsLength(clientConnectAttrs));
+            clientConnectAttrs.forEach((k, v) -> buffer
+                    .writeLenencString(k.getBytes(StandardCharsets.UTF_8))
+                    .writeLenencString(v.getBytes(StandardCharsets.UTF_8)));
         }
     }
 

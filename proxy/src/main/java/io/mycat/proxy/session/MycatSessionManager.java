@@ -16,6 +16,8 @@ package io.mycat.proxy.session;
 
 import io.mycat.buffer.BufferPool;
 import io.mycat.command.CommandDispatcher;
+import io.mycat.config.ServerConfig;
+import io.mycat.config.TimerConfig;
 import io.mycat.proxy.handler.front.MySQLClientAuthHandler;
 import io.mycat.proxy.monitor.MycatMonitor;
 import io.mycat.proxy.reactor.SessionThread;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -47,10 +50,24 @@ public class MycatSessionManager implements FrontSessionManager<MycatSession> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MycatSessionManager.class);
     private final ConcurrentLinkedDeque<MycatSession> mycatSessions = new ConcurrentLinkedDeque<>();
     private final Function<MycatSession, CommandDispatcher> commandDispatcher;
+    private final long idleTimeoutMillis;
+    private final long initialDelayNanos;
+    private final long periodNanos;
+    private long nextCheckNanos;
 
 
     public MycatSessionManager(Function<MycatSession, CommandDispatcher> function) {
+        this(function, new ServerConfig());
+    }
+
+    public MycatSessionManager(Function<MycatSession, CommandDispatcher> function, ServerConfig serverConfig) {
         this.commandDispatcher = function;
+        TimerConfig idleTimer = serverConfig.getIdleTimer();
+        TimeUnit timeUnit = TimeUnit.valueOf(idleTimer.getTimeUnit());
+        this.idleTimeoutMillis = TimeUnit.SECONDS.toMillis(serverConfig.getIdleTimeout());
+        this.initialDelayNanos = timeUnit.toNanos(idleTimer.getInitialDelay());
+        this.periodNanos = timeUnit.toNanos(idleTimer.getPeriod());
+        this.nextCheckNanos = System.nanoTime() + initialDelayNanos;
     }
 
 
@@ -106,7 +123,28 @@ public class MycatSessionManager implements FrontSessionManager<MycatSession> {
 
     @Override
     public void check() {
-
+        if (idleTimeoutMillis <= 0 || periodNanos <= 0) {
+            return;
+        }
+        long nowNanos = System.nanoTime();
+        if (nowNanos < nextCheckNanos) {
+            return;
+        }
+        nextCheckNanos = nowNanos + periodNanos;
+        long nowMillis = System.currentTimeMillis();
+        for (MycatSession session : mycatSessions) {
+            long lastActiveTime = session.getLastActiveTime();
+            if (!session.hasClosed() && lastActiveTime > 0
+                    && session.getProcessState() == ProcessState.READY
+                    && session.writeQueue().isEmpty()
+                    && nowMillis - lastActiveTime >= idleTimeoutMillis) {
+                try {
+                    session.close(false, "frontend idle timeout");
+                } catch (Exception e) {
+                    LOGGER.error("Failed to close idle session {}", session.sessionId(), e);
+                }
+            }
+        }
     }
 
 
