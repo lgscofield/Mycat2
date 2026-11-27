@@ -8,10 +8,24 @@
 
 ## 迁移索引
 
-- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、127、128、129、133、134、137、138、145。
+- 保留在主队列：I-DEBT-39·残、32-FAMILY、62、69、96、99、110、114、116、120、128、129、133、134、137、138、145。
 - I-DEBT-79 的三刀已落地并 CI 复验，收入本文件；mysql client 缺失时不得软跳过的新验证债另立 I-CI-8。
 - I-DEBT-143 的 URL 与 DRIVER 展示子项已修复并 CI 复验，收入本文件；原 DRIVER 凭据暴露指控按 Druid 1.2.28 行为判 STALE。
+- I-DEBT-127 的前端正确性七案及旧 Connector 认证回归已修复并 CI 复验，收入本文件。
 - I-DEBT-110 / 116 的代码或活体修复保留在主队列 PARTIAL，离线回归锁与剩余证据未补齐前不得标 Evidenced-Done。
+
+## 2026-11-28 关闭记录
+
+### I-DEBT-127 前端正确性七案与旧 Connector 认证 — CLOSED / CI✅ / Evidenced-Done
+
+- 实现提交：`9b56e1afa6bc5f11fd24e92f98ba5f4de2e50067`（七案主体与终审清理修复）、`a3266da22a13c3dd7a71d5b483a6c0d6a5ee522d`（Connector/J 5.1.49 connect-attrs 零填充兼容）。
+- CI：run [`46052277737`](https://github.com/lgscofield/Mycat2/actions/runs/46052277737) `success`；9 个实际 job 全部 success（cleanroom、7 档 compat、old-connector），`full-suite` 与 `soak-g6` 按 main 分支规则 skipped。[逐 job 摘要](../../../ci/idebt127/ci-round3/summary.tsv)
+- 回归：七案定向回归 95/95；connect-attrs 兼容回归 15/15，覆盖非 ASCII/260 字节属性、声明越界、属性内部越界、非零尾字节与 Connector/J 5.1.49 的 26 字节纯零填充。
+- 完整护栏：[guard-round3](../../../ci/idebt127/guard-round3/archive-provenance.txt)，15/15 reactor 模块 BUILD SUCCESS，18:21，server 389、example 559（38 skipped），零失败/零错误。
+- 活体：[live-round3](../../../ci/idebt127/live-round3/archive-provenance.txt)，10 项前端探针全部 PASS：connect-attrs、prepare 两种 EOF 模式、reset、未知命令 1235、hints 与 idle timeout 正负控。
+- 旧 Connector：[oldline-round3](../../../ci/idebt127/oldline-round3/archive-provenance.txt)，5.1.49 与 8.0.33 的明文/TLS 四轴全部 PASS；首轮 CI run `46040479798` 的 old-connector 失败已定位为合法属性块后的零填充被严格等长校验拒绝，并由本提交修复。
+- 被测 jar SHA-256：`0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7`；oldline/live/guard/CI 四套证据清单共 24 项均已复核，`MISMATCHES=0`。
+- 关闭边界：覆盖未知命令错误码、COM_RESET_CONNECTION、MycatdbCommand 初始化、MERGE_UNION_SIZE、前端 idle timeout、NIO prepare 编码/元数据、connect-attrs 字节长度及旧 Connector 兼容；不覆盖 I-DEBT-134 容量旋钮、I-DEBT-133 reset 配置破坏面或后续 P1/P2 票据。最终独立复审无 Critical/Important/Minor 发现。
 
 ## 2026-11-26 关闭记录
 

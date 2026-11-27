@@ -1,0 +1,24 @@
+run_id	46052277737
+head_sha	a3266da22a13c3dd7a71d5b483a6c0d6a5ee522d
+workflow	Java CI - Mycat2 Compat Matrix
+run_attempt	1
+conclusion	success
+prior_failed_run	46040479798
+prior_failed_job	old-connector
+actual_jobs	9
+actual_success	9
+actual_failed	0
+skipped_jobs	full-suite;soak-g6
+cleanroom	success
+compat_mysql_5_7	success
+compat_mysql_8_0	success
+compat_mysql_8_4	success
+compat_mysql_9_0	success
+compat_mariadb_10_6	success
+compat_mariadb_10_11	success
+compat_mariadb_11_4	success
+old_connector	success
+run_url	https://github.com/lgscofield/Mycat2/actions/runs/46052277737
+jobs_api_url	https://api.github.com/repos/lgscofield/Mycat2/actions/runs/46052277737/jobs?per_page=100
+verification	Fresh REST recheck counted jobs by conclusion; completed/skipped jobs are excluded from actual_jobs.
+closure_rule	All non-skipped jobs succeeded; main-branch full-suite and soak-g6 skips are not passing evidence.

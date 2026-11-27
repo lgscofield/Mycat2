@@ -21,5 +21,5 @@ cleanup: frontend 8066 pid 27936 stopped before full guard
 offline_regressions: AuthPacketConnectAttrsTest 15/15, zero failures/errors, BUILD SUCCESS
 old_connector_matrix: PASS; oldline-round3; 5.1.49 and 8.0.33 both plaintext and TLS
 full_guard: PASS; guard-round3; 15/15 modules SUCCESS; server 389 and example 559 (38 skipped); zero failures/errors; BUILD SUCCESS; 18:21 min; GUARD_EXIT=0
-current_head_ci: pending implementation commit and push
-conclusion: final-jar live criteria, old Connector matrix and full guard passed; current-HEAD CI remains the separate closure gate
+current_head_ci: run 46052277737 success; 9/9 actual jobs success including old-connector; full-suite and soak-g6 skipped
+conclusion: final-jar live criteria, old Connector matrix, full guard and current-HEAD CI all passed

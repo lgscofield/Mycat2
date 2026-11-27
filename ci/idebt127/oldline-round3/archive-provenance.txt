@@ -18,4 +18,5 @@ red_green: attrs-red.log expected product failure; attrs-green.log 15/15 and BUI
 prior_failure_logs: prior-ci-failure.log and prior-local-failure.log preserve the CI and same-jar local authentication failures
 handshake_capture_note: handshake-capture.log is a capture-only fake server; its final auth failure is expected and is not matrix evidence
 independent_review: no Critical, Important or Minor findings; initial handshake and COM_CHANGE_USER share the bounded parser
-conclusion: the prior current-HEAD CI old-connector failure is fixed in the rebuilt jar; CI rerun remains required
+current_head_ci: run 46052277737 success; 9/9 actual jobs success including old-connector; full-suite and soak-g6 skipped
+conclusion: the prior current-HEAD CI old-connector failure is fixed and the implementation HEAD is CI-backed

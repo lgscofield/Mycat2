@@ -22,4 +22,5 @@ guard_exit: GUARD_EXIT=0
 monitor_exit: MONITOR_GUARD_EXIT=0
 jar_sha256: 0d4fc88543aa913aaf446ab6dbbbb84721132313179679a2726ef662f7ed84d7
 jar_size: 245238708 bytes
-conclusion: rebuilt-jar full server/example guard passed; current-HEAD CI remains a separate closure gate
+current_head_ci: run 46052277737 success; 9/9 actual jobs success including old-connector; full-suite and soak-g6 skipped
+conclusion: rebuilt-jar full server/example guard and current-HEAD CI both passed
