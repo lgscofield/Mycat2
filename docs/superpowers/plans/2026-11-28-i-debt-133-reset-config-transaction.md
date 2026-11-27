@@ -166,7 +166,7 @@
 
 **Interfaces:**
 - `MetaClusterCurrent.replaceContext(Map<Class,Object> expected, Map<Class,Object> replacement)`：仅当 `context.get() == expected` 时 CAS，成功返回 true，否则 false。
-- `RuntimeCandidate`：持有 `Map<Class,Object> context`、`List<Resource> ownedResources`、`List<Object> swappedOutResources`、旧/新 `ReplicaSelectorManager`；`boolean activate(Map<Class,Object> expected)`、`void giveUpAndRestore()`、`void retireOldResources()`。构建不注册全局、不原地改旧 manager。
+- `RuntimeCandidate`：持有 `Map<Class,Object> context`、`List<Resource> ownedResources`、`List<Object> swappedOutResources`、旧/新 `ReplicaSelectorManager`；`boolean activate(Map<Class,Object> expected)`、`void giveUp()`、`void giveUpAndRestore()`、`void retireOldResources()`；`giveUp()` 只关闭本轮新资源，不触碰当前 context。构建不注册全局、不原地改旧 manager。
 - `MycatRouterConfigOps.buildRuntimeCandidate(UpdateSet<...> sixSets)` 为包内可覆盖方法；`isInit()` 改为实例方法但保留原静态首次语义；`onCommitSuccess()`、`runPostCommitInitialization()` 为包内可覆盖 seam。
 - `commit()`：persistence=true 使用 B1 事务；persistence=false 只构建/CAS，不写恢复记录。普通持久化调用方也走同一序列化边界。
 
