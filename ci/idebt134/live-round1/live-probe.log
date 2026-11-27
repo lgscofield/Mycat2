@@ -1,0 +1,93 @@
+2026-11-28 03:55:54,414[DEBUG]io.vertx.core.logging.LoggerFactory.?:?Using io.vertx.core.logging.SLF4JLogDelegateFactory
+2026-11-28 03:55:54,534[DEBUG]io.netty.util.internal.logging.InternalLoggerFactory.useSlf4JLoggerFactory:63Using SLF4J as the default logging framework
+2026-11-28 03:55:54,534[DEBUG]io.netty.util.internal.PlatformDependent0.explicitNoUnsafeCause0:554-Dio.netty.noUnsafe: false
+2026-11-28 03:55:54,545[DEBUG]io.netty.util.internal.PlatformDependent0.javaVersion0:1072Java version: 21
+2026-11-28 03:55:54,547[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:140sun.misc.Unsafe.theUnsafe: available
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:203sun.misc.Unsafe base methods: all available
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:235sun.misc.Unsafe.storeFence: available
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:278java.nio.Buffer.address: available
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:364direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:442java.nio.Bits.unaligned: available, true
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:510jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @1d29cf23
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent0.<clinit>:540java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent.unsafeUnavailabilityCause0:1196sun.misc.Unsafe: available
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent.tmpdir0:1342-Dio.netty.tmpdir: C:\Users\ligh208\AppData\Local\Temp (java.io.tmpdir)
+2026-11-28 03:55:54,551[DEBUG]io.netty.util.internal.PlatformDependent.bitMode0:1421-Dio.netty.bitMode: 64 (sun.arch.data.model)
+2026-11-28 03:55:54,560[DEBUG]io.netty.util.internal.PlatformDependent.isWindows0:1156Platform: Windows
+2026-11-28 03:55:54,560[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:180-Dio.netty.maxDirectMemory: -1 bytes
+2026-11-28 03:55:54,562[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:187-Dio.netty.uninitializedArrayAllocationThreshold: -1
+2026-11-28 03:55:54,565[DEBUG]io.netty.util.internal.CleanerJava9.<clinit>:71java.nio.ByteBuffer.cleaner(): available
+2026-11-28 03:55:54,565[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:207-Dio.netty.noPreferDirect: false
+2026-11-28 03:55:54,581[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:129-Dio.netty.leakDetection.level: simple
+2026-11-28 03:55:54,581[DEBUG]io.netty.util.ResourceLeakDetector.<clinit>:130-Dio.netty.leakDetection.targetRecords: 4
+2026-11-28 03:55:54,614[DEBUG]io.netty.channel.MultithreadEventLoopGroup.<clinit>:44-Dio.netty.eventLoopThreads: 24
+2026-11-28 03:55:54,621[DEBUG]io.netty.util.concurrent.GlobalEventExecutor.<clinit>:54-Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+2026-11-28 03:55:54,630[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:100-Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+2026-11-28 03:55:54,630[DEBUG]io.netty.util.internal.InternalThreadLocalMap.<clinit>:101-Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+2026-11-28 03:55:54,641[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:110-Dio.netty.noKeySetOptimization: false
+2026-11-28 03:55:54,641[DEBUG]io.netty.channel.nio.NioEventLoop.<clinit>:111-Dio.netty.selectorAutoRebuildThreshold: 512
+2026-11-28 03:55:54,653[DEBUG]io.netty.util.internal.PlatformDependent.<clinit>:1030org.jctools-core.MpscChunkedArrayQueue: available
+2026-11-28 03:55:54,897[DEBUG]io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider.<clinit>:98Default DNS servers: [/[2408:823d:c13:ae2:0:0:0:1]:53, /192.168.124.1:53] (sun.net.dns.ResolverConfiguration)
+2026-11-28 03:55:54,914[DEBUG]io.netty.util.NetUtil.<clinit>:149-Djava.net.preferIPv4Stack: false
+2026-11-28 03:55:54,914[DEBUG]io.netty.util.NetUtil.<clinit>:150-Djava.net.preferIPv6Addresses: false
+2026-11-28 03:55:54,914[DEBUG]io.netty.util.NetUtilInitializations.determineLoopback:145Loopback interface: loopback_0 (Software Loopback Interface 1, 0:0:0:0:0:0:0:1)
+2026-11-28 03:55:54,914[DEBUG]io.netty.util.NetUtil.run:216Failed to get SOMAXCONN from sysctl and file \proc\sys\net\core\somaxconn. Default: 200
+2026-11-28 03:55:54,914[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:149Default ResolvedAddressTypes: IPV4_PREFERRED
+2026-11-28 03:55:54,914[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:150Localhost address: localhost/127.0.0.1
+2026-11-28 03:55:54,930[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:159Windows hostname: DESKTOP-PBM6UFB
+2026-11-28 03:55:54,930[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:172Default search domains: []
+2026-11-28 03:55:54,930[DEBUG]io.netty.resolver.dns.DnsNameResolver.<clinit>:181Default UnixResolverOptions{ndots=1, timeout=5, attempts=16}
+2026-11-28 03:55:54,947[DEBUG]io.netty.resolver.DefaultHostsFileEntriesResolver.<clinit>:53-Dio.netty.hostsFileRefreshInterval: 0
+CONFIG PASS maxCon=1 minCon=0 retry=0
+2026-11-28 03:55:55,087[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:84-Dio.netty.processId: 24052 (auto-detected)
+2026-11-28 03:55:55,092[DEBUG]io.netty.channel.DefaultChannelId.<clinit>:106-Dio.netty.machineId: 90:2e:16:ff:fe:e0:98:1c (auto-detected)
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:161-Dio.netty.allocator.numHeapArenas: 24
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:162-Dio.netty.allocator.numDirectArenas: 24
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:164-Dio.netty.allocator.pageSize: 8192
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:169-Dio.netty.allocator.maxOrder: 9
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:173-Dio.netty.allocator.chunkSize: 4194304
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:174-Dio.netty.allocator.smallCacheSize: 256
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:175-Dio.netty.allocator.normalCacheSize: 64
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:176-Dio.netty.allocator.maxCachedBufferCapacity: 32768
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:177-Dio.netty.allocator.cacheTrimInterval: 8192
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:178-Dio.netty.allocator.cacheTrimIntervalMillis: 0
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:179-Dio.netty.allocator.useCacheForAllThreads: false
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:180-Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+2026-11-28 03:55:55,114[DEBUG]io.netty.buffer.PooledByteBufAllocator.<clinit>:182-Dio.netty.allocator.disableCacheFinalizersForFastThreadLocalThreads: false
+2026-11-28 03:55:55,132[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:89-Dio.netty.allocator.type: pooled
+2026-11-28 03:55:55,132[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:101-Dio.netty.threadLocalDirectBufferSize: 0
+2026-11-28 03:55:55,132[DEBUG]io.netty.buffer.ByteBufUtil.<clinit>:104-Dio.netty.maxThreadLocalCharBufferSize: 16384
+2026-11-28 03:55:55,145[DEBUG]io.netty.bootstrap.ChannelInitializerExtensions.getExtensions:54-Dio.netty.bootstrap.extensions: null
+2026-11-28 03:55:55,198[DEBUG]io.netty.util.Recycler.<clinit>:96-Dio.netty.recycler.maxCapacityPerThread: 4096
+2026-11-28 03:55:55,199[DEBUG]io.netty.util.Recycler.<clinit>:97-Dio.netty.recycler.ratio: 8
+2026-11-28 03:55:55,199[DEBUG]io.netty.util.Recycler.<clinit>:98-Dio.netty.recycler.chunkSize: 32
+2026-11-28 03:55:55,199[DEBUG]io.netty.util.Recycler.<clinit>:99-Dio.netty.recycler.blocking: false
+2026-11-28 03:55:55,199[DEBUG]io.netty.util.Recycler.<clinit>:100-Dio.netty.recycler.batchFastThreadLocalOnly: true
+2026-11-28 03:55:55,200[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:63-Dio.netty.buffer.checkAccessible: true
+2026-11-28 03:55:55,200[DEBUG]io.netty.buffer.AbstractByteBuf.<clinit>:64-Dio.netty.buffer.checkBounds: true
+2026-11-28 03:55:55,200[DEBUG]io.netty.util.ResourceLeakDetectorFactory.newResourceLeakDetector:196Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@3a127574
+
+BORROW_FIRST PASS
+2026-11-28 03:55:55,647[DEBUG]io.mycat.mysqlclient.VertxConnection.query:193VertxConnection20804602:netSocket2015925178
+2026-11-28 03:55:55,757[DEBUG]io.mycat.mysqlclient.command.QueryCommand.write:54-------------------Thread[#37,RxComputationThreadPool-1,5,main]:queryCommand1449920641:netsocket2015925178:SELECT 1--------------------
+2026-11-28 03:55:55,757[DEBUG]io.mycat.mysqlclient.command.QueryCommand.write:57send sql:SELECT 1
+2026-11-28 03:55:55,773[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1449920641:socket2015925178:packetId:1payload:--------------------
+2026-11-28 03:55:55,775[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1449920641:socket2015925178:packetId:2payload:def   1 ?    锟?   --------------------
+2026-11-28 03:55:55,784[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1449920641:socket2015925178:packetId:3payload:1--------------------
+2026-11-28 03:55:55,785[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1449920641:socket2015925178:packetId:4payload:锟?    --------------------
+QUERY_FIRST PASS value=1
+2026-11-28 03:55:55,787[ERROR]io.mycat.MycatCore.lambda$getConnection$17:322try get connection fail
+io.vertx.core.impl.NoStackTraceThrowable: pool capacity exhausted
+BORROW_SECOND PASS rejection=pool capacity exhausted
+RETURN_FIRST PASS
+BORROW_THIRD PASS
+2026-11-28 03:55:55,787[DEBUG]io.mycat.mysqlclient.VertxConnection.query:193VertxConnection20804602:netSocket2015925178
+2026-11-28 03:55:55,787[DEBUG]io.mycat.mysqlclient.command.QueryCommand.write:54-------------------Thread[#38,RxComputationThreadPool-2,5,main]:queryCommand1794416608:netsocket2015925178:SELECT 1--------------------
+2026-11-28 03:55:55,787[DEBUG]io.mycat.mysqlclient.command.QueryCommand.write:57send sql:SELECT 1
+2026-11-28 03:55:55,798[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1794416608:socket2015925178:packetId:1payload:--------------------
+2026-11-28 03:55:55,799[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1794416608:socket2015925178:packetId:2payload:def   1 ?    锟?   --------------------
+2026-11-28 03:55:55,800[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1794416608:socket2015925178:packetId:3payload:1--------------------
+2026-11-28 03:55:55,801[DEBUG]io.mycat.mysqlclient.command.QueryCommand.handle0:76-------------------queryCommand1794416608:socket2015925178:packetId:4payload:锟?    --------------------
+QUERY_THIRD PASS value=1
+CAPACITY_LIVE PASS
+2026-11-28 03:55:55,843[DEBUG]io.netty.buffer.PoolThreadCache.free:218Freed 4 thread-local buffer(s) from thread: vert.x-eventloop-thread-0

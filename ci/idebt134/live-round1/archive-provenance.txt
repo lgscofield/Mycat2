@@ -1,0 +1,21 @@
+round: live-round1
+archived_at: 2026-11-28T03:59:57+08:00
+head_at_run: 730305e999587ffed36034d6203f877abd3c2d71 with uncommitted I-DEBT-134 capacity fix
+dirty_files_at_run: 4 tracked I-DEBT-134 files; unrelated .qoder, ci/iopr1 and scratch changes excluded
+persona: MYSQL_8_0
+backend: m1-mysql-a MySQL 8.0.46 at 127.0.0.1:3306
+package: BUILD SUCCESS; 03:35 min; jar-build-final.log
+fat_jar_sha256: 244ad7c97b8628abde63d2a2bfe8e9a40715f52f875fbcecf706078e9f3ca65d
+jar_size: 245239430 bytes
+sha256_independent_check: PASS; Python hashlib streamed hash equals live fat-jar.sha256
+probe_result: PASS; exit 0; CAPACITY_LIVE PASS
+config: maxCon=1 minCon=0 retry=0 passed from production native factory to raw pool
+borrow_first: PASS
+query_first: PASS value=1
+borrow_second: PASS rejection=pool capacity exhausted
+return_first: PASS
+borrow_third: PASS
+query_third: PASS value=1
+offline_regressions: final targeted 26/26; zero failures/errors; BUILD SUCCESS
+probe_sha256: NativeCapacityProbe.java 70fa8e8c19559939df7b92ebf1d10c19b51dc9c9c4b6ffdfb837a13b9fa789f0; verify-native-capacity.ps1 9155e4471e60e252576c4c31b9faf801600a64294034c92c2953999a9c373b0d
+conclusion: final rebuilt jar applies native capacity configuration, rejects an over-capacity borrow and recovers after return

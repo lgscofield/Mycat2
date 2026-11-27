@@ -51,6 +51,7 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     private volatile Consumer<VertxConnection> releaseListener;
     Vertx vertx;
     volatile boolean closed;
+    private int creatingConnections;
     private final long timerId;
 
     long lastActiveTime = System.currentTimeMillis();
@@ -131,6 +132,15 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
 
 
     public VertxPoolConnectionImpl(Config config, Vertx vertx) {
+        if (config.getMaxCon() < 1) {
+            throw new IllegalArgumentException("maxCon must be at least 1");
+        }
+        if (config.getMinCon() < 0) {
+            throw new IllegalArgumentException("minCon must be at least 0");
+        }
+        if (config.getMinCon() > config.getMaxCon()) {
+            throw new IllegalArgumentException("minCon must not exceed maxCon");
+        }
         this.config = config;
         this.vertx = vertx;
         this.timerId = this.vertx.setPeriodic(config.timer, event -> {
@@ -323,48 +333,55 @@ public class VertxPoolConnectionImpl implements VertxConnectionPool {
     }
 
     private Future<VertxConnection> getConnectionWithMaxCountLimit() {
-        return Future.future(new Handler<Promise<VertxConnection>>() {
+        synchronized (VertxPoolConnectionImpl.this) {
+            if (closed) {
+                return Future.failedFuture("pool has closed");
+            }
+            VertxConnection connection = connections.poll();
+            if (connection != null) {
+                return registerBorrowedConnection(connection);
+            }
+            if (getUsedNumber() + creatingConnections >= config.getMaxCon()) {
+                return Future.failedFuture("pool capacity exhausted");
+            }
+            creatingConnections++;
+        }
+        Future<VertxConnection> created;
+        try {
+            created = innerCreateConnection();
+        } catch (Throwable throwable) {
+            releaseCreatingConnection();
+            return Future.failedFuture(throwable);
+        }
+        return created.transform(event -> {
+            if (event.failed()) {
+                return Future.failedFuture(event.cause());
+            }
+            return registerBorrowedConnection(event.result());
+        }).onComplete(event -> releaseCreatingConnection());
+    }
 
-            @Override
-            public void handle(Promise<VertxConnection> promise) {
-                if (closed) {
-                    promise.tryFail("pool has closed");
-                    return;
-                }
-                VertxConnection connection = connections.poll();
-                if (connection == null) {
-                    synchronized (this) {
-                        Integer usedNumber = getUsedNumber();
-                        int maxCon = config.maxCon;
-                        if (usedNumber < maxCon) {
-                            innerCreateConnection().map(c -> {
-                                return c;
-                            }).onComplete(promise);
-                        } else {
-                            promise.tryFail("pool has closed");
-                        }
-                        return;
-                    }
-                }
-                promise.tryComplete(connection);
-                return;
+    private Future<VertxConnection> registerBorrowedConnection(VertxConnection connection) {
+        synchronized (VertxPoolConnectionImpl.this) {
+            if (closed) {
+                kill(connection);
+                return Future.failedFuture("pool has closed");
             }
-        }).compose(connection -> {
-            synchronized (VertxPoolConnectionImpl.this) {
-                if (closed) {
-                    kill(connection);
-                    return Future.failedFuture("pool has closed");
-                }
-                usedConnections.put(connection.getConnectionId(), connection);
-                try {
-                    notifyBorrowed(connection);
-                } catch (Throwable throwable) {
-                    kill(connection);
-                    return Future.failedFuture(throwable);
-                }
-                return Future.succeededFuture(connection);
+            usedConnections.put(connection.getConnectionId(), connection);
+            try {
+                notifyBorrowed(connection);
+            } catch (Throwable throwable) {
+                kill(connection);
+                return Future.failedFuture(throwable);
             }
-        });
+            return Future.succeededFuture(connection);
+        }
+    }
+
+    private void releaseCreatingConnection() {
+        synchronized (VertxPoolConnectionImpl.this) {
+            creatingConnections--;
+        }
     }
 
     @Override

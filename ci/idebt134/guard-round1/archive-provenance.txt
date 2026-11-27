@@ -1,0 +1,25 @@
+round: guard-round1
+archived_at: 2026-11-28T04:18:18+08:00
+head_at_run: 730305e999587ffed36034d6203f877abd3c2d71 with uncommitted I-DEBT-134 capacity fix
+monitor_task: b0ndfihvi
+entrypoint: ci/run-example-guard.ps1
+command: pwsh -NoProfile -File ci/run-example-guard.ps1 -Persona MYSQL_8_0 -Modules server,example -Jar server/target/server-1.22-release-jar-with-dependencies.jar -JdkHome D:\Program Files\BellSoft\LibericaJDK-21-Full
+jdk: LibericaJDK-21-Full major=21
+persona: MYSQL_8_0
+front_posture: 8.0.34 via host.docker.internal
+backend: m1-mysql-a MySQL 8.0.46 at localhost:3306; m1-mysql-b and m6-mariadb-a also ready
+server_pid: 16364
+maven_command: mvn -o -B -pl server,example -am test
+maven_exit: 0
+guard_result: PASS
+guard_exit: 0
+reactor: 15 modules BUILD SUCCESS; total time 18:02 min; finished 2026-11-28T04:17:16+08:00
+module_totals: config=35; protocol=no tests; common=89; router=22; plug=7; replica=13; datasource=19; va=42; proxy=56; calcite-core=5; hbt=414; executor=6; server=398; example=559 (38 skipped)
+aggregate: 1665 tests, 0 failures, 0 errors, 38 skipped
+ticket_regressions: NativeDatasourceFallbackTest=3; MycatNativeDatasourcePoolLifecycleTest=2; NativeDatasourceCapacityTest=2; VertxPoolConnectionCapacityTest=7; VertxPoolConnectionLifecycleTest=12; 26/26 zero failures/errors
+jar_sha256: 244ad7c97b8628abde63d2a2bfe8e9a40715f52f875fbcecf706078e9f3ca65d
+probe_sha256: NativeCapacityProbe.java 70fa8e8c19559939df7b92ebf1d10c19b51dc9c9c4b6ffdfb837a13b9fa789f0; verify-native-capacity.ps1 9155e4471e60e252576c4c31b9faf801600a64294034c92c2953999a9c373b0d
+review: final independent static review PASS; Critical 0, Important 0, Minor 0; reviewer did not rerun tests
+cleanup: guard stopped 8066 pid 16364 after tests
+scope: only four tracked I-DEBT-134 source/test files and ci/idebt134 evidence are ticket artifacts; unrelated .qoder, ci/iopr1 and scratch changes excluded
+conclusion: local full guard passed for the tested jar; current HEAD CI remains a separate closure gate

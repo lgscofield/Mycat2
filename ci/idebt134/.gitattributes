@@ -1,0 +1,4 @@
+*.log -text
+*.tsv -text
+*.sha256 -text
+SHA256SUMS -text

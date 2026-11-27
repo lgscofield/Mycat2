@@ -131,6 +131,8 @@ public class MycatMySQLManagerImpl extends AbstractMySQLManagerImpl {
         config.setUsername(username);
         config.setPort(port);
         config.setDatabase(connectionUrlParser.getPath());
+        config.setMaxCon(datasource.getMaxCon());
+        config.setMinCon(datasource.getMinCon());
         config.setRetry(datasource.getMaxRetryCount());
         config.setTimer(datasource.getIdleTimeout());
         config.setClientDeprecateEof(NewMycatConnectionConfig.CLIENT_DEPRECATE_EOF);

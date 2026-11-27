@@ -1,0 +1,7 @@
+round: red
+head_at_run: 730305e999587ffed36034d6203f877abd3c2d71 before I-DEBT-134 production fix
+test_command: JDK21 mvn -o -B -pl server -am -Dtest=NativeDatasourceCapacityTest,VertxPoolConnectionCapacityTest test
+result: RED; 6 tests, 6 failures, 0 errors; BUILD FAILURE
+assertions: native capacity expected 2 but was 1000; pending handshake did not reserve capacity; concurrent empty-pool check was not atomic; invalid capacities were accepted
+fixture_history: test-compile-red.log preserves the initial missing static import / generic Promise fixture compilation failure and is not behavioral RED evidence
+conclusion: behavioral RED proves the tests catch the missing native capacity propagation and pool reservation invariants
